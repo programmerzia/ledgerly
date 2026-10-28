@@ -29,7 +29,11 @@ export interface SessionSlice {
     localVersion: any;
   } | null;
 
+  isAuthenticated: boolean;
+
   // Actions
+  loginUser: (userOrId?: User | string) => void;
+  logoutUser: () => void;
   switchUser: (userId: string) => void;
   setCurrentUser: (userOrId: User | string) => void;
   switchCompany: (companyId: string) => void;
@@ -44,6 +48,13 @@ export interface SessionSlice {
   recordFailedPin: (userId: string) => void;
   resetFailedPin: (userId: string) => void;
 }
+
+const getInitialAuth = (): boolean => {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('ledgerly_tenant_auth') === 'true';
+  }
+  return false;
+};
 
 const getInitialTheme = (): 'light' | 'dark' => {
   if (typeof window !== 'undefined') {
@@ -66,6 +77,29 @@ export const createSessionSlice: StateCreator<SessionSlice, [], [], SessionSlice
   theme: getInitialTheme(),
   activeSignature: null,
   pendingConflict: null,
+  isAuthenticated: getInitialAuth(),
+
+  loginUser: (userOrId) => {
+    if (userOrId) {
+      if (typeof userOrId === 'string') {
+        const u = mockUsers.find((user) => user.id === userOrId);
+        if (u) set({ currentUser: u, activeSignature: null });
+      } else {
+        set({ currentUser: userOrId, activeSignature: null });
+      }
+    }
+    set({ isAuthenticated: true });
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('ledgerly_tenant_auth', 'true');
+    }
+  },
+
+  logoutUser: () => {
+    set({ isAuthenticated: false, activeSignature: null });
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('ledgerly_tenant_auth');
+    }
+  },
 
   switchUser: (userId) => {
     const user = mockUsers.find((u) => u.id === userId);

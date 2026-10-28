@@ -6,10 +6,11 @@ import { ShieldAlert, ArrowRight, KeyRound } from 'lucide-react';
 export const TwoFactor: React.FC = () => {
   const [code, setCode] = useState('829104');
   const navigate = useNavigate();
-  const { currentUser, currentCompany } = useLedgerlyStore();
+  const { currentUser, currentCompany, loginUser } = useLedgerlyStore();
 
   const handleVerify = (e: React.FormEvent) => {
     e.preventDefault();
+    loginUser(currentUser);
     navigate(`/${currentCompany.slug}/dashboard`);
   };
 
