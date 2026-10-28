@@ -9,6 +9,7 @@ import React, { useState, useEffect } from 'react';
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useLedgerStore, UIRowDensity } from '@/mock/store';
+import { useAdminStore } from '@/mock/store/adminStore';
 import { CommandPalette } from '@/components/domain/CommandPalette';
 import { DocumentTabStrip } from '@/components/domain/DocumentTabStrip';
 import { BottomStatusBar } from '@/components/domain/BottomStatusBar';
@@ -100,6 +101,8 @@ export const AppShell: React.FC = () => {
     activeTabId,
     openTab,
   } = useLedgerStore();
+
+  const activeImpersonation = useAdminStore((s) => s.activeImpersonation);
 
   const coSlug = currentCompany.slug;
 
@@ -259,6 +262,31 @@ export const AppShell: React.FC = () => {
   return (
     <TooltipProvider delayDuration={200}>
       <div className="h-screen max-h-screen overflow-hidden flex flex-col antialiased bg-canvas text-text-primary select-none font-sans">
+        {/* Operator Impersonation Banner */}
+        {activeImpersonation && (
+          <div className="h-8 bg-warning-soft border-b border-warning/30 px-3 flex items-center justify-between text-xs text-warning font-medium z-40 select-none shrink-0">
+            <div className="flex items-center gap-2">
+              <span className="flex h-2 w-2 rounded-full bg-warning animate-pulse shrink-0" />
+              <span>
+                <strong>OPERATOR IMPERSONATION:</strong> Viewing as staff <span className="font-mono">{activeImpersonation.adminName}</span>.
+                Mode: <span className="uppercase font-semibold">{activeImpersonation.mode}-only</span>. All tenant writes are blocked.
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  useAdminStore.getState().endImpersonation();
+                  navigate(`/admin/tenants/${activeImpersonation.tenantId}`);
+                }}
+                className="px-2 py-0.5 rounded bg-warning text-white font-medium hover:opacity-90 transition text-[11px] cursor-pointer"
+              >
+                Exit Impersonation
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* 1. Title & Status Bar: Exactly 40px high per 03_UI_Spec §10 */}
         <header className="h-10 bg-surface-elevated border-b border-border px-3 flex items-center justify-between shrink-0 z-30 select-none text-xs">
           {/* Left: Brand + Company Switcher + Period indicator */}
@@ -611,6 +639,15 @@ export const AppShell: React.FC = () => {
                 ))}
 
                 <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => {
+                    navigate('/admin');
+                  }}
+                  className="flex items-center gap-2 text-violet hover:text-violet hover:bg-violet-soft cursor-pointer font-medium text-xs"
+                >
+                  <ShieldCheck className="w-3.5 h-3.5 text-violet" />
+                  <span>Platform Admin (/admin)</span>
+                </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => {
                     toast.info('Signed out of session');
