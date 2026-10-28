@@ -12,7 +12,7 @@ import { toast } from 'sonner';
 export const AdminTwoFactor: React.FC = () => {
   const [code, setCode] = useState('771920');
   const navigate = useNavigate();
-  const { currentAdmin } = useAdminStore();
+  const { currentAdmin, loginAdmin } = useAdminStore();
 
   const handleVerify = (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,11 +20,13 @@ export const AdminTwoFactor: React.FC = () => {
       toast.error('Please enter a valid 6-digit TOTP code');
       return;
     }
+    loginAdmin(currentAdmin.id);
     toast.success(`Staff session active: Welcome back, ${currentAdmin.name}!`);
     navigate('/admin');
   };
 
   const handleWebAuthnFido = () => {
+    loginAdmin(currentAdmin.id);
     toast.success('Hardware Security Key (FIDO2) acknowledged. Cryptographic sign valid.');
     navigate('/admin');
   };

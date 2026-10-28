@@ -70,6 +70,7 @@ export const AdminShell: React.FC = () => {
     activeImpersonation,
     endImpersonation,
     getKpis,
+    logoutAdmin,
   } = useAdminStore();
 
   const { uiDensity, setUiDensity } = useLedgerStore();
@@ -253,6 +254,18 @@ export const AdminShell: React.FC = () => {
                     </div>
                   </DropdownMenuItem>
                 ))}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => {
+                    logoutAdmin();
+                    toast.info('Staff session ended');
+                    navigate('/admin/login');
+                  }}
+                  className="flex items-center gap-2 text-danger hover:text-danger hover:bg-danger-soft cursor-pointer font-medium text-xs"
+                >
+                  <LogOut className="w-3.5 h-3.5 text-danger" />
+                  <span>Sign Out Staff Session</span>
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
 

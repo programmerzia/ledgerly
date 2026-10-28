@@ -9,7 +9,7 @@ export const Login: React.FC = () => {
   const [password, setPassword] = useState('••••••••••••');
   const [selectedRole, setSelectedRole] = useState('usr-1'); // Rahim
   const navigate = useNavigate();
-  const { users, setCurrentUser } = useLedgerlyStore();
+  const { users, setCurrentUser, isAuthenticated, currentUser, currentCompany } = useLedgerlyStore();
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,6 +36,22 @@ export const Login: React.FC = () => {
             Controls-grade multi-tenant general ledger & financial controls
           </p>
         </div>
+
+        {isAuthenticated && (
+          <div className="p-3 bg-brand-50 border border-brand-200 rounded-md flex items-center justify-between text-xs">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-success inline-block" />
+              <span className="text-ink-700">Signed in as <strong>{currentUser.name}</strong></span>
+            </div>
+            <button
+              type="button"
+              onClick={() => navigate(`/${currentCompany.slug}/dashboard`)}
+              className="text-brand-600 hover:text-brand-800 font-semibold underline text-[11px] cursor-pointer"
+            >
+              Go to Dashboard →
+            </button>
+          </div>
+        )}
 
         {/* Demo Fast-Switch User Selector */}
         <div className="flex flex-col gap-2 p-3 bg-brand-50/60 rounded-md border border-brand-100">

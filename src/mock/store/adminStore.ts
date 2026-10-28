@@ -61,7 +61,11 @@ export interface AdminStoreState {
   failedJobs: typeof mockFailedJobs;
   queueMetrics: typeof mockQueueMetrics;
 
+  isAdminAuthenticated: boolean;
+
   // Actions
+  loginAdmin: (staffId?: string) => void;
+  logoutAdmin: () => void;
   switchAdminStaff: (staffId: string) => void;
   getKpis: () => PlatformKpis;
 
@@ -116,6 +120,25 @@ export const useAdminStore = create<AdminStoreState>()((set, get) => ({
   staffUsers: [...mockAdminUsers],
   activeImpersonation: null,
   selectedAdminTabId: 'tab-overview',
+  isAdminAuthenticated: typeof window !== 'undefined' ? localStorage.getItem('ledgerly_admin_auth') === 'true' : false,
+
+  loginAdmin: (staffId) => {
+    if (staffId) {
+      const staff = get().staffUsers.find((s) => s.id === staffId);
+      if (staff) set({ currentAdmin: staff });
+    }
+    set({ isAdminAuthenticated: true });
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('ledgerly_admin_auth', 'true');
+    }
+  },
+
+  logoutAdmin: () => {
+    set({ isAdminAuthenticated: false, activeImpersonation: null });
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('ledgerly_admin_auth');
+    }
+  },
 
   tenants: [...mockAdminTenants],
   plans: [...mockPlans],

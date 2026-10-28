@@ -12,7 +12,7 @@ import { toast } from 'sonner';
 
 export const AdminLogin: React.FC = () => {
   const navigate = useNavigate();
-  const { staffUsers, currentAdmin, switchAdminStaff } = useAdminStore();
+  const { staffUsers, currentAdmin, switchAdminStaff, isAdminAuthenticated } = useAdminStore();
 
   const [selectedStaffId, setSelectedStaffId] = useState(currentAdmin.id);
   const [email, setEmail] = useState(currentAdmin.email);
@@ -50,6 +50,22 @@ export const AdminLogin: React.FC = () => {
             <span>Strict 2FA + Hardware Key Enforced</span>
           </div>
         </div>
+
+        {isAdminAuthenticated && (
+          <div className="p-3 bg-violet-soft border border-violet/30 rounded-md flex items-center justify-between text-xs">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-violet inline-block" />
+              <span className="text-text-primary">Staff session: <strong>{currentAdmin.name}</strong></span>
+            </div>
+            <button
+              type="button"
+              onClick={() => navigate('/admin')}
+              className="text-violet hover:opacity-80 font-semibold underline text-[11px] cursor-pointer"
+            >
+              Go to Console →
+            </button>
+          </div>
+        )}
 
         {/* Staff Persona Fast-Selector */}
         <div className="flex flex-col gap-2 p-3 bg-violet-soft/30 rounded-md border border-violet-soft">

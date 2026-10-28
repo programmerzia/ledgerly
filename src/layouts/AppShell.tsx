@@ -100,6 +100,7 @@ export const AppShell: React.FC = () => {
     nextTab,
     activeTabId,
     openTab,
+    logoutUser,
   } = useLedgerStore();
 
   const activeImpersonation = useAdminStore((s) => s.activeImpersonation);
@@ -650,6 +651,7 @@ export const AppShell: React.FC = () => {
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => {
+                    logoutUser();
                     toast.info('Signed out of session');
                     navigate('/login');
                   }}
@@ -770,6 +772,7 @@ export const AppShell: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => {
+                      logoutUser();
                       toast.info('Signed out of session');
                       navigate('/login');
                     }}
@@ -783,6 +786,7 @@ export const AppShell: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => {
+                    logoutUser();
                     toast.info('Signed out of session');
                     navigate('/login');
                   }}

@@ -1,7 +1,9 @@
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AppShell } from './layouts/AppShell';
 import { AdminShell } from './layouts/AdminShell';
+import { useLedgerStore } from './mock/store';
+import { useAdminStore } from './mock/store/adminStore';
 
 // Tenant Auth
 import { Login } from './pages/Auth/Login';
@@ -71,6 +73,36 @@ import { FeatureFlags } from './pages/Admin/Flags/FeatureFlags';
 import { StaffSecurity } from './pages/Admin/Staff/StaffSecurity';
 import { ComplianceCenter } from './pages/Admin/Compliance/ComplianceCenter';
 
+function RequireTenantAuth() {
+  const isAuthenticated = useLedgerStore((s) => s.isAuthenticated);
+  const location = useLocation();
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+  return <AppShell />;
+}
+
+function RequireAdminAuth() {
+  const isAdminAuthenticated = useAdminStore((s) => s.isAdminAuthenticated);
+  const location = useLocation();
+
+  if (!isAdminAuthenticated) {
+    return <Navigate to="/admin/login" state={{ from: location }} replace />;
+  }
+  return <AdminShell />;
+}
+
+function RootRedirect() {
+  const isAuthenticated = useLedgerStore((s) => s.isAuthenticated);
+  const currentCompany = useLedgerStore((s) => s.currentCompany);
+
+  if (isAuthenticated) {
+    return <Navigate to={`/${currentCompany.slug}/dashboard`} replace />;
+  }
+  return <Navigate to="/login" replace />;
+}
+
 export default function App() {
   return (
     <>
@@ -85,7 +117,7 @@ export default function App() {
         <Route path="/admin/two-factor" element={<AdminTwoFactor />} />
 
         {/* Platform Admin Back-Office Console (/admin/*) */}
-        <Route path="/admin" element={<AdminShell />}>
+        <Route path="/admin" element={<RequireAdminAuth />}>
           <Route index element={<AdminDashboard />} />
           <Route path="tenants" element={<TenantsList />} />
           <Route path="tenants/:id" element={<TenantDetail />} />
@@ -102,8 +134,8 @@ export default function App() {
         </Route>
 
         {/* Main Tenant Application */}
-        <Route path="/" element={<Navigate to="/acme/dashboard" replace />} />
-        <Route path="/:co" element={<AppShell />}>
+        <Route path="/" element={<RootRedirect />} />
+        <Route path="/:co" element={<RequireTenantAuth />}>
           <Route path="dashboard" element={<Dashboard />} />
 
           {/* Sales */}
