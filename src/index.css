@@ -1,0 +1,424 @@
+@import "tailwindcss";
+
+:root {
+  --font-inter: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-jetbrains: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* Block 2 Palette (Light) */
+  --canvas: #F7F8FA;
+  --surface: #FFFFFF;
+  --surface-elevated: #FFFFFF;
+  --surface-neutral: #F1F3F6;
+  --sidebar: #FBFBFC;
+  --border: #E6E8EC;
+  --border-strong: #D5D9E0;
+
+  --text-primary: #111827;
+  --text-secondary: #4B5563;
+  --text-muted: #6B7280;
+  --text-disabled: #9CA3AF;
+
+  --accent: #2F5BEA;
+  --accent-hover: #2449C7;
+  --accent-soft: #EEF2FF;
+
+  --success: #15803D;
+  --success-soft: #DCFCE7;
+  --warning: #B45309;
+  --warning-soft: #FEF3C7;
+  --danger: #B91C1C;
+  --danger-soft: #FEE2E2;
+  --info: #1D4ED8;
+  --info-soft: #DBEAFE;
+  --violet: #6D28D9;
+  --violet-soft: #EDE9FE;
+
+  /* Elevation */
+  --shadow-sm: 0 1px 2px rgb(15 23 42 / 0.05);
+  --shadow-md: 0 4px 12px rgb(15 23 42 / 0.08);
+  --shadow-lg: 0 12px 32px rgb(15 23 42 / 0.14);
+}
+
+[data-theme="dark"] {
+  /* Block 2 Palette (Dark) */
+  --canvas: #0B0F17;
+  --surface: #111827;
+  --surface-elevated: #161E2E;
+  --surface-neutral: #1A2333;
+  --sidebar: #0E131C;
+  --border: #1F2937;
+  --border-strong: #2B3647;
+
+  --text-primary: #F3F4F6;
+  --text-secondary: #C7CDD6;
+  --text-muted: #8B93A1;
+  --text-disabled: #555E6D;
+
+  --accent: #6D8CF5;
+  --accent-hover: #5B82F0;
+  --accent-soft: rgba(109, 140, 245, 0.18);
+
+  --success: #4ADE80;
+  --success-soft: rgba(74, 222, 128, 0.18);
+  --warning: #FBBF24;
+  --warning-soft: rgba(251, 191, 36, 0.18);
+  --danger: #F87171;
+  --danger-soft: rgba(248, 113, 113, 0.18);
+  --info: #60A5FA;
+  --info-soft: rgba(96, 165, 250, 0.18);
+  --violet: #A78BFA;
+  --violet-soft: rgba(167, 139, 250, 0.18);
+
+  /* Dark mode elevation: 1px border-strong instead of shadow per spec */
+  --shadow-sm: 0 0 0 1px var(--border);
+  --shadow-md: 0 0 0 1px var(--border-strong);
+  --shadow-lg: 0 0 0 1px var(--border-strong);
+}
+
+[data-theme="midnight"] {
+  /* Midnight Navy Financial Theme */
+  --canvas: #070D1E;
+  --surface: #0E172E;
+  --surface-elevated: #14203D;
+  --surface-neutral: #172445;
+  --sidebar: #091124;
+  --border: #1E2E50;
+  --border-strong: #2A3E6D;
+
+  --text-primary: #F0F4FC;
+  --text-secondary: #BDC8E2;
+  --text-muted: #7E8EAF;
+  --text-disabled: #465575;
+
+  --accent: #3B82F6;
+  --accent-hover: #2563EB;
+  --accent-soft: rgba(59, 130, 246, 0.18);
+
+  --success: #34D399;
+  --success-soft: rgba(52, 211, 153, 0.18);
+  --warning: #FBBF24;
+  --warning-soft: rgba(251, 191, 36, 0.18);
+  --danger: #F87171;
+  --danger-soft: rgba(248, 113, 113, 0.18);
+  --info: #60A5FA;
+  --info-soft: rgba(96, 165, 250, 0.18);
+  --violet: #A78BFA;
+  --violet-soft: rgba(167, 139, 250, 0.18);
+
+  --shadow-sm: 0 0 0 1px var(--border);
+  --shadow-md: 0 0 0 1px var(--border-strong);
+  --shadow-lg: 0 0 0 1px var(--border-strong);
+}
+
+[data-theme="forest"] {
+  /* Forest Emerald Wealth & Fund Theme */
+  --canvas: #07130C;
+  --surface: #0E2015;
+  --surface-elevated: #142C1E;
+  --surface-neutral: #193827;
+  --sidebar: #09170E;
+  --border: #1F4530;
+  --border-strong: #2A5C41;
+
+  --text-primary: #F0FDF4;
+  --text-secondary: #BBF7D0;
+  --text-muted: #6EE7B7;
+  --text-disabled: #37634C;
+
+  --accent: #10B981;
+  --accent-hover: #059669;
+  --accent-soft: rgba(16, 185, 129, 0.18);
+
+  --success: #34D399;
+  --success-soft: rgba(52, 211, 153, 0.18);
+  --warning: #FBBF24;
+  --warning-soft: rgba(251, 191, 36, 0.18);
+  --danger: #F87171;
+  --danger-soft: rgba(248, 113, 113, 0.18);
+  --info: #38BDF8;
+  --info-soft: rgba(56, 189, 248, 0.18);
+  --violet: #A78BFA;
+  --violet-soft: rgba(167, 139, 250, 0.18);
+
+  --shadow-sm: 0 0 0 1px var(--border);
+  --shadow-md: 0 0 0 1px var(--border-strong);
+  --shadow-lg: 0 0 0 1px var(--border-strong);
+}
+
+[data-theme="sepia"] {
+  /* Warm Sepia / Traditional Accounting Paper Theme */
+  --canvas: #F8F5EE;
+  --surface: #FFFFFF;
+  --surface-elevated: #FAF8F2;
+  --surface-neutral: #EDE7DB;
+  --sidebar: #F4EFE6;
+  --border: #E2D7C5;
+  --border-strong: #CEBEA7;
+
+  --text-primary: #292218;
+  --text-secondary: #564836;
+  --text-muted: #7D6B53;
+  --text-disabled: #A89880;
+
+  --accent: #B45309;
+  --accent-hover: #92400E;
+  --accent-soft: #FEF3C7;
+
+  --success: #15803D;
+  --success-soft: #DCFCE7;
+  --warning: #B45309;
+  --warning-soft: #FEF3C7;
+  --danger: #B91C1C;
+  --danger-soft: #FEE2E2;
+  --info: #1D4ED8;
+  --info-soft: #DBEAFE;
+  --violet: #6D28D9;
+  --violet-soft: #EDE9FE;
+
+  --shadow-sm: 0 1px 2px rgb(41 34 24 / 0.05);
+  --shadow-md: 0 4px 12px rgb(41 34 24 / 0.08);
+  --shadow-lg: 0 12px 32px rgb(41 34 24 / 0.14);
+}
+
+@theme {
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-surface-neutral: var(--surface-neutral);
+  --color-sidebar: var(--sidebar);
+  
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-line-border: var(--border);
+  --color-surface-canvas: var(--canvas);
+  --color-surface-subtle: var(--canvas);
+
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-text-disabled: var(--text-disabled);
+
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
+
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-violet: var(--violet);
+  --color-violet-soft: var(--violet-soft);
+
+  /* Semantic backgrounds & retro-compat tokens */
+  --color-ink-900: var(--text-primary);
+  --color-ink-700: var(--text-secondary);
+  --color-ink-500: var(--text-muted);
+  --color-ink-300: var(--border-strong);
+  --color-ink-200: var(--border);
+  --color-ink-100: var(--surface-neutral);
+  --color-ink-50: var(--canvas);
+
+  --color-brand-50: var(--accent-soft);
+  --color-brand-100: var(--accent-soft);
+  --color-brand-500: var(--accent);
+  --color-brand-600: var(--accent-hover);
+  --color-brand-700: var(--accent-hover);
+  --color-brand-teal: var(--accent);
+  --color-brand-cyan: var(--accent);
+
+  --color-success-bg: var(--success-soft);
+  --color-warning-bg: var(--warning-soft);
+  --color-danger-bg: var(--danger-soft);
+  --color-info-bg: var(--info-soft);
+  --color-reversed: var(--violet);
+  --color-reversed-bg: var(--violet-soft);
+  --color-draft: var(--text-muted);
+  --color-draft-bg: var(--surface-neutral);
+
+  --color-sentiment-positive: var(--success);
+  --color-sentiment-warning: var(--warning);
+  --color-sentiment-danger: var(--danger);
+
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-jetbrains);
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+}
+
+body {
+  font-family: var(--font-inter);
+  font-feature-settings: "tnum" 1, "cv11" 1;
+  background-color: var(--canvas);
+  color: var(--text-primary);
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 03_UI_Spec §3 Typography Scale */
+.text-display {
+  font-size: 30px;
+  line-height: 36px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.text-h1 {
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.text-h2 {
+  font-size: 18px;
+  line-height: 28px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.text-h3 {
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.text-body {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 400;
+}
+
+.text-table-cell {
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 400;
+}
+
+.text-col-header {
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.text-num {
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 500;
+  font-family: var(--font-jetbrains);
+  font-feature-settings: "tnum" 1;
+}
+
+/* Controls-grade table styling: dense 36px rows per spec */
+.table-dense tr {
+  height: 36px;
+}
+
+.table-dense th {
+  height: 32px;
+  padding: 6px 12px;
+}
+
+.table-dense td {
+  height: 36px;
+  padding: 6px 12px;
+}
+
+/* Focus visible styling matching 03_UI_Spec §6 and Block 7.2 */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Block 7.1: Transitions 120 ms ease-out for hover and 160 ms for overlays; respect reduced motion */
+button, a, input, select, textarea, [role="button"] {
+  transition-property: color, background-color, border-color, opacity, box-shadow, transform;
+  transition-duration: 120ms;
+  transition-timing-function: cubic-bezier(0, 0, 0.2, 1);
+}
+
+[data-state="open"], [data-state="closed"] {
+  transition-duration: 160ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Sleek custom scrollbars for enterprise UI */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* Print optimization for controls-grade invoices and audit certificates */
+@media print {
+  nav,
+  aside,
+  header,
+  footer,
+  .no-print,
+  [data-sonner-toaster],
+  button {
+    display: none !important;
+  }
+
+  body,
+  html,
+  #root,
+  main {
+    background: white !important;
+    color: black !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    overflow: visible !important;
+  }
+
+  [data-slot="sheet-overlay"],
+  [data-radix-dialog-overlay] {
+    display: none !important;
+  }
+
+  [data-slot="sheet-content"] {
+    position: static !important;
+    max-width: 100% !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    transform: none !important;
+  }
+
+  .page-break-inside-avoid,
+  table,
+  tr {
+    break-inside: avoid;
+  }
+}
+
+
