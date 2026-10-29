@@ -61,11 +61,11 @@ export const ComplianceCenter: React.FC = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-1.5 border-b border-border text-xs">
+      <div className="flex items-center gap-1.5 border-b border-border text-xs overflow-x-auto no-scrollbar flex-nowrap">
         <button
           type="button"
           onClick={() => setActiveTab('gdpr')}
-          className={`px-3 py-1.5 border-b-2 font-medium flex items-center gap-1.5 transition cursor-pointer ${
+          className={`px-3 py-1.5 border-b-2 font-medium flex items-center gap-1.5 transition cursor-pointer shrink-0 whitespace-nowrap ${
             activeTab === 'gdpr'
               ? 'border-violet text-violet font-semibold'
               : 'border-transparent text-text-muted hover:text-text-primary'
@@ -78,7 +78,7 @@ export const ComplianceCenter: React.FC = () => {
         <button
           type="button"
           onClick={() => setActiveTab('residency')}
-          className={`px-3 py-1.5 border-b-2 font-medium flex items-center gap-1.5 transition cursor-pointer ${
+          className={`px-3 py-1.5 border-b-2 font-medium flex items-center gap-1.5 transition cursor-pointer shrink-0 whitespace-nowrap ${
             activeTab === 'residency'
               ? 'border-violet text-violet font-semibold'
               : 'border-transparent text-text-muted hover:text-text-primary'
@@ -91,7 +91,7 @@ export const ComplianceCenter: React.FC = () => {
         <button
           type="button"
           onClick={() => setActiveTab('dpa_tracker')}
-          className={`px-3 py-1.5 border-b-2 font-medium flex items-center gap-1.5 transition cursor-pointer ${
+          className={`px-3 py-1.5 border-b-2 font-medium flex items-center gap-1.5 transition cursor-pointer shrink-0 whitespace-nowrap ${
             activeTab === 'dpa_tracker'
               ? 'border-violet text-violet font-semibold'
               : 'border-transparent text-text-muted hover:text-text-primary'

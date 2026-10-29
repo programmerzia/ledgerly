@@ -124,11 +124,11 @@ export const BillingOps: React.FC = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-1.5 border-b border-border text-xs">
+      <div className="flex items-center gap-1.5 border-b border-border text-xs overflow-x-auto no-scrollbar flex-nowrap">
         <button
           type="button"
           onClick={() => setActiveTab('invoices')}
-          className={`px-3 py-1.5 border-b-2 font-medium flex items-center gap-1.5 transition cursor-pointer ${
+          className={`px-3 py-1.5 border-b-2 font-medium flex items-center gap-1.5 transition cursor-pointer shrink-0 whitespace-nowrap ${
             activeTab === 'invoices'
               ? 'border-violet text-violet font-semibold'
               : 'border-transparent text-text-muted hover:text-text-primary'
@@ -140,7 +140,7 @@ export const BillingOps: React.FC = () => {
         <button
           type="button"
           onClick={() => setActiveTab('refunds_queue')}
-          className={`px-3 py-1.5 border-b-2 font-medium flex items-center gap-1.5 transition cursor-pointer ${
+          className={`px-3 py-1.5 border-b-2 font-medium flex items-center gap-1.5 transition cursor-pointer shrink-0 whitespace-nowrap ${
             activeTab === 'refunds_queue'
               ? 'border-violet text-violet font-semibold'
               : 'border-transparent text-text-muted hover:text-text-primary'
@@ -157,7 +157,7 @@ export const BillingOps: React.FC = () => {
         <button
           type="button"
           onClick={() => setActiveTab('dunning')}
-          className={`px-3 py-1.5 border-b-2 font-medium flex items-center gap-1.5 transition cursor-pointer ${
+          className={`px-3 py-1.5 border-b-2 font-medium flex items-center gap-1.5 transition cursor-pointer shrink-0 whitespace-nowrap ${
             activeTab === 'dunning'
               ? 'border-violet text-violet font-semibold'
               : 'border-transparent text-text-muted hover:text-text-primary'
@@ -169,7 +169,7 @@ export const BillingOps: React.FC = () => {
         <button
           type="button"
           onClick={() => setActiveTab('tax_recon')}
-          className={`px-3 py-1.5 border-b-2 font-medium flex items-center gap-1.5 transition cursor-pointer ${
+          className={`px-3 py-1.5 border-b-2 font-medium flex items-center gap-1.5 transition cursor-pointer shrink-0 whitespace-nowrap ${
             activeTab === 'tax_recon'
               ? 'border-violet text-violet font-semibold'
               : 'border-transparent text-text-muted hover:text-text-primary'

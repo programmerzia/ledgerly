@@ -125,7 +125,7 @@ export const SupportCenter: React.FC = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-1.5 border-b border-border text-xs">
+      <div className="flex items-center gap-1.5 border-b border-border text-xs overflow-x-auto no-scrollbar flex-nowrap shrink-0 whitespace-nowrap">
         <button
           type="button"
           onClick={() => setActiveTab('failed_jobs')}

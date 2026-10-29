@@ -96,10 +96,10 @@ export const AdminDashboard: React.FC = () => {
   return (
     <div className="flex-1 flex flex-col p-4 space-y-4 max-w-7xl mx-auto w-full select-none text-text-primary">
       {/* Top Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-border">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2 border-b border-border">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-lg font-bold tracking-tight">Platform Executive Overview</h1>
+            <h1 className="text-base sm:text-lg font-bold tracking-tight">Platform Executive Overview</h1>
             <span className="px-2 py-0.5 rounded-full bg-violet-soft text-violet text-[10px] font-mono font-semibold uppercase">
               Stripe Mirrored
             </span>
@@ -109,14 +109,15 @@ export const AdminDashboard: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
             onClick={handleExportAsc606}
             className="h-7 px-2.5 rounded-sm bg-surface border border-border hover:border-border-strong text-text-secondary hover:text-text-primary text-xs font-medium flex items-center gap-1.5 transition cursor-pointer"
           >
             <Download className="w-3.5 h-3.5 text-text-muted" />
-            <span>Export ASC 606 Schedule</span>
+            <span className="hidden sm:inline">Export ASC 606 Schedule</span>
+            <span className="sm:hidden">Export ASC 606</span>
           </button>
 
           <button
@@ -133,31 +134,31 @@ export const AdminDashboard: React.FC = () => {
       </div>
 
       {/* KPI Cards Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2.5">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-2.5">
         {/* Card 1: MRR */}
-        <div className="p-3 rounded bg-surface border border-border flex flex-col justify-between">
-          <div className="flex items-center justify-between text-text-muted text-[11px]">
-            <span>Monthly Recurring</span>
-            <DollarSign className="w-3.5 h-3.5 text-violet" />
+        <div className="p-2.5 sm:p-3 rounded bg-surface border border-border flex flex-col justify-between">
+          <div className="flex items-center justify-between text-text-muted text-[10px] sm:text-[11px]">
+            <span className="truncate">Monthly Recurring</span>
+            <DollarSign className="w-3.5 h-3.5 text-violet shrink-0" />
           </div>
           <div className="mt-1">
-            <div className="text-xl font-bold font-mono tracking-tight text-text-primary">
+            <div className="text-lg sm:text-xl font-bold font-mono tracking-tight text-text-primary">
               ${(kpis.mrr / 100).toLocaleString('en-US', { minimumFractionDigits: 0 })}
             </div>
-            <div className="flex items-center gap-1 text-[10px] text-success mt-0.5 font-medium">
-              <TrendingUp className="w-3 h-3" />
+            <div className="flex items-center gap-1 text-[9px] sm:text-[10px] text-success mt-0.5 font-medium truncate">
+              <TrendingUp className="w-3 h-3 shrink-0" />
               <span>+18.4% vs last mo</span>
             </div>
           </div>
-          <div className="text-[10px] text-text-muted mt-1 font-mono pt-1 border-t border-border/60">
+          <div className="text-[9px] sm:text-[10px] text-text-muted mt-1 font-mono pt-1 border-t border-border/60 truncate">
             Net: +${(kpis.netNewMrr / 100).toLocaleString()}
           </div>
         </div>
 
         {/* Card 2: ARR */}
-        <div className="p-3 rounded bg-surface border border-border flex flex-col justify-between">
-          <div className="flex items-center justify-between text-text-muted text-[11px]">
-            <span>Annual Run-Rate</span>
+        <div className="p-2.5 sm:p-3 rounded bg-surface border border-border flex flex-col justify-between">
+          <div className="flex items-center justify-between text-text-muted text-[10px] sm:text-[11px]">
+            <span className="truncate">Annual Run-Rate</span>
             <TrendingUp className="w-3.5 h-3.5 text-accent" />
           </div>
           <div className="mt-1">
@@ -290,9 +291,10 @@ export const AdminDashboard: React.FC = () => {
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.6} />
                 <XAxis
                   dataKey="month"
-                  tick={{ fontSize: 10, fill: 'var(--text-muted)' }}
+                  tick={{ fontSize: 9, fill: 'var(--text-muted)' }}
                   tickLine={false}
                   axisLine={{ stroke: 'var(--border)' }}
+                  minTickGap={16}
                 />
                 <YAxis
                   tick={{ fontSize: 10, fill: 'var(--text-muted)' }}
@@ -415,17 +417,17 @@ export const AdminDashboard: React.FC = () => {
 
             <div className="space-y-1.5 max-h-40 overflow-y-auto no-scrollbar divide-y divide-border/40">
               {auditEvents.slice(0, 4).map((event) => (
-                <div key={event.id} className="pt-1.5 first:pt-0 flex items-start justify-between text-xs">
-                  <div className="flex flex-col">
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-mono text-[10px] font-semibold text-violet uppercase px-1 py-0.2 rounded bg-violet-soft">
+                <div key={event.id} className="pt-2 first:pt-0 flex flex-col sm:flex-row sm:items-start justify-between gap-1 text-xs">
+                  <div className="flex flex-col min-w-0">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="font-mono text-[9px] sm:text-[10px] font-semibold text-violet uppercase px-1 py-0.2 rounded bg-violet-soft shrink-0">
                         {event.action.replace('_', ' ')}
                       </span>
-                      <span className="text-text-primary font-medium text-[11px]">{event.adminName}</span>
+                      <span className="text-text-primary font-medium text-[11px] truncate">{event.adminName}</span>
                     </div>
                     <span className="text-[10px] text-text-muted mt-0.5 line-clamp-1">{event.reason}</span>
                   </div>
-                  <div className="flex flex-col items-end shrink-0 font-mono text-[10px] text-text-muted">
+                  <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start shrink-0 font-mono text-[10px] text-text-muted">
                     <span>{new Date(event.occurredAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                     <span className="text-[9px] text-text-muted truncate max-w-[70px]">#{event.hash.slice(0, 6)}</span>
                   </div>

@@ -121,24 +121,24 @@ export const InvoiceForm: React.FC = () => {
   return (
     <div className="flex flex-col gap-5">
       {/* Top Header */}
-      <div className="flex items-center justify-between pb-4 border-b border-ink-200">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-ink-200">
         <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={() => navigate(`/${coSlug}/invoices`)}
-            className="p-1.5 rounded-sm border border-ink-200 hover:bg-ink-100 text-ink-500 hover:text-ink-900 transition-colors"
+            className="p-1.5 rounded-sm border border-ink-200 hover:bg-ink-100 text-ink-500 hover:text-ink-900 transition-colors shrink-0"
           >
             <ArrowLeft className="w-4 h-4" />
           </button>
           <div>
-            <h1 className="text-h1 font-bold text-ink-900">New Sales Invoice</h1>
+            <h1 className="text-xl sm:text-h1 font-bold text-ink-900">New Sales Invoice</h1>
             <p className="text-xs text-ink-500 mt-0.5">
               Draft document • Autosaved locally • Dual-control approval required
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2.5">
           <button
             type="button"
             onClick={() => handleSubmit(false)}

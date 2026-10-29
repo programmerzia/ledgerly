@@ -72,15 +72,23 @@ import {
   Palette,
   Rows3,
   LogOut,
+  X,
+  Menu,
 } from 'lucide-react';
 
 export const AppShell: React.FC = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isCommandOpen, setIsCommandOpen] = useState(false);
   const [currentTime, setCurrentTime] = useState('');
 
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Close mobile drawer on route change
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
 
   const {
     currentUser,
@@ -289,26 +297,38 @@ export const AppShell: React.FC = () => {
         )}
 
         {/* 1. Title & Status Bar: Exactly 40px high per 03_UI_Spec §10 */}
-        <header className="h-10 bg-surface-elevated border-b border-border px-3 flex items-center justify-between shrink-0 z-30 select-none text-xs">
+        <header className="h-10 bg-surface-elevated border-b border-border px-2 sm:px-3 flex items-center justify-between shrink-0 z-30 select-none text-xs">
           {/* Left: Brand + Company Switcher + Period indicator */}
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0">
             <Tooltip>
               <TooltipTrigger asChild>
                 <button
                   type="button"
-                  onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                  className="p-1 text-text-muted hover:text-text-primary rounded-sm hover:bg-surface-neutral transition"
+                  onClick={() => {
+                    if (window.innerWidth < 1024) {
+                      setMobileMenuOpen(!mobileMenuOpen);
+                    } else {
+                      setSidebarCollapsed(!sidebarCollapsed);
+                    }
+                  }}
+                  className="p-1 text-text-muted hover:text-text-primary rounded-sm hover:bg-surface-neutral transition cursor-pointer"
+                  aria-label="Toggle Navigation"
                 >
-                  {sidebarCollapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
+                  <span className="lg:hidden">
+                    {mobileMenuOpen ? <PanelLeftClose className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+                  </span>
+                  <span className="hidden lg:inline">
+                    {sidebarCollapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
+                  </span>
                 </button>
               </TooltipTrigger>
-              <TooltipContent shortcut="[">Toggle Sidebar</TooltipContent>
+              <TooltipContent shortcut="[">Toggle Navigation</TooltipContent>
             </Tooltip>
 
             {/* Logo */}
             <div
               onClick={() => navigate(`/${coSlug}/dashboard`)}
-              className="flex items-center gap-1.5 cursor-pointer font-bold text-text-primary tracking-tight"
+              className="flex items-center gap-1.5 cursor-pointer font-bold text-text-primary tracking-tight shrink-0"
             >
               <div className="w-5 h-5 rounded bg-accent flex items-center justify-center text-white font-extrabold text-[11px] shadow-xs">
                 L
@@ -316,21 +336,21 @@ export const AppShell: React.FC = () => {
               <span className="hidden sm:inline font-semibold">Ledgerly</span>
             </div>
 
-            <span className="text-border">/</span>
+            <span className="text-border hidden sm:inline">/</span>
 
             {/* Company Switcher via Radix DropdownMenu (Opaque, Portal-rendered) */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
                   type="button"
-                  className="flex items-center gap-1.5 h-7 px-2.5 rounded-sm border border-border hover:border-border-strong bg-surface font-medium text-text-primary transition outline-none focus:ring-1 focus:ring-accent"
+                  className="flex items-center gap-1 sm:gap-1.5 h-7 px-1.5 sm:px-2.5 rounded-sm border border-border hover:border-border-strong bg-surface font-medium text-text-primary transition outline-none focus:ring-1 focus:ring-accent shrink-0"
                 >
-                  <Building className="w-3.5 h-3.5 text-accent" />
-                  <span className="max-w-[130px] truncate">{currentCompany.name}</span>
-                  <span className="text-[10px] font-mono text-text-muted bg-surface-neutral px-1 py-0.5 rounded">
+                  <Building className="w-3.5 h-3.5 text-accent shrink-0" />
+                  <span className="max-w-[85px] sm:max-w-[130px] truncate">{currentCompany.name}</span>
+                  <span className="hidden sm:inline text-[10px] font-mono text-text-muted bg-surface-neutral px-1 py-0.5 rounded">
                     {currentCompany.base_currency}
                   </span>
-                  <ChevronDown className="w-3 h-3 text-text-muted opacity-60" />
+                  <ChevronDown className="w-3 h-3 text-text-muted opacity-60 shrink-0" />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-64">
@@ -402,7 +422,7 @@ export const AppShell: React.FC = () => {
           </div>
 
           {/* Right: Online/Offline, Outbox, Clock, Density, Theme, User Switcher */}
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
             {/* Offline Toggle Simulation */}
             <Tooltip>
               <TooltipTrigger asChild>
@@ -410,16 +430,16 @@ export const AppShell: React.FC = () => {
                   type="button"
                   onClick={() => toggleOffline()}
                   className={cn(
-                    'flex items-center gap-1 h-7 px-2 rounded-sm border transition text-[11px] font-mono',
+                    'flex items-center gap-1 h-7 px-1.5 sm:px-2 rounded-sm border transition text-[11px] font-mono shrink-0',
                     isOffline
                       ? 'bg-warning-soft border-warning text-warning font-semibold'
                       : 'bg-surface border-border text-text-muted hover:text-text-primary'
                   )}
                 >
-                  {isOffline ? <CloudOff className="w-3.5 h-3.5 text-warning" /> : <Cloud className="w-3.5 h-3.5 text-success" />}
-                  <span>{isOffline ? 'Offline' : 'Online'}</span>
+                  {isOffline ? <CloudOff className="w-3.5 h-3.5 text-warning shrink-0" /> : <Cloud className="w-3.5 h-3.5 text-success shrink-0" />}
+                  <span className="hidden sm:inline">{isOffline ? 'Offline' : 'Online'}</span>
                   {outbox.length > 0 && (
-                    <span className="bg-warning text-white px-1.5 rounded-full text-[10px] font-bold">
+                    <span className="bg-warning text-white px-1 sm:px-1.5 rounded-full text-[10px] font-bold">
                       {outbox.length}
                     </span>
                   )}
@@ -597,12 +617,12 @@ export const AppShell: React.FC = () => {
               <DropdownMenuTrigger asChild>
                 <button
                   type="button"
-                  className="flex items-center gap-1.5 h-7 px-2 rounded-sm border border-border hover:border-border-strong bg-surface text-text-primary transition outline-none focus:ring-1 focus:ring-accent"
+                  className="flex items-center gap-1.5 h-7 px-1.5 sm:px-2 rounded-sm border border-border hover:border-border-strong bg-surface text-text-primary transition outline-none focus:ring-1 focus:ring-accent shrink-0"
                 >
-                  <div className="w-4 h-4 rounded-full bg-accent text-white flex items-center justify-center font-bold text-[9px]">
+                  <div className="w-4 h-4 rounded-full bg-accent text-white flex items-center justify-center font-bold text-[9px] shrink-0">
                     {currentUser.avatar}
                   </div>
-                  <span className="max-w-[90px] truncate font-medium text-xs">{currentUser.name.split(' ')[0]}</span>
+                  <span className="hidden sm:inline max-w-[90px] truncate font-medium text-xs">{currentUser.name.split(' ')[0]}</span>
                   <ChevronDown className="w-3 h-3 text-text-muted opacity-60" />
                 </button>
               </DropdownMenuTrigger>
@@ -669,14 +689,43 @@ export const AppShell: React.FC = () => {
         <DocumentTabStrip />
 
         {/* 3. Main Body: Sidebar + Full Width Workspace */}
-        <div className="flex-1 flex overflow-hidden">
-          {/* Left Sidebar: 232px or 56px collapsed per Block 3.2 */}
+        <div className="flex-1 flex overflow-hidden relative">
+          {/* Mobile Backdrop */}
+          {mobileMenuOpen && (
+            <div
+              className="fixed inset-0 bg-black/50 backdrop-blur-xs z-40 lg:hidden transition-opacity"
+              onClick={() => setMobileMenuOpen(false)}
+              aria-hidden="true"
+            />
+          )}
+
+          {/* Left Sidebar: Drawer on <lg, inline 232px/56px on lg+ */}
           <aside
             className={cn(
-              'bg-sidebar border-r border-border transition-all duration-150 ease-in-out flex flex-col justify-between shrink-0 select-none z-20',
-              sidebarCollapsed ? 'w-14' : 'w-[232px]'
+              'bg-sidebar border-r border-border transition-all duration-200 ease-in-out flex flex-col justify-between shrink-0 select-none',
+              'fixed inset-y-0 left-0 z-50 w-64 shadow-2xl lg:shadow-none lg:static lg:z-20',
+              mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
+              sidebarCollapsed ? 'lg:w-14' : 'lg:w-[232px]'
             )}
           >
+            {/* Mobile Drawer Header */}
+            <div className="lg:hidden flex items-center justify-between p-3 border-b border-border bg-surface-neutral/30 shrink-0">
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 rounded bg-accent flex items-center justify-center text-white font-extrabold text-[11px] shadow-xs">
+                  L
+                </div>
+                <span className="font-semibold text-xs text-text-primary">Navigation Menu</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setMobileMenuOpen(false)}
+                className="p-1 rounded text-text-muted hover:text-text-primary hover:bg-surface-neutral cursor-pointer"
+                aria-label="Close menu"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
             {/* Navigation Items */}
             <div className="overflow-y-auto py-2 px-2 flex flex-col gap-3">
               {navSections.map((sec, idx) => (
@@ -814,7 +863,7 @@ export const AppShell: React.FC = () => {
           </aside>
 
           {/* Content Workspace: FULL WIDTH per Block 3.4 (no max-w, no mx-auto, padding 20px) */}
-          <main className="flex-1 overflow-y-auto bg-canvas p-5">
+          <main className="flex-1 overflow-y-auto bg-canvas p-3 sm:p-4 md:p-5">
             <div className="w-full h-full">
               <Outlet />
             </div>

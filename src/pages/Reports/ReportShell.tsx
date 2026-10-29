@@ -86,28 +86,28 @@ export const ReportShell: React.FC<ReportShellProps> = ({
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden bg-canvas">
       {/* 1. Header Toolbar */}
-      <div className="h-10 border-b border-border px-4 flex items-center justify-between shrink-0 bg-surface">
-        <div className="flex items-center gap-3">
-          <BarChart3 className="w-4 h-4 text-accent" />
-          <div className="flex items-baseline gap-2">
+      <div className="min-h-10 py-1.5 border-b border-border px-3 sm:px-4 flex flex-wrap items-center justify-between gap-2 shrink-0 bg-surface">
+        <div className="flex items-center gap-2.5">
+          <BarChart3 className="w-4 h-4 text-accent shrink-0" />
+          <div className="flex flex-wrap items-baseline gap-1.5">
             <h1 className="text-sm font-semibold text-text-primary leading-tight">{title}</h1>
-            <span className="text-[11px] text-text-muted leading-tight">{subtitle}</span>
+            <span className="hidden sm:inline text-[11px] text-text-muted leading-tight">{subtitle}</span>
           </div>
         </div>
 
         {/* Toolbar buttons */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2">
           <button
             type="button"
             onClick={() => setParamsExpanded(!paramsExpanded)}
-            className={`flex items-center gap-1.5 h-7 px-2.5 rounded-sm border text-xs font-medium transition ${
+            className={`flex items-center gap-1.5 h-7 px-2.5 rounded-sm border text-xs font-medium transition cursor-pointer ${
               paramsExpanded
                 ? 'border-accent bg-accent-soft text-accent'
                 : 'border-border bg-surface hover:bg-surface-neutral text-text-primary'
             }`}
           >
             <SlidersHorizontal className="w-3.5 h-3.5" />
-            <span>Parameters (280px)</span>
+            <span>Parameters</span>
             <ChevronDown className={`w-3 h-3 transition ${paramsExpanded ? 'rotate-180' : ''}`} />
           </button>
 
@@ -115,52 +115,59 @@ export const ReportShell: React.FC<ReportShellProps> = ({
             type="button"
             onClick={handleRun}
             disabled={isRunning}
-            className="flex items-center gap-1.5 h-7 px-3 rounded-sm bg-accent hover:bg-accent-hover text-white text-xs font-semibold shadow-xs transition"
+            className="flex items-center gap-1.5 h-7 px-3 rounded-sm bg-accent hover:bg-accent-hover text-white text-xs font-semibold shadow-xs transition cursor-pointer"
             title="Recompute Report (F5)"
           >
             <RefreshCw className={`w-3 h-3 ${isRunning ? 'animate-spin' : ''}`} />
-            <span>Run (F5)</span>
+            <span>Run</span>
+            <span className="hidden sm:inline">(F5)</span>
           </button>
 
-          <span className="text-border">|</span>
+          <span className="text-border hidden sm:inline">|</span>
 
           <button
             type="button"
             onClick={exportCsv}
-            className="flex items-center gap-1.5 h-7 px-2.5 rounded-sm border border-border bg-surface hover:bg-surface-neutral text-text-primary text-xs font-medium transition"
+            className="flex items-center gap-1.5 h-7 px-2.5 rounded-sm border border-border bg-surface hover:bg-surface-neutral text-text-primary text-xs font-medium transition cursor-pointer"
           >
             <Download className="w-3 h-3 text-text-muted" />
-            <span>Export</span>
+            <span className="hidden sm:inline">Export</span>
           </button>
 
           <button
             type="button"
             onClick={() => window.print()}
-            className="flex items-center gap-1.5 h-7 px-2.5 rounded-sm border border-border bg-surface hover:bg-surface-neutral text-text-primary text-xs font-medium transition"
+            className="flex items-center gap-1.5 h-7 px-2.5 rounded-sm border border-border bg-surface hover:bg-surface-neutral text-text-primary text-xs font-medium transition cursor-pointer"
           >
             <Printer className="w-3 h-3 text-text-muted" />
-            <span>Print</span>
+            <span className="hidden sm:inline">Print</span>
           </button>
         </div>
       </div>
 
       {/* 2. Workspace Body: Left 280px Parameter Pane (Collapsible) + Full Width Report */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden relative">
         {/* Left 280px Parameter Panel */}
         {paramsExpanded && (
-          <aside className="w-[280px] shrink-0 border-r border-border bg-surface p-4 flex flex-col gap-4 text-xs overflow-y-auto animate-in slide-in-from-left duration-150">
-            <div className="flex items-center justify-between border-b border-border pb-2">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">
-                Report Parameters
-              </span>
-              <button
-                type="button"
-                onClick={() => setParamsExpanded(false)}
-                className="text-text-muted hover:text-text-primary text-[11px]"
-              >
-                Collapse ✕
-              </button>
-            </div>
+          <>
+            {/* Mobile backdrop */}
+            <div
+              className="fixed inset-0 bg-black/40 z-30 md:hidden"
+              onClick={() => setParamsExpanded(false)}
+            />
+            <aside className="fixed inset-y-0 left-0 z-40 w-72 md:static md:w-[280px] shrink-0 border-r border-border bg-surface p-4 flex flex-col gap-4 text-xs overflow-y-auto shadow-xl md:shadow-none animate-in slide-in-from-left duration-150">
+              <div className="flex items-center justify-between border-b border-border pb-2">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">
+                  Report Parameters
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setParamsExpanded(false)}
+                  className="text-text-muted hover:text-text-primary text-[11px] cursor-pointer"
+                >
+                  Collapse ✕
+                </button>
+              </div>
 
             {/* Period or As-Of */}
             <div className="flex flex-col gap-1">
@@ -236,24 +243,25 @@ export const ReportShell: React.FC<ReportShellProps> = ({
               </label>
             </div>
           </aside>
-        )}
+        </>
+      )}
 
-        {/* 3. Report Results Workspace (Full Width) */}
-        <main className="flex-1 overflow-y-auto p-5 flex flex-col gap-4">
-          {children}
-        </main>
-      </div>
+      {/* 3. Report Results Workspace (Full Width) */}
+      <main className="flex-1 overflow-y-auto p-3 sm:p-5 flex flex-col gap-4">
+        {children}
+      </main>
+    </div>
 
-      {/* 4. Controls-grade Audit Footer */}
-      <div className="h-6 px-4 border-t border-border bg-surface-neutral flex items-center justify-between shrink-0 text-[11px] text-text-muted font-mono select-none">
-        <div className="flex items-center gap-2">
-          <Clock className="w-3 h-3 text-accent" />
-          <span>Computed dynamically in {computedMs} ms from {totalLinesScanned} posted journal lines</span>
-        </div>
-        <div>
-          <span>Presentation: {currentCompany.base_currency} • Double-entry immutable reduction</span>
-        </div>
+    {/* 4. Controls-grade Audit Footer */}
+    <div className="h-6 px-3 sm:px-4 border-t border-border bg-surface-neutral flex items-center justify-between shrink-0 text-[10px] sm:text-[11px] text-text-muted font-mono select-none overflow-hidden">
+      <div className="flex items-center gap-1.5 sm:gap-2 truncate">
+        <Clock className="w-3 h-3 text-accent shrink-0" />
+        <span className="truncate">Computed in {computedMs} ms ({totalLinesScanned} lines)</span>
       </div>
+      <div className="hidden sm:block shrink-0">
+        <span>Presentation: {currentCompany.base_currency} • Double-entry reduction</span>
+      </div>
+    </div>
     </div>
   );
 };

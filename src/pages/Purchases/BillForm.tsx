@@ -181,12 +181,12 @@ export const BillForm: React.FC = () => {
     <div className="flex-1 flex flex-col h-full overflow-y-auto bg-canvas">
       <div className="w-full flex flex-col gap-6">
         {/* Top Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-border">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-border">
           <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={() => navigate(`/${coSlug}/bills`)}
-              className="p-1.5 rounded-sm text-text-muted hover:text-text-primary hover:bg-surface-neutral transition"
+              className="p-1.5 rounded-sm text-text-muted hover:text-text-primary hover:bg-surface-neutral transition shrink-0"
             >
               <ArrowLeft className="w-4 h-4" />
             </button>
@@ -198,7 +198,7 @@ export const BillForm: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
               onClick={() => handleSubmit('draft')}

@@ -52,15 +52,23 @@ import {
   ShieldAlert,
   ArrowRight,
   UserCheck,
+  X,
+  Menu,
 } from 'lucide-react';
 
 export const AdminShell: React.FC = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [currentTime, setCurrentTime] = useState('');
   const [globalSearch, setGlobalSearch] = useState('');
 
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Close mobile drawer on route change
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
 
   const {
     currentAdmin,
@@ -183,26 +191,38 @@ export const AdminShell: React.FC = () => {
         )}
 
         {/* 1. Top Admin Bar: Exactly 40px high per 03_UI_Spec §10 */}
-        <header className="h-10 bg-surface-elevated border-b border-border px-3 flex items-center justify-between shrink-0 z-30 select-none text-xs">
+        <header className="h-10 bg-surface-elevated border-b border-border px-2 sm:px-3 flex items-center justify-between shrink-0 z-30 select-none text-xs">
           {/* Left: Platform Logo + Staff Persona Switcher */}
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0">
             <Tooltip>
               <TooltipTrigger asChild>
                 <button
                   type="button"
-                  onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                  onClick={() => {
+                    if (window.innerWidth < 1024) {
+                      setMobileMenuOpen(!mobileMenuOpen);
+                    } else {
+                      setSidebarCollapsed(!sidebarCollapsed);
+                    }
+                  }}
                   className="p-1 text-text-muted hover:text-text-primary rounded-sm hover:bg-surface-neutral transition cursor-pointer"
+                  aria-label="Toggle Admin Navigation"
                 >
-                  {sidebarCollapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
+                  <span className="lg:hidden">
+                    {mobileMenuOpen ? <PanelLeftClose className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+                  </span>
+                  <span className="hidden lg:inline">
+                    {sidebarCollapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
+                  </span>
                 </button>
               </TooltipTrigger>
-              <TooltipContent shortcut="[">Toggle Admin Sidebar</TooltipContent>
+              <TooltipContent shortcut="[">Toggle Admin Navigation</TooltipContent>
             </Tooltip>
 
             {/* Brand */}
             <div
               onClick={() => navigate('/admin')}
-              className="flex items-center gap-1.5 cursor-pointer font-bold text-text-primary tracking-tight"
+              className="flex items-center gap-1.5 cursor-pointer font-bold text-text-primary tracking-tight shrink-0"
             >
               <div className="w-5 h-5 rounded bg-violet flex items-center justify-center text-white font-extrabold text-[11px] shadow-xs">
                 Ω
@@ -213,21 +233,21 @@ export const AdminShell: React.FC = () => {
               </span>
             </div>
 
-            <span className="text-border">/</span>
+            <span className="text-border hidden sm:inline">/</span>
 
             {/* Staff Persona Switcher */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
                   type="button"
-                  className="flex items-center gap-1.5 h-7 px-2.5 rounded-sm border border-border hover:border-border-strong bg-surface font-medium text-text-primary transition outline-none focus:ring-1 focus:ring-accent cursor-pointer"
+                  className="flex items-center gap-1 sm:gap-1.5 h-7 px-1.5 sm:px-2.5 rounded-sm border border-border hover:border-border-strong bg-surface font-medium text-text-primary transition outline-none focus:ring-1 focus:ring-accent cursor-pointer shrink-0"
                 >
-                  <UserCheck className="w-3.5 h-3.5 text-violet" />
-                  <span className="max-w-[130px] truncate">{currentAdmin.name}</span>
-                  <span className="text-[10px] font-mono text-text-muted bg-surface-neutral px-1 py-0.5 rounded uppercase">
+                  <UserCheck className="w-3.5 h-3.5 text-violet shrink-0" />
+                  <span className="max-w-[70px] sm:max-w-[130px] truncate">{currentAdmin.name.split(' ')[0]}</span>
+                  <span className="hidden sm:inline text-[10px] font-mono text-text-muted bg-surface-neutral px-1 py-0.5 rounded uppercase">
                     {currentAdmin.role}
                   </span>
-                  <ChevronDown className="w-3 h-3 text-text-muted opacity-60" />
+                  <ChevronDown className="w-3 h-3 text-text-muted opacity-60 shrink-0" />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-72">
@@ -312,33 +332,35 @@ export const AdminShell: React.FC = () => {
             </div>
 
             {/* Density Picker */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
-                  type="button"
-                  className="p-1.5 text-text-muted hover:text-text-primary rounded-sm hover:bg-surface-neutral transition cursor-pointer"
-                  title="Change table row density"
-                >
-                  <Rows3 className="w-4 h-4" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Data Density</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => setUiDensity('compact')} className="flex items-center justify-between cursor-pointer">
-                  <span>Compact (28px)</span>
-                  {uiDensity === 'compact' && <Check className="w-3.5 h-3.5 text-accent" />}
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setUiDensity('default')} className="flex items-center justify-between cursor-pointer">
-                  <span>Default (36px - Controls Grade)</span>
-                  {uiDensity === 'default' && <Check className="w-3.5 h-3.5 text-accent" />}
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setUiDensity('comfortable')} className="flex items-center justify-between cursor-pointer">
-                  <span>Comfortable (44px)</span>
-                  {uiDensity === 'comfortable' && <Check className="w-3.5 h-3.5 text-accent" />}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <div className="hidden sm:block">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    className="p-1.5 text-text-muted hover:text-text-primary rounded-sm hover:bg-surface-neutral transition cursor-pointer"
+                    title="Change table row density"
+                  >
+                    <Rows3 className="w-4 h-4" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>Data Density</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => setUiDensity('compact')} className="flex items-center justify-between cursor-pointer">
+                    <span>Compact (28px)</span>
+                    {uiDensity === 'compact' && <Check className="w-3.5 h-3.5 text-accent" />}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setUiDensity('default')} className="flex items-center justify-between cursor-pointer">
+                    <span>Default (36px - Controls Grade)</span>
+                    {uiDensity === 'default' && <Check className="w-3.5 h-3.5 text-accent" />}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setUiDensity('comfortable')} className="flex items-center justify-between cursor-pointer">
+                    <span>Comfortable (44px)</span>
+                    {uiDensity === 'comfortable' && <Check className="w-3.5 h-3.5 text-accent" />}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
 
             {/* Theme Picker */}
             <DropdownMenu>
@@ -408,20 +430,20 @@ export const AdminShell: React.FC = () => {
         </header>
 
         {/* 2. Admin Document Tab Strip */}
-        <div className="h-8 bg-surface-subtle border-b border-border flex items-center px-2 gap-1 overflow-x-auto no-scrollbar shrink-0 select-none text-xs">
+        <div className="h-8 bg-surface-subtle border-b border-border flex items-center px-2 gap-1 overflow-x-auto no-scrollbar flex-nowrap shrink-0 select-none text-xs">
           <NavLink
             to="/admin"
             end
             className={({ isActive }) =>
               cn(
-                'flex items-center gap-1.5 px-3 py-1 rounded-t-sm border-t border-x cursor-pointer transition-colors h-7',
+                'flex items-center gap-1.5 px-3 py-1 rounded-t-sm border-t border-x cursor-pointer transition-colors h-7 shrink-0 whitespace-nowrap',
                 isActive
                   ? 'bg-surface-elevated border-border text-text-primary font-medium'
                   : 'bg-transparent border-transparent text-text-muted hover:text-text-primary hover:bg-surface-neutral/60'
               )
             }
           >
-            <LayoutDashboard className="w-3.5 h-3.5 text-violet" />
+            <LayoutDashboard className="w-3.5 h-3.5 text-violet shrink-0" />
             <span>Overview</span>
           </NavLink>
 
@@ -429,14 +451,14 @@ export const AdminShell: React.FC = () => {
             to="/admin/tenants"
             className={({ isActive }) =>
               cn(
-                'flex items-center gap-1.5 px-3 py-1 rounded-t-sm border-t border-x cursor-pointer transition-colors h-7',
+                'flex items-center gap-1.5 px-3 py-1 rounded-t-sm border-t border-x cursor-pointer transition-colors h-7 shrink-0 whitespace-nowrap',
                 isActive
                   ? 'bg-surface-elevated border-border text-text-primary font-medium'
                   : 'bg-transparent border-transparent text-text-muted hover:text-text-primary hover:bg-surface-neutral/60'
               )
             }
           >
-            <Building2 className="w-3.5 h-3.5 text-text-muted" />
+            <Building2 className="w-3.5 h-3.5 text-text-muted shrink-0" />
             <span>Tenants ({useAdminStore.getState().tenants.length})</span>
           </NavLink>
 
@@ -444,14 +466,14 @@ export const AdminShell: React.FC = () => {
             to="/admin/billing"
             className={({ isActive }) =>
               cn(
-                'flex items-center gap-1.5 px-3 py-1 rounded-t-sm border-t border-x cursor-pointer transition-colors h-7',
+                'flex items-center gap-1.5 px-3 py-1 rounded-t-sm border-t border-x cursor-pointer transition-colors h-7 shrink-0 whitespace-nowrap',
                 isActive
                   ? 'bg-surface-elevated border-border text-text-primary font-medium'
                   : 'bg-transparent border-transparent text-text-muted hover:text-text-primary hover:bg-surface-neutral/60'
               )
             }
           >
-            <CreditCard className="w-3.5 h-3.5 text-text-muted" />
+            <CreditCard className="w-3.5 h-3.5 text-text-muted shrink-0" />
             <span>Billing Ops</span>
           </NavLink>
 
@@ -459,27 +481,56 @@ export const AdminShell: React.FC = () => {
             to="/admin/staff"
             className={({ isActive }) =>
               cn(
-                'flex items-center gap-1.5 px-3 py-1 rounded-t-sm border-t border-x cursor-pointer transition-colors h-7',
+                'flex items-center gap-1.5 px-3 py-1 rounded-t-sm border-t border-x cursor-pointer transition-colors h-7 shrink-0 whitespace-nowrap',
                 isActive
                   ? 'bg-surface-elevated border-border text-text-primary font-medium'
                   : 'bg-transparent border-transparent text-text-muted hover:text-text-primary hover:bg-surface-neutral/60'
               )
             }
           >
-            <ShieldCheck className="w-3.5 h-3.5 text-text-muted" />
+            <ShieldCheck className="w-3.5 h-3.5 text-text-muted shrink-0" />
             <span>Staff & Approvals</span>
           </NavLink>
         </div>
 
         {/* 3. Main Body: Sidebar + Viewport */}
-        <div className="flex-1 flex overflow-hidden">
-          {/* Admin Sidebar: 232px wide per 03_UI_Spec §10 */}
+        <div className="flex-1 flex overflow-hidden relative">
+          {/* Mobile Backdrop */}
+          {mobileMenuOpen && (
+            <div
+              className="fixed inset-0 bg-black/50 backdrop-blur-xs z-40 lg:hidden transition-opacity"
+              onClick={() => setMobileMenuOpen(false)}
+              aria-hidden="true"
+            />
+          )}
+
+          {/* Admin Sidebar: Drawer on <lg, inline 232px/48px on lg+ */}
           <aside
             className={cn(
-              'bg-sidebar border-r border-border flex flex-col justify-between shrink-0 transition-[width] duration-200 ease-in-out select-none',
-              sidebarCollapsed ? 'w-12' : 'w-58'
+              'bg-sidebar border-r border-border flex flex-col justify-between shrink-0 transition-all duration-200 ease-in-out select-none',
+              'fixed inset-y-0 left-0 z-50 w-64 shadow-2xl lg:shadow-none lg:static lg:z-20',
+              mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
+              sidebarCollapsed ? 'lg:w-12' : 'lg:w-58'
             )}
           >
+            {/* Mobile Drawer Header */}
+            <div className="lg:hidden flex items-center justify-between p-3 border-b border-border bg-surface-neutral/30 shrink-0">
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 rounded bg-violet flex items-center justify-center text-white font-extrabold text-[11px] shadow-xs">
+                  Ω
+                </div>
+                <span className="font-semibold text-xs text-text-primary">Platform Admin</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setMobileMenuOpen(false)}
+                className="p-1 rounded text-text-muted hover:text-text-primary hover:bg-surface-neutral cursor-pointer"
+                aria-label="Close admin menu"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
             <div className="flex-1 overflow-y-auto py-2.5 px-1.5 space-y-4 no-scrollbar">
               {navSections.map((section) => (
                 <div key={section.title} className="space-y-0.5">
@@ -559,32 +610,32 @@ export const AdminShell: React.FC = () => {
         </div>
 
         {/* 4. Bottom Status Bar: Exactly 24px high per 03_UI_Spec §10 */}
-        <footer className="h-6 bg-surface-elevated border-t border-border px-3 flex items-center justify-between shrink-0 z-30 select-none text-[11px] font-mono text-text-muted">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5">
+        <footer className="h-6 bg-surface-elevated border-t border-border px-2 sm:px-3 flex items-center justify-between shrink-0 z-30 select-none text-[11px] font-mono text-text-muted overflow-hidden">
+          <div className="flex items-center gap-2 sm:gap-3 truncate min-w-0">
+            <div className="flex items-center gap-1.5 shrink-0">
               <span className="w-1.5 h-1.5 rounded-full bg-success" />
-              <span className="text-text-secondary">Vendor Back-Office</span>
+              <span className="text-text-secondary hidden sm:inline">Vendor Back-Office</span>
             </div>
-            <span>|</span>
-            <span className="text-text-secondary">
+            <span className="hidden sm:inline">|</span>
+            <span className="text-text-secondary truncate">
               Role: <strong className="text-text-primary uppercase">{currentAdmin.role}</strong>
             </span>
             <span>|</span>
-            <span className="text-success flex items-center gap-1">
+            <span className="text-success flex items-center gap-1 shrink-0">
               <ShieldCheck className="w-3 h-3 text-success" />
-              2FA Enforced
+              <span>2FA OK</span>
             </span>
             {pendingApprovalsCount > 0 && (
               <>
                 <span>|</span>
-                <span className="text-warning font-medium">
-                  {pendingApprovalsCount} dual-approval{pendingApprovalsCount > 1 ? 's' : ''} awaiting maker/checker
+                <span className="text-warning font-medium truncate">
+                  {pendingApprovalsCount} dual-approval{pendingApprovalsCount > 1 ? 's' : ''}
                 </span>
               </>
             )}
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-3 shrink-0">
             <span>Horizon: 0 failed / 1,420 jobs/min</span>
             <span>|</span>
             <span>Telemetry: p95 142ms</span>
