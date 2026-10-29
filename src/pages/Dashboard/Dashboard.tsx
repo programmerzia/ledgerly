@@ -72,10 +72,10 @@ export const Dashboard: React.FC = () => {
   return (
     <div className="flex flex-col gap-6">
       {/* Top Welcome & Context */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="text-h1 font-bold text-text-primary">Financial Control Dashboard</h1>
-          <p className="text-xs text-text-muted mt-0.5 flex items-center gap-2">
+          <h1 className="text-xl sm:text-h1 font-bold text-text-primary tracking-tight">Financial Control Dashboard</h1>
+          <p className="text-xs text-text-muted mt-0.5 flex flex-wrap items-center gap-1.5 sm:gap-2">
             <span>{currentCompany.name} • Active Session:</span>
             <span className="font-semibold text-text-secondary">{currentUser.name}</span>
             <span>({currentUser.roleTitle})</span>
@@ -91,11 +91,11 @@ export const Dashboard: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
           <button
             type="button"
             onClick={handleLogout}
-            className="flex items-center gap-1.5 h-8 px-3 rounded-sm border border-border hover:border-danger/40 hover:bg-danger-soft text-text-secondary hover:text-danger text-xs font-medium transition cursor-pointer"
+            className="flex items-center gap-1.5 h-8 px-2.5 sm:px-3 rounded-sm border border-border hover:border-danger/40 hover:bg-danger-soft text-text-secondary hover:text-danger text-xs font-medium transition cursor-pointer"
             title="Sign out of current user session"
           >
             <LogOut className="w-3.5 h-3.5 text-danger" />
@@ -104,15 +104,15 @@ export const Dashboard: React.FC = () => {
           <button
             type="button"
             onClick={() => navigate(`/${coSlug}/invoices/new`)}
-            className="flex items-center gap-1.5 h-8 px-3.5 bg-accent hover:bg-accent-hover text-white rounded-sm text-xs font-semibold shadow-xs transition-colors"
+            className="flex items-center gap-1.5 h-8 px-3 sm:px-3.5 bg-accent hover:bg-accent-hover text-white rounded-sm text-xs font-semibold shadow-xs transition-colors cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>New Invoice (n)</span>
+            <span>New Invoice</span>
           </button>
           <button
             type="button"
             onClick={() => navigate(`/${coSlug}/journals/new`)}
-            className="flex items-center gap-1.5 h-8 px-3.5 bg-surface border border-border hover:border-border-strong text-text-primary rounded-sm text-xs font-semibold shadow-xs transition-colors"
+            className="flex items-center gap-1.5 h-8 px-3 sm:px-3.5 bg-surface border border-border hover:border-border-strong text-text-primary rounded-sm text-xs font-semibold shadow-xs transition-colors cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>New Journal</span>
@@ -121,18 +121,18 @@ export const Dashboard: React.FC = () => {
       </div>
 
       {/* KPI Metric Cards Grid (12-column, 16px gutters, 1px border, no shadow, delta pill) */}
-      <div className="grid grid-cols-12 gap-4">
+      <div className="grid grid-cols-12 gap-3 sm:gap-4">
         {/* Cash Position */}
         <div
           onClick={() => navigate(`/${coSlug}/banking`)}
-          className="col-span-12 sm:col-span-6 lg:col-span-3 p-4 bg-surface border border-border rounded-md hover:border-accent/50 cursor-pointer transition flex flex-col justify-between"
+          className="col-span-12 sm:col-span-6 lg:col-span-3 p-3.5 sm:p-4 bg-surface border border-border rounded-md hover:border-accent/50 cursor-pointer transition flex flex-col justify-between"
         >
           <div className="flex items-center justify-between text-[13px] font-semibold text-text-secondary mb-2">
             <span>Total Cash Position</span>
             <Wallet className="w-4 h-4 text-accent" />
           </div>
           <div className="flex items-baseline justify-between gap-2">
-            <div className="text-[24px] font-bold font-mono text-num text-text-primary leading-tight">
+            <div className="text-xl sm:text-[24px] font-bold font-mono text-num text-text-primary leading-tight">
               {formatMoney(stats?.cashPosition || 17055000, currentCompany.base_currency)}
             </div>
             <span className="text-[11px] font-medium font-sans text-success bg-success-soft px-1.5 py-0.5 rounded">
@@ -213,8 +213,8 @@ export const Dashboard: React.FC = () => {
       {/* Main Grid: Chart and Cash Accounts (12-column, 16px gutters) */}
       <div className="grid grid-cols-12 gap-4">
         {/* Recharts P&L MTD vs Budget Chart */}
-        <div className="col-span-12 lg:col-span-8 p-5 bg-surface border border-border rounded-md flex flex-col gap-4">
-          <div className="flex items-center justify-between border-b border-border pb-3">
+        <div className="col-span-12 lg:col-span-8 p-3.5 sm:p-5 bg-surface border border-border rounded-md flex flex-col gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border pb-3">
             <div>
               <h2 className="text-[13px] font-semibold text-text-primary flex items-center gap-2">
                 <TrendingUp className="w-4 h-4 text-accent" />
@@ -225,7 +225,7 @@ export const Dashboard: React.FC = () => {
             <button
               type="button"
               onClick={() => navigate(`/${coSlug}/reports/profit-and-loss`)}
-              className="text-xs text-accent hover:underline flex items-center gap-1 font-medium"
+              className="text-xs text-accent hover:underline flex items-center gap-1 font-medium cursor-pointer self-start sm:self-auto"
             >
               <span>View P&L Report</span>
               <ArrowUpRight className="w-3.5 h-3.5" />
@@ -235,8 +235,8 @@ export const Dashboard: React.FC = () => {
           <div className="h-64 min-h-[200px] w-full text-xs">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={pnlData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
-                <XAxis dataKey="category" stroke="var(--color-text-muted)" fontSize={11} tickLine={false} />
-                <YAxis stroke="var(--color-text-muted)" fontSize={11} tickLine={false} />
+                <XAxis dataKey="category" stroke="var(--color-text-muted)" fontSize={10} tickLine={false} interval={0} />
+                <YAxis stroke="var(--color-text-muted)" fontSize={10} tickLine={false} />
                 <Tooltip
                   contentStyle={{
                     backgroundColor: 'var(--color-surface)',
@@ -256,7 +256,7 @@ export const Dashboard: React.FC = () => {
         </div>
 
         {/* Bank Accounts Breakdown */}
-        <div className="col-span-12 lg:col-span-4 p-5 bg-surface border border-border rounded-md flex flex-col justify-between">
+        <div className="col-span-12 lg:col-span-4 p-3.5 sm:p-5 bg-surface border border-border rounded-md flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between border-b border-border pb-3 mb-4">
               <h2 className="text-[13px] font-semibold text-text-primary flex items-center gap-2">
@@ -266,7 +266,7 @@ export const Dashboard: React.FC = () => {
               <button
                 type="button"
                 onClick={() => navigate(`/${coSlug}/banking`)}
-                className="text-xs text-accent hover:underline"
+                className="text-xs text-accent hover:underline cursor-pointer"
               >
                 Manage
               </button>
@@ -316,25 +316,25 @@ export const Dashboard: React.FC = () => {
       </div>
 
       {/* Recent Activity / Controls Audit Trail (12-column, 1px border, no shadow) */}
-      <div className="p-5 bg-surface border border-border rounded-md">
-        <div className="flex items-center justify-between border-b border-border pb-3 mb-3">
+      <div className="p-3.5 sm:p-5 bg-surface border border-border rounded-md">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-2 border-b border-border pb-3 mb-3">
           <h2 className="text-[13px] font-semibold text-text-primary flex items-center gap-2">
             <Activity className="w-4 h-4 text-accent" />
             <span>Controls Activity & Immutable Audit Log</span>
           </h2>
-          <span className="text-xs text-text-muted font-mono">Cryptographically Hash-Chained</span>
+          <span className="text-[11px] sm:text-xs text-text-muted font-mono">Cryptographically Hash-Chained</span>
         </div>
 
         <div className="divide-y divide-border">
           {auditEvents.slice(0, 4).map((evt) => (
-            <div key={evt.id} className="py-2.5 flex items-center justify-between text-xs">
-              <div className="flex items-center gap-3">
+            <div key={evt.id} className="py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-4 text-xs">
+              <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                 <FileCheck2 className="w-3.5 h-3.5 text-accent shrink-0" />
-                <span className="text-text-primary">{evt.detail}</span>
+                <span className="text-text-primary truncate">{evt.detail}</span>
               </div>
-              <div className="flex items-center gap-4 text-text-muted shrink-0">
-                <span className="font-mono text-[11px]">{formatDateTime(evt.occurred_at)}</span>
-                <span className="font-mono text-[10px] bg-surface-neutral px-1.5 py-0.5 rounded text-text-secondary border border-border">
+              <div className="flex items-center gap-2 sm:gap-4 text-text-muted shrink-0 text-[11px] self-end sm:self-auto">
+                <span className="font-mono text-[10px] sm:text-[11px]">{formatDateTime(evt.occurred_at)}</span>
+                <span className="font-mono text-[9px] sm:text-[10px] bg-surface-neutral px-1.5 py-0.5 rounded text-text-secondary border border-border">
                   {evt.actor_name}
                 </span>
               </div>

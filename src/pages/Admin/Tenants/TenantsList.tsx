@@ -147,22 +147,22 @@ export const TenantsList: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <div className="relative">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="relative flex-1 sm:flex-initial w-full sm:w-56">
             <Search className="w-3.5 h-3.5 text-text-muted absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Filter tenants..."
-              className="h-8 pl-8 pr-3 w-56 text-xs bg-surface border border-border rounded-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-accent"
+              className="h-8 pl-8 pr-3 w-full text-xs bg-surface border border-border rounded-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-accent"
             />
           </div>
         </div>
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex items-center gap-1.5 border-b border-border text-xs">
+      <div className="flex items-center gap-1.5 border-b border-border text-xs overflow-x-auto no-scrollbar flex-nowrap">
         {[
           { key: 'all', label: 'All Tenants', count: counts.all },
           { key: 'active', label: 'Active (Paid)', count: counts.active },
@@ -174,7 +174,7 @@ export const TenantsList: React.FC = () => {
             key={tab.key}
             type="button"
             onClick={() => setActiveTab(tab.key as any)}
-            className={`px-3 py-1.5 border-b-2 font-medium flex items-center gap-1.5 transition-colors cursor-pointer ${
+            className={`px-3 py-1.5 border-b-2 font-medium flex items-center gap-1.5 transition-colors cursor-pointer shrink-0 whitespace-nowrap ${
               activeTab === tab.key
                 ? 'border-violet text-violet font-semibold'
                 : 'border-transparent text-text-muted hover:text-text-primary hover:border-border'
@@ -356,7 +356,13 @@ export const TenantsList: React.FC = () => {
 
       {/* Slide-over Inspection Drawer for Fast Tenant Overview */}
       {selectedTenantForDrawer && (
-        <div className="fixed inset-y-0 right-0 w-96 bg-surface border-l border-border shadow-xl z-50 flex flex-col select-none animate-in slide-in-from-right duration-150">
+        <>
+          <div
+            className="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 sm:hidden"
+            onClick={() => setSelectedTenantForDrawer(null)}
+            aria-hidden="true"
+          />
+          <div className="fixed inset-y-0 right-0 w-full sm:w-96 max-w-full bg-surface border-l border-border shadow-xl z-50 flex flex-col select-none animate-in slide-in-from-right duration-150">
           <div className="p-4 border-b border-border flex items-center justify-between bg-surface-neutral/40">
             <div>
               <h2 className="text-sm font-bold text-text-primary truncate max-w-[280px]">
@@ -503,7 +509,8 @@ export const TenantsList: React.FC = () => {
             </button>
           </div>
         </div>
-      )}
+      </>
+    )}
     </div>
   );
 };

@@ -393,16 +393,16 @@ export const LineGrid: React.FC<LineGridProps> = ({
       </div>
 
       {/* Grid Footer */}
-      <div className="p-3 border-t border-border bg-surface-neutral/40 flex items-center justify-between">
+      <div className="p-3 border-t border-border bg-surface-neutral/40 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
         {!readOnly ? (
           <button
             type="button"
             onClick={addLine}
-            className="flex items-center gap-1.5 px-3 py-1 bg-surface border border-border hover:border-accent text-text-primary rounded-sm text-xs font-medium shadow-xs transition-colors"
+            className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-surface border border-border hover:border-accent text-text-primary rounded-sm text-xs font-medium shadow-xs transition-colors shrink-0"
           >
             <Plus className="w-3.5 h-3.5 text-accent" />
             <span>Add Line</span>
-            <span className="text-[10px] text-text-muted font-mono ml-1.5">(⌘ + Enter)</span>
+            <span className="hidden sm:inline text-[10px] text-text-muted font-mono ml-1.5">(⌘ + Enter)</span>
           </button>
         ) : (
           <div />
@@ -410,7 +410,7 @@ export const LineGrid: React.FC<LineGridProps> = ({
 
         {/* Totals & Balancing Section */}
         {isInvoice ? (
-          <div className="flex items-center gap-6 text-xs font-mono ml-auto">
+          <div className="flex flex-wrap items-center justify-end gap-3 sm:gap-6 text-xs font-mono sm:ml-auto">
             <div className="flex items-center gap-2">
               <span className="text-text-muted uppercase tracking-wider text-[11px]">Subtotal:</span>
               <span className="font-semibold text-text-primary">{formatMoney(subtotal, currency)}</span>
@@ -425,7 +425,7 @@ export const LineGrid: React.FC<LineGridProps> = ({
             </div>
           </div>
         ) : (
-          <div className="flex items-center gap-4 text-xs font-mono ml-auto">
+          <div className="flex flex-wrap items-center justify-end gap-3 sm:gap-4 text-xs font-mono sm:ml-auto">
             <div className="flex items-center gap-2">
               <span className="text-text-muted uppercase tracking-wider text-[11px]">Total Debit:</span>
               <span className="font-semibold text-text-primary">{formatMoney(totalDebit, currency)}</span>

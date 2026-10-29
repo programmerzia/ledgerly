@@ -216,16 +216,16 @@ export const TenantDetail: React.FC = () => {
     <div className="flex-1 flex flex-col p-4 space-y-3 max-w-7xl mx-auto w-full select-none text-text-primary">
       {/* Top Breadcrumb & Action Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-border">
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-start sm:items-center gap-2.5">
           <button
             onClick={() => navigate('/admin/tenants')}
-            className="p-1 rounded hover:bg-surface-neutral text-text-muted hover:text-text-primary transition cursor-pointer"
+            className="p-1 mt-0.5 sm:mt-0 rounded hover:bg-surface-neutral text-text-muted hover:text-text-primary transition cursor-pointer shrink-0"
             title="Back to Tenants List"
           >
             <ArrowLeft className="w-4 h-4" />
           </button>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <h1 className="text-lg font-bold tracking-tight">{tenant.name}</h1>
               <span className="font-mono text-xs text-text-muted">({tenant.slug})</span>
               <StatusPill status={tenant.status as any} />
@@ -233,16 +233,16 @@ export const TenantDetail: React.FC = () => {
                 {tenant.subscription.planCode}
               </span>
             </div>
-            <div className="flex items-center gap-2 text-xs text-text-muted mt-0.5">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-text-muted mt-0.5">
               <span>Primary: {tenant.ownerName} ({tenant.ownerEmail})</span>
-              <span>•</span>
+              <span className="hidden sm:inline">•</span>
               <span>Domicile: {tenant.country} ({tenant.dataResidency})</span>
             </div>
           </div>
         </div>
 
         {/* Global Tenant Actions */}
-        <div className="flex items-center gap-1.5">
+        <div className="flex flex-wrap items-center gap-1.5">
           <button
             type="button"
             onClick={() => handleImpersonate('read')}
@@ -283,7 +283,7 @@ export const TenantDetail: React.FC = () => {
       </div>
 
       {/* 10-Tab Navigation Bar */}
-      <div className="flex items-center gap-1 border-b border-border overflow-x-auto no-scrollbar text-xs">
+      <div className="flex items-center gap-1 border-b border-border overflow-x-auto no-scrollbar flex-nowrap shrink-0 whitespace-nowrap text-xs">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;

@@ -79,10 +79,10 @@ export function DataTable<TData, TValue>({
   return (
     <div className={cn('flex flex-col gap-3', className)}>
       {/* Control Bar: Filter Tabs, Search & Action Buttons */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3">
         {/* Filter Tabs */}
         {filterTabs && filterTabs.length > 0 ? (
-          <div className="flex items-center gap-1 bg-surface-neutral p-1 rounded-sm border border-border">
+          <div className="flex items-center gap-1 bg-surface-neutral p-1 rounded-sm border border-border overflow-x-auto no-scrollbar flex-nowrap shrink-0 max-w-full">
             {filterTabs.map((tab) => {
               const isActive = activeTab === tab.value;
               return (
@@ -91,7 +91,7 @@ export function DataTable<TData, TValue>({
                   type="button"
                   onClick={() => onTabChange?.(tab.value)}
                   className={cn(
-                    'flex items-center gap-1.5 px-3 py-1 rounded-sm text-xs font-medium transition-colors',
+                    'flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-sm text-xs font-medium transition-colors shrink-0 whitespace-nowrap',
                     isActive
                       ? 'bg-surface-elevated text-text-primary shadow-xs font-semibold'
                       : 'text-text-muted hover:text-text-primary'
@@ -116,21 +116,23 @@ export function DataTable<TData, TValue>({
           <div />
         )}
 
-        <div className="flex items-center gap-2.5 ml-auto">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 w-full sm:w-auto sm:ml-auto">
           {/* Search box */}
-          <div className="relative flex items-center">
+          <div className="relative flex-1 sm:flex-initial flex items-center min-w-[140px]">
             <Search className="w-3.5 h-3.5 absolute left-2.5 text-text-muted pointer-events-none" />
             <input
               type="text"
               value={globalFilter ?? ''}
               onChange={(e) => setGlobalFilter(e.target.value)}
               placeholder={searchPlaceholder}
-              className="h-8 pl-8 pr-3 text-xs bg-surface border border-border rounded-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-accent w-60"
+              className="h-8 pl-8 pr-3 text-xs bg-surface border border-border rounded-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-accent w-full sm:w-60"
             />
           </div>
 
           {/* Action buttons */}
-          {actions}
+          <div className="flex items-center gap-2 shrink-0">
+            {actions}
+          </div>
         </div>
       </div>
 

@@ -98,11 +98,11 @@ export const StaffSecurity: React.FC = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-1.5 border-b border-border text-xs">
+      <div className="flex items-center gap-1.5 border-b border-border text-xs overflow-x-auto no-scrollbar flex-nowrap">
         <button
           type="button"
           onClick={() => setActiveTab('approvals')}
-          className={`px-3 py-1.5 border-b-2 font-medium flex items-center gap-1.5 transition cursor-pointer ${
+          className={`px-3 py-1.5 border-b-2 font-medium flex items-center gap-1.5 transition cursor-pointer shrink-0 whitespace-nowrap ${
             activeTab === 'approvals'
               ? 'border-violet text-violet font-semibold'
               : 'border-transparent text-text-muted hover:text-text-primary'
@@ -120,7 +120,7 @@ export const StaffSecurity: React.FC = () => {
         <button
           type="button"
           onClick={() => setActiveTab('staff')}
-          className={`px-3 py-1.5 border-b-2 font-medium flex items-center gap-1.5 transition cursor-pointer ${
+          className={`px-3 py-1.5 border-b-2 font-medium flex items-center gap-1.5 transition cursor-pointer shrink-0 whitespace-nowrap ${
             activeTab === 'staff'
               ? 'border-violet text-violet font-semibold'
               : 'border-transparent text-text-muted hover:text-text-primary'
@@ -133,7 +133,7 @@ export const StaffSecurity: React.FC = () => {
         <button
           type="button"
           onClick={() => setActiveTab('audit_chain')}
-          className={`px-3 py-1.5 border-b-2 font-medium flex items-center gap-1.5 transition cursor-pointer ${
+          className={`px-3 py-1.5 border-b-2 font-medium flex items-center gap-1.5 transition cursor-pointer shrink-0 whitespace-nowrap ${
             activeTab === 'audit_chain'
               ? 'border-violet text-violet font-semibold'
               : 'border-transparent text-text-muted hover:text-text-primary'
