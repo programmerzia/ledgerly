@@ -7,11 +7,15 @@ namespace App\Models\Platform;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Fortify\TwoFactorAuthenticatable;
+use Spatie\Permission\Traits\HasRoles;
 
 #[Hidden(['password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes', 'signing_pin_hash'])]
 class User extends Authenticatable
 {
+    use HasRoles;
     use Notifiable;
+    use TwoFactorAuthenticatable;
 
     public $incrementing = false;
 

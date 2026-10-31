@@ -9,10 +9,11 @@ use App\Contracts\CompanyAccess;
 use App\Contracts\IdGenerator;
 use App\Contracts\PermissionChecker;
 use App\Models\Platform\PersonalAccessToken;
-use App\Services\DenyAllPermissions;
 use App\Services\Ledger\SequenceAllocator;
 use App\Services\SystemClock;
-use App\Services\Tenancy\OrgRoleCompanyAccess;
+use App\Services\Tenancy\SpatieCompanyAccess;
+use App\Services\Tenancy\SpatiePermissionChecker;
+use App\Services\Tenancy\TenantAwarePermissionRegistrar;
 use App\Services\UuidV7Generator;
 use App\Support\Tenancy\CompanyContext;
 use App\Support\Tenancy\TenantContext;
@@ -26,8 +27,8 @@ use Illuminate\Database\Events\ConnectionEstablished;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Cashier\Cashier;
-use Laravel\Fortify\Fortify;
 use Laravel\Sanctum\Sanctum;
+use Spatie\Permission\PermissionRegistrar;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -36,15 +37,15 @@ class AppServiceProvider extends ServiceProvider
 
     public function register(): void
     {
-        // Auth routes are registered under /api/v1/auth in plan step 1.4, billing webhooks in 4.6.
-        // Until then the packages must not expose their default routes.
-        Fortify::ignoreRoutes();
+        // Billing webhooks are registered in plan step 4.6; until then Cashier exposes no routes.
         Cashier::ignoreRoutes();
 
         $this->app->singleton(Clock::class, SystemClock::class);
         $this->app->singleton(IdGenerator::class, UuidV7Generator::class);
-        $this->app->singleton(PermissionChecker::class, DenyAllPermissions::class);
-        $this->app->singleton(CompanyAccess::class, OrgRoleCompanyAccess::class);
+        $this->app->singleton(PermissionChecker::class, SpatiePermissionChecker::class);
+        // extend() so the swap holds whatever the provider order is relative to spatie's own singleton.
+        $this->app->extend(PermissionRegistrar::class, fn ($registrar, $app) => new TenantAwarePermissionRegistrar($app->make('cache')));
+        $this->app->singleton(CompanyAccess::class, SpatieCompanyAccess::class);
         $this->app->scoped(CompanyContext::class);
 
         $this->app->scoped(TenantContext::class, function ($app) {

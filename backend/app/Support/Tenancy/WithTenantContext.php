@@ -26,10 +26,14 @@ final class WithTenantContext
         if ($companyId !== null) {
             $this->company->set($companyId);
         }
+        // spatie's permission team is process-global too; a worker must not check against the
+        // previous job's company.
+        setPermissionsTeamId($companyId);
 
         try {
             return $next($job);
         } finally {
+            setPermissionsTeamId(null);
             $this->company->clear();
             $this->tenant->clear();
         }

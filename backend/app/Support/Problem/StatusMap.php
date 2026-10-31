@@ -10,6 +10,7 @@ final class StatusMap
     private const array MAP = [
         'version_conflict' => 409,
         'idempotency_in_progress' => 409,
+        'forbidden' => 403,
         'self_approval_forbidden' => 403,
         'signature_required' => 403,
         'two_factor_required' => 403,

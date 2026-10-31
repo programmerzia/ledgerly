@@ -2,8 +2,13 @@
 
 declare(strict_types=1);
 
+use App\Actions\Organisation\AssignCompanyRole;
+use App\Actions\Organisation\Inputs\CompanyRoleInput;
+use App\Actions\Organisation\SeedCompanyRoles;
 use App\Models\Organisation\ApiClient;
 use App\Models\Platform\User;
+use App\Support\Actor;
+use App\Support\ActorType;
 use App\Support\Tenancy\CompanyContext;
 use App\Support\Tenancy\TenantAware;
 use App\Support\Tenancy\TenantContext;
@@ -191,12 +196,37 @@ it('runs tenant-aware jobs in their own tenant and refuses to start on a leaked 
     $seen = [];
     foreach ([[$a, $a->companyId], [$b, null], [$a, null]] as [$f, $company]) {
         $seen[] = $middleware->handle($job($f->tenantId, $company), fn () => [
-            DB::table('companies')->value('id'), app(CompanyContext::class)->id(),
+            DB::table('companies')->value('id'), app(CompanyContext::class)->id(), getPermissionsTeamId(),
         ]);
     }
-    expect($seen)->toBe([[$a->companyId, $a->companyId], [$b->companyId, null], [$a->companyId, null]])
+    expect($seen)->toBe([[$a->companyId, $a->companyId, $a->companyId], [$b->companyId, null, null], [$a->companyId, null, null]])
         ->and(app(TenantContext::class)->id())->toBeNull();
 
     app(TenantContext::class)->set($a->tenantId);
     expect(fn () => $middleware->handle($job($b->tenantId, null), fn () => null))->toThrow(LogicException::class);
+});
+
+it('opens a company for a plain member who holds a role in it, and only that company', function (): void {
+    $f = tenantFixture('alpha');
+    app(TenantContext::class)->set($f->tenantId);
+    $second = (string) Str::uuid7();
+    DB::table('companies')->insert(['id' => $second, 'tenant_id' => $f->tenantId, 'name' => 'Second', 'slug' => 'second', 'country' => 'US', 'base_currency' => 'USD']);
+    app(SeedCompanyRoles::class)->handle($f->actor, $f->companyId);
+    DB::table('tenant_users')->where('tenant_id', $f->tenantId)->update(['role' => 'member']);
+    app(TenantContext::class)->clear();
+
+    $actor = new Actor(ActorType::User, $f->userId, $f->tenantId, $f->companyId);
+    $adminId = (string) Str::uuid7();
+    DB::table('users')->insert(['id' => $adminId, 'name' => 'Admin', 'email' => 'admin@alpha.test', 'password' => 'x']);
+    DB::table('tenant_users')->insert(['tenant_id' => $f->tenantId, 'user_id' => $adminId, 'role' => 'admin']);
+    app(TenantContext::class)->set($f->tenantId);
+    app(AssignCompanyRole::class)->handle(
+        new Actor(ActorType::User, $adminId, $f->tenantId),
+        new CompanyRoleInput($actor->id, $f->companyId, 'Accountant'),
+    );
+    app(TenantContext::class)->clear();
+
+    $this->actingAs(userOf($f));
+    $this->getJson("/api/v1/_probe/companies/{$f->companyId}")->assertOk()->assertJson(['company' => $f->companyId]);
+    $this->getJson("/api/v1/_probe/companies/{$second}")->assertStatus(403)->assertJson(['code' => 'company_access_denied']);
 });

@@ -24,6 +24,8 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         // 13 §5. Every API request gets a request id; bearer tokens set the tenant before
         // auth:sanctum loads the (RLS-protected) API client.
+        // SPA requests from SANCTUM_STATEFUL_DOMAINS get session cookies and CSRF (13 §7).
+        $middleware->statefulApi();
         $middleware->api(prepend: [AssignRequestId::class, SetTenantFromToken::class]);
         $middleware->prependToPriorityList(before: AuthenticatesRequests::class, prepend: SetTenantFromToken::class);
         $middleware->alias([
