@@ -9,10 +9,14 @@ use App\Domain\Audit\Jcs;
 use App\Support\Actor;
 use DateTimeZone;
 use Illuminate\Database\Connection;
+use LogicException;
 
 /**
  * Writes buffered audit events under the tenant's chain head (13 §14):
  * canonical = JCS(fields), hash = sha256(prev_hash ‖ canonical). The head row is the last lock.
+ *
+ * `flush()` runs inside the UnitOfWork transaction; `append()` is the chain step itself and is
+ * also used by `DetachedAudit` on its own connection. Callers of `append()` must hold a transaction.
  */
 final class AuditWriter
 {
@@ -20,12 +24,27 @@ final class AuditWriter
 
     public function flush(Connection $db, LockSet $locks, string $tenantId, Actor $actor, AuditBuffer $buffer): void
     {
-        $events = $buffer->events();
+        if ($buffer->events() === []) {
+            return;
+        }
+        $locks->enterAuditHead();
+        $this->append($db, $tenantId, $actor, $buffer->events());
+    }
+
+    /**
+     * Chains $events onto the tenant's head on $db, which must be inside a transaction.
+     *
+     * @param  list<array{action: string, company_id: string|null, subject_type: string|null, subject_id: string|null, before: mixed, after: mixed, context: mixed}>  $events
+     */
+    public function append(Connection $db, string $tenantId, Actor $actor, array $events): void
+    {
         if ($events === []) {
             return;
         }
+        if ($db->transactionLevel() === 0) {
+            throw new LogicException('Audit events must be appended inside a transaction.');
+        }
 
-        $locks->enterAuditHead();
         $db->statement('INSERT INTO audit_chain_heads (tenant_id) VALUES (?) ON CONFLICT (tenant_id) DO NOTHING', [$tenantId]);
         /** @var object{last_id: int|null, last_hash: string|null} $head */
         $head = $db->selectOne('SELECT last_id, last_hash FROM audit_chain_heads WHERE tenant_id = ? FOR UPDATE', [$tenantId]);
