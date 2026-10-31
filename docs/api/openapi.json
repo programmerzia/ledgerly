@@ -1,0 +1,12 @@
+{
+    "openapi": "3.1.2",
+    "info": {
+        "title": "Ledgerly",
+        "version": "0.0.1"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8000/api"
+        }
+    ]
+}

@@ -11,9 +11,17 @@
     "require": {
         "php": "^8.5",
         "brick/money": "^0.15",
+        "dedoc/scramble": "~0.13.0",
+        "laravel/cashier": "^16.0",
+        "laravel/fortify": "^1.41",
         "laravel/framework": "^13.17",
+        "laravel/horizon": "^5.50",
+        "laravel/pennant": "^1.0",
         "laravel/sanctum": "^4",
-        "laravel/tinker": "^3.0"
+        "laravel/tinker": "^3.0",
+        "openspout/openspout": "^5.0",
+        "spatie/browsershot": "^5.4",
+        "spatie/laravel-permission": "^8.0"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

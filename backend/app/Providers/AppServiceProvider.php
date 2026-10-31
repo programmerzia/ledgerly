@@ -21,6 +21,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Events\ConnectionEstablished;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Cashier\Cashier;
+use Laravel\Fortify\Fortify;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -29,6 +31,11 @@ class AppServiceProvider extends ServiceProvider
 
     public function register(): void
     {
+        // Auth routes are registered under /api/v1/auth in plan step 1.4, billing webhooks in 4.6.
+        // Until then the packages must not expose their default routes.
+        Fortify::ignoreRoutes();
+        Cashier::ignoreRoutes();
+
         $this->app->singleton(Clock::class, SystemClock::class);
         $this->app->singleton(IdGenerator::class, UuidV7Generator::class);
         $this->app->singleton(PermissionChecker::class, DenyAllPermissions::class);
