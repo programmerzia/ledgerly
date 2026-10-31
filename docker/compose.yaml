@@ -1,0 +1,38 @@
+# Local development stack (plan step 0.2). Dev-only credentials come from the repo-root .env
+# (see .env.example); the defaults below are for a throwaway local database only.
+name: ledgerly
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${LEDGERLY_PG_SUPERUSER_PASSWORD:-postgres}
+      LEDGERLY_OWNER_PASSWORD: ${LEDGERLY_OWNER_PASSWORD:-owner_dev}
+      LEDGERLY_APP_PASSWORD: ${LEDGERLY_APP_PASSWORD:-app_dev}
+      LEDGERLY_REPORT_PASSWORD: ${LEDGERLY_REPORT_PASSWORD:-report_dev}
+      LEDGERLY_PLATFORM_PASSWORD: ${LEDGERLY_PLATFORM_PASSWORD:-platform_dev}
+    ports:
+      - "${LEDGERLY_PG_PORT:-54316}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./postgres/init.sh:/docker-entrypoint-initdb.d/10-roles.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "${LEDGERLY_REDIS_PORT:-63796}:6379"
+
+  mailpit:
+    image: axllent/mailpit
+    ports:
+      - "${LEDGERLY_MAILPIT_UI_PORT:-18025}:8025"
+      - "${LEDGERLY_MAILPIT_SMTP_PORT:-11025}:1025"
+
+volumes:
+  pgdata:
