@@ -16,7 +16,7 @@ use Symfony\Component\HttpFoundation\Response;
  */
 final class AssignRequestId
 {
-    private const string HEADER = 'X-Request-Id';
+    public const string HEADER = 'X-Request-Id';
 
     public function __construct(private readonly IdGenerator $ids) {}
 

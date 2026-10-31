@@ -28,7 +28,7 @@ final class ResolveTenant
     public const string SESSION_KEY = 'current_tenant_id';
 
     /** Lifecycles in which nobody may open the books (read-only and suspended still read). */
-    private const array CLOSED_LIFECYCLES = ['cancelled', 'deleted'];
+    public const array CLOSED_LIFECYCLES = ['cancelled', 'deleted'];
 
     public function __construct(private readonly TenantContext $context) {}
 

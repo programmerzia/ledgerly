@@ -163,8 +163,9 @@ return [
     */
 
     'features' => [
-        // Registration (creates organisation + company) is enabled in the same plan step once
-        // company roles exist (1.5). Passkeys are not in the PRD.
+        // Registration (organisation + owner; the first company comes from the onboarding wizard,
+        // 02_AppFlow §3) is routed in routes/api.php so it can carry a rate limit. Passkeys are not
+        // in the PRD.
         Features::resetPasswords(),
         Features::updateProfileInformation(),
         Features::updatePasswords(),

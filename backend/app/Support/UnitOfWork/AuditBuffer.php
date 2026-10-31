@@ -23,7 +23,8 @@ final class AuditBuffer
      */
     public function add(string $action, ?Model $subject, Model|array|null $before = null, Model|array|null $after = null, array $context = []): void
     {
-        $companyId = $subject?->getAttribute('company_id');
+        // Read raw attributes: not every subject has a company_id column (tenants, invitations).
+        $companyId = $subject?->getAttributes()['company_id'] ?? null;
         $this->events[] = [
             'action' => $action,
             'company_id' => is_string($companyId) ? $companyId : null,

@@ -6,6 +6,7 @@ namespace App\Models\Organisation;
 
 use App\Models\BaseModel;
 use App\Models\Casts\PgUuidArray;
+use Carbon\CarbonImmutable;
 
 /**
  * @property string $id
@@ -13,6 +14,12 @@ use App\Models\Casts\PgUuidArray;
  * @property string $email
  * @property string $role
  * @property string $token_hash
+ * @property string|null $company_role
+ * @property list<string>|null $company_ids
+ * @property string $invited_by
+ * @property CarbonImmutable $expires_at
+ * @property CarbonImmutable|null $accepted_at
+ * @property CarbonImmutable|null $revoked_at
  */
 class Invitation extends BaseModel
 {

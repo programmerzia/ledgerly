@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Http\Auth\CreateNewUser;
 use App\Http\Auth\ResetUserPassword;
 use App\Http\Auth\UpdateUserPassword;
 use App\Http\Auth\UpdateUserProfileInformation;
+use App\Models\Platform\User;
+use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -19,7 +22,11 @@ final class FortifyServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
+        Fortify::createUsersUsing(CreateNewUser::class);
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
+        // Views are off; the reset link opens the SPA's /reset-password/{token} (02_AppFlow §2).
+        ResetPassword::createUrlUsing(fn (User $user, string $token): string => rtrim((string) config('app.frontend_url'), '/')
+            .'/reset-password/'.$token.'?email='.urlencode($user->email));
         Fortify::updateUserPasswordsUsing(UpdateUserPassword::class);
         Fortify::updateUserProfileInformationUsing(UpdateUserProfileInformation::class);
 
@@ -31,6 +38,8 @@ final class FortifyServiceProvider extends ServiceProvider
             Limit::perMinute(5)->by(mb_strtolower((string) $request->input(Fortify::username())).'|'.$request->ip()),
             Limit::perMinute(30)->by($request->ip()),
         ]);
+        RateLimiter::for('invitations', fn (Request $request) => Limit::perMinute(20)->by((string) $request->ip()));
+        RateLimiter::for('register', fn (Request $request) => Limit::perHour(10)->by((string) $request->ip()));
         RateLimiter::for('two-factor', fn (Request $request) => Limit::perMinute(5)->by((string) $request->session()->get('login.id')));
     }
 }
