@@ -74,7 +74,11 @@ High-fidelity, clickable mock and production-aligned frontend implementation of 
 
 ## 5. Quickstart & Commands
 
+The SPA lives in `frontend/`, the Laravel API in `backend/` (`make up`, `make test`).
+
 ```bash
+cd frontend
+
 # 1. Install dependencies
 npm install
 

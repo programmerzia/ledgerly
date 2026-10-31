@@ -9,7 +9,7 @@ down:
 	$(COMPOSE) down
 
 test: test-backend
-	npm test
+	cd frontend && npm test
 
 test-backend:
 	cd backend && composer test

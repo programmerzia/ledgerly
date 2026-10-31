@@ -1,5 +1,5 @@
 /vendor
-/node_modules
+node_modules/
 /public/build
 /public/hot
 /public/storage
@@ -11,4 +11,4 @@
 /.idea
 /.vscode
 *.log
-/dist
+/frontend/dist
