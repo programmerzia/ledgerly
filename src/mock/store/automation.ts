@@ -51,8 +51,8 @@ export interface AutomationSlice {
 
   addRecurringSchedule: (schedule: Omit<RecurringSchedule, 'id' | 'generated_invoice_ids' | 'created_at'>) => RecurringSchedule;
   setRecurringActive: (id: string, active: boolean) => void;
-  /** Creates every invoice due up to `asOf` and submits each for approval. */
-  runRecurringSchedules: (asOf: string) => Invoice[];
+  /** Creates every invoice due up to `asOf` and submits each for approval (optionally one schedule). */
+  runRecurringSchedules: (asOf: string, scheduleId?: string) => Invoice[];
 }
 
 const addMonths = (date: string, months: number) => {
@@ -282,10 +282,10 @@ export const createAutomationSlice: StateCreator<any, [], [], AutomationSlice> =
       recurringSchedules: s.recurringSchedules.map((r: RecurringSchedule) => (r.id === id ? { ...r, is_active: active } : r)),
     })),
 
-  runRecurringSchedules: (asOf) => {
+  runRecurringSchedules: (asOf, scheduleId) => {
     const created: Invoice[] = [];
     for (const schedule of get().recurringSchedules as RecurringSchedule[]) {
-      if (!schedule.is_active) continue;
+      if (!schedule.is_active || (scheduleId && schedule.id !== scheduleId)) continue;
       let next = schedule.next_date;
       const ids: string[] = [];
       while (next <= asOf && (!schedule.end_date || next <= schedule.end_date)) {

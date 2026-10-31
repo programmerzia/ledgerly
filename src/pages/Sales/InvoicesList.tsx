@@ -6,7 +6,7 @@ import { Invoice } from '@/types';
 import { DataTable } from '@/components/domain/DataTable';
 import { StatusPill } from '@/components/domain/StatusPill';
 import { formatMoney, formatDate } from '@/lib/format';
-import { Plus, FileText, ExternalLink, Eye, CreditCard, Bell, Copy, Download, RotateCcw, Printer, Building, Calendar, Layers, ShieldCheck, FileSpreadsheet } from 'lucide-react';
+import { Plus, FileText, ExternalLink, Eye, CreditCard, Bell, Copy, Download, RotateCcw, Printer, Building, Repeat, Calendar, Layers, ShieldCheck, FileSpreadsheet } from 'lucide-react';
 import { DocumentAuditTimeline } from '@/components/domain/DocumentAuditTimeline';
 import { SplitPane } from '@/components/domain/SplitPane';
 import { CoachPanel } from '@/components/domain/CoachPanel';
@@ -19,7 +19,8 @@ import { StatusSummaryStrip, DueCell } from './StatusSummaryStrip';
 
 export const InvoicesList: React.FC = () => {
   const navigate = useNavigate();
-  const { invoices, contacts, currentCompany, uiDensity, openTab } = useLedgerStore();
+  const { invoices, contacts, currentCompany, uiDensity, openTab, recurringSchedules } = useLedgerStore();
+  const activeSchedules = recurringSchedules.filter((r) => r.is_active).length;
   const [activeTab, setActiveTab] = useState<string>('all');
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [drawerTab, setDrawerTab] = useState<'details' | 'audit'>('details');
@@ -172,6 +173,20 @@ export const InvoicesList: React.FC = () => {
         subtitle="Bill customers and track what's owed"
         icon={<FileText />}
         actions={
+          <>
+          <button
+            type="button"
+            onClick={() => navigate(`/${coSlug}/invoices/recurring`)}
+            className="inline-flex items-center gap-1.5 h-9 px-3 rounded-lg border border-border hover:border-border-strong bg-surface hover:bg-surface-neutral text-text-primary text-[13px] font-medium transition-colors"
+          >
+            <Repeat className="size-4 text-text-muted" />
+            <span>Recurring</span>
+            {activeSchedules > 0 && (
+              <span className="min-w-5 h-5 px-1.5 grid place-items-center rounded-full bg-accent-soft text-accent text-[11px] font-semibold tabular-nums">
+                {activeSchedules}
+              </span>
+            )}
+          </button>
           <button
             type="button"
             onClick={() => navigate(`/${coSlug}/invoices/new`)}
@@ -181,6 +196,7 @@ export const InvoicesList: React.FC = () => {
             <span>New invoice</span>
             <Kbd className="ml-1 bg-white/20 text-white border-transparent">N</Kbd>
           </button>
+          </>
         }
       />
 

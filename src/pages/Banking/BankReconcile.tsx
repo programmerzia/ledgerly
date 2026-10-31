@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { api } from '@/mock/api';
 import { useLedgerStore } from '@/mock/store';
 import { formatMoney, formatDate } from '@/lib/format';
 import { toast } from 'sonner';
-import { CheckCircle2, Sparkles, ShieldCheck, Check, AlertCircle, Landmark, Link2 } from 'lucide-react';
+import { CheckCircle2, Sparkles, ShieldCheck, Check, Landmark, Link2, Wand2, Clock, Settings2 } from 'lucide-react';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { CreateTab } from './reconcile/CreateTab';
+import type { BankRule, BankStatementLine } from '@/types';
 import { PageHeader } from '@/components/domain/PageHeader';
 import { Kbd } from '@/components/ui/kbd';
 import { cn } from '@/lib/utils';
@@ -24,16 +27,21 @@ import {
 export const BankReconcile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { currentCompany, bankAccounts, bankStatementLines } = useLedgerStore();
+  const {
+    currentCompany, bankAccounts, bankStatementLines, accounts, ruleSuggestionFor,
+    createBankTransaction, currentUser, companySettings,
+  } = useLedgerStore();
   const coSlug = currentCompany.slug;
 
-  const currentBank = bankAccounts[0]; // Premier Bank USD
+  const currentBank = bankAccounts.find((b) => b.id === id) ?? bankAccounts[0];
+  const [tab, setTab] = useState<'match' | 'create'>('match');
   const [selectedStatementLineId, setSelectedStatementLineId] = useState<string>('bsl-1');
   const [selectedBookTxnId, setSelectedBookTxnId] = useState<string>('rct-1');
   const [isFinishedModalOpen, setIsFinishedModalOpen] = useState(false);
 
   const statementLines = bankStatementLines.filter((l) => l.bank_account_id === currentBank.id);
-  const unmatchedStatementLines = statementLines.filter((l) => l.status === 'unmatched');
+  const unmatchedStatementLines = statementLines.filter((l) => l.status === 'unmatched' && !l.pending_journal_id);
+  const pendingStatementLines = statementLines.filter((l) => l.status === 'unmatched' && l.pending_journal_id);
   const matchedStatementLines = statementLines.filter((l) => l.status === 'matched');
 
   // Book transactions for reconciliation matching
@@ -89,12 +97,84 @@ export const BankReconcile: React.FC = () => {
     }
   };
 
-  // Match All Remaining for Demo
-  const handleMatchAll = async () => {
-    for (const l of unmatchedStatementLines) {
-      await api.matchBankLine(l.id, 'doc-auto', 'receipt');
+  /** Records one line from a rule. Throws PostingError with a readable message. */
+  const applyRule = (line: BankStatementLine, rule: BankRule) =>
+    createBankTransaction(
+      {
+        lineId: line.id,
+        kind: line.amount < 0 ? 'spend' : 'receive',
+        accountId: rule.account_id,
+        taxCodeId: rule.tax_code_id,
+        contactId: rule.contact_id,
+        dimensions: rule.dimensions,
+        memo: rule.memo,
+        ruleId: rule.id,
+      },
+      currentUser,
+      companySettings
+    );
+
+  const acceptRule = (line: BankStatementLine, rule: BankRule) => {
+    try {
+      const r = applyRule(line, rule);
+      toast.success(
+        r.outcome === 'posted'
+          ? `Recorded ${formatMoney(Math.abs(line.amount))} as ${accountLabel(rule.account_id)}.`
+          : 'Sent for approval. This line leaves your to-do list until it is approved.'
+      );
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Could not record this line.');
     }
   };
+
+  // Accept every rule suggestion and every document match suggestion, then summarise.
+  const handleAcceptAll = async () => {
+    let matched = 0;
+    let pending = 0;
+    const failed: string[] = [];
+    for (const l of unmatchedStatementLines) {
+      const rule = ruleSuggestionFor(l.id);
+      try {
+        if (rule) {
+          const r = applyRule(l, rule);
+          if (r.outcome === 'posted') matched++;
+          else pending++;
+        } else if (l.confidence) {
+          await api.matchBankLine(l.id, 'doc-auto', 'receipt');
+          matched++;
+        }
+      } catch (err) {
+        failed.push(`${l.counterparty || l.description}: ${err instanceof Error ? err.message : 'failed'}`);
+      }
+    }
+    if (matched + pending + failed.length === 0) {
+      toast.info('Nothing to accept yet. Lines without a rule or a likely match need to be coded by hand.');
+      return;
+    }
+    const parts = [`${matched} matched`, `${pending} sent for approval`, `${failed.length} failed`];
+    if (failed.length) toast.error(`${parts.join(', ')}. ${failed.join(' · ')}`);
+    else toast.success(parts.join(', '));
+  };
+
+  const accountLabel = (accId: string) => {
+    const a = accounts.find((x: { id: string }) => x.id === accId);
+    return a ? `${a.code} ${a.name}` : 'the chosen account';
+  };
+
+  // Keep the selection on a line that still needs work.
+  useEffect(() => {
+    if (!unmatchedStatementLines.some((l) => l.id === selectedStatementLineId) && unmatchedStatementLines[0]) {
+      setSelectedStatementLineId(unmatchedStatementLines[0].id);
+    }
+  });
+
+  const onCreated = () => {
+    const idx = unmatchedStatementLines.findIndex((l) => l.id === selectedStatementLineId);
+    const next = unmatchedStatementLines[idx + 1] ?? unmatchedStatementLines[idx - 1];
+    if (next) setSelectedStatementLineId(next.id);
+  };
+
+  const suggestedCount = unmatchedStatementLines.filter((l) => ruleSuggestionFor(l.id) || l.confidence).length;
 
   const isDifferenceZero = unmatchedStatementLines.length === 0;
   const totalLines = statementLines.length;
@@ -118,7 +198,14 @@ export const BankReconcile: React.FC = () => {
         e.preventDefault();
         const n = unmatchedStatementLines[Math.max(idx - 1, 0)];
         if (n) setSelectedStatementLineId(n.id);
+      } else if (e.key === 'c') {
+        e.preventDefault();
+        setTab('create');
+      } else if (e.key === 'm') {
+        e.preventDefault();
+        setTab('match');
       } else if (e.key === 'Enter') {
+        if (tab !== 'match') return;
         if (t && (t.tagName === 'BUTTON' || t.tagName === 'A')) return;
         e.preventDefault();
         void handleMatch();
@@ -140,13 +227,20 @@ export const BankReconcile: React.FC = () => {
         subtitle="Pair each bank statement line with the matching entry in your books, until nothing is left over."
         actions={
           <>
+            <Link
+              to={`/${coSlug}/banking/rules`}
+              className="flex h-9 items-center gap-1.5 rounded-lg border border-border bg-surface px-3 text-[13px] font-medium text-text-secondary transition hover:bg-surface-neutral hover:text-text-primary"
+            >
+              <Settings2 className="size-4" />
+              Rules
+            </Link>
             <button
               type="button"
-              onClick={handleMatchAll}
+              onClick={handleAcceptAll}
               className="flex h-9 items-center gap-1.5 rounded-lg border border-border bg-surface px-3 text-[13px] font-medium text-text-secondary transition hover:bg-surface-neutral hover:text-text-primary"
             >
               <Sparkles className="size-4 text-accent" />
-              Match all suggested
+              Accept all suggested{suggestedCount > 0 ? ` (${suggestedCount})` : ''}
             </button>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -250,13 +344,14 @@ export const BankReconcile: React.FC = () => {
             )}
             {unmatchedStatementLines.map((line) => {
               const isSelected = selectedStatementLineId === line.id;
+              const rule = ruleSuggestionFor(line.id);
               return (
+                <div key={line.id} className={cn(isSelected ? 'bg-accent-soft/60' : 'hover:bg-surface-neutral/70')}>
                 <button
                   type="button"
-                  key={line.id}
                   onClick={() => setSelectedStatementLineId(line.id)}
                   aria-pressed={isSelected}
-                  className={cn(rowBase, isSelected ? 'bg-accent-soft/60' : 'hover:bg-surface-neutral/70')}
+                  className={cn(rowBase, rule && 'pb-1.5')}
                 >
                   {isSelected && <span className="absolute inset-y-0 left-0 w-0.5 bg-accent" />}
                   <div className="flex items-center justify-between gap-3">
@@ -269,17 +364,47 @@ export const BankReconcile: React.FC = () => {
                     <span className="truncate">{line.description}</span>
                     <span className="shrink-0 tabular-nums">{formatDate(line.txn_date)}</span>
                   </div>
-                  {line.confidence && (
+                  {line.confidence && !rule && (
                     <div className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-violet-soft px-2 py-0.5 text-[11px] font-medium text-violet">
                       <Sparkles className="size-3" />
                       {line.confidence}% sure of a match
                     </div>
                   )}
                 </button>
+                {rule && (
+                  <div className="flex items-center gap-2 px-4 pb-2.5">
+                    <span className="inline-flex min-w-0 items-center gap-1 rounded-full bg-violet-soft px-2 py-0.5 text-[11px] font-medium text-violet" data-testid="rule-chip">
+                      <Wand2 className="size-3 shrink-0" />
+                      <span className="truncate">Rule: {rule.name} → {accountLabel(rule.account_id)}</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => acceptRule(line, rule)}
+                      className="ml-auto flex h-6 shrink-0 items-center gap-1 rounded-md bg-accent px-2 text-[11px] font-semibold text-white transition hover:bg-accent-hover"
+                    >
+                      <Check className="size-3" /> Accept
+                    </button>
+                  </div>
+                )}
+                </div>
               );
             })}
+            {pendingStatementLines.map((line) => (
+              <div key={line.id} className="flex items-center justify-between gap-3 bg-warning-soft/30 px-4 py-2.5 text-xs">
+                <span className="flex min-w-0 items-center gap-2 text-text-secondary">
+                  <span className="truncate">{line.counterparty}</span>
+                  <Link
+                    to={`/${coSlug}/journals/${line.pending_journal_id}`}
+                    className="inline-flex shrink-0 items-center gap-1 rounded-full bg-warning-soft px-2 py-0.5 text-[11px] font-medium text-warning hover:underline"
+                  >
+                    <Clock className="size-3" /> Waiting for approval
+                  </Link>
+                </span>
+                <span className="tabular-nums text-text-muted">{formatMoney(line.amount)}</span>
+              </div>
+            ))}
             {matchedStatementLines.map((line) => (
-              <div key={line.id} className="flex items-center justify-between gap-3 bg-success-soft/30 px-4 py-2.5 text-xs">
+              <div key={line.id} className="ui-rise-in flex items-center justify-between gap-3 bg-success-soft/30 px-4 py-2.5 text-xs">
                 <span className="flex items-center gap-2 truncate text-text-secondary">
                   <span className="flex size-4 items-center justify-center rounded-full bg-success text-white">
                     <Check className="size-3" />
@@ -301,6 +426,14 @@ export const BankReconcile: React.FC = () => {
               <span className="text-xs text-text-muted">not yet on a statement</span>
             </div>
           </div>
+          <Tabs value={tab} onValueChange={(v) => setTab(v as 'match' | 'create')} className="flex flex-1 flex-col">
+            <div className="flex items-center justify-between border-b border-border px-4 py-2">
+              <TabsList>
+                <TabsTrigger value="match">Match <Kbd className="ml-1.5">M</Kbd></TabsTrigger>
+                <TabsTrigger value="create">Create <Kbd className="ml-1.5">C</Kbd></TabsTrigger>
+              </TabsList>
+            </div>
+            <TabsContent value="match" className="mt-0 flex flex-1 flex-col">
           <div className="max-h-[460px] divide-y divide-border overflow-y-auto">
             {openBook.length === 0 && <div className="px-4 py-12 text-center text-xs text-text-muted">No book entries are waiting for a match.</div>}
             {openBook.map((txn) => {
@@ -356,6 +489,15 @@ export const BankReconcile: React.FC = () => {
               {activeStatementLine ? ` ${formatMoney(activeStatementLine.amount)}` : ''}
             </button>
           </div>
+            </TabsContent>
+            <TabsContent value="create" className="mt-0">
+              {activeStatementLine && activeStatementLine.status === 'unmatched' && !activeStatementLine.pending_journal_id ? (
+                <CreateTab key={activeStatementLine.id} line={activeStatementLine} onDone={onCreated} />
+              ) : (
+                <div className="px-4 py-12 text-center text-xs text-text-muted">Pick a statement line on the left to record it here.</div>
+              )}
+            </TabsContent>
+          </Tabs>
         </section>
       </div>
 

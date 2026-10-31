@@ -9,6 +9,7 @@ import {
   ColumnDef,
   flexRender,
   SortingState,
+  VisibilityState,
 } from '@tanstack/react-table';
 import {
   Search,
@@ -40,6 +41,16 @@ import {
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Kbd } from '@/components/ui/kbd';
+import {
+  ViewsMenu,
+  ColumnsMenu,
+  useSavedViews,
+  readViewStore,
+  hiddenFromVisibility,
+  visibilityFromHidden,
+  type SavedView,
+} from './DataTableViews';
+import { useLocation } from 'react-router-dom';
 import { useLedgerStore } from '@/mock/store';
 import { formatMoney } from '@/lib/format';
 import { toast } from 'sonner';
@@ -82,6 +93,8 @@ interface DataTableProps<TData, TValue> {
   loading?: boolean;
   /** Number of skeleton rows when loading (default 8). */
   skeletonRows?: number;
+  /** Key for saved views. Defaults to the current route path. */
+  tableId?: string;
 }
 
 export function DataTable<TData, TValue>({
@@ -104,9 +117,23 @@ export function DataTable<TData, TValue>({
   contextMenuTitle,
   loading = false,
   skeletonRows = 8,
+  tableId,
 }: DataTableProps<TData, TValue>) {
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const [globalFilter, setGlobalFilter] = useState('');
+  const location = useLocation();
+  const viewKey = tableId ?? location.pathname;
+  const savedViews = useSavedViews(viewKey);
+  const defaultView = useMemo(() => {
+    const st = readViewStore(viewKey);
+    return st.views.find((v) => v.id === st.defaultId);
+    // read once per table
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viewKey]);
+  const [activeViewId, setActiveViewId] = useState<string | undefined>(defaultView?.id);
+  const [sorting, setSorting] = useState<SortingState>(defaultView?.sorting ?? []);
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
+    defaultView ? visibilityFromHidden(defaultView.hidden) : {}
+  );
+  const [globalFilter, setGlobalFilter] = useState(defaultView?.search ?? '');
   const [focusedIndex, setFocusedIndex] = useState<number>(0);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
@@ -122,8 +149,10 @@ export function DataTable<TData, TValue>({
     state: {
       sorting,
       globalFilter,
+      columnVisibility,
     },
     onSortingChange: setSorting,
+    onColumnVisibilityChange: setColumnVisibility,
     onGlobalFilterChange: (val) => {
       setGlobalFilter(val);
       setFocusedIndex(0);
@@ -140,6 +169,20 @@ export function DataTable<TData, TValue>({
   });
 
   const rows = table.getRowModel().rows;
+
+  // A default view also restores its filter tab once on mount.
+  useEffect(() => {
+    if (defaultView?.tab && defaultView.tab !== activeTab) onTabChange?.(defaultView.tab);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const applyView = (v: SavedView) => {
+    setGlobalFilter(v.search);
+    setSorting(v.sorting);
+    setColumnVisibility(visibilityFromHidden(v.hidden));
+    if (v.tab !== undefined) onTabChange?.(v.tab);
+    setActiveViewId(v.id);
+  };
 
   // Row height per density
   const rowHeightClass = {
@@ -418,6 +461,29 @@ export function DataTable<TData, TValue>({
             />
             <Kbd className="absolute right-2 pointer-events-none">/</Kbd>
           </div>
+
+          <ViewsMenu
+            views={savedViews.views}
+            defaultId={savedViews.defaultId}
+            activeViewId={activeViewId}
+            onApply={applyView}
+            onSave={(name) => {
+              const created = savedViews.save({
+                name,
+                search: globalFilter,
+                tab: activeTab,
+                sorting,
+                hidden: hiddenFromVisibility(columnVisibility),
+              });
+              setActiveViewId(created.id);
+            }}
+            onSetDefault={savedViews.setDefault}
+            onDelete={(id) => {
+              savedViews.remove(id);
+              if (activeViewId === id) setActiveViewId(undefined);
+            }}
+          />
+          <ColumnsMenu table={table} />
 
           {/* Action buttons with kbd hints */}
           <div className="flex items-center gap-2 shrink-0">{actions}</div>

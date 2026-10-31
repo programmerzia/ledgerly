@@ -15,6 +15,7 @@ import {
   Paperclip,
   RotateCcw,
   Wrench,
+  Repeat,
   Send,
 } from 'lucide-react';
 import type { Invoice, Contact, Settlement } from '@/types';
@@ -32,6 +33,7 @@ import { formatMoney, formatDate } from '@/lib/format';
 import { amountDue, daysOverdue, paymentStatus, BUSINESS_TODAY } from '@/lib/docStatus';
 import { cn } from '@/lib/utils';
 import { CARD, BTN_PRIMARY, BTN_SECONDARY } from './shared';
+import { MakeRecurringDialog } from '../MakeRecurringDialog';
 
 export interface JournalPreviewLine {
   id: string;
@@ -84,6 +86,7 @@ export const InvoiceSidebar: React.FC<Props> = ({
   actions,
 }) => {
   const [journalOpen, setJournalOpen] = useState(false);
+  const [recurringOpen, setRecurringOpen] = useState(false);
   const pay = paymentStatus(invoice);
   const due = amountDue(invoice);
   const pct = invoice.total > 0 ? Math.min(100, Math.round((invoice.settled / invoice.total) * 100)) : 0;
@@ -108,6 +111,7 @@ export const InvoiceSidebar: React.FC<Props> = ({
 
   return (
     <aside className="flex flex-col gap-4 lg:sticky lg:top-4 lg:self-start">
+      <MakeRecurringDialog open={recurringOpen} onOpenChange={setRecurringOpen} invoiceId={invoice.id} />
       {/* Status card */}
       <section className={cn(CARD, 'p-5 flex flex-col gap-4')} aria-label="Payment status">
         <div className="flex flex-wrap items-center gap-1.5">
@@ -188,6 +192,11 @@ export const InvoiceSidebar: React.FC<Props> = ({
               <DropdownMenuItem onSelect={actions.duplicate} className="h-8 gap-2 rounded-md">
                 <Copy className="size-4 text-text-muted" /> Duplicate
               </DropdownMenuItem>
+              {posted && (
+                <DropdownMenuItem onSelect={() => setRecurringOpen(true)} className="h-8 gap-2 rounded-md">
+                  <Repeat className="size-4 text-text-muted" /> Make recurring…
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem onSelect={actions.copyLink} className="h-8 gap-2 rounded-md">
                 <Link2 className="size-4 text-text-muted" /> Copy link
               </DropdownMenuItem>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { RotateCcw, Printer, Copy, Wrench, Paperclip, Hash } from 'lucide-react';
+import { RotateCcw, Printer, Copy, Wrench, Paperclip, Hash, CheckCircle, Send, Clock, Landmark } from 'lucide-react';
 import type { Journal } from '@/types';
 import { StatusPill } from '@/components/domain/StatusPill';
 import { DocumentAuditTimeline } from '@/components/domain/DocumentAuditTimeline';
@@ -14,16 +14,28 @@ export interface JournalSidebarActions {
   duplicate: () => void;
   attach: () => void;
   copyNumber: () => void;
+  submit?: () => void;
+  approve?: () => void;
+  sendBack?: () => void;
 }
 
 interface Props {
   journal: Journal;
   currency: string;
   actions: JournalSidebarActions;
+  /** Id of the signed-in user, to tell maker from approver. */
+  currentUserId?: string;
+  /** Name of the person who sent it for approval or created it. */
+  makerName?: string;
+  /** Bank statement line description when the journal came from the bank feed. */
+  bankLineDescription?: string;
 }
 
-export const JournalSidebar: React.FC<Props> = ({ journal, currency, actions }) => {
+export const JournalSidebar: React.FC<Props> = ({ journal, currency, actions, currentUserId, makerName, bankLineDescription }) => {
   const posted = journal.status === 'posted';
+  const isMaker = !!currentUserId && (journal.created_by === currentUserId || journal.submitted_by === currentUserId);
+  const pending = journal.status === 'pending_approval';
+  const canSubmit = journal.status === 'draft' && journal.source_type === 'bank_transaction' && !!actions.submit;
   return (
     <aside className="flex flex-col gap-4 lg:sticky lg:top-4 lg:self-start">
       <section className={cn(CARD, 'flex flex-col gap-4 p-5')} aria-label="Journal status">
@@ -39,6 +51,41 @@ export const JournalSidebar: React.FC<Props> = ({ journal, currency, actions }) 
             {journal.lines.length} lines · {journal.status === 'posted' ? 'in the books' : journal.status === 'reversed' ? 'cancelled by a reversal' : 'not in the books yet'}
           </div>
         </div>
+        {journal.source_type === 'bank_transaction' && (
+          <div className="flex items-start gap-2 rounded-lg bg-surface-neutral px-3 py-2 text-xs text-text-secondary">
+            <Landmark className="mt-0.5 size-3.5 shrink-0 text-text-muted" />
+            <span>From bank line: <span className="font-medium text-text-primary">{bankLineDescription ?? journal.memo}</span></span>
+          </div>
+        )}
+        {pending && (
+          isMaker ? (
+            <div className="flex items-center gap-2 rounded-lg border border-warning/30 bg-warning-soft px-3 py-2 text-[13px] font-medium text-warning">
+              <Clock className="size-4 shrink-0" /> Waiting for someone else to approve{makerName ? ` (sent by ${makerName})` : ""}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-2">
+              <button type="button" onClick={actions.sendBack} className={cn(BTN_SECONDARY, 'hover:border-danger/50 hover:text-danger')}>
+                <RotateCcw className="size-4" /> Return
+              </button>
+              <button
+                type="button"
+                onClick={actions.approve}
+                className="flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-lg bg-success px-3 text-[13px] font-semibold text-white transition hover:opacity-90"
+              >
+                <CheckCircle className="size-4" /> Approve
+              </button>
+            </div>
+          )
+        )}
+        {canSubmit && (
+          <button
+            type="button"
+            onClick={actions.submit}
+            className="flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-lg bg-accent px-3 text-[13px] font-semibold text-white transition hover:bg-accent-hover"
+          >
+            <Send className="size-4" /> Submit for approval
+          </button>
+        )}
         <div className="grid grid-cols-2 gap-2">
           <button type="button" onClick={actions.print} className={BTN_SECONDARY}>
             <Printer className="size-4 text-text-muted" /> Print

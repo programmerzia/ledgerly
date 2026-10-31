@@ -37,7 +37,7 @@ import {
 export const JournalView: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { currentCompany, currentUser, accounts, journals } = useLedgerStore();
+  const { currentCompany, currentUser, companySettings, accounts, journals, users, bankStatementLines, approveJournal, returnJournal, submitJournalForApproval } = useLedgerStore();
   const coSlug = currentCompany.slug;
 
   const [journal, setJournal] = useState<Journal | null>(null);
@@ -46,7 +46,9 @@ export const JournalView: React.FC = () => {
   const [isFixThisOpen, setIsFixThisOpen] = useState(false);
   const [isAttachOpen, setIsAttachOpen] = useState(false);
   const [signDialogOpen, setSignDialogOpen] = useState(false);
-  const [signAction, setSignAction] = useState<'reverse' | 'fix_this' | null>(null);
+  const [signAction, setSignAction] = useState<'reverse' | 'fix_this' | 'approve' | null>(null);
+  const [isReturnOpen, setIsReturnOpen] = useState(false);
+  const [returnReason, setReturnReason] = useState('');
   const [showAccountingPreview, setShowAccountingPreview] = useState(false);
   const [reverseReason, setReverseReason] = useState('Correction of erroneous expense allocation');
   const [attachments, setAttachments] = useState<Array<{ name: string; size: string; date: string }>>([
@@ -75,7 +77,11 @@ export const JournalView: React.FC = () => {
 
   const handleConfirmSign = async (pin: string) => {
     try {
-      if (signAction === 'reverse') {
+      if (signAction === 'approve') {
+        const posted = approveJournal(journal.id, currentUser, pin, companySettings);
+        setJournal(posted);
+        toast.success(`Approved and posted as ${posted.number}`);
+      } else if (signAction === 'reverse') {
         const res = await api.reverseJournal(journal.id, reverseReason);
         setJournal(res.original);
         toast.success(`Journal reversed. Reversal entry ${res.reversal.number} created and posted.`);
@@ -92,6 +98,34 @@ export const JournalView: React.FC = () => {
       toast.error(err.message || 'Operation failed');
     }
   };
+
+  const handleReturn = () => {
+    const reason = returnReason.trim();
+    if (!reason) return;
+    try {
+      const updated = returnJournal(journal.id, reason, currentUser);
+      setJournal(updated);
+      setIsReturnOpen(false);
+      setReturnReason('');
+      toast.success('Sent back to the maker as a draft');
+    } catch (err: any) {
+      toast.error(err.message || 'Could not send back');
+    }
+  };
+
+  const handleSubmit = () => {
+    try {
+      setJournal(submitJournalForApproval(journal.id, currentUser));
+      toast.success('Sent for approval');
+    } catch (err: any) {
+      toast.error(err.message || 'Could not submit');
+    }
+  };
+
+  const bankLine = journal.source_type === 'bank_transaction'
+    ? bankStatementLines.find((l: any) => l.id === journal.source_id || l.pending_journal_id === journal.id || l.matched_journal_id === journal.id)
+    : undefined;
+  const makerUser = users?.find((u: any) => u.id === (journal.submitted_by ?? journal.created_by));
 
   const handleDuplicate = async () => {
     const dup = await api.duplicateJournal(journal.id);
@@ -152,7 +186,16 @@ export const JournalView: React.FC = () => {
         <JournalSidebar
           journal={journal}
           currency={currentCompany.base_currency}
+          currentUserId={currentUser.id}
+          makerName={makerUser?.name}
+          bankLineDescription={bankLine?.description}
           actions={{
+            submit: handleSubmit,
+            approve: () => {
+              setSignAction('approve');
+              setSignDialogOpen(true);
+            },
+            sendBack: () => setIsReturnOpen(true),
             print: () => window.print(),
             reverse: () => setIsReverseOpen(true),
             fixThis: () => setIsFixThisOpen(true),
@@ -165,6 +208,32 @@ export const JournalView: React.FC = () => {
           }}
         />
       </div>
+
+      {/* Return for changes */}
+      <Dialog open={isReturnOpen} onOpenChange={setIsReturnOpen}>
+        <DialogContent className="max-w-md bg-surface-elevated border border-border p-6 shadow-popover rounded-xl">
+          <DialogHeader>
+            <DialogTitle className="text-base font-bold text-text-primary">Send back for changes</DialogTitle>
+          </DialogHeader>
+          <label htmlFor="journal-return-reason" className="text-xs font-semibold text-text-primary">Why are you sending it back?</label>
+          <textarea
+            id="journal-return-reason"
+            autoFocus
+            rows={3}
+            value={returnReason}
+            onChange={(e) => setReturnReason(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) handleReturn();
+            }}
+            placeholder="e.g. Wrong expense account"
+            className="w-full rounded-lg border border-border bg-surface p-2 text-xs text-text-primary focus:outline-none focus:ring-1 focus:ring-accent"
+          />
+          <DialogFooter className="mt-2 flex justify-end gap-2">
+            <button type="button" onClick={() => setIsReturnOpen(false)} className="h-9 px-3.5 rounded-lg border border-border bg-surface text-xs hover:bg-surface-neutral cursor-pointer">Cancel</button>
+            <button type="button" onClick={handleReturn} disabled={!returnReason.trim()} className="h-9 px-3.5 rounded-lg bg-warning text-white text-xs font-semibold disabled:opacity-50 cursor-pointer">Send back</button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Confirmation Reversal Dialog */}
       <Dialog open={isReverseOpen} onOpenChange={setIsReverseOpen}>
@@ -356,14 +425,18 @@ export const JournalView: React.FC = () => {
         amount={journal.total_debit}
         currency={currentCompany.base_currency}
         periodName="Oct 2026"
-        makerName="Kenneth Ochieng"
+        makerName={users?.find((u: any) => u.id === journal.created_by)?.name ?? "the maker"}
         actionTitle={
-          signAction === 'reverse'
+          signAction === 'approve'
+            ? 'Approve and post'
+            : signAction === 'reverse'
             ? 'Reverse journal'
             : 'Reverse and create draft'
         }
         consequenceText={
-          signAction === 'reverse'
+          signAction === 'approve'
+            ? 'Approving posts this journal to your books with the next journal number. Mistakes are fixed later with a reversal.'
+            : signAction === 'reverse'
             ? `Reversing adds an equal and opposite entry of ${formatMoney(journal.total_debit)} and restores your balances.`
             : `The original is cancelled and an editable draft copy is created for you to correct.`
         }

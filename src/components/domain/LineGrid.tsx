@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
-import { Account, Dimension, TaxCode } from '@/types';
+import { Account, Dimension, TaxCode, Item } from '@/types';
+import { ItemPicker } from './ItemPicker';
+import { Kbd } from '@/components/ui/kbd';
 import { AccountPicker } from './AccountPicker';
 import { DimensionChips } from './DimensionChips';
 import { MoneyInput } from './MoneyInput';
@@ -18,6 +20,8 @@ import { FieldHelp } from './FieldHelp';
 export interface GridLineItem {
   id: string;
   line_no: number;
+  /** Set when the line was filled from the price list. */
+  item_id?: string;
   account_id: string;
   description: string;
   quantity?: number;
@@ -47,6 +51,10 @@ interface LineGridProps {
   readOnly?: boolean;
   /** Hide the built-in totals strip when the page renders its own totals block. */
   showTotals?: boolean;
+  /** Price list; when given, invoice mode shows an Item picker as the first column. */
+  items?: Item[];
+  /** Pre-fill for new lines (e.g. from the customer). */
+  lineDefaults?: { account_id?: string; tax_code_id?: string; branch?: string };
   className?: string;
 }
 
@@ -60,9 +68,39 @@ export const LineGrid: React.FC<LineGridProps> = ({
   currency = 'USD',
   readOnly = false,
   showTotals = true,
+  items,
+  lineDefaults,
   className,
 }) => {
   const isInvoice = mode === 'invoice';
+  const showItems = isInvoice && !!items;
+  const focusNewRow = useRef(false);
+
+  useEffect(() => {
+    if (!focusNewRow.current) return;
+    focusNewRow.current = false;
+    const last = lines[lines.length - 1];
+    if (!last) return;
+    document.querySelector<HTMLElement>(`[data-item-picker="${last.id}"]`)?.focus();
+  }, [lines]);
+
+  const applyItem = (index: number, item: Item) => {
+    const acct = accounts.find((a) => a.code === item.income_account);
+    const tax = taxCodes.find((t) => t.code === item.tax_code);
+    const current = lines[index];
+    updateLine(index, {
+      item_id: item.id,
+      description: item.name,
+      unit_price_fc: item.sales_price,
+      ...(acct ? { account_id: acct.id } : {}),
+      ...(tax ? { tax_code_id: tax.id } : {}),
+      quantity: current.quantity || 1,
+      dimensions:
+        !current.dimensions?.branch && lineDefaults?.branch
+          ? { ...current.dimensions, branch: lineDefaults.branch }
+          : current.dimensions,
+    });
+  };
 
   const updateLine = (index: number, updates: Partial<GridLineItem>) => {
     const newLines = [...lines];
@@ -90,17 +128,18 @@ export const LineGrid: React.FC<LineGridProps> = ({
     const newLine: GridLineItem = {
       id: `line-${Date.now()}-${lines.length + 1}`,
       line_no: lines.length + 1,
-      account_id: '',
+      account_id: lineDefaults?.account_id || '',
       description: '',
       quantity: 1,
       unit_price_fc: 0,
-      tax_code_id: taxCodes[0]?.id || '',
+      tax_code_id: lineDefaults?.tax_code_id || taxCodes[0]?.id || '',
       line_total_fc: 0,
       tax_amount_fc: 0,
       debit: 0,
       credit: 0,
-      dimensions: {},
+      dimensions: lineDefaults?.branch ? { branch: lineDefaults.branch } : {},
     };
+    focusNewRow.current = true;
     onChange([...lines, newLine]);
   };
 
@@ -124,7 +163,18 @@ export const LineGrid: React.FC<LineGridProps> = ({
 
   // Keyboard navigation: Enter on a line adds or focuses next
   const handleKeyDown = (e: React.KeyboardEvent, index: number) => {
-    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+    if (e.key !== 'Enter') return;
+    if (e.metaKey || e.ctrlKey) {
+      // In invoice mode Ctrl/Cmd+Enter belongs to the form (submit for approval).
+      if (!isInvoice) {
+        e.preventDefault();
+        addLine();
+      }
+      return;
+    }
+    // Enter on the last cell of the last row starts a new line
+    const target = e.target as HTMLElement;
+    if (isInvoice && !readOnly && index === lines.length - 1 && target.dataset.lastCell === 'true') {
       e.preventDefault();
       addLine();
     }
@@ -147,19 +197,27 @@ export const LineGrid: React.FC<LineGridProps> = ({
           <thead>
             <tr className="bg-surface-neutral/80 border-b border-border text-col-header">
               <th className="w-10 text-center py-2 px-1">#</th>
-              <th className="min-w-[200px] py-2 px-2">
+              {showItems && (
+                <th className="min-w-[180px] py-2 px-2">
+                  <span className="inline-flex items-center">
+                    Item
+                    <FieldHelp help="Pick from your price list to fill description, price, account and tax. You can still change any of them." example="Managed Cloud VM" />
+                  </span>
+                </th>
+              )}
+              <th className="min-w-[160px] py-2 px-2">
                 <span className="inline-flex items-center">
                   Account
                   <FieldHelp help="General ledger posting account for this line." example="4000 Sales Revenue" />
                 </span>
               </th>
-              <th className="min-w-[260px] py-2 px-2">
+              <th className="min-w-[180px] py-2 px-2">
                 <span className="inline-flex items-center">
                   Description
                   <FieldHelp help="Line narrative or commercial item description." example="Transceiver modules" />
                 </span>
               </th>
-              <th className="min-w-[170px] py-2 px-2">
+              <th className="min-w-[130px] py-2 px-2">
                 <span className="inline-flex items-center">
                   Dimensions
                   <FieldHelp help="Branch, Cost Centre or Project tags for segmental accounting." example="Branch = Mogadishu" />
@@ -168,25 +226,25 @@ export const LineGrid: React.FC<LineGridProps> = ({
 
               {isInvoice ? (
                 <>
-                  <th className="w-20 min-w-[80px] text-right py-2 px-2">
+                  <th className="w-16 min-w-[64px] text-right py-2 px-2">
                     <span className="inline-flex items-center justify-end">
                       Qty
                       <FieldHelp help="Quantity of goods or services billed." example="1" />
                     </span>
                   </th>
-                  <th className="w-32 min-w-[128px] text-right py-2 px-2">
+                  <th className="w-28 min-w-[110px] text-right py-2 px-2">
                     <span className="inline-flex items-center justify-end">
                       Unit Price
                       <FieldHelp help="Price per unit in transaction currency." example="500.00" />
                     </span>
                   </th>
-                  <th className="w-28 min-w-[112px] py-2 px-2">
+                  <th className="w-24 min-w-[96px] py-2 px-2">
                     <span className="inline-flex items-center">
                       Tax Code
                       <FieldHelp help="Applicable tax treatment (e.g. VAT 5%, Zero Rated, Exempt)." example="tax-vat5" />
                     </span>
                   </th>
-                  <th className="w-32 min-w-[128px] text-right py-2 px-2">
+                  <th className="w-28 min-w-[110px] text-right py-2 px-2">
                     <span className="inline-flex items-center justify-end">
                       Line Total
                       <FieldHelp help="Calculated line amount before withholding taxes." />
@@ -231,6 +289,22 @@ export const LineGrid: React.FC<LineGridProps> = ({
                     >
                       {/* Row Index */}
                       <td className="text-center font-mono text-[11px] text-text-muted px-1">{line.line_no}</td>
+
+                      {showItems && (
+                        <td className="px-2">
+                          {readOnly ? (
+                            <span className="text-xs">{items!.find((i) => i.id === line.item_id)?.name || '—'}</span>
+                          ) : (
+                            <ItemPicker
+                              items={items!}
+                              value={line.item_id}
+                              focusKey={line.id}
+                              onChange={(it) => applyItem(idx, it)}
+                              currency={currency}
+                            />
+                          )}
+                        </td>
+                      )}
 
                       {/* Account Picker */}
                       <td className="px-2">
@@ -314,6 +388,7 @@ export const LineGrid: React.FC<LineGridProps> = ({
                             ) : (
                               <select
                                 value={line.tax_code_id || ''}
+                                data-last-cell="true"
                                 onChange={(e) => updateLine(idx, { tax_code_id: e.target.value })}
                                 className="w-full h-8 px-2 bg-surface text-text-primary border border-border rounded-sm text-xs focus:outline-none focus:ring-1 focus:ring-accent font-mono"
                               >
@@ -469,10 +544,18 @@ export const LineGrid: React.FC<LineGridProps> = ({
           >
             <Plus className="w-3.5 h-3.5 text-accent" />
             <span>Add line</span>
-            <span className="hidden sm:inline text-[10px] text-text-muted font-mono ml-1.5">(⌘ + Enter)</span>
+            {!isInvoice && (
+              <span className="hidden sm:inline text-[10px] text-text-muted font-mono ml-1.5">(⌘ + Enter)</span>
+            )}
           </button>
         ) : (
           <div />
+        )}
+
+        {isInvoice && !readOnly && (
+          <div className="hidden lg:flex items-center gap-1.5 text-[11px] text-text-muted">
+            <Kbd>Enter</Kbd> on the last field adds a line
+          </div>
         )}
 
         {/* Totals & Balancing Section */}

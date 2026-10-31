@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useLedgerStore } from '@/mock/store';
 import { BankAccount, BankStatementLine } from '@/types';
 import { formatMoney, formatDate } from '@/lib/format';
@@ -9,6 +9,7 @@ import {
   ArrowRight,
   Plus,
   ArrowLeftRight,
+  Wand2,
 } from 'lucide-react';
 import { PageHeader } from '@/components/domain/PageHeader';
 import { BankAccountCard } from './BankAccountCard';
@@ -34,7 +35,7 @@ import { toast } from 'sonner';
 
 export const BankAccountsList: React.FC = () => {
   const navigate = useNavigate();
-  const { currentCompany, bankAccounts, balanceOf, bankStatementLines, addBankAccount } =
+  const { currentCompany, bankAccounts, balanceOf, bankStatementLines, addBankAccount, ruleSuggestionFor } =
     useLedgerStore();
   const coSlug = currentCompany.slug;
 
@@ -103,6 +104,13 @@ export const BankAccountsList: React.FC = () => {
         subtitle={`${currentCompany.name} · balances, statements and reconciliation`}
         actions={
           <>
+            <Link
+              to={`/${coSlug}/banking/rules`}
+              className="flex h-9 items-center gap-1.5 rounded-lg border border-border bg-surface px-3 text-[13px] font-medium text-text-secondary transition hover:bg-surface-neutral hover:text-text-primary"
+            >
+              <Wand2 className="size-4 text-accent" />
+              Rules
+            </Link>
             <button
               type="button"
               onClick={() => setIsTransferModalOpen(true)}
@@ -155,7 +163,8 @@ export const BankAccountsList: React.FC = () => {
             key={b.id}
             bank={b}
             bookBalance={balanceOf(b.account_id)}
-            toReconcile={bankStatementLines.filter((l) => l.bank_account_id === b.id && l.status === 'unmatched').length}
+            toReconcile={bankStatementLines.filter((l) => l.bank_account_id === b.id && l.status === 'unmatched' && !l.pending_journal_id).length}
+            suggested={bankStatementLines.filter((l) => l.bank_account_id === b.id && !l.pending_journal_id && ruleSuggestionFor(l.id)).length}
             balanceAt={(iso) => balanceOf(b.account_id, iso)}
             onOpen={() => setSelectedBankId(b.id)}
             onReconcile={() => navigate(`/${coSlug}/banking/${b.id}/reconcile`)}

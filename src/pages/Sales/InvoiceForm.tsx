@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '@/mock/api';
 import { useLedgerStore } from '@/mock/store';
 import { LineGrid, GridLineItem } from '@/components/domain/LineGrid';
@@ -7,12 +7,15 @@ import { FieldHelp } from '@/components/domain/FieldHelp';
 import { ConsequenceDialog, ConsequenceAccountingLine } from '@/components/domain/ConsequenceDialog';
 import { formatMoney } from '@/lib/format';
 import { paymentStatus, amountDue } from '@/lib/docStatus';
-import { ArrowLeft, Save, Send, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { ContactPicker } from '@/components/domain/ContactPicker';
+import { Kbd } from '@/components/ui/kbd';
+import { ArrowLeft, Save, Send, AlertTriangle, ShieldCheck, History } from 'lucide-react';
 import { toast } from 'sonner';
 
 export const InvoiceForm: React.FC = () => {
   const navigate = useNavigate();
-  const { currentCompany, contacts, accounts, dimensions, taxCodes, invoices } = useLedgerStore();
+  const [searchParams] = useSearchParams();
+  const { currentCompany, contacts, accounts, dimensions, taxCodes, invoices, items } = useLedgerStore();
   const coSlug = currentCompany.slug;
 
   const [contactId, setContactId] = useState('cnt-1'); // Hormuud Telecom
@@ -70,6 +73,96 @@ export const InvoiceForm: React.FC = () => {
     d.setUTCDate(d.getUTCDate() + selectedContact.payment_terms_days);
     setDueDate(d.toISOString().slice(0, 10));
   }, [issueDate, selectedContact, dueDateEdited]);
+
+  const lineDefaults = useMemo(
+    () => ({
+      account_id: selectedContact?.default_account_id,
+      tax_code_id: selectedContact?.default_tax_code_id,
+      branch: selectedContact?.default_branch,
+    }),
+    [selectedContact]
+  );
+
+  const handleCustomerChange = (id: string, contact: { default_account_id?: string; default_tax_code_id?: string; default_branch?: string }) => {
+    setContactId(id);
+    // Defaults only pre-fill lines that are still empty
+    setLines((prev) =>
+      prev.map((l) =>
+        !l.description && !l.unit_price_fc && !l.item_id
+          ? {
+              ...l,
+              account_id: contact.default_account_id || l.account_id,
+              tax_code_id: contact.default_tax_code_id || l.tax_code_id,
+              dimensions: contact.default_branch
+                ? { ...l.dimensions, branch: l.dimensions?.branch || contact.default_branch }
+                : l.dimensions,
+            }
+          : l
+      )
+    );
+  };
+
+  // Palette deep link: ?contact=<id> preselects that customer as if picked by hand
+  const contactParam = searchParams.get('contact');
+  useEffect(() => {
+    if (!contactParam) return;
+    const c = contacts.find((x) => x.id === contactParam && (x.kind === 'customer' || x.kind === 'both'));
+    if (c) handleCustomerChange(c.id, c);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [contactParam]);
+
+  const balances = useMemo(() => {
+    const out: Record<string, number> = {};
+    for (const inv of invoices) {
+      if (inv.kind !== 'sales_invoice') continue;
+      const st = paymentStatus(inv);
+      if (st === 'awaiting_payment' || st === 'partially_paid' || st === 'overdue') {
+        out[inv.contact_id] = (out[inv.contact_id] || 0) + amountDue(inv);
+      }
+    }
+    return out;
+  }, [invoices]);
+
+  const lastInvoice = useMemo(
+    () =>
+      invoices
+        .filter((i) => i.contact_id === contactId && i.kind === 'sales_invoice' && i.lines.length > 0)
+        .sort((a, b) => b.issue_date.localeCompare(a.issue_date))[0],
+    [invoices, contactId]
+  );
+
+  const copyLastInvoice = () => {
+    if (!lastInvoice) return;
+    const before = { lines, memo, reference };
+    const stamp = Date.now();
+    setLines(
+      lastInvoice.lines.map((l, i) => ({
+        id: `ln-${stamp}-${i + 1}`,
+        line_no: i + 1,
+        account_id: l.account_id,
+        description: l.description,
+        quantity: l.quantity,
+        unit_price_fc: l.unit_price_fc,
+        tax_code_id: l.tax_code_id,
+        line_total_fc: l.line_total_fc,
+        tax_amount_fc: l.tax_amount_fc,
+        dimensions: { ...l.dimensions },
+      }))
+    );
+    setMemo(lastInvoice.memo || '');
+    setReference(lastInvoice.reference || '');
+    setErrorMessage('');
+    toast.success(`Copied lines from ${lastInvoice.number ?? 'the last invoice'}`, {
+      action: {
+        label: 'Undo',
+        onClick: () => {
+          setLines(before.lines);
+          setMemo(before.memo);
+          setReference(before.reference);
+        },
+      },
+    });
+  };
 
   const customerSummary = useMemo(() => {
     let outstanding = 0;
@@ -226,6 +319,29 @@ export const InvoiceForm: React.FC = () => {
     }
   };
 
+  // Keyboard shortcuts: Ctrl/Cmd+Enter submits, Ctrl/Cmd+S saves a draft
+  const shortcutRef = useRef({ submit: handleOpenSubmitConsequence, save: handleSaveDraft, busy: false });
+  shortcutRef.current = {
+    submit: handleOpenSubmitConsequence,
+    save: handleSaveDraft,
+    busy: isSubmitting || showConsequence,
+  };
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!(e.metaKey || e.ctrlKey) || shortcutRef.current.busy) return;
+      if ((e.target as HTMLElement | null)?.closest?.('[role="dialog"]')) return;
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        shortcutRef.current.submit();
+      } else if (e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        void shortcutRef.current.save();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
   return (
     <div className="flex flex-col gap-5">
       {/* Top Header */}
@@ -257,6 +373,7 @@ export const InvoiceForm: React.FC = () => {
           >
             <Save className="w-3.5 h-3.5" />
             <span>Save draft</span>
+            <Kbd className="hidden sm:inline-flex">⌘S</Kbd>
           </button>
 
           <button
@@ -267,6 +384,7 @@ export const InvoiceForm: React.FC = () => {
           >
             <Send className="w-3.5 h-3.5" />
             <span>Submit for approval</span>
+            <Kbd className="hidden sm:inline-flex bg-white/20 border-white/30 text-white">⌘↵</Kbd>
           </button>
         </div>
       </div>
@@ -307,19 +425,22 @@ export const InvoiceForm: React.FC = () => {
               example="CUST-001 Hormuud Telecom"
             />
           </label>
-          <select
+          <ContactPicker
+            kind="customer"
             value={contactId}
-            onChange={(e) => setContactId(e.target.value)}
-            className="h-8 px-2.5 bg-surface border border-border rounded-sm text-xs text-text-primary focus:outline-none focus:border-accent font-medium"
-          >
-            {contacts
-              .filter((c) => c.kind === 'customer' || c.kind === 'both')
-              .map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.code} — {c.name}
-                </option>
-              ))}
-          </select>
+            onChange={handleCustomerChange}
+            balances={balances}
+          />
+          {lastInvoice && (
+            <button
+              type="button"
+              onClick={copyLastInvoice}
+              className="self-start inline-flex items-center gap-1 text-[11px] font-medium text-accent hover:underline"
+            >
+              <History className="w-3 h-3" />
+              Copy last invoice ({lastInvoice.number ?? lastInvoice.issue_date})
+            </button>
+          )}
           {selectedContact && (
             <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-text-muted mt-0.5">
               <span>
@@ -426,6 +547,8 @@ export const InvoiceForm: React.FC = () => {
           taxCodes={taxCodes}
           currency="USD"
           showTotals={false}
+          items={items}
+          lineDefaults={lineDefaults}
         />
 
         <div className="flex justify-end">
@@ -453,6 +576,10 @@ export const InvoiceForm: React.FC = () => {
           <span>
             After you submit, an approver reviews it before it's recorded and sent. Period: Oct 2026.
           </span>
+        </div>
+        <div className="hidden md:flex items-center gap-3 text-[11px]">
+          <span className="inline-flex items-center gap-1"><Kbd>⌘S</Kbd> Save draft</span>
+          <span className="inline-flex items-center gap-1"><Kbd>⌘↵</Kbd> Submit</span>
         </div>
       </div>
 

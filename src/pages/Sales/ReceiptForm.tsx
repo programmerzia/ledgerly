@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '@/mock/api';
 import { useLedgerStore } from '@/mock/store';
 import { Invoice, BankAccount, Contact } from '@/types';
@@ -13,15 +13,26 @@ import { PageHeader } from '@/components/domain/PageHeader';
 
 export const ReceiptForm: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { currentCompany, contacts, bankAccounts, invoices } = useLedgerStore();
   const coSlug = currentCompany.slug;
 
-  const [contactId, setContactId] = useState('cnt-1'); // Hormuud Telecom
+  const [contactId, setContactId] = useState(() => {
+    const c = contacts.find((x) => x.id === searchParams.get('contact'));
+    return c ? c.id : 'cnt-1'; // Hormuud Telecom
+  });
+  const [focusInvoiceId] = useState(() => {
+    const inv = invoices.find((x: Invoice) => x.id === searchParams.get('invoice'));
+    return inv ? inv.id : null;
+  });
   const [bankAccountId, setBankAccountId] = useState('bnk-1'); // Premier Bank USD
   const [settlementDate, setSettlementDate] = useState('2026-10-28');
   const [currency, setCurrency] = useState('USD');
   const [fxRate, setFxRate] = useState(1.0);
-  const [totalReceiptAmount, setTotalReceiptAmount] = useState(1200000); // $12,000.00 (Demo Step 4)
+  const [totalReceiptAmount, setTotalReceiptAmount] = useState(() => {
+    const raw = Number(searchParams.get('amount'));
+    return Number.isInteger(raw) && raw > 0 ? raw : 1200000; // $12,000.00 (Demo Step 4)
+  });
   const [reference, setReference] = useState('WIRE-HT-OCT26-09');
   const [memo, setMemo] = useState('Direct bank transfer for open October invoices');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -50,7 +61,10 @@ export const ReceiptForm: React.FC = () => {
     const newAlloc: Record<string, number> = {};
 
     // Sort by issue_date ascending (oldest first)
-    const sorted = [...customerInvoices].sort((a, b) => a.issue_date.localeCompare(b.issue_date));
+    // A linked invoice (from the command palette) is settled first
+    const sorted = [...customerInvoices].sort((a, b) =>
+      a.id === focusInvoiceId ? -1 : b.id === focusInvoiceId ? 1 : a.issue_date.localeCompare(b.issue_date)
+    );
 
     for (const inv of sorted) {
       const openAmount = inv.total - inv.settled;

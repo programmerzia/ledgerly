@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { ArrowRight, CheckCircle2, AlertCircle } from 'lucide-react';
+import { ArrowRight, CheckCircle2, AlertCircle, Wand2 } from 'lucide-react';
 import { BankAccount } from '@/types';
 import { formatMoney } from '@/lib/format';
 import { Avatar } from '@/components/ui/avatar';
@@ -9,6 +9,8 @@ interface Props {
   bank: BankAccount;
   bookBalance: number;
   toReconcile: number;
+  /** Open lines that a bank rule would code. */
+  suggested?: number;
   balanceAt: (iso: string) => number;
   onOpen: () => void;
   onReconcile: () => void;
@@ -39,7 +41,7 @@ const Sparkline: React.FC<{ values: number[] }> = ({ values }) => {
   );
 };
 
-export const BankAccountCard: React.FC<Props> = ({ bank, bookBalance, toReconcile, balanceAt, onOpen, onReconcile }) => {
+export const BankAccountCard: React.FC<Props> = ({ bank, bookBalance, toReconcile, suggested = 0, balanceAt, onOpen, onReconcile }) => {
   const series = useMemo(() => {
     const out: number[] = [];
     const now = new Date();
@@ -110,7 +112,14 @@ export const BankAccountCard: React.FC<Props> = ({ bank, bookBalance, toReconcil
 
       <div className="flex items-center justify-between border-t border-border pt-3">
         {toReconcile > 0 ? (
-          <span className="text-xs font-medium text-warning">{toReconcile} to reconcile</span>
+          <span className="flex items-center gap-2 text-xs font-medium text-warning">
+            {toReconcile} to reconcile
+            {suggested > 0 && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-violet-soft px-2 py-0.5 text-[11px] font-medium text-violet">
+                <Wand2 className="size-3" /> {suggested} suggested
+              </span>
+            )}
+          </span>
         ) : (
           <span className="flex items-center gap-1 text-xs font-medium text-success">
             <CheckCircle2 className="size-3.5" /> All reconciled

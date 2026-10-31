@@ -25,115 +25,17 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { PageHeader } from '@/components/domain/PageHeader';
+import { QuickCreateItemDialog } from '@/components/domain/QuickCreateItemDialog';
+import type { Item } from '@/types';
 
-export interface ItemRecord {
-  id: string;
-  sku: string;
-  name: string;
-  type: 'service' | 'inventory' | 'non_inventory';
-  sales_price: number; // minor units (cents)
-  income_account: string;
-  income_account_name: string;
-  purchase_price: number;
-  expense_account: string;
-  tax_code: string;
-  is_active: boolean;
-  total_sold_qty: number;
-}
-
-const mockItems: ItemRecord[] = [
-  {
-    id: 'itm-1',
-    sku: 'FIBER-1G-BIZ',
-    name: 'Dedicated Business Fiber 1Gbps / Mo',
-    type: 'service',
-    sales_price: 105000, // $1,050.00
-    income_account: '4000',
-    income_account_name: 'Sales Revenue',
-    purchase_price: 45000,
-    expense_account: '5000',
-    tax_code: 'VAT5',
-    is_active: true,
-    total_sold_qty: 14,
-  },
-  {
-    id: 'itm-2',
-    sku: 'VOIP-TRUNK-32',
-    name: 'SIP VoIP Voice Trunk (32 Channels)',
-    type: 'service',
-    sales_price: 48000, // $480.00
-    income_account: '4100',
-    income_account_name: 'Service Revenue',
-    purchase_price: 18000,
-    expense_account: '5000',
-    tax_code: 'VAT5',
-    is_active: true,
-    total_sold_qty: 28,
-  },
-  {
-    id: 'itm-3',
-    sku: 'CLOUD-VM-PRO',
-    name: 'Managed Cloud Virtual Machine (8 vCPU / 32GB RAM)',
-    type: 'service',
-    sales_price: 25000, // $250.00
-    income_account: '4100',
-    income_account_name: 'Service Revenue',
-    purchase_price: 9000,
-    expense_account: '5000',
-    tax_code: 'VAT5',
-    is_active: true,
-    total_sold_qty: 45,
-  },
-  {
-    id: 'itm-4',
-    sku: 'NET-CONSULT-HR',
-    name: 'Senior Network Architecture Consulting (Per Hour)',
-    type: 'service',
-    sales_price: 15000, // $150.00
-    income_account: '4100',
-    income_account_name: 'Service Revenue',
-    purchase_price: 7500,
-    expense_account: '6000',
-    tax_code: 'VAT0',
-    is_active: true,
-    total_sold_qty: 82,
-  },
-  {
-    id: 'itm-5',
-    sku: 'HW-ROUTER-ENT',
-    name: 'Carrier Edge Router 10GE SFP+ (Enterprise)',
-    type: 'inventory',
-    sales_price: 320000, // $3,200.00
-    income_account: '4000',
-    income_account_name: 'Sales Revenue',
-    purchase_price: 210000,
-    expense_account: '5000',
-    tax_code: 'VAT5',
-    is_active: true,
-    total_sold_qty: 6,
-  },
-  {
-    id: 'itm-6',
-    sku: 'SATELLITE-BKP',
-    name: 'Emergency VSAT Satellite Backup Link (Monthly)',
-    type: 'service',
-    sales_price: 75000, // $750.00
-    income_account: '4000',
-    income_account_name: 'Sales Revenue',
-    purchase_price: 38000,
-    expense_account: '5000',
-    tax_code: 'VAT5',
-    is_active: true,
-    total_sold_qty: 11,
-  },
-];
+export type ItemRecord = Item;
 
 export const ItemsList: React.FC = () => {
   const navigate = useNavigate();
-  const { currentCompany, uiDensity } = useLedgerStore();
+  const { currentCompany, uiDensity, items, updateItem } = useLedgerStore();
+  const [newItemOpen, setNewItemOpen] = useState(false);
   const coSlug = currentCompany.slug;
 
-  const [items, setItems] = useState<ItemRecord[]>(mockItems);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(items[0]?.id || null);
 
   const selectedItem = useMemo(() => {
@@ -224,7 +126,7 @@ export const ItemsList: React.FC = () => {
         actions={
           <button
             type="button"
-            onClick={() => toast.success('New item modal ready')}
+            onClick={() => setNewItemOpen(true)}
             className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-lg bg-accent hover:bg-accent-hover text-white text-[13px] font-semibold shadow-xs transition cursor-pointer"
           >
             <Plus className="size-4" />
@@ -361,7 +263,12 @@ export const ItemsList: React.FC = () => {
                 destructive: true,
                 disabled: !r.is_active,
                 disabledReason: 'Already archived',
-                onClick: () => toast.success(`${r.name} archived`),
+                onClick: () => {
+                  updateItem(r.id, { is_active: false });
+                  toast.success(`${r.name} archived`, {
+                    action: { label: 'Undo', onClick: () => updateItem(r.id, { is_active: true }) },
+                  });
+                },
               },
             ]}
             onRowClick={(row) => setSelectedItemId(row.id)}
@@ -369,6 +276,12 @@ export const ItemsList: React.FC = () => {
           />
         </div>
       </SplitPane>
+    
+      <QuickCreateItemDialog
+        open={newItemOpen}
+        onOpenChange={setNewItemOpen}
+        onCreated={(it) => setSelectedItemId(it.id)}
+      />
     </div>
   );
 };

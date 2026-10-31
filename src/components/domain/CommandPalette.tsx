@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLedgerStore } from '@/mock/store';
 import {
@@ -7,9 +7,10 @@ import {
 import { toast } from 'sonner';
 import {
   FileText, Users, Sun, Moon, PlusCircle, Building2, CheckCircle2, Coins, BarChart3, Calendar, Settings,
-  History, CreditCard, Layers, LogOut, ShieldCheck, LayoutDashboard, Rows3, Truck, Receipt, Sparkles, CornerDownLeft,
+  History, CreditCard, Layers, LogOut, Zap, ShieldCheck, LayoutDashboard, Rows3, Truck, Receipt, Sparkles, CornerDownLeft,
 } from 'lucide-react';
 import { formatMoney } from '@/lib/format';
+import { parseVerb, type VerbMatch } from './commandVerbs';
 
 interface CommandPaletteProps {
   isOpen: boolean;
@@ -34,7 +35,24 @@ const KeyHint: React.FC<{ keys?: string }> = ({ keys }) =>
 
 export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
-  const { currentCompany, invoices, bills, contacts, theme, toggleTheme, setUiDensity } = useLedgerStore();
+  const { currentCompany, invoices, bills, journals, contacts, bankAccounts, theme, toggleTheme, setUiDensity, runRecurringSchedules } = useLedgerStore();
+  const [query, setQuery] = useState('');
+  useEffect(() => {
+    if (!isOpen) setQuery('');
+  }, [isOpen]);
+  const verbs = useMemo(
+    () => parseVerb(query, { invoices, bills, journals, contacts, bankAccounts }),
+    [query, invoices, bills, journals, contacts, bankAccounts]
+  );
+  const runVerb = (v: VerbMatch) => () => {
+    if (v.action.type === 'runRecurring') {
+      const created = runRecurringSchedules(new Date().toISOString().slice(0, 10));
+      toast.success(created.length ? `Created ${created.length} invoice${created.length === 1 ? '' : 's'} waiting for approval` : 'Nothing is due yet');
+      onClose();
+      return;
+    }
+    go(v.action.path, v.action.message)();
+  };
   const coSlug = currentCompany.slug;
   const go = (path: string, message?: string) => () => {
     navigate(`/${coSlug}${path}`);
@@ -42,6 +60,8 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
     onClose();
   };
   const run = (fn: () => void) => () => { fn(); onClose(); };
+
+  const accent = 'bg-accent-soft text-accent';
 
   const nav: { label: string; path: string; icon: React.ComponentType<{ className?: string }>; keys?: string }[] = [
     { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard, keys: 'G D' },
@@ -63,13 +83,36 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
     { label: 'Audit log', path: '/audit-log', icon: History },
   ];
 
-  const accent = 'bg-accent-soft text-accent';
-
   return (
     <CommandDialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <CommandInput placeholder="Search or jump to…  documents, customers, accounts, actions" />
+      <CommandInput
+        value={query}
+        onValueChange={setQuery}
+        placeholder='Search, or type a command: "pay BILL-2026-0012", "reconcile premier"'
+      />
       <CommandList className="max-h-[420px]">
-        <CommandEmpty>No matching results found.</CommandEmpty>
+        {verbs.length === 0 && <CommandEmpty>No matching results found.</CommandEmpty>}
+
+        {verbs.length > 0 && (
+          <CommandGroup heading="Do this" forceMount>
+            {verbs.map((v) => (
+              <CommandItem key={v.id} forceMount value={`__verb ${v.id} ${query}`} className="h-auto py-1.5" onSelect={runVerb(v)}>
+                <Tile icon={v.action.type === 'runRecurring' ? Zap : CornerDownLeft} tone={accent} />
+                <span className="flex min-w-0 flex-col leading-tight">
+                  <span className="font-medium text-text-primary">{v.title}</span>
+                  <span className="text-[11px] text-text-muted">{v.hint}</span>
+                </span>
+                <span className="ml-auto flex shrink-0 items-center gap-1">
+                  {v.entities.map((e) => (
+                    <span key={e.kind + e.label} className="rounded-full border border-border bg-surface-neutral px-2 py-0.5 text-[11px] text-text-secondary">
+                      <span className="capitalize text-text-muted">{e.kind}</span> {e.label}
+                    </span>
+                  ))}
+                </span>
+              </CommandItem>
+            ))}
+          </CommandGroup>
+        )}
 
         <CommandGroup heading="Actions">
           <CommandItem onSelect={go('/invoices/new')}><Tile icon={PlusCircle} tone={accent} /><span>New sales invoice</span><KeyHint keys="N" /></CommandItem>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '@/mock/api';
 import { useLedgerStore } from '@/mock/store';
 import { Bill, Contact, Account } from '@/types';
@@ -53,6 +53,7 @@ export const BillView: React.FC = () => {
   const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
   const [isAttachDialogOpen, setIsAttachDialogOpen] = useState(false);
   const [isPayDialogOpen, setIsPayDialogOpen] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
   const [showAccountingPreview, setShowAccountingPreview] = useState(false);
   const [reverseReason, setReverseReason] = useState('Supplier billing error & duplicate charge correction');
   const [emailTo, setEmailTo] = useState('finance@supplier.com');
@@ -93,6 +94,16 @@ export const BillView: React.FC = () => {
       );
     }
   }, [bill, currentCompany]);
+
+  // Palette deep link: ?pay=1 opens the payment dialog once, only when the bill can be paid
+  useEffect(() => {
+    if (searchParams.get('pay') !== '1' || !bill) return;
+    if (bill.status === 'posted' && amountDue(bill) > 0) setIsPayDialogOpen(true);
+    else toast.info(bill.status !== 'posted' ? 'This bill is not in the books yet, so it cannot be paid.' : 'This bill has nothing left to pay.');
+    const next = new URLSearchParams(searchParams);
+    next.delete('pay');
+    setSearchParams(next, { replace: true });
+  }, [bill, searchParams, setSearchParams]);
 
   if (loading && !bill) {
     return (
