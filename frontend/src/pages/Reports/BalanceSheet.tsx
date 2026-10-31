@@ -85,17 +85,17 @@ export const BalanceSheet: React.FC = () => {
       title={onClick ? 'View transactions' : undefined}
       className={cn(
         'grid gap-3 items-baseline px-2 py-1.5 text-xs group',
-        onClick && 'cursor-pointer hover:bg-accent-soft/40 rounded-md focus-visible:outline-2 outline-accent'
+        onClick && 'cursor-pointer hover:bg-canvas rounded-md focus-visible:outline-2 outline-accent'
       )}
     >
       <span className={cn('text-text-primary', onClick && 'group-hover:text-accent group-hover:underline')}>
-        {code && <span className="font-mono text-text-muted mr-2">{code}</span>}
+        {code && <span className="font-code text-text-muted mr-2">{code}</span>}
         {label}
       </span>
       {split.map((v, i) => (
-        <span key={i} className={cn('text-right font-mono tabular-nums text-text-secondary', tone(v))}>{money(v)}</span>
+        <span key={i} className={cn('text-right tabular-nums text-text-secondary', tone(v))}>{money(v)}</span>
       ))}
-      <span className={cn('text-right font-mono tabular-nums', bold && 'font-semibold', tone(total))}>{money(total)}</span>
+      <span className={cn('text-right tabular-nums', bold && 'font-semibold', tone(total))}>{money(total)}</span>
     </div>
   );
 
@@ -104,23 +104,24 @@ export const BalanceSheet: React.FC = () => {
       style={gridStyle}
       className={cn(
         'grid gap-3 items-baseline px-2 border-t border-border font-semibold',
-        big ? 'text-sm border-t-2 border-b-2 py-3 bg-surface-neutral/50 mt-1' : 'text-[13px] py-2'
+        big ? 'text-sm border-t border-text-primary border-b-[3px] border-double py-2.5 mt-1' : 'text-[13px] py-2'
       )}
     >
       <span className="text-text-primary">{label}</span>
       {split.map((v, i) => (
-        <span key={i} className={cn('text-right font-mono tabular-nums', tone(v))}>{money(v)}</span>
+        <span key={i} className={cn('text-right tabular-nums', tone(v))}>{money(v)}</span>
       ))}
-      <span className={cn('text-right font-mono tabular-nums', tone(total))}>{money(total)}</span>
+      <span className={cn('text-right tabular-nums', tone(total))}>{money(total)}</span>
     </div>
   );
 
-  const Section: React.FC<{ title: string; rows: Row[]; extra?: React.ReactNode; total: number; totalSplit: number[] }> = ({
+  const Section: React.FC<{ title: string; rows: Row[]; extra?: React.ReactNode; total: number; totalSplit: number[]; big?: boolean }> = ({
     title,
     rows,
     extra,
     total,
     totalSplit,
+    big,
   }) => (
     <div className="flex flex-col">
       <SectionTitle>{title}</SectionTitle>
@@ -130,7 +131,7 @@ export const BalanceSheet: React.FC = () => {
         ))}
         {extra}
       </div>
-      <Total label={`Total ${title.toLowerCase()}`} total={total} split={totalSplit} />
+      <Total big={big} label={`Total ${title.toLowerCase()}`} total={total} split={totalSplit} />
     </div>
   );
 
@@ -165,7 +166,7 @@ export const BalanceSheet: React.FC = () => {
             <span className="text-right">{period ? longDate(period.ends_on) : ''}</span>
           </div>
 
-          <Section title="Assets" rows={assets} total={totalAssets} totalSplit={idx.map((i) => sumSplit(assets, i))} />
+          <Section big title="Assets" rows={assets} total={totalAssets} totalSplit={idx.map((i) => sumSplit(assets, i))} />
           <Section title="Liabilities" rows={liabilities} total={totalLiabilities} totalSplit={idx.map((i) => sumSplit(liabilities, i))} />
           <Section
             title="Equity"
@@ -186,7 +187,7 @@ export const BalanceSheet: React.FC = () => {
           {!balanced && (
             <div className="mt-3 flex items-baseline justify-between px-2 text-xs font-semibold text-danger" role="alert">
               <span>Difference (Assets less Liabilities + Equity)</span>
-              <span className="font-mono tabular-nums">{formatMoney(diff, cur, { parenthesesNegative: true })}</span>
+              <span className="tabular-nums">{formatMoney(diff, cur, { parenthesesNegative: true })}</span>
             </div>
           )}
         </div>

@@ -18,7 +18,7 @@ export const UserAvatar: React.FC<{ initials?: string; className?: string }> = (
   <Avatar
     name={initials || '?'}
     size="sm"
-    className={cn('size-7 text-[11px] bg-gradient-to-br from-accent to-violet text-white', className)}
+    className={cn('size-7 text-[11px]', className)}
   />
 );
 

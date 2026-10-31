@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Maximize2, Minimize2, Cloud, CloudOff, RefreshCw, Clock } from 'lucide-react';
+import { Maximize2, Minimize2, Cloud, CloudOff, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { shortcutRegistry } from '@/lib/shortcuts';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 
 const ICON_BTN =
-  'relative size-9 grid place-items-center rounded-lg text-text-secondary hover:text-text-primary hover:bg-surface-neutral transition outline-none focus-visible:ring-2 focus-visible:ring-accent/50 cursor-pointer';
+  'relative size-8 grid place-items-center rounded-md text-text-muted hover:text-text-primary hover:bg-surface-neutral transition outline-none focus-visible:ring-2 focus-visible:ring-accent/50 cursor-pointer';
 
 /** Local HH:mm clock, refreshed every 30s. Tooltip shows full date, local + UTC time and fiscal period. */
 export const TopBarClock: React.FC<{ periodName: string }> = ({ periodName }) => {
@@ -21,12 +21,11 @@ export const TopBarClock: React.FC<{ periodName: string }> = ({ periodName }) =>
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <div className="hidden md:flex items-center gap-1.5 h-9 px-2.5 rounded-lg text-text-secondary hover:bg-surface-neutral transition cursor-default" aria-label={`Local time ${hm}`}>
-          <Clock className="size-3.5 text-text-muted" />
-          <span className="text-[13px] font-medium tabular-nums tracking-tight">{hm}</span>
+        <div className="hidden md:flex items-center h-8 px-2 text-xs text-text-muted tabular-nums cursor-default" aria-label={`Local time ${hm}`}>
+          {hm}
         </div>
       </TooltipTrigger>
-      <TooltipContent align="end" className="block p-3 min-w-[220px] rounded-lg shadow-lg">
+      <TooltipContent align="end" className="block p-3 min-w-[220px]">
         <div className="text-[13px] font-semibold text-text-primary">{date}</div>
         <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-xs">
           <dt className="text-text-muted">Local ({tz})</dt><dd className="text-right tabular-nums text-text-primary">{hm}</dd>
@@ -78,7 +77,7 @@ export const SyncIndicator: React.FC<SyncProps> = ({ isOffline, isSyncing, outbo
       <TooltipTrigger asChild>
         <button type="button" onClick={onToggle} aria-label={label} className={ICON_BTN}>
           {isOffline ? <CloudOff className="size-4 text-warning" /> : isSyncing ? <RefreshCw className="size-4 text-accent animate-spin" /> : <Cloud className="size-4" />}
-          <span className={cn('absolute top-2 right-2 size-2 rounded-full ring-2 ring-surface', isOffline ? 'bg-warning' : isSyncing ? 'bg-accent' : 'bg-success')} />
+          {(isOffline || isSyncing) && <span className={cn('absolute top-1.5 right-1.5 size-1.5 rounded-full', isOffline ? 'bg-warning' : 'bg-accent')} />}
         </button>
       </TooltipTrigger>
       <TooltipContent>{label}</TooltipContent>

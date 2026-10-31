@@ -3,14 +3,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import { useLedgerStore } from '@/mock/store';
 import { DataTable } from '@/components/domain/DataTable';
 import { formatMoney } from '@/lib/format';
-import {
-  ShieldCheck,
-  Printer,
-  FileText,
-  Coins,
-  Eye,
-  ExternalLink,
-} from 'lucide-react';
+import { ShieldCheck, Printer, Eye, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import {
   Dialog,
@@ -132,7 +125,7 @@ export const WhtCertificatesList: React.FC = () => {
     },
     {
       accessorKey: 'gross_amount',
-      header: () => <div className="text-right">Gross Amount</div>,
+      header: () => <div className="text-right">Gross amount</div>,
       cell: ({ row }) => (
         <div className="text-right font-mono text-num text-text-primary">
           {formatMoney(row.original.gross_amount, row.original.currency)}
@@ -164,12 +157,11 @@ export const WhtCertificatesList: React.FC = () => {
       <PageHeader
         title="Withholding tax certificates"
         subtitle="Proof of tax held back from supplier payments"
-        icon={<ShieldCheck />}
         actions={
           <button
             type="button"
             onClick={() => window.print()}
-            className="inline-flex items-center gap-1.5 h-9 px-3.5 border border-border hover:border-border-strong bg-surface hover:bg-surface-neutral text-text-primary rounded-lg text-[13px] font-medium transition"
+            className="inline-flex items-center gap-1.5 h-8 px-3 border border-border hover:border-border-strong bg-surface hover:bg-surface-neutral text-text-primary rounded-md text-[13px] font-medium transition"
           >
             <Printer className="size-4 text-text-muted" />
             <span>Print all</span>
@@ -208,9 +200,9 @@ export const WhtCertificatesList: React.FC = () => {
             <div className="flex flex-col gap-4">
               <DialogHeader>
                 <div className="flex items-center justify-between">
-                  <DialogTitle className="flex items-center gap-2 text-sm font-bold text-text-primary">
+                  <DialogTitle className="flex items-center gap-2 text-sm font-semibold text-text-primary">
                     <ShieldCheck className="w-5 h-5 text-accent" />
-                    <span>Tax Withholding Certificate</span>
+                    <span>Withholding tax certificate</span>
                   </DialogTitle>
                   <span className="font-mono text-xs font-semibold text-accent">
                     {selectedCert.cert_number}
@@ -220,13 +212,13 @@ export const WhtCertificatesList: React.FC = () => {
 
               <div className="p-4 bg-surface-neutral/60 border border-border rounded-md flex flex-col gap-3 text-xs">
                 <div className="text-center pb-2 border-b border-border">
-                  <div className="font-bold text-text-primary text-sm">{currentCompany.legal_name}</div>
-                  <div className="text-[11px] text-text-muted">Taxpayer Identification Number: {currentCompany.tax_id}</div>
+                  <div className="font-semibold text-text-primary text-sm">{currentCompany.legal_name}</div>
+                  <div className="text-[11px] text-text-muted">Tax ID: {currentCompany.tax_id}</div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 text-[11px]">
                   <div>
-                    <span className="text-text-muted block">Withholding Agent</span>
+                    <span className="text-text-muted block">Withholding agent</span>
                     <span className="font-medium text-text-primary">{currentCompany.name}</span>
                   </div>
                   <div>
@@ -234,26 +226,26 @@ export const WhtCertificatesList: React.FC = () => {
                     <span className="font-medium text-text-primary">{selectedCert.supplier_name}</span>
                   </div>
                   <div>
-                    <span className="text-text-muted block">Payee Tax ID (TIN)</span>
+                    <span className="text-text-muted block">Payee tax ID</span>
                     <span className="font-mono text-text-primary">{selectedCert.supplier_tax_id}</span>
                   </div>
                   <div>
-                    <span className="text-text-muted block">Tax Period</span>
+                    <span className="text-text-muted block">Tax period</span>
                     <span className="font-medium text-text-primary">{selectedCert.period}</span>
                   </div>
                 </div>
 
                 <div className="p-3 bg-surface rounded border border-border flex flex-col gap-1.5 font-mono text-xs">
                   <div className="flex justify-between text-text-muted">
-                    <span>Gross Contract / Service Amount:</span>
+                    <span>Gross contract or service amount:</span>
                     <span className="text-text-primary font-semibold">{formatMoney(selectedCert.gross_amount, selectedCert.currency)}</span>
                   </div>
                   <div className="flex justify-between text-text-muted">
-                    <span>Withholding Tax Rate:</span>
+                    <span>Withholding tax rate:</span>
                     <span className="text-text-primary font-semibold">{selectedCert.wht_rate_pct}%</span>
                   </div>
-                  <div className="flex justify-between text-danger font-bold pt-1 border-t border-border">
-                    <span>Tax Amount Withheld:</span>
+                  <div className="flex justify-between text-danger font-semibold pt-1 border-t border-border">
+                    <span>Tax withheld:</span>
                     <span>{formatMoney(selectedCert.wht_amount, selectedCert.currency)}</span>
                   </div>
                 </div>
@@ -270,10 +262,10 @@ export const WhtCertificatesList: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => window.print()}
-                  className="h-8 px-3 bg-accent hover:bg-accent-hover text-white rounded text-xs font-semibold flex items-center gap-1.5 transition"
+                  className="h-8 px-3 bg-accent hover:bg-accent-hover text-white rounded text-[13px] font-medium flex items-center gap-1.5 transition"
                 >
                   <Printer className="w-3.5 h-3.5" />
-                  <span>Print Certificate</span>
+                  <span>Print certificate</span>
                 </button>
               </div>
             </div>

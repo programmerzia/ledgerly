@@ -1,16 +1,20 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { ChevronRight, X, ExternalLink, FileText, Copy, LogOut, LifeBuoy } from 'lucide-react';
+import { ChevronRight, X, ExternalLink, FileText, Copy, LifeBuoy } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   ContextMenu, ContextMenuTrigger, ContextMenuContent, ContextMenuItem, ContextMenuSeparator,
 } from '@/components/ui/context-menu';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import type { NavSection } from './nav';
-import { UserAvatar } from './UserMenu';
 
+/** The Ledgerly mark: a ledger page with its money column ruled off. */
 export const BrandMark: React.FC<{ className?: string }> = ({ className }) => (
-  <span className={cn('size-8 shrink-0 grid place-items-center rounded-lg bg-gradient-to-br from-accent to-violet text-white font-bold text-sm shadow-sm ring-1 ring-white/10', className)}>L</span>
+  <svg viewBox="0 0 24 24" aria-hidden="true" className={cn('size-6 shrink-0 text-text-primary', className)}>
+    <rect x="3.5" y="2.5" width="17" height="19" rx="1.5" fill="none" stroke="currentColor" strokeWidth="1.6" />
+    <path d="M14.5 2.5v19M6.5 7.5h5M6.5 11h5M6.5 14.5h5M16.5 16.5h2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    <path d="M16.5 18.8h2" stroke="var(--accent)" strokeWidth="1.6" strokeLinecap="round" />
+  </svg>
 );
 
 interface Props {
@@ -20,13 +24,11 @@ interface Props {
   collapsed: boolean;
   mobileOpen: boolean;
   onCloseMobile: () => void;
-  user: { name: string; avatar?: string; roleTitle: string };
   navigate: (to: string) => void;
   openTab: (t: { id: string; title: string; url: string; type: 'navigation' }) => void;
-  onSignOut: () => void;
 }
 
-export const Sidebar: React.FC<Props> = ({ sections, coSlug, pathname, collapsed, mobileOpen, onCloseMobile, user, navigate, openTab, onSignOut }) => {
+export const Sidebar: React.FC<Props> = ({ sections, coSlug, pathname, collapsed, mobileOpen, onCloseMobile, navigate, openTab }) => {
   const isItemActive = (to: string) => pathname === to || pathname.startsWith(to + '/');
 
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>(() => {
@@ -58,9 +60,9 @@ export const Sidebar: React.FC<Props> = ({ sections, coSlug, pathname, collapsed
     >
       {/* Brand */}
       <div className={cn('h-14 shrink-0 flex items-center gap-2.5 border-b border-border px-4', mini && 'lg:justify-center lg:px-0')}>
-        <button type="button" onClick={() => navigate(`/${coSlug}/dashboard`)} className="flex items-center gap-2.5 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-accent/50 rounded-lg" aria-label="Ledgerly home">
+        <button type="button" onClick={() => navigate(`/${coSlug}/dashboard`)} className="flex items-center gap-2 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-accent/50 rounded-md" aria-label="Ledgerly home">
           <BrandMark />
-          <span className={cn('text-[15px] font-semibold tracking-tight text-text-primary', mini && 'lg:hidden')}>Ledgerly</span>
+          <span className={cn('text-[15px] font-semibold text-text-primary', mini && 'lg:hidden')}>Ledgerly</span>
         </button>
         <button type="button" onClick={onCloseMobile} aria-label="Close menu" className="lg:hidden ml-auto size-8 grid place-items-center rounded-lg text-text-muted hover:bg-surface-neutral cursor-pointer">
           <X className="size-4" />
@@ -84,7 +86,7 @@ export const Sidebar: React.FC<Props> = ({ sections, coSlug, pathname, collapsed
                   type="button"
                   onClick={() => toggleSection(sec.id)}
                   aria-expanded={isOpen}
-                  className={cn('px-2.5 pt-3 pb-1 flex items-center justify-between text-[11px] font-semibold uppercase tracking-wider text-text-muted hover:text-text-primary transition cursor-pointer', mini && 'lg:hidden')}
+                  className={cn('px-2 pt-4 pb-1 flex items-center justify-between text-xs font-medium text-text-muted hover:text-text-primary transition cursor-pointer', mini && 'lg:hidden')}
                 >
                   <span>{sec.title}</span>
                   <ChevronRight className={cn('size-3 transition-transform duration-200', isOpen && 'rotate-90')} />
@@ -98,16 +100,15 @@ export const Sidebar: React.FC<Props> = ({ sections, coSlug, pathname, collapsed
                     to={item.to}
                     aria-label={item.label}
                     className={cn(
-                      'group relative flex items-center gap-2.5 h-9 px-2.5 rounded-lg text-[13px] font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-accent/50',
-                      active ? 'bg-accent-soft text-accent' : 'text-text-secondary hover:bg-surface-neutral hover:text-text-primary',
+                      'group relative flex items-center gap-2.5 h-8 px-2 rounded-md text-[13px] transition-colors outline-none focus-visible:ring-2 focus-visible:ring-accent/50',
+                      active ? 'bg-surface text-text-primary font-medium shadow-[0_0_0_1px_var(--border)]' : 'text-text-secondary hover:bg-surface-neutral hover:text-text-primary',
                       mini && 'lg:justify-center lg:px-0'
                     )}
                   >
-                    {active && <span className="absolute left-0 top-2 bottom-2 w-[3px] rounded-r-full bg-accent" />}
-                    <Icon className={cn('size-4 shrink-0 transition-colors', active ? 'text-accent' : 'text-text-muted group-hover:text-text-primary')} />
+                    <Icon className={cn('size-4 shrink-0 transition-colors', active ? 'text-text-primary' : 'text-text-muted group-hover:text-text-secondary')} />
                     <span className={cn('truncate flex-1', mini && 'lg:hidden')}>{item.label}</span>
                     {item.badge !== undefined && (
-                      <span className={cn('min-w-5 h-5 px-1.5 grid place-items-center rounded-full bg-warning-soft text-warning text-[11px] font-semibold', mini && 'lg:absolute lg:top-0.5 lg:right-1.5 lg:min-w-4 lg:h-4 lg:px-1 lg:text-[10px]')}>
+                      <span className={cn('min-w-5 h-[18px] px-1.5 grid place-items-center rounded-sm bg-surface-neutral text-text-secondary text-[11px] font-medium', mini && 'lg:absolute lg:top-0 lg:right-1 lg:min-w-4 lg:h-4 lg:px-1 lg:text-[10px] lg:bg-accent lg:text-white')}>
                         {item.badge}
                       </span>
                     )}
@@ -150,46 +151,21 @@ export const Sidebar: React.FC<Props> = ({ sections, coSlug, pathname, collapsed
         })}
       </nav>
 
-      {/* Help card + user */}
-      <div className="shrink-0 p-3 border-t border-border flex flex-col gap-3">
-        <button
-          type="button"
-          onClick={() => navigate(`/${coSlug}/onboarding`)}
-          className={cn('group text-left rounded-xl border border-border bg-surface p-3 hover:border-border-strong hover:shadow-sm transition cursor-pointer', mini && 'lg:hidden')}
-        >
-          <span className="flex items-center gap-2">
-            <span className="size-7 grid place-items-center rounded-lg bg-violet-soft text-violet"><LifeBuoy className="size-4" /></span>
-            <span className="text-[13px] font-semibold text-text-primary">Need a hand?</span>
-          </span>
-          <span className="block text-xs text-text-muted mt-1.5 [@media(max-height:820px)]:hidden">Open the guided tour to learn the essentials in two minutes.</span>
-          <span className="mt-1.5 inline-flex items-center gap-0.5 text-xs font-medium text-accent group-hover:gap-1.5 transition-all">Open guided tour <ChevronRight className="size-3" /></span>
-        </button>
-        {mini && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button type="button" onClick={() => navigate(`/${coSlug}/onboarding`)} aria-label="Open guided tour" className="hidden lg:grid size-9 mx-auto place-items-center rounded-lg text-violet hover:bg-violet-soft transition cursor-pointer">
-                <LifeBuoy className="size-4" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="right" sideOffset={10}>Need a hand? Open guided tour</TooltipContent>
-          </Tooltip>
-        )}
-
-        <div className={cn('flex items-center gap-2.5', mini && 'lg:flex-col')}>
-          <UserAvatar initials={user.avatar} />
-          <div className={cn('min-w-0 flex-1 leading-tight', mini && 'lg:hidden')}>
-            <div className="text-[13px] font-medium text-text-primary truncate">{user.name}</div>
-            <div className="text-[11px] text-text-muted truncate">{user.roleTitle}</div>
-          </div>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button type="button" onClick={onSignOut} aria-label="Sign out" className="size-8 grid place-items-center rounded-lg text-text-muted hover:text-danger hover:bg-danger-soft transition cursor-pointer">
-                <LogOut className="size-4" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent>Sign out</TooltipContent>
-          </Tooltip>
-        </div>
+      {/* Help: a plain link, like the rest of the nav. Profile and sign-out live in the user menu. */}
+      <div className="shrink-0 p-3 border-t border-border">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              onClick={() => navigate(`/${coSlug}/onboarding`)}
+              className={cn('w-full flex items-center gap-2.5 h-8 px-2 rounded-md text-[13px] text-text-secondary hover:bg-surface-neutral hover:text-text-primary transition cursor-pointer', mini && 'lg:justify-center lg:px-0')}
+            >
+              <LifeBuoy className="size-4 shrink-0 text-text-muted" />
+              <span className={cn(mini && 'lg:hidden')}>Help and setup guide</span>
+            </button>
+          </TooltipTrigger>
+          {mini && <TooltipContent side="right" sideOffset={10}>Help and setup guide</TooltipContent>}
+        </Tooltip>
       </div>
     </aside>
   );

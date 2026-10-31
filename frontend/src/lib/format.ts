@@ -16,7 +16,7 @@ const CURRENCY_MINORS: Record<string, number> = {
 const CURRENCY_SYMBOLS: Record<string, string> = {
   USD: '$',
   KES: 'KSh',
-  SOS: 'S',
+  SOS: 'Sh.So.',
   EUR: '€',
   GBP: '£',
 };
@@ -27,6 +27,12 @@ export function getCurrencyMinorUnits(currency: string): number {
 
 export function getCurrencySymbol(currency: string): string {
   return CURRENCY_SYMBOLS[currency.toUpperCase()] ?? currency;
+}
+
+/** "$1,250.00" but "KSh 1,250.00": sign-like symbols sit on the figure, letter codes get a space. */
+function currencyPrefix(currency: string): string {
+  const symbol = getCurrencySymbol(currency);
+  return /\p{L}/u.test(symbol) ? `${symbol}\u00a0` : symbol;
 }
 
 /**
@@ -64,7 +70,7 @@ export function formatMoney(
   });
 
   const formattedNum = formatter.format(absValue);
-  const symbol = showCurrency ? `${getCurrencySymbol(currency)} ` : '';
+  const symbol = showCurrency ? currencyPrefix(currency) : '';
 
   if (isNegative) {
     if (parenthesesNegative) {

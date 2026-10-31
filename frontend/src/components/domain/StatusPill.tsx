@@ -43,7 +43,6 @@ export const StatusPill: React.FC<StatusPillProps> = ({
   const normalized = (status || '').toLowerCase().replace(/\s+/g, '_');
 
   let pillClasses = 'bg-surface-neutral text-text-muted';
-  let dotClasses = 'bg-text-muted';
   let defaultLabel = status;
   let meaning = 'Document state in financial ledger';
   let whoActsNext = explicitWho || 'Finance Team';
@@ -51,7 +50,6 @@ export const StatusPill: React.FC<StatusPillProps> = ({
   switch (normalized) {
     case 'draft':
       pillClasses = 'bg-surface-neutral text-text-secondary';
-      dotClasses = 'bg-text-muted';
       defaultLabel = 'Draft';
       meaning = 'Uncommitted draft. Can be edited or deleted by creator.';
       whoActsNext = explicitWho || 'Author / Maker';
@@ -60,7 +58,6 @@ export const StatusPill: React.FC<StatusPillProps> = ({
     case 'pending_approval':
     case 'pending':
       pillClasses = 'bg-warning-soft text-warning';
-      dotClasses = 'bg-warning';
       defaultLabel = 'Awaiting approval';
       meaning = 'Waiting for an approver to review and sign.';
       whoActsNext = explicitWho || 'Approver (Fatima)';
@@ -68,7 +65,6 @@ export const StatusPill: React.FC<StatusPillProps> = ({
 
     case 'paid':
       pillClasses = 'bg-success-soft text-success';
-      dotClasses = 'bg-success';
       defaultLabel = 'Paid';
       meaning = 'Fully settled. Nothing left to collect or pay.';
       whoActsNext = explicitWho || 'Nobody';
@@ -76,7 +72,6 @@ export const StatusPill: React.FC<StatusPillProps> = ({
 
     case 'awaiting_payment':
       pillClasses = 'bg-info-soft text-info';
-      dotClasses = 'bg-info';
       defaultLabel = 'Awaiting payment';
       meaning = 'Approved and in the books. Not yet due.';
       whoActsNext = explicitWho || 'Customer / Supplier';
@@ -84,7 +79,6 @@ export const StatusPill: React.FC<StatusPillProps> = ({
 
     case 'partially_paid':
       pillClasses = 'bg-info-soft text-info';
-      dotClasses = 'bg-info';
       defaultLabel = 'Partially paid';
       meaning = 'Part of the amount has been settled. The rest is still open.';
       whoActsNext = explicitWho || 'Customer / Supplier';
@@ -92,7 +86,6 @@ export const StatusPill: React.FC<StatusPillProps> = ({
 
     case 'queued':
       pillClasses = 'bg-surface-neutral text-text-secondary';
-      dotClasses = 'bg-text-muted';
       defaultLabel = 'Queued offline';
       meaning = 'Saved on this device. It will sync when you are back online.';
       whoActsNext = explicitWho || 'Automatic sync';
@@ -103,7 +96,6 @@ export const StatusPill: React.FC<StatusPillProps> = ({
     case 'balanced':
     case 'pass':
       pillClasses = 'bg-success-soft text-success';
-      dotClasses = 'bg-success';
       defaultLabel = normalized === 'matched' ? 'Matched' : 'Posted';
       meaning = 'Immutable financial document committed to the General Ledger.';
       whoActsNext = explicitWho || (normalized === 'matched' ? 'Reconciler' : 'Settlement / Counterparty');
@@ -111,7 +103,6 @@ export const StatusPill: React.FC<StatusPillProps> = ({
 
     case 'reversed':
       pillClasses = 'bg-violet-soft text-violet';
-      dotClasses = 'bg-violet';
       defaultLabel = 'Reversed';
       meaning = 'Offset by mirror reversal journal. Ledger impact fully neutralized.';
       whoActsNext = explicitWho || 'None (Immutable Record)';
@@ -119,7 +110,6 @@ export const StatusPill: React.FC<StatusPillProps> = ({
 
     case 'void':
       pillClasses = 'bg-danger-soft text-danger';
-      dotClasses = 'bg-danger';
       defaultLabel = 'Void';
       meaning = 'Invalidated before ledger posting.';
       whoActsNext = explicitWho || 'None';
@@ -129,7 +119,6 @@ export const StatusPill: React.FC<StatusPillProps> = ({
     case 'unmatched':
     case 'fail':
       pillClasses = 'bg-danger-soft text-danger';
-      dotClasses = 'bg-danger';
       defaultLabel = normalized === 'unmatched' ? 'Unmatched' : 'Overdue';
       meaning = normalized === 'unmatched'
         ? 'Bank transaction has no matched ledger allocation.'
@@ -139,7 +128,6 @@ export const StatusPill: React.FC<StatusPillProps> = ({
 
     case 'partial':
       pillClasses = 'bg-info-soft text-info';
-      dotClasses = 'bg-info';
       defaultLabel = 'Partial';
       meaning = 'Partially settled. Remaining balance outstanding.';
       whoActsNext = explicitWho || 'Debtor / Counterparty';
@@ -147,7 +135,6 @@ export const StatusPill: React.FC<StatusPillProps> = ({
 
     case 'open':
       pillClasses = 'bg-success-soft text-success';
-      dotClasses = 'bg-success';
       defaultLabel = 'Open';
       meaning = 'Active fiscal period accepting balanced journal postings.';
       whoActsNext = explicitWho || 'Finance Team';
@@ -155,7 +142,6 @@ export const StatusPill: React.FC<StatusPillProps> = ({
 
     case 'soft_closed':
       pillClasses = 'bg-warning-soft text-warning';
-      dotClasses = 'bg-warning';
       defaultLabel = 'Soft closed';
       meaning = 'Preliminary month-end close. Sub-ledger writes restricted.';
       whoActsNext = explicitWho || 'Financial Controller';
@@ -164,7 +150,6 @@ export const StatusPill: React.FC<StatusPillProps> = ({
     case 'closed':
     case 'locked':
       pillClasses = 'bg-surface-neutral text-text-secondary';
-      dotClasses = 'bg-text-disabled';
       defaultLabel = normalized === 'closed' ? 'Closed' : 'Locked';
       meaning = 'Fiscal period closed. Reopening requires two authorized PIN approvals.';
       whoActsNext = explicitWho || 'Two Authorizers';
@@ -172,7 +157,6 @@ export const StatusPill: React.FC<StatusPillProps> = ({
 
     case 'queued':
       pillClasses = 'bg-warning-soft text-warning border border-dashed border-warning/40';
-      dotClasses = 'bg-warning animate-pulse';
       defaultLabel = 'Queued';
       meaning = 'Will post when online; sequence number assigned then.';
       whoActsNext = explicitWho || 'Background Sync Engine';
@@ -180,7 +164,6 @@ export const StatusPill: React.FC<StatusPillProps> = ({
 
     default:
       pillClasses = 'bg-surface-neutral text-text-secondary';
-      dotClasses = 'bg-text-muted';
       defaultLabel = status;
       break;
   }
@@ -190,23 +173,22 @@ export const StatusPill: React.FC<StatusPillProps> = ({
       <TooltipTrigger asChild>
         <span
           className={cn(
-            'inline-flex items-center justify-center h-6 px-2.5 rounded-full text-xs font-medium select-none whitespace-nowrap gap-1.5 transition-colors cursor-help',
+            'inline-flex items-center h-5 px-1.5 rounded-[3px] text-xs font-medium select-none whitespace-nowrap transition-colors cursor-help',
             pillClasses,
             className
           )}
         >
-          <span className={cn('size-1.5 rounded-full shrink-0', dotClasses)} />
           <span className="truncate">{label || defaultLabel}</span>
         </span>
       </TooltipTrigger>
       <TooltipContent className="max-w-xs text-xs p-2.5 flex !flex-col !items-stretch gap-1.5">
         <div className="flex items-center justify-between border-b border-white/15 pb-1">
-          <span className="font-semibold capitalize">{defaultLabel} Status</span>
+          <span className="font-semibold">{defaultLabel}</span>
           <span className="text-[10px] opacity-60">{since}</span>
         </div>
         <p className="text-[11px] opacity-85 leading-snug">{meaning}</p>
         <div className="pt-1 border-t border-white/15 flex items-center justify-between text-[10px]">
-          <span className="opacity-60">Next Action:</span>
+          <span className="opacity-60">Next:</span>
           <span className="font-semibold">{whoActsNext}</span>
         </div>
       </TooltipContent>

@@ -34,7 +34,7 @@ export const BillTotals: React.FC<TotalsProps> = ({ subtotal, tax, total, whtPct
       </div>
       <div className="flex justify-between items-baseline border-t border-border pt-2 mt-0.5">
         <dt className="font-semibold text-text-primary text-sm">Total</dt>
-        <dd className="font-mono text-num font-bold text-text-primary text-base">{formatMoney(total, currency)}</dd>
+        <dd className="font-mono text-num font-semibold text-text-primary text-base">{formatMoney(total, currency)}</dd>
       </div>
       {whtPct > 0 && (
         <div className="flex justify-between text-text-muted">
@@ -42,9 +42,9 @@ export const BillTotals: React.FC<TotalsProps> = ({ subtotal, tax, total, whtPct
           <dd className="font-mono text-num">−{formatMoney(whtAmount, currency)}</dd>
         </div>
       )}
-      <div className="flex justify-between items-baseline rounded-lg bg-accent-soft/50 px-3 py-2 mt-1">
+      <div className="flex justify-between items-baseline rounded-lg bg-surface-neutral px-3 py-2 mt-1">
         <dt className="font-semibold text-text-primary text-[13px]">You'll pay the supplier</dt>
-        <dd className="font-mono text-num font-bold text-accent text-base">{formatMoney(netPayable, currency)}</dd>
+        <dd className="font-mono text-num font-semibold text-accent text-base">{formatMoney(netPayable, currency)}</dd>
       </div>
     </dl>
   </div>

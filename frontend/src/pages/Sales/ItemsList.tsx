@@ -5,24 +5,7 @@ import { DataTable } from '@/components/domain/DataTable';
 import { SplitPane } from '@/components/domain/SplitPane';
 import { ColumnDef } from '@tanstack/react-table';
 import { formatMoney } from '@/lib/format';
-import {
-  Package,
-  Plus,
-  Search,
-  Filter,
-  Download,
-  Tag,
-  DollarSign,
-  TrendingUp,
-  FileText,
-  CheckCircle2,
-  XCircle,
-  ExternalLink,
-  Eye,
-  Pencil,
-  Copy,
-  Archive,
-} from 'lucide-react';
+import { Plus, Download, Tag, FileText, Eye, Pencil, Copy, Archive } from 'lucide-react';
 import { toast } from 'sonner';
 import { PageHeader } from '@/components/domain/PageHeader';
 import { QuickCreateItemDialog } from '@/components/domain/QuickCreateItemDialog';
@@ -65,7 +48,7 @@ export const ItemsList: React.FC = () => {
     },
     {
       accessorKey: 'sales_price',
-      header: () => <div className="text-right">Sales Price</div>,
+      header: () => <div className="text-right">Sales price</div>,
       cell: ({ row }) => (
         <div className="text-right font-mono text-num font-semibold text-text-primary">
           {formatMoney(row.original.sales_price)}
@@ -74,7 +57,7 @@ export const ItemsList: React.FC = () => {
     },
     {
       accessorKey: 'purchase_price',
-      header: () => <div className="text-right">Cost Price</div>,
+      header: () => <div className="text-right">Cost price</div>,
       cell: ({ row }) => (
         <div className="text-right font-mono text-num text-text-muted">
           {formatMoney(row.original.purchase_price)}
@@ -92,7 +75,7 @@ export const ItemsList: React.FC = () => {
     },
     {
       accessorKey: 'tax_code',
-      header: 'Tax Code',
+      header: 'Tax code',
       cell: ({ row }) => (
         <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-surface-neutral border border-border">
           {row.original.tax_code}
@@ -121,13 +104,12 @@ export const ItemsList: React.FC = () => {
       <PageHeader
         title="Items and prices"
         subtitle={`${items.length} items you sell or buy`}
-        icon={<Package />}
         className="px-1 pb-4"
         actions={
           <button
             type="button"
             onClick={() => setNewItemOpen(true)}
-            className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-lg bg-accent hover:bg-accent-hover text-white text-[13px] font-semibold shadow-xs transition cursor-pointer"
+            className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md bg-accent hover:bg-accent-hover text-white text-[13px] font-medium transition cursor-pointer"
           >
             <Plus className="size-4" />
             <span>New item</span>
@@ -148,7 +130,7 @@ export const ItemsList: React.FC = () => {
               <div className="flex items-start justify-between pb-3 border-b border-border">
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-sm font-bold text-accent">{selectedItem.sku}</span>
+                    <span className="font-mono text-sm font-semibold text-accent">{selectedItem.sku}</span>
                     <span
                       className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
                         selectedItem.is_active
@@ -168,19 +150,19 @@ export const ItemsList: React.FC = () => {
               {/* Pricing & Margin Card */}
               <div className="grid grid-cols-2 gap-3 p-3 bg-surface-neutral rounded border border-border">
                 <div>
-                  <div className="text-[11px] text-text-muted">Sales Price</div>
-                  <div className="font-mono font-bold text-base text-text-primary">
+                  <div className="text-[11px] text-text-muted">Sales price</div>
+                  <div className="font-mono font-semibold text-base text-text-primary">
                     {formatMoney(selectedItem.sales_price)}
                   </div>
                 </div>
                 <div>
-                  <div className="text-[11px] text-text-muted">Standard Cost</div>
-                  <div className="font-mono font-bold text-base text-text-muted">
+                  <div className="text-[11px] text-text-muted">Standard cost</div>
+                  <div className="font-mono font-semibold text-base text-text-muted">
                     {formatMoney(selectedItem.purchase_price)}
                   </div>
                 </div>
                 <div className="col-span-2 pt-2 border-t border-border flex justify-between items-center text-xs">
-                  <span className="text-text-muted">Gross Margin:</span>
+                  <span className="text-text-muted">Gross margin:</span>
                   <span className="font-mono font-semibold text-success">
                     {(
                       ((selectedItem.sales_price - selectedItem.purchase_price) /
@@ -194,29 +176,29 @@ export const ItemsList: React.FC = () => {
 
               {/* Accounting Mapping */}
               <div className="flex flex-col gap-2.5 text-xs text-text-secondary">
-                <div className="font-semibold text-text-primary uppercase tracking-wider text-[11px] border-b border-border pb-1">
-                  Accounting Configuration
+                <div className="font-semibold text-text-primary text-xs border-b border-border pb-1">
+                  Accounting setup
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-text-muted">Income Account:</span>
+                  <span className="text-text-muted">Income account:</span>
                   <span className="font-mono font-semibold text-text-primary">
                     {selectedItem.income_account} ({selectedItem.income_account_name})
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-text-muted">Expense Account:</span>
+                  <span className="text-text-muted">Expense account:</span>
                   <span className="font-mono font-semibold text-text-primary">
                     {selectedItem.expense_account}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-text-muted">Default Tax Code:</span>
+                  <span className="text-text-muted">Default tax code:</span>
                   <span className="font-mono font-semibold text-text-primary">
                     {selectedItem.tax_code}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-text-muted">Total Units Sold (2026):</span>
+                  <span className="text-text-muted">Units sold (2026):</span>
                   <span className="font-mono font-semibold text-text-primary">
                     {selectedItem.total_sold_qty} units
                   </span>
@@ -228,10 +210,10 @@ export const ItemsList: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => navigate(`/${coSlug}/invoices/new`)}
-                  className="flex items-center justify-center gap-1.5 h-8 px-3 rounded-lg bg-accent hover:bg-accent-hover text-white text-xs font-semibold transition cursor-pointer"
+                  className="flex items-center justify-center gap-1.5 h-8 px-3 rounded-md bg-accent hover:bg-accent-hover text-white text-[13px] font-medium transition cursor-pointer"
                 >
                   <FileText className="w-3.5 h-3.5" />
-                  <span>Create Invoice with this Item</span>
+                  <span>Create invoice with this item</span>
                 </button>
                 <button
                   type="button"
@@ -239,7 +221,7 @@ export const ItemsList: React.FC = () => {
                   className="flex items-center justify-center gap-1.5 h-8 px-3 rounded-lg border border-border hover:bg-surface-neutral text-xs font-medium text-text-secondary cursor-pointer"
                 >
                   <Download className="w-3.5 h-3.5" />
-                  <span>Export Item Card (CSV)</span>
+                  <span>Export item card (CSV)</span>
                 </button>
               </div>
             </div>

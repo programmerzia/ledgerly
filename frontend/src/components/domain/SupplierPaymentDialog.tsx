@@ -11,7 +11,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { CreditCard, Building } from 'lucide-react';
+
 import { toast } from 'sonner';
 
 interface SupplierPaymentDialogProps {
@@ -100,12 +100,9 @@ export const SupplierPaymentDialog: React.FC<SupplierPaymentDialogProps> = ({
       <DialogContent className="max-w-md p-6 bg-surface border border-border shadow-xl rounded-lg">
         <DialogHeader className="pb-3 border-b border-border">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-md bg-accent-soft text-accent flex items-center justify-center font-bold">
-              <CreditCard className="w-4 h-4" />
-            </div>
             <div>
-              <DialogTitle className="text-base font-bold text-text-primary">
-                Disburse Supplier Payment
+              <DialogTitle className="text-base font-semibold text-text-primary">
+                Pay supplier
               </DialogTitle>
               <DialogDescription className="text-xs text-text-muted mt-0.5">
                 Single bill settlement from treasury account (Dr Accounts Payable, Cr Bank)
@@ -122,15 +119,15 @@ export const SupplierPaymentDialog: React.FC<SupplierPaymentDialogProps> = ({
               <p className="text-[11px] text-text-muted font-mono">{bill.number || 'BILL'} • Ref: {bill.reference}</p>
             </div>
             <div className="text-right">
-              <span className="text-[10px] uppercase font-bold text-text-muted block">Balance Due</span>
-              <span className="font-mono font-bold text-danger text-sm">{formatMoney(openBalance, bill.currency)}</span>
+              <span className="text-xs font-medium text-text-muted block">Balance due</span>
+              <span className="font-mono font-semibold text-danger text-sm">{formatMoney(openBalance, bill.currency)}</span>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1">
               <label className="text-xs font-medium text-text-secondary flex items-center">
-                Disbursement Account
+                Paid from account
                 <FieldHelp help="Bank account paying the vendor." example="Premier Bank USD (1010)" />
               </label>
               <select
@@ -148,7 +145,7 @@ export const SupplierPaymentDialog: React.FC<SupplierPaymentDialogProps> = ({
 
             <div className="flex flex-col gap-1">
               <label className="text-xs font-medium text-text-secondary flex items-center">
-                Payment Amount ($)
+                Payment amount ($)
                 <FieldHelp help="Amount disbursed (can be full or partial)." example="4275.00" />
               </label>
               <input
@@ -165,7 +162,7 @@ export const SupplierPaymentDialog: React.FC<SupplierPaymentDialogProps> = ({
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1">
               <label className="text-xs font-medium text-text-secondary flex items-center">
-                Payment Date
+                Payment date
                 <FieldHelp help="Date disbursement was executed." example="2026-10-28" />
               </label>
               <input
@@ -178,7 +175,7 @@ export const SupplierPaymentDialog: React.FC<SupplierPaymentDialogProps> = ({
 
             <div className="flex flex-col gap-1">
               <label className="text-xs font-medium text-text-secondary flex items-center">
-                Payment Reference #
+                Payment reference #
                 <FieldHelp help="Bank wire confirmation code or voucher number." example="WIRE-DAH-4412" />
               </label>
               <input
@@ -192,7 +189,7 @@ export const SupplierPaymentDialog: React.FC<SupplierPaymentDialogProps> = ({
 
           <div className="flex flex-col gap-1">
             <label className="text-xs font-medium text-text-secondary flex items-center">
-              Payment Memo
+              Payment memo
               <FieldHelp help="Remittance description for vendor payment records." example="Direct disbursement for network bill" />
             </label>
             <input
@@ -204,9 +201,9 @@ export const SupplierPaymentDialog: React.FC<SupplierPaymentDialogProps> = ({
           </div>
 
           {/* Accounting consequence */}
-          <div className="p-3 bg-accent-soft/30 border border-accent/20 rounded-md">
-            <span className="text-[10px] uppercase font-bold text-accent block mb-1">
-              General Ledger Impact
+          <div className="p-3 bg-surface-neutral border border-border rounded-md">
+            <span className="text-xs font-medium text-text-muted block mb-1">
+              General ledger impact
             </span>
             <p className="text-[11px] text-text-secondary leading-relaxed">
               This will debit Accounts Payable (2000) for{' '}
@@ -230,7 +227,7 @@ export const SupplierPaymentDialog: React.FC<SupplierPaymentDialogProps> = ({
             type="button"
             onClick={handleDisburse}
             disabled={isSubmitting}
-            className="h-8 px-4 rounded-sm bg-accent hover:bg-accent-hover text-white text-xs font-semibold shadow-xs transition"
+            className="h-8 px-3 rounded-md bg-accent hover:bg-accent-hover text-white text-[13px] font-medium transition"
           >
             {isSubmitting ? 'Processing...' : 'Confirm & Disburse'}
           </button>

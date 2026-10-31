@@ -10,23 +10,7 @@ import { useAdminStore } from '@/mock/store/adminStore';
 import { AdminTenant, TenantLifecycleStatus, PlanCode } from '@/types/admin';
 import { StatusPill } from '@/components/domain/StatusPill';
 import { toast } from 'sonner';
-import {
-  Building2,
-  Search,
-  Filter,
-  Eye,
-  UserCheck,
-  Zap,
-  Clock,
-  Ban,
-  RotateCcw,
-  ExternalLink,
-  ChevronRight,
-  ShieldAlert,
-  ArrowUpDown,
-  X,
-  Plus,
-} from 'lucide-react';
+import { Search, Filter, Eye, UserCheck, ChevronRight, ArrowUpDown, X } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -121,13 +105,13 @@ export const TenantsList: React.FC = () => {
 
   const getHealthBadge = (health: number) => {
     if (health >= 90) {
-      return <span className="px-1.5 py-0.2 rounded text-[10px] font-mono font-bold bg-success-soft text-success">A+ Healthy</span>;
+      return <span className="px-1.5 py-px rounded-[3px] text-[11px] font-mono font-semibold bg-success-soft text-success">A+ Healthy</span>;
     } else if (health >= 75) {
-      return <span className="px-1.5 py-0.2 rounded text-[10px] font-mono font-semibold bg-success-soft text-success">A Good</span>;
+      return <span className="px-1.5 py-px rounded-[3px] text-[11px] font-mono font-semibold bg-success-soft text-success">A Good</span>;
     } else if (health >= 60) {
-      return <span className="px-1.5 py-0.2 rounded text-[10px] font-mono font-medium bg-info-soft text-info">B Fair</span>;
+      return <span className="px-1.5 py-px rounded-[3px] text-[11px] font-mono font-medium bg-info-soft text-info">B Fair</span>;
     } else {
-      return <span className="px-1.5 py-0.2 rounded text-[10px] font-mono font-bold bg-danger-soft text-danger animate-pulse">Risk</span>;
+      return <span className="px-1.5 py-px rounded-[3px] text-[11px] font-mono font-semibold bg-danger-soft text-danger">Risk</span>;
     }
   };
 
@@ -137,9 +121,9 @@ export const TenantsList: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-border">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-lg font-bold tracking-tight">Tenants Directory</h1>
-            <span className="px-2 py-0.5 rounded-full bg-violet-soft text-violet text-[10px] font-mono font-semibold">
-              {tenants.length} Organizations
+            <h1 className="text-xl font-semibold">Tenants</h1>
+            <span className="px-2 py-0.5 rounded-[3px] bg-surface-neutral text-text-secondary text-[11px] font-medium">
+              {tenants.length} organizations
             </span>
           </div>
           <p className="text-xs text-text-muted mt-0.5">
@@ -154,8 +138,8 @@ export const TenantsList: React.FC = () => {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Filter tenants..."
-              className="h-8 pl-8 pr-3 w-full text-xs bg-surface border border-border rounded-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-accent"
+              placeholder="Filter tenants"
+              className="h-8 pl-8 pr-3 w-full text-xs bg-surface border border-border rounded-md text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-accent"
             />
           </div>
         </div>
@@ -176,12 +160,12 @@ export const TenantsList: React.FC = () => {
             onClick={() => setActiveTab(tab.key as any)}
             className={`px-3 py-1.5 border-b-2 font-medium flex items-center gap-1.5 transition-colors cursor-pointer shrink-0 whitespace-nowrap ${
               activeTab === tab.key
-                ? 'border-violet text-violet font-semibold'
+                ? 'border-accent text-accent font-semibold'
                 : 'border-transparent text-text-muted hover:text-text-primary hover:border-border'
             }`}
           >
             <span>{tab.label}</span>
-            <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-surface-neutral text-text-secondary">
+            <span className="text-[11px] font-mono px-1.5 py-px rounded-[3px] bg-surface-neutral text-text-secondary">
               {tab.count}
             </span>
           </button>
@@ -189,7 +173,7 @@ export const TenantsList: React.FC = () => {
       </div>
 
       {/* 36px Dense Controls Table */}
-      <div className="rounded bg-surface border border-border overflow-hidden">
+      <div className="rounded-lg bg-surface border border-border overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
@@ -210,7 +194,7 @@ export const TenantsList: React.FC = () => {
                 <th className="px-3 text-center">Users</th>
                 <th className="px-3">Region</th>
                 <th className="px-3">Health</th>
-                <th className="px-3">Last Active</th>
+                <th className="px-3">Last active</th>
                 <th className="px-3 text-right">Actions</th>
               </tr>
             </thead>
@@ -233,10 +217,10 @@ export const TenantsList: React.FC = () => {
                       {/* Name & Domain */}
                       <td className="px-3 py-1">
                         <div className="flex flex-col">
-                          <span className="font-semibold text-text-primary group-hover:text-violet transition truncate max-w-[200px]">
+                          <span className="font-semibold text-text-primary group-hover:text-accent transition truncate max-w-[200px]">
                             {t.name}
                           </span>
-                          <span className="text-[10px] font-mono text-text-muted truncate max-w-[200px]">
+                          <span className="text-[11px] font-mono text-text-muted truncate max-w-[200px]">
                             {t.slug}.ledgerly.app
                           </span>
                         </div>
@@ -244,7 +228,7 @@ export const TenantsList: React.FC = () => {
 
                       {/* Plan */}
                       <td className="px-3 py-1">
-                        <span className="capitalize text-[11px] font-medium px-2 py-0.5 rounded bg-surface-neutral border border-border text-text-secondary">
+                        <span className="capitalize text-[11px] font-medium px-2 py-0.5 rounded-md bg-surface-neutral border border-border text-text-secondary">
                           {t.subscription.planCode}
                         </span>
                       </td>
@@ -316,7 +300,7 @@ export const TenantsList: React.FC = () => {
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 onClick={() => handleImpersonate(t)}
-                                className="cursor-pointer text-violet"
+                                className="cursor-pointer text-text-secondary"
                               >
                                 Impersonate (Read-Only)
                               </DropdownMenuItem>
@@ -358,14 +342,14 @@ export const TenantsList: React.FC = () => {
       {selectedTenantForDrawer && (
         <>
           <div
-            className="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 sm:hidden"
+            className="fixed inset-0 bg-black/40 z-50 sm:hidden"
             onClick={() => setSelectedTenantForDrawer(null)}
             aria-hidden="true"
           />
-          <div className="fixed inset-y-0 right-0 w-full sm:w-96 max-w-full bg-surface border-l border-border shadow-xl z-50 flex flex-col select-none animate-in slide-in-from-right duration-150">
+          <div className="fixed inset-y-0 right-0 w-full sm:w-96 max-w-full bg-surface border-l border-border shadow-xl z-50 flex flex-col select-none">
           <div className="p-4 border-b border-border flex items-center justify-between bg-surface-neutral/40">
             <div>
-              <h2 className="text-sm font-bold text-text-primary truncate max-w-[280px]">
+              <h2 className="text-sm font-semibold text-text-primary truncate max-w-[280px]">
                 {selectedTenantForDrawer.name}
               </h2>
               <span className="text-[11px] font-mono text-text-muted">
@@ -382,9 +366,9 @@ export const TenantsList: React.FC = () => {
 
           <div className="flex-1 overflow-y-auto p-4 space-y-4 text-xs">
             {/* Quick Status Pill & Plan */}
-            <div className="flex items-center justify-between p-2.5 rounded bg-surface-neutral border border-border">
+            <div className="flex items-center justify-between p-2.5 rounded-md bg-surface-neutral border border-border">
               <div className="flex flex-col">
-                <span className="text-[10px] text-text-muted uppercase">Plan & Status</span>
+                <span className="text-[11px] text-text-muted">Plan and status</span>
                 <span className="font-semibold text-text-primary capitalize">
                   {selectedTenantForDrawer.subscription.planCode} Tier
                 </span>
@@ -393,24 +377,24 @@ export const TenantsList: React.FC = () => {
             </div>
 
             {/* Financial Highlights */}
-            <div className="space-y-1.5 p-3 rounded bg-surface border border-border">
-              <span className="text-[10px] font-semibold text-text-muted uppercase tracking-wider">
+            <div className="space-y-1.5 p-3 rounded-lg bg-surface border border-border">
+              <span className="text-[11px] font-semibold text-text-muted">
                 Financial Snapshot
               </span>
               <div className="flex justify-between py-1 border-b border-border/40">
-                <span className="text-text-muted">Monthly Recurring</span>
-                <span className="font-mono font-bold text-text-primary">
+                <span className="text-text-muted">Monthly recurring</span>
+                <span className="font-mono font-semibold text-text-primary">
                   ${(selectedTenantForDrawer.subscription.amount / 100).toLocaleString()}
                 </span>
               </div>
               <div className="flex justify-between py-1 border-b border-border/40">
-                <span className="text-text-muted">Billing Cycle</span>
+                <span className="text-text-muted">Billing cycle</span>
                 <span className="font-mono text-text-secondary capitalize">
                   {selectedTenantForDrawer.subscription.billingInterval}
                 </span>
               </div>
               <div className="flex justify-between py-1">
-                <span className="text-text-muted">Next Invoice Date</span>
+                <span className="text-text-muted">Next invoice date</span>
                 <span className="font-mono text-text-secondary">
                   {selectedTenantForDrawer.subscription.currentPeriodEnd}
                 </span>
@@ -418,8 +402,8 @@ export const TenantsList: React.FC = () => {
             </div>
 
             {/* Usage vs Entitlements Meters */}
-            <div className="space-y-2 p-3 rounded bg-surface border border-border">
-              <span className="text-[10px] font-semibold text-text-muted uppercase tracking-wider">
+            <div className="space-y-2 p-3 rounded-lg bg-surface border border-border">
+              <span className="text-[11px] font-semibold text-text-muted">
                 Entitlement Quotas
               </span>
               <div className="space-y-1">
@@ -429,9 +413,9 @@ export const TenantsList: React.FC = () => {
                     {selectedTenantForDrawer.companiesCount} / {selectedTenantForDrawer.subscription.planCode === 'enterprise' ? 10 : 5}
                   </span>
                 </div>
-                <div className="h-1.5 w-full bg-surface-neutral rounded-full overflow-hidden">
+                <div className="h-1 w-full bg-surface-neutral rounded-[1px] overflow-hidden">
                   <div
-                    className="h-full bg-violet"
+                    className="h-full bg-accent"
                     style={{
                       width: `${(selectedTenantForDrawer.companiesCount / (selectedTenantForDrawer.subscription.planCode === 'enterprise' ? 10 : 5)) * 100}%`,
                     }}
@@ -446,7 +430,7 @@ export const TenantsList: React.FC = () => {
                     {selectedTenantForDrawer.usersCount} / {selectedTenantForDrawer.subscription.planCode === 'enterprise' ? 50 : 15}
                   </span>
                 </div>
-                <div className="h-1.5 w-full bg-surface-neutral rounded-full overflow-hidden">
+                <div className="h-1 w-full bg-surface-neutral rounded-[1px] overflow-hidden">
                   <div
                     className="h-full bg-accent"
                     style={{
@@ -463,7 +447,7 @@ export const TenantsList: React.FC = () => {
                     {selectedTenantForDrawer.usage.journalLinesThisMonth.toLocaleString()} / {selectedTenantForDrawer.subscription.planCode === 'enterprise' ? '100,000' : '25,000'}
                   </span>
                 </div>
-                <div className="h-1.5 w-full bg-surface-neutral rounded-full overflow-hidden">
+                <div className="h-1 w-full bg-surface-neutral rounded-[1px] overflow-hidden">
                   <div
                     className="h-full bg-success"
                     style={{
@@ -475,8 +459,8 @@ export const TenantsList: React.FC = () => {
             </div>
 
             {/* Primary Contact */}
-            <div className="p-3 rounded bg-surface border border-border space-y-1">
-              <span className="text-[10px] font-semibold text-text-muted uppercase tracking-wider">
+            <div className="p-3 rounded-lg bg-surface border border-border space-y-1">
+              <span className="text-[11px] font-semibold text-text-muted">
                 Primary Contact
               </span>
               <div className="font-medium text-text-primary">{selectedTenantForDrawer.ownerName}</div>
@@ -490,7 +474,7 @@ export const TenantsList: React.FC = () => {
             <button
               type="button"
               onClick={() => handleImpersonate(selectedTenantForDrawer)}
-              className="flex-1 h-8 px-2 rounded bg-violet text-white font-medium hover:opacity-90 transition text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+              className="flex-1 h-8 px-2 rounded-md bg-accent text-white font-medium hover:bg-accent-hover transition text-[13px] flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <UserCheck className="w-3.5 h-3.5" />
               <span>Impersonate</span>
@@ -502,7 +486,7 @@ export const TenantsList: React.FC = () => {
                 setSelectedTenantForDrawer(null);
                 navigate(`/admin/tenants/${id}`);
               }}
-              className="flex-1 h-8 px-2 rounded bg-surface border border-border hover:border-border-strong text-text-primary font-medium transition text-xs flex items-center justify-center gap-1.5 cursor-pointer"
+              className="flex-1 h-8 px-2 rounded-lg bg-surface border border-border hover:border-border-strong text-text-primary font-medium transition text-xs flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <span>Full 10-Tab View</span>
               <ChevronRight className="w-3.5 h-3.5" />

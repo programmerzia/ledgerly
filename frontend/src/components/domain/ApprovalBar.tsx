@@ -78,14 +78,12 @@ export const ApprovalBar: React.FC<ApprovalBarProps> = ({
     <>
       <div
         className={cn(
-          'sticky bottom-0 left-0 right-0 z-20 flex select-none flex-wrap items-center justify-between gap-4 rounded-xl border border-border bg-surface/95 px-5 py-3.5 shadow-popover backdrop-blur',
+          'sticky bottom-0 left-0 right-0 z-20 flex select-none flex-wrap items-center justify-between gap-4 rounded-lg border border-border bg-surface px-5 py-3.5 shadow-popover',
           className
         )}
       >
         <div className="flex items-center gap-3">
-          <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-warning-soft text-warning">
-            <ShieldAlert className="size-4" />
-          </span>
+          <ShieldAlert className="size-4 shrink-0 text-warning" />
           <div className="flex flex-col">
             <div className="flex items-center gap-2 text-[13px] font-semibold text-text-primary">
               <span>Waiting for a second person to approve</span>
@@ -129,18 +127,15 @@ export const ApprovalBar: React.FC<ApprovalBarProps> = ({
       </div>
 
       <Dialog open={isApproveOpen} onOpenChange={(o) => !o && setIsApproveOpen(false)}>
-        <DialogContent className="max-w-md rounded-xl bg-surface-elevated p-6 shadow-popover">
+        <DialogContent className="max-w-md rounded-lg bg-surface-elevated p-6 shadow-popover">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-base font-semibold">
-              <span className="flex size-8 items-center justify-center rounded-lg bg-success-soft text-success">
-                <CheckCircle className="size-4" />
-              </span>
               Approve and post
             </DialogTitle>
             <DialogDescription className="text-xs text-text-muted">This adds the document to your books for good.</DialogDescription>
           </DialogHeader>
           {errorMsg && <div className="rounded-lg border border-danger/30 bg-danger-soft p-2.5 text-xs text-danger">{errorMsg}</div>}
-          <div className="flex flex-col gap-1.5 rounded-lg border border-border bg-surface-neutral/50 p-3 text-xs">
+          <div className="flex flex-col gap-1.5 rounded-lg border border-border bg-surface-neutral p-3 text-xs">
             <div className="flex justify-between">
               <span className="text-text-muted">Document</span>
               <span className="font-semibold text-text-primary">{documentNumber}</span>
@@ -160,7 +155,7 @@ export const ApprovalBar: React.FC<ApprovalBarProps> = ({
               type="button"
               onClick={() => setIsApproveOpen(false)}
               disabled={loading}
-              className="h-9 rounded-lg border border-border px-3.5 text-[13px] font-medium text-text-secondary hover:bg-surface-neutral"
+              className="h-8 rounded-md border border-border px-3 text-[13px] font-medium text-text-secondary hover:bg-surface-neutral"
             >
               Cancel
             </button>
@@ -177,12 +172,9 @@ export const ApprovalBar: React.FC<ApprovalBarProps> = ({
       </Dialog>
 
       <Dialog open={isReturnOpen} onOpenChange={(o) => !o && setIsReturnOpen(false)}>
-        <DialogContent className="max-w-md rounded-xl bg-surface-elevated p-6 shadow-popover">
+        <DialogContent className="max-w-md rounded-lg bg-surface-elevated p-6 shadow-popover">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-base font-semibold">
-              <span className="flex size-8 items-center justify-center rounded-lg bg-warning-soft text-warning">
-                <RotateCcw className="size-4" />
-              </span>
               Send back for changes
             </DialogTitle>
             <DialogDescription className="text-xs text-text-muted">
@@ -201,7 +193,7 @@ export const ApprovalBar: React.FC<ApprovalBarProps> = ({
               type="button"
               onClick={() => setIsReturnOpen(false)}
               disabled={loading}
-              className="h-9 rounded-lg border border-border px-3.5 text-[13px] font-medium text-text-secondary hover:bg-surface-neutral"
+              className="h-8 rounded-md border border-border px-3 text-[13px] font-medium text-text-secondary hover:bg-surface-neutral"
             >
               Cancel
             </button>

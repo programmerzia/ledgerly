@@ -95,7 +95,7 @@ export const GeneralLedger: React.FC = () => {
     >
       <ReportCard className="p-0 sm:p-0">
         <div className="min-w-[860px]">
-          <div className={`${GRID} px-4 py-2.5 border-b border-border text-[11px] font-semibold text-text-muted sticky top-0 bg-surface/95 backdrop-blur`}>
+          <div className={`${GRID} px-4 py-2.5 border-b border-border text-[11px] font-semibold text-text-muted sticky top-0 bg-surface`}>
             <span>Date</span>
             <span>Source</span>
             <span>Description</span>
@@ -108,7 +108,7 @@ export const GeneralLedger: React.FC = () => {
           <div className={`${GRID} items-baseline px-4 py-2 text-xs bg-surface-neutral/50 font-medium`}>
             <span className="text-text-muted">{longDate(from)}</span>
             <span className="col-span-5 text-text-primary">Opening balance</span>
-            <span className={cn('text-right font-mono tabular-nums', tone(opening))}>{money(opening)}</span>
+            <span className={cn('text-right tabular-nums', tone(opening))}>{money(opening)}</span>
           </div>
 
           {lines.length === 0 && <div className="p-8 text-center text-xs text-text-muted">No transactions on this account in this date range.</div>}
@@ -122,30 +122,30 @@ export const GeneralLedger: React.FC = () => {
                   tabIndex={0}
                   onClick={() => navigate(src.to)}
                   onKeyDown={(e) => e.key === 'Enter' && navigate(src.to)}
-                  className={`${GRID} items-baseline px-4 py-1.5 text-xs cursor-pointer hover:bg-accent-soft/40 group focus-visible:outline-2 outline-accent`}
+                  className={`${GRID} items-baseline px-4 py-1.5 text-xs cursor-pointer hover:bg-canvas group focus-visible:outline-2 outline-accent`}
                 >
-                  <span className="font-mono text-text-muted whitespace-nowrap">{l.journal_date}</span>
+                  <span className="tabular-nums text-text-muted whitespace-nowrap">{l.journal_date}</span>
                   <span className="flex items-center gap-1.5 whitespace-nowrap text-accent group-hover:underline">
                     <span className="text-text-muted no-underline">{src.label}</span>
-                    <span className="font-mono">{l.journal_number}</span>
+                    <span className="font-code">{l.journal_number}</span>
                     <ArrowUpRight className="size-3 opacity-0 group-hover:opacity-100" />
                   </span>
                   <span className="truncate text-text-primary">{l.description || '—'}</span>
                   <span className="text-text-muted">{l.dimensions?.branch ?? '—'}</span>
-                  <span className="text-right font-mono tabular-nums text-text-primary">{l.debit > 0 ? money(l.debit) : '—'}</span>
-                  <span className="text-right font-mono tabular-nums text-text-primary">{l.credit > 0 ? money(l.credit) : '—'}</span>
-                  <span className={cn('text-right font-mono tabular-nums', tone(l.running_balance))}>{money(l.running_balance)}</span>
+                  <span className="text-right tabular-nums text-text-primary">{l.debit > 0 ? money(l.debit) : '—'}</span>
+                  <span className="text-right tabular-nums text-text-primary">{l.credit > 0 ? money(l.credit) : '—'}</span>
+                  <span className={cn('text-right tabular-nums', tone(l.running_balance))}>{money(l.running_balance)}</span>
                 </div>
               );
             })}
           </div>
 
-          <div className={`${GRID} items-baseline px-4 py-3 border-t-2 border-border bg-surface-neutral/50 text-[13px] font-semibold`}>
+          <div className={`${GRID} items-baseline px-4 py-3 border-t border-text-primary border-b-[3px] border-double text-[13px] font-semibold`}>
             <span className="text-text-muted font-normal">{longDate(to)}</span>
             <span className="col-span-3 text-text-primary">Closing balance</span>
-            <span className="text-right font-mono tabular-nums">{money(totalDr)}</span>
-            <span className="text-right font-mono tabular-nums">{money(totalCr)}</span>
-            <span className={cn('text-right font-mono tabular-nums', tone(closing))}>{formatMoney(closing, cur, { parenthesesNegative: true })}</span>
+            <span className="text-right tabular-nums">{money(totalDr)}</span>
+            <span className="text-right tabular-nums">{money(totalCr)}</span>
+            <span className={cn('text-right tabular-nums', tone(closing))}>{formatMoney(closing, cur, { parenthesesNegative: true })}</span>
           </div>
         </div>
       </ReportCard>

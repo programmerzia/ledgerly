@@ -9,10 +9,10 @@ import { ReportCard, Segmented, moneyFmt } from './ReportParts';
 
 type BucketKey = 'current' | 'd30' | 'd60' | 'd90' | 'd90p';
 const BUCKETS: { key: BucketKey; label: string; swatch: string; text: string }[] = [
-  { key: 'current', label: 'Current', swatch: 'bg-success', text: 'text-text-primary' },
-  { key: 'd30', label: '1–30 days', swatch: 'bg-info', text: 'text-text-primary' },
-  { key: 'd60', label: '31–60 days', swatch: 'bg-accent', text: 'text-text-primary' },
-  { key: 'd90', label: '61–90 days', swatch: 'bg-warning', text: 'text-warning' },
+  { key: 'current', label: 'Current', swatch: 'bg-text-muted/40', text: 'text-text-primary' },
+  { key: 'd30', label: '1–30 days', swatch: 'bg-warning/50', text: 'text-text-primary' },
+  { key: 'd60', label: '31–60 days', swatch: 'bg-warning', text: 'text-text-primary' },
+  { key: 'd90', label: '61–90 days', swatch: 'bg-danger/70', text: 'text-danger' },
   { key: 'd90p', label: '90+ days', swatch: 'bg-danger', text: 'text-danger' },
 ];
 const bucketOf = (days: number): BucketKey =>
@@ -79,15 +79,15 @@ export const AgingReport: React.FC = () => {
         />
       }
     >
-      <div className="bg-surface border border-border rounded-xl shadow-card p-4 sm:p-5 ui-rise-in">
+      <div className="bg-surface border border-border rounded-lg p-4 sm:p-5">
         <div className="flex items-baseline justify-between gap-3">
           <div>
             <div className="text-xs text-text-muted">{mode === 'ar' ? 'Customers owe you' : 'You owe suppliers'}</div>
-            <div className="text-2xl font-semibold tabular-nums tracking-tight text-text-primary">{money(grand)}</div>
+            <div className="text-[22px] leading-7 font-medium tabular-nums text-text-primary">{money(grand)}</div>
           </div>
           <div className="text-xs text-text-muted">{all.filter((r) => r.total > 0).length} with a balance</div>
         </div>
-        <div className="mt-3 flex h-3 w-full overflow-hidden rounded-full bg-surface-neutral" role="img" aria-label="Balance by age">
+        <div className="mt-3 flex h-1.5 w-full overflow-hidden rounded-[1px] gap-px bg-surface-neutral" role="img" aria-label="Balance by age">
           {grand > 0 &&
             BUCKETS.map((b) =>
               totals[b.key] > 0 ? (
@@ -99,10 +99,10 @@ export const AgingReport: React.FC = () => {
           {BUCKETS.map((b) => (
             <div key={b.key}>
               <div className="flex items-center gap-1.5 text-xs text-text-muted">
-                <span className={cn('size-2 rounded-full', b.swatch)} />
+                <span className={cn('size-2 rounded-[1px]', b.swatch)} />
                 {b.label}
               </div>
-              <div className={cn('text-sm font-semibold tabular-nums', b.text)}>{money(totals[b.key])}</div>
+              <div className={cn('text-[13px] font-medium tabular-nums', b.text)}>{money(totals[b.key])}</div>
             </div>
           ))}
         </div>
@@ -110,7 +110,7 @@ export const AgingReport: React.FC = () => {
 
       <ReportCard className="p-0 sm:p-0">
         <div className="min-w-[760px]">
-          <div className={`${GRID} px-4 py-2.5 border-b border-border text-[11px] font-semibold text-text-muted sticky top-0 bg-surface/95 backdrop-blur`}>
+          <div className={`${GRID} px-4 py-2.5 border-b border-border text-[11px] font-semibold text-text-muted sticky top-0 bg-surface`}>
             <span>{mode === 'ar' ? 'Customer' : 'Supplier'}</span>
             {BUCKETS.map((b) => (
               <span key={b.key} className="text-right">{b.label}</span>
@@ -126,30 +126,30 @@ export const AgingReport: React.FC = () => {
                 tabIndex={0}
                 onClick={() => navigate(`/${currentCompany.slug}/${route}/${r.id}`)}
                 onKeyDown={(e) => e.key === 'Enter' && navigate(`/${currentCompany.slug}/${route}/${r.id}`)}
-                className={`${GRID} items-center px-4 py-2 text-xs cursor-pointer hover:bg-accent-soft/40 focus-visible:outline-2 outline-accent`}
+                className={`${GRID} items-center px-4 py-2 text-xs cursor-pointer hover:bg-canvas focus-visible:outline-2 outline-accent`}
               >
                 <span className="flex items-center gap-2.5 min-w-0">
                   <Avatar name={r.name} size="sm" square />
                   <span className="min-w-0">
                     <span className="block truncate font-medium text-text-primary">{r.name}</span>
-                    <span className="block text-[11px] font-mono text-text-muted">{r.code}</span>
+                    <span className="block text-[11px] font-code text-text-muted">{r.code}</span>
                   </span>
                 </span>
                 {BUCKETS.map((b) => (
-                  <span key={b.key} className={cn('text-right font-mono tabular-nums', r.buckets[b.key] === 0 ? 'text-text-muted' : b.text)}>
+                  <span key={b.key} className={cn('text-right tabular-nums', r.buckets[b.key] === 0 ? 'text-text-muted' : b.text)}>
                     {r.buckets[b.key] === 0 ? '—' : money(r.buckets[b.key])}
                   </span>
                 ))}
-                <span className="text-right font-mono tabular-nums font-semibold text-text-primary">{money(r.total)}</span>
+                <span className="text-right tabular-nums font-semibold text-text-primary">{money(r.total)}</span>
               </div>
             ))}
           </div>
-          <div className={`${GRID} items-baseline px-4 py-3 border-t-2 border-border bg-surface-neutral/50 text-[13px] font-semibold`}>
+          <div className={`${GRID} items-baseline px-4 py-3 border-t border-text-primary border-b-[3px] border-double text-[13px] font-semibold`}>
             <span className="text-text-primary">Total</span>
             {BUCKETS.map((b) => (
-              <span key={b.key} className="text-right font-mono tabular-nums">{money(totals[b.key])}</span>
+              <span key={b.key} className="text-right tabular-nums">{money(totals[b.key])}</span>
             ))}
-            <span className="text-right font-mono tabular-nums">{money(grand)}</span>
+            <span className="text-right tabular-nums">{money(grand)}</span>
           </div>
         </div>
       </ReportCard>

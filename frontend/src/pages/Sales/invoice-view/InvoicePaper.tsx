@@ -21,7 +21,7 @@ export const InvoicePaper: React.FC<Props> = ({ invoice, contact, company }) => 
   return (
     <article
       aria-label={`Invoice ${invoice.number ?? 'draft'}`}
-      className="relative overflow-hidden rounded-xl bg-surface border border-border shadow-[var(--shadow-card,0_1px_2px_rgba(16,24,40,0.06))] px-6 py-8 sm:px-12 sm:py-12"
+      className="relative overflow-hidden rounded-lg bg-surface border border-border  px-6 py-8 sm:px-12 sm:py-12"
     >
       {stamp && (
         <div
@@ -40,12 +40,6 @@ export const InvoicePaper: React.FC<Props> = ({ invoice, contact, company }) => 
       {/* Letterhead */}
       <div className="flex flex-wrap items-start justify-between gap-6">
         <div className="flex items-center gap-3">
-          <span
-            className="flex size-11 items-center justify-center rounded-xl text-white text-lg font-bold shadow-xs"
-            style={{ background: 'var(--gradient-brand, var(--color-accent))' }}
-          >
-            {company.name.charAt(0).toUpperCase()}
-          </span>
           <div className="leading-tight">
             <div className="text-[15px] font-semibold text-text-primary">{company.name}</div>
             <div className="text-xs text-text-muted">{company.legal_name}</div>
@@ -55,7 +49,7 @@ export const InvoicePaper: React.FC<Props> = ({ invoice, contact, company }) => 
           </div>
         </div>
         <div className="text-right">
-          <h2 className="text-3xl font-semibold tracking-tight text-text-primary">
+          <h2 className="text-3xl font-semibold text-text-primary">
             {isCredit ? 'Credit note' : 'Invoice'}
           </h2>
           <div className="mt-1 text-sm font-medium text-text-secondary tabular-nums">{invoice.number ?? 'Draft'}</div>
@@ -65,7 +59,7 @@ export const InvoicePaper: React.FC<Props> = ({ invoice, contact, company }) => 
       {/* Bill to + dates */}
       <div className="mt-10 grid gap-8 sm:grid-cols-2">
         <div>
-          <div className="text-[11px] font-semibold uppercase tracking-wide text-text-muted">Bill to</div>
+          <div className="text-xs font-semibold text-text-muted">Bill to</div>
           <div className="mt-2 text-sm font-semibold text-text-primary">{contact?.name ?? 'Unknown customer'}</div>
           {contact?.legal_name && contact.legal_name !== contact.name && (
             <div className="text-[13px] text-text-secondary">{contact.legal_name}</div>
@@ -75,16 +69,16 @@ export const InvoicePaper: React.FC<Props> = ({ invoice, contact, company }) => 
         </div>
         <dl className="grid grid-cols-2 gap-x-6 gap-y-3 sm:justify-self-end sm:text-right sm:min-w-64">
           <div>
-            <dt className="text-[11px] font-semibold uppercase tracking-wide text-text-muted">Issued</dt>
+            <dt className="text-xs font-semibold text-text-muted">Issued</dt>
             <dd className="mt-1 text-[13px] text-text-primary">{formatDate(invoice.issue_date)}</dd>
           </div>
           <div>
-            <dt className="text-[11px] font-semibold uppercase tracking-wide text-text-muted">Due</dt>
+            <dt className="text-xs font-semibold text-text-muted">Due</dt>
             <dd className="mt-1 text-[13px] text-text-primary">{formatDate(invoice.due_date)}</dd>
           </div>
           {invoice.reference && (
             <div className="col-span-2">
-              <dt className="text-[11px] font-semibold uppercase tracking-wide text-text-muted">Reference</dt>
+              <dt className="text-xs font-semibold text-text-muted">Reference</dt>
               <dd className="mt-1 text-[13px] text-text-primary">{invoice.reference}</dd>
             </div>
           )}
@@ -155,11 +149,11 @@ export const InvoicePaper: React.FC<Props> = ({ invoice, contact, company }) => 
       {/* Notes */}
       <div className="mt-12 grid gap-6 border-t border-border pt-6 text-[13px] text-text-secondary sm:grid-cols-2">
         <div>
-          <div className="text-[11px] font-semibold uppercase tracking-wide text-text-muted">Notes</div>
+          <div className="text-xs font-semibold text-text-muted">Notes</div>
           <p className="mt-2 leading-relaxed">{invoice.memo || 'Thank you for your business.'}</p>
         </div>
         <div>
-          <div className="text-[11px] font-semibold uppercase tracking-wide text-text-muted">Payment instructions</div>
+          <div className="text-xs font-semibold text-text-muted">Payment instructions</div>
           <p className="mt-2 leading-relaxed">
             Pay by bank transfer within {Math.max(0, Math.round((new Date(invoice.due_date).getTime() - new Date(invoice.issue_date).getTime()) / 86_400_000))}{' '}
             days of the issue date. Please quote <span className="font-medium text-text-primary">{invoice.number ?? 'the invoice number'}</span> as the payment reference.

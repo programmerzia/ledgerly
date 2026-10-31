@@ -35,11 +35,12 @@ import {
   Download,
 } from 'lucide-react';
 
+
 export const BillView: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const { currentCompany, currentUser, contacts, accounts, bills } = useLedgerStore();
+  const { currentCompany, currentUser, currentPeriod, users, contacts, accounts, bills } = useLedgerStore();
   const coSlug = currentCompany.slug;
 
   const billFromStore = bills.find((b) => b.id === id);
@@ -118,13 +119,13 @@ export const BillView: React.FC = () => {
     return (
       <div className="p-12 text-center max-w-md mx-auto flex flex-col items-center gap-4">
         <AlertCircle className="w-10 h-10 text-danger" />
-        <h2 className="text-base font-bold text-text-primary">Bill Not Found</h2>
+        <h2 className="text-base font-semibold text-text-primary">Bill not found</h2>
         <p className="text-xs text-text-muted">
           The requested document ID <span className="font-mono text-text-primary font-medium">{id}</span> does not exist or has been removed.
         </p>
         <button
           onClick={() => navigate(`/${coSlug}/bills`)}
-          className="h-8 px-4 rounded-sm bg-accent hover:bg-accent-hover text-white text-xs font-semibold shadow-xs transition"
+          className="h-8 px-3 rounded-md bg-accent hover:bg-accent-hover text-white text-[13px] font-medium transition"
         >
           Return to Purchase Bills
         </button>
@@ -293,7 +294,7 @@ export const BillView: React.FC = () => {
       />
 
       {bill.status === 'reversed' && bill.reversed_by_id && (
-        <div className="px-4 py-3 bg-violet-soft border border-violet/30 rounded-xl text-[13px] flex items-center gap-2 text-violet font-medium">
+        <div className="px-4 py-3 bg-violet-soft border border-violet/30 rounded-lg text-[13px] flex items-center gap-2 text-violet font-medium">
           <RotateCcw className="size-4 shrink-0" />
           <span>
             This bill was reversed.{' '}
@@ -305,7 +306,7 @@ export const BillView: React.FC = () => {
       )}
 
       {bill.reversal_of_id && (
-        <div className="px-4 py-3 bg-violet-soft border border-violet/30 rounded-xl text-[13px] flex items-center gap-2 text-violet font-medium">
+        <div className="px-4 py-3 bg-violet-soft border border-violet/30 rounded-lg text-[13px] flex items-center gap-2 text-violet font-medium">
           <Link2 className="size-4 shrink-0" />
           <span>
             This document cancels another bill.{' '}
@@ -346,12 +347,12 @@ export const BillView: React.FC = () => {
       {bill.status === 'pending_approval' && (
         <ApprovalBar
           makerId={bill.created_by}
-          makerName="Rahim Ahmed"
+          makerName={users.find((u) => u.id === bill.created_by)?.name ?? 'the maker'}
           currentUserId={currentUser.id}
           submittedAt={bill.created_at}
           amount={bill.total}
           currency={bill.currency}
-          periodName="Oct 2026"
+          periodName={currentPeriod.name}
           documentNumber={bill.number || bill.reference}
           onApprove={handleApprove}
           onReturn={handleReturn}
@@ -362,14 +363,14 @@ export const BillView: React.FC = () => {
       <Dialog open={isReverseDialogOpen} onOpenChange={setIsReverseDialogOpen}>
         <DialogContent className="max-w-lg bg-surface border border-border p-6 shadow-xl rounded-lg">
           <DialogHeader>
-            <DialogTitle className="text-base font-bold text-text-primary flex items-center gap-2">
+            <DialogTitle className="text-base font-semibold text-text-primary flex items-center gap-2">
               <RotateCcw className="w-5 h-5 text-danger" />
-              Reverse Posted Bill ({bill.number || bill.reference})
+              Reverse posted bill ({bill.number || bill.reference})
             </DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-4 text-xs text-text-secondary mt-2">
             <div className="p-3 bg-danger-soft border border-danger/30 rounded-md text-danger">
-              <p className="font-semibold">Irreversible Ledger Operation</p>
+              <p className="font-semibold">This cannot be undone</p>
               <p className="mt-1 text-[11px]">
                 Reversing this bill creates a mirror reversal document and posts offsetting entries directly to the General Ledger. The original bill remains immutable in the audit trail.
               </p>
@@ -436,7 +437,7 @@ export const BillView: React.FC = () => {
                 setSignAction('reverse');
                 setSignDialogOpen(true);
               }}
-              className="h-8 px-3 rounded-sm bg-danger hover:bg-danger/90 text-white text-xs font-semibold shadow-xs disabled:opacity-50 cursor-pointer"
+              className="h-8 px-3 rounded-sm bg-danger hover:bg-danger/90 text-white text-xs font-semibold disabled:opacity-50 cursor-pointer"
             >
               Authorize Reversal with PIN
             </button>
@@ -448,9 +449,9 @@ export const BillView: React.FC = () => {
       <Dialog open={isFixThisDialogOpen} onOpenChange={setIsFixThisDialogOpen}>
         <DialogContent className="max-w-md bg-surface border border-border p-6 shadow-xl rounded-lg">
           <DialogHeader>
-            <DialogTitle className="text-base font-bold text-text-primary flex items-center gap-2">
+            <DialogTitle className="text-base font-semibold text-text-primary flex items-center gap-2">
               <Wrench className="w-5 h-5 text-accent" />
-              Fix Posted Bill ({bill.number || bill.reference})
+              Fix posted bill ({bill.number || bill.reference})
             </DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-3 text-xs text-text-secondary mt-2">
@@ -481,7 +482,7 @@ export const BillView: React.FC = () => {
                 setSignAction('fix_this');
                 setSignDialogOpen(true);
               }}
-              className="h-8 px-3 rounded-sm bg-accent hover:bg-accent-hover text-white text-xs font-semibold shadow-xs cursor-pointer"
+              className="h-8 px-3 rounded-md bg-accent hover:bg-accent-hover text-white text-[13px] font-medium cursor-pointer"
             >
               Authorize Fix & Create Draft
             </button>
@@ -493,14 +494,14 @@ export const BillView: React.FC = () => {
       <Dialog open={isEmailDialogOpen} onOpenChange={setIsEmailDialogOpen}>
         <DialogContent className="max-w-md bg-surface border border-border p-6 shadow-xl rounded-lg">
           <DialogHeader>
-            <DialogTitle className="text-base font-bold text-text-primary flex items-center gap-2">
+            <DialogTitle className="text-base font-semibold text-text-primary flex items-center gap-2">
               <Mail className="w-5 h-5 text-accent" />
-              Email Remittance Advice ({bill.number || bill.reference})
+              Email remittance advice ({bill.number || bill.reference})
             </DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-3 text-xs text-text-secondary mt-2">
             <div>
-              <label className="block text-[11px] font-semibold text-text-muted mb-1">Recipient Email</label>
+              <label className="block text-[11px] font-semibold text-text-muted mb-1">Recipient email</label>
               <input
                 type="email"
                 value={emailTo}
@@ -518,7 +519,7 @@ export const BillView: React.FC = () => {
               />
             </div>
             <div>
-              <label className="block text-[11px] font-semibold text-text-muted mb-1">Message Body</label>
+              <label className="block text-[11px] font-semibold text-text-muted mb-1">Message</label>
               <textarea
                 rows={4}
                 value={emailBody}
@@ -543,9 +544,9 @@ export const BillView: React.FC = () => {
             <button
               type="button"
               onClick={handleSendEmail}
-              className="h-8 px-3 rounded-sm bg-accent hover:bg-accent-hover text-white text-xs font-semibold shadow-xs cursor-pointer"
+              className="h-8 px-3 rounded-md bg-accent hover:bg-accent-hover text-white text-[13px] font-medium cursor-pointer"
             >
-              Send Remittance Email
+              Send remittance email
             </button>
           </DialogFooter>
         </DialogContent>
@@ -555,9 +556,9 @@ export const BillView: React.FC = () => {
       <Dialog open={isAttachDialogOpen} onOpenChange={setIsAttachDialogOpen}>
         <DialogContent className="max-w-md bg-surface border border-border p-6 shadow-xl rounded-lg">
           <DialogHeader>
-            <DialogTitle className="text-base font-bold text-text-primary flex items-center gap-2">
+            <DialogTitle className="text-base font-semibold text-text-primary flex items-center gap-2">
               <Paperclip className="w-5 h-5 text-accent" />
-              Bill Attachments ({attachments.length})
+              Bill attachments ({attachments.length})
             </DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-3 text-xs mt-2">
@@ -569,7 +570,7 @@ export const BillView: React.FC = () => {
                 className="flex items-center gap-1.5 h-7 px-2 bg-surface-neutral hover:bg-surface-neutral/80 text-text-primary rounded text-[11px] font-semibold border border-border cursor-pointer"
               >
                 <Upload className="w-3.5 h-3.5 text-accent" />
-                <span>Upload File</span>
+                <span>Upload file</span>
               </button>
             </div>
             <div className="flex flex-col gap-2 max-h-60 overflow-y-auto">
@@ -617,8 +618,8 @@ export const BillView: React.FC = () => {
         documentNumber={bill.number || bill.reference}
         amount={bill.total}
         currency={bill.currency}
-        periodName="Oct 2026"
-        makerName="Rahim Ahmed"
+        periodName={currentPeriod.name}
+        makerName={users.find((u) => u.id === bill.created_by)?.name ?? 'the maker'}
         actionTitle={
           signAction === 'reverse'
             ? 'Authorize & Post Bill Reversal'
@@ -631,7 +632,7 @@ export const BillView: React.FC = () => {
             ? `Reversing will post offsetting entries (Dr AP Control ${formatMoney(bill.total, bill.currency)}, Cr Expenses ${formatMoney(bill.subtotal, bill.currency)}) and restore Trial Balance.`
             : signAction === 'fix_this'
             ? `Reversing original bill and generating a new editable draft with identical lines.`
-            : `Approving will assign sequence ${bill.number || 'BILL-2026-0043'}, credit ${formatMoney(bill.total, bill.currency)} to AP Control, debit Operating Expenses in Oct 2026.`
+            : `Approving assigns the next bill number, credits ${formatMoney(bill.total, bill.currency)} to accounts payable and posts the expense lines in ${currentPeriod.name}.`
         }
       />
 

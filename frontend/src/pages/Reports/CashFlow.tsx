@@ -91,20 +91,20 @@ export const CashFlow: React.FC = () => {
         />
       }
     >
-      <div className="bg-surface border border-border rounded-xl shadow-card p-4 sm:p-5 ui-rise-in">
+      <div className="bg-surface border border-border rounded-lg p-4 sm:p-5">
         <div className="text-sm font-semibold text-text-primary">Net cash flow by month</div>
         <div className="text-xs text-text-muted mb-2">Change in cash and bank balances, in {cur}</div>
         <div className="h-44 text-xs">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={monthly} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-              <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="var(--border)" />
+              <CartesianGrid vertical={false} stroke="var(--color-border)" />
               <XAxis dataKey="name" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: 'var(--text-muted)' }} />
               <YAxis tickLine={false} axisLine={false} width={44} tickFormatter={compact} tick={{ fontSize: 11, fill: 'var(--text-muted)' }} />
               <Tooltip cursor={{ fill: 'var(--surface-neutral)' }} content={<ChartTooltip currency={cur} />} />
               <ReferenceLine y={0} stroke="var(--border-strong)" />
-              <Bar dataKey="net" name="Net cash flow" radius={[4, 4, 0, 0]} maxBarSize={36}>
+              <Bar dataKey="net" name="Net cash flow" radius={[1, 1, 0, 0]} maxBarSize={36}>
                 {monthly.map((d, i) => (
-                  <Cell key={i} fill={d.net < 0 ? 'var(--danger)' : 'var(--accent)'} fillOpacity={d.name === period.name.slice(0, 3) ? 1 : 0.55} />
+                  <Cell key={i} fill={d.name === period.name.slice(0, 3) ? (d.net < 0 ? 'var(--color-danger)' : 'var(--color-accent)') : 'var(--color-text-muted)'} fillOpacity={d.name === period.name.slice(0, 3) ? 1 : 0.4} />
                 ))}
               </Bar>
             </BarChart>

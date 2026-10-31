@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { formatMoney, formatDate } from '@/lib/format';
-import { X, ExternalLink, ArrowRight, BookOpen } from 'lucide-react';
+import { X, ExternalLink } from 'lucide-react';
 
 export interface GLLineRecord {
   id: string;
@@ -56,7 +56,7 @@ export const DrillDownDrawer: React.FC<DrillDownDrawerProps> = ({
   return (
     <div className="fixed inset-0 z-50 overflow-hidden bg-ink-900/30 backdrop-blur-[1px] flex justify-end">
       <div
-        className="w-full max-w-[560px] bg-surface border-l border-ink-200 h-full shadow-2xl flex flex-col animate-in slide-in-from-right duration-200"
+        className="w-full max-w-[560px] bg-surface border-l border-ink-200 h-full shadow-lg flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Drawer Header */}
@@ -66,8 +66,8 @@ export const DrillDownDrawer: React.FC<DrillDownDrawerProps> = ({
               <span className="font-mono text-xs font-bold text-brand-600 bg-brand-50 px-1.5 py-0.5 rounded border border-brand-100">
                 {accountCode}
               </span>
-              <span className="text-xs text-ink-500 uppercase tracking-wider font-semibold">
-                General Ledger Detail
+              <span className="text-xs text-ink-500 font-semibold">
+                General ledger detail
               </span>
             </div>
             <h2 className="text-h2 font-semibold text-ink-900">{accountName}</h2>
@@ -86,7 +86,7 @@ export const DrillDownDrawer: React.FC<DrillDownDrawerProps> = ({
         {/* Drawer Body: Dense GL Lines List */}
         <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
           <div className="text-xs text-ink-500 flex items-center justify-between pb-1">
-            <span>Posted Transactions</span>
+            <span>Posted transactions</span>
             <span className="text-[11px] text-ink-500">Click any row to view source document</span>
           </div>
 
@@ -140,7 +140,7 @@ export const DrillDownDrawer: React.FC<DrillDownDrawerProps> = ({
             <span>Credits: {formatMoney(totalCredit)}</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="font-semibold text-ink-900">Net Period Balance:</span>
+            <span className="font-semibold text-ink-900">Net period balance:</span>
             <span className="font-bold text-sm text-brand-700">{formatMoney(Math.abs(netAmount))}</span>
           </div>
         </div>

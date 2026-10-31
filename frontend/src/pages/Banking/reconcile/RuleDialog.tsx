@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { useLedgerStore } from '@/mock/store';
 import { matchBankRule } from '@/mock/BankTransactions';
@@ -111,7 +110,6 @@ export const RuleDialog: React.FC<Props> = ({ open, onClose, rule, template }) =
                 </Field>
               </div>
               <div className="flex items-center gap-1.5 text-xs text-text-secondary" data-testid="rule-preview">
-                <Sparkles className="size-3.5 text-accent" />
                 Would match <b className="tabular-nums text-text-primary">{matches}</b> open {matches === 1 ? 'line' : 'lines'} right now
               </div>
             </div>
@@ -160,10 +158,10 @@ export const RuleDialog: React.FC<Props> = ({ open, onClose, rule, template }) =
             </div>
           )}
           <DialogFooter className="gap-2">
-            <button type="button" onClick={onClose} className="h-9 rounded-lg border border-border px-3 text-[13px] font-medium text-text-secondary hover:bg-surface-neutral">
+            <button type="button" onClick={onClose} className="h-8 rounded-md border border-border px-3 text-[13px] font-medium text-text-secondary hover:bg-surface-neutral">
               Cancel
             </button>
-            <button type="submit" className="h-9 rounded-lg bg-accent px-4 text-[13px] font-semibold text-white hover:bg-accent-hover">
+            <button type="submit" className="h-8 rounded-md bg-accent px-3 text-[13px] font-medium text-white hover:bg-accent-hover">
               {rule ? 'Save rule' : 'Add rule'}
             </button>
           </DialogFooter>

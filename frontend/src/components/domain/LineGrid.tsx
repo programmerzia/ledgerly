@@ -6,7 +6,7 @@ import { Kbd } from '@/components/ui/kbd';
 import { AccountPicker } from './AccountPicker';
 import { DimensionChips } from './DimensionChips';
 import { MoneyInput } from './MoneyInput';
-import { Plus, Trash2, Copy, AlertCircle, CheckCircle2, MoreVertical, PlusCircle } from 'lucide-react';
+import { Plus, Trash2, Copy, AlertCircle, CheckCircle2, PlusCircle } from 'lucide-react';
 import { formatMoney } from '@/lib/format';
 import {
   ContextMenu,
@@ -220,7 +220,7 @@ export const LineGrid: React.FC<LineGridProps> = ({
               <th className="min-w-[130px] py-2 px-2">
                 <span className="inline-flex items-center">
                   Dimensions
-                  <FieldHelp help="Branch, Cost Centre or Project tags for segmental accounting." example="Branch = Mogadishu" />
+                  <FieldHelp help="Branch, Cost centre or Project tags for segmental accounting." example="Branch = Mogadishu" />
                 </span>
               </th>
 
@@ -234,19 +234,19 @@ export const LineGrid: React.FC<LineGridProps> = ({
                   </th>
                   <th className="w-28 min-w-[110px] text-right py-2 px-2">
                     <span className="inline-flex items-center justify-end">
-                      Unit Price
+                      Unit price
                       <FieldHelp help="Price per unit in transaction currency." example="500.00" />
                     </span>
                   </th>
                   <th className="w-24 min-w-[96px] py-2 px-2">
                     <span className="inline-flex items-center">
-                      Tax Code
+                      Tax code
                       <FieldHelp help="Applicable tax treatment (e.g. VAT 5%, Zero Rated, Exempt)." example="tax-vat5" />
                     </span>
                   </th>
                   <th className="w-28 min-w-[110px] text-right py-2 px-2">
                     <span className="inline-flex items-center justify-end">
-                      Line Total
+                      Line total
                       <FieldHelp help="Calculated line amount before withholding taxes." />
                     </span>
                   </th>
@@ -368,7 +368,7 @@ export const LineGrid: React.FC<LineGridProps> = ({
                             )}
                           </td>
 
-                          {/* Unit Price */}
+                          {/* Unit price */}
                           <td className="px-2">
                             <MoneyInput
                               value={line.unit_price_fc || 0}
@@ -379,7 +379,7 @@ export const LineGrid: React.FC<LineGridProps> = ({
                             />
                           </td>
 
-                          {/* Tax Code */}
+                          {/* Tax code */}
                           <td className="px-2">
                             {readOnly ? (
                               <span className="text-xs font-mono">
@@ -401,7 +401,7 @@ export const LineGrid: React.FC<LineGridProps> = ({
                             )}
                           </td>
 
-                          {/* Line Total */}
+                          {/* Line total */}
                           <td className="text-right font-mono text-num text-text-primary pr-3 px-2">
                             {formatMoney(line.line_total_fc, currency)}
                           </td>
@@ -471,11 +471,11 @@ export const LineGrid: React.FC<LineGridProps> = ({
                   <ContextMenuContent>
                     <ContextMenuItem onClick={() => duplicateLine(idx)}>
                       <Copy className="mr-2 h-3.5 w-3.5" />
-                      <span>Duplicate Line (Ctrl+D)</span>
+                      <span>Duplicate line (Ctrl+D)</span>
                     </ContextMenuItem>
                     <ContextMenuItem onClick={addLine}>
                       <PlusCircle className="mr-2 h-3.5 w-3.5" />
-                      <span>Insert Line Below</span>
+                      <span>Insert line below</span>
                     </ContextMenuItem>
                     <ContextMenuSeparator />
                     <ContextMenuItem
@@ -490,7 +490,7 @@ export const LineGrid: React.FC<LineGridProps> = ({
                         })
                       }
                     >
-                      <span>Clear Line Values</span>
+                      <span>Clear line values</span>
                     </ContextMenuItem>
                     <ContextMenuItem
                       onClick={() => {
@@ -498,7 +498,7 @@ export const LineGrid: React.FC<LineGridProps> = ({
                       }}
                     >
                       <Copy className="mr-2 h-3.5 w-3.5" />
-                      <span>Copy Description</span>
+                      <span>Copy description</span>
                     </ContextMenuItem>
                     <ContextMenuSeparator />
                     <ContextMenuItem
@@ -507,7 +507,7 @@ export const LineGrid: React.FC<LineGridProps> = ({
                       className="text-danger focus:text-danger"
                     >
                       <Trash2 className="mr-2 h-3.5 w-3.5" />
-                      <span>Delete Line</span>
+                      <span>Delete line</span>
                     </ContextMenuItem>
                   </ContextMenuContent>
                 </ContextMenu>
@@ -540,7 +540,7 @@ export const LineGrid: React.FC<LineGridProps> = ({
           <button
             type="button"
             onClick={addLine}
-            className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-surface border border-border hover:border-accent text-text-primary rounded-sm text-xs font-medium shadow-xs transition-colors shrink-0"
+            className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-surface border border-border hover:border-accent text-text-primary rounded-sm text-xs font-medium transition-colors shrink-0"
           >
             <Plus className="w-3.5 h-3.5 text-accent" />
             <span>Add line</span>
@@ -562,26 +562,26 @@ export const LineGrid: React.FC<LineGridProps> = ({
         {!showTotals ? null : isInvoice ? (
           <div className="flex flex-wrap items-center justify-end gap-3 sm:gap-6 text-xs font-mono sm:ml-auto">
             <div className="flex items-center gap-2">
-              <span className="text-text-muted uppercase tracking-wider text-[11px]">Subtotal:</span>
+              <span className="text-text-muted text-xs">Subtotal:</span>
               <span className="font-semibold text-text-primary">{formatMoney(subtotal, currency)}</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-text-muted uppercase tracking-wider text-[11px]">Tax:</span>
+              <span className="text-text-muted text-xs">Tax:</span>
               <span className="font-semibold text-text-primary">{formatMoney(totalTax, currency)}</span>
             </div>
             <div className="flex items-center gap-2 pl-3 border-l border-border">
-              <span className="text-text-primary font-semibold uppercase tracking-wider text-xs">Total:</span>
-              <span className="text-sm font-bold text-accent">{formatMoney(grandTotal, currency)}</span>
+              <span className="text-text-primary font-semibold text-xs">Total:</span>
+              <span className="text-sm font-semibold text-accent">{formatMoney(grandTotal, currency)}</span>
             </div>
           </div>
         ) : (
           <div className="flex flex-wrap items-center justify-end gap-3 sm:gap-4 text-xs font-mono sm:ml-auto">
             <div className="flex items-center gap-2">
-              <span className="text-text-muted uppercase tracking-wider text-[11px]">Total Debit:</span>
+              <span className="text-text-muted text-xs">Total debit:</span>
               <span className="font-semibold text-text-primary">{formatMoney(totalDebit, currency)}</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-text-muted uppercase tracking-wider text-[11px]">Total Credit:</span>
+              <span className="text-text-muted text-xs">Total credit:</span>
               <span className="font-semibold text-text-primary">{formatMoney(totalCredit, currency)}</span>
             </div>
 

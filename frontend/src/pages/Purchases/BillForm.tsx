@@ -12,7 +12,7 @@ import { ConsequenceDialog, ConsequenceAccountingLine } from '@/components/domai
 import { PageHeader } from '@/components/domain/PageHeader';
 import { Kbd } from '@/components/ui/kbd';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { FileText, Save, Send, AlertTriangle, ShieldCheck, Plus, Trash2 } from 'lucide-react';
+import { Save, Send, AlertTriangle, ShieldCheck, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { BillDropZone, BillExtractedPanel, extractBill, type BillExtraction, type CaptureField } from './BillCapture';
 import { BillTotals, BillRecorded, type RecordedRow } from './bill-form/BillTotals';
@@ -387,7 +387,6 @@ export const BillForm: React.FC = () => {
         breadcrumb={[{ label: 'Bills', to: `/${coSlug}/bills` }, { label: 'New bill' }]}
         title="New bill"
         subtitle="Enter what a supplier charged you."
-        icon={<FileText />}
         actions={
           <>
             <button
@@ -404,7 +403,7 @@ export const BillForm: React.FC = () => {
               type="button"
               onClick={handleOpenSubmit}
               disabled={isSubmitting}
-              className="flex items-center gap-1.5 h-8 px-4 bg-accent hover:bg-accent-hover text-white rounded-md text-xs font-semibold shadow-xs transition"
+              className="flex items-center gap-1.5 h-8 px-3 bg-accent hover:bg-accent-hover text-white rounded-md text-[13px] font-medium transition"
             >
               <Send className="w-3.5 h-3.5" />
               <span>Submit for approval</span>
@@ -436,7 +435,7 @@ export const BillForm: React.FC = () => {
         />
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-5 bg-surface border border-border rounded-xl shadow-card">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-5 bg-surface border border-border rounded-lg">
         <div className="flex flex-col gap-1 md:col-span-2">
           <label className={labelCls}>
             Supplier <span className="text-text-muted ml-0.5">*</span>
@@ -591,7 +590,7 @@ export const BillForm: React.FC = () => {
           </button>
         </div>
 
-        <div className="border border-border rounded-xl overflow-hidden bg-surface shadow-card">
+        <div className="border border-border rounded-lg overflow-hidden bg-surface">
           <table ref={gridRef} className="w-full border-collapse text-left text-xs">
             <thead>
               <tr className="h-8 bg-surface-neutral border-b border-border text-[11px] font-semibold text-text-muted">

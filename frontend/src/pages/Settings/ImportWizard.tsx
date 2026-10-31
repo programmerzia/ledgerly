@@ -1,24 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLedgerStore } from '@/mock/store';
-import {
-  Upload,
-  FileSpreadsheet,
-  CheckCircle2,
-  AlertCircle,
-  ArrowRight,
-  ArrowLeft,
-  ChevronRight,
-  Layers,
-  ShieldCheck,
-  RefreshCw,
-  FileCheck,
-  Download,
-  Users,
-  BookOpen,
-  Landmark,
-  Scale,
-} from 'lucide-react';
+import { Upload, CheckCircle2, AlertCircle, ArrowLeft, ChevronRight, ShieldCheck, RefreshCw, FileCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { PageHeader } from '@/components/domain/PageHeader';
 import { WizardStepper } from '@/pages/Onboarding/WizardStepper';
@@ -108,14 +91,13 @@ export const ImportWizard: React.FC = () => {
       <div className="max-w-4xl mx-auto w-full flex flex-col gap-6">
         <PageHeader
           breadcrumb={[{ label: 'Settings', to: `/${coSlug}/settings` }, { label: 'Import data' }]}
-          icon={<FileSpreadsheet />}
           title="Import data"
           subtitle="Bring in customers, accounts or bank lines from a spreadsheet. Nothing is saved until you confirm."
           actions={
             <button
               type="button"
               onClick={() => navigate(`/${coSlug}/settings`)}
-              className="flex items-center gap-1.5 h-9 px-3 rounded-lg border border-border bg-surface hover:bg-surface-neutral text-[13px] font-medium text-text-primary cursor-pointer"
+              className="flex items-center gap-1.5 h-8 px-3 rounded-md border border-border bg-surface hover:bg-surface-neutral text-[13px] font-medium text-text-primary cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>Back to settings</span>
@@ -123,7 +105,7 @@ export const ImportWizard: React.FC = () => {
           }
         />
 
-        <div className="rounded-xl border border-border bg-surface px-6 pb-4 pt-5 shadow-card">
+        <div className="rounded-lg border border-border bg-surface px-6 pb-4 pt-5">
           <WizardStepper
             steps={[{ title: 'Choose file' }, { title: 'Match columns' }, { title: 'Check data' }, { title: 'Done' }]}
             current={step}
@@ -133,30 +115,28 @@ export const ImportWizard: React.FC = () => {
 
         {/* STEP 1: SELECT ENTITY & FILE */}
         {step === 1 && (
-          <div className="bg-surface border border-border rounded-2xl p-7 shadow-card ui-rise-in flex flex-col gap-6">
+          <div className="bg-surface border border-border rounded-lg p-7 flex flex-col gap-6">
             <div>
-              <h2 className="text-lg font-semibold tracking-tight text-text-primary mb-1">What do you want to import?</h2>
+              <h2 className="text-sm font-semibold text-text-primary mb-1">What do you want to import?</h2>
               <p className="text-[13px] text-text-muted">Choose the kind of data to add to {currentCompany.name}:</p>
             </div>
 
             <div className="grid grid-cols-2 gap-3 text-xs">
               {[
-                { id: 'customers', title: 'Customers', desc: 'Names, emails, tax IDs and payment terms', icon: Users },
-                { id: 'accounts', title: 'Chart of accounts', desc: 'Account codes, names and types', icon: BookOpen },
-                { id: 'opening_balances', title: 'Opening balances', desc: 'Your starting balances, as one journal', icon: Scale },
-                { id: 'bank_lines', title: 'Bank statement lines', desc: 'Transactions to match against your books', icon: Landmark },
+                { id: 'customers', title: 'Customers', desc: 'Names, emails, tax IDs and payment terms' },
+                { id: 'accounts', title: 'Chart of accounts', desc: 'Account codes, names and types' },
+                { id: 'opening_balances', title: 'Opening balances', desc: 'Your starting balances, as one journal' },
+                { id: 'bank_lines', title: 'Bank statement lines', desc: 'Transactions to match against your books' },
               ].map((ent) => {
-                const Icon = ent.icon;
                 const isSel = selectedEntity === ent.id;
                 return (
                   <div
                     key={ent.id}
                     onClick={() => setSelectedEntity(ent.id as ImportEntity)}
-                    className={`p-4 rounded-xl border cursor-pointer transition flex items-start gap-3 ${
-                      isSel ? 'border-accent bg-accent-soft/60 ring-2 ring-accent/20 text-text-primary' : 'border-border bg-surface hover:border-border-strong hover:shadow-card'
+                    className={`p-4 rounded-lg border cursor-pointer transition flex items-start gap-3 ${
+                      isSel ? 'border-accent bg-surface-neutral text-text-primary' : 'border-border bg-surface hover:border-border-strong'
                     }`}
                   >
-                    <span className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${isSel ? 'bg-brand text-white' : 'bg-surface-neutral text-text-muted'}`}><Icon className="size-4" /></span>
                     <div>
                       <div className="text-[13px] font-semibold text-text-primary">{ent.title}</div>
                       <div className="text-xs text-text-muted mt-0.5">{ent.desc}</div>
@@ -176,35 +156,25 @@ export const ImportWizard: React.FC = () => {
                 const f = e.dataTransfer.files?.[0];
                 if (f) { setFileName(f.name); toast.success(`${f.name} added`); }
               }}
-              className={`border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center gap-3 transition ${
-                dragging ? 'border-accent bg-accent-soft/60' : 'border-border hover:border-accent/60 bg-surface-neutral/30'
+              className={`border-2 border-dashed rounded-lg p-8 flex flex-col items-center justify-center gap-3 transition ${
+                dragging ? 'border-accent bg-surface-neutral' : 'border-border hover:border-border-strong bg-surface'
               }`}
             >
-              <span className="flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-accent-soft to-violet-soft text-accent ring-1 ring-inset ring-border">
-                <Upload className="size-6" />
-              </span>
+              <Upload className="size-5 text-text-muted" />
               <div className="text-center">
                 <div className="text-[13px] font-semibold text-text-primary">Drop your CSV file here, or click to browse</div>
-                <div className="mt-1 inline-flex items-center gap-1.5 rounded-full bg-success-soft px-2.5 py-0.5 text-xs font-medium text-success">
+                <div className="mt-1 inline-flex items-center gap-1.5 rounded-[3px] bg-success-soft px-2.5 py-0.5 text-xs font-medium text-success">
                   <FileCheck className="size-3.5" />
                   {fileName} · 5 rows found
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={() => toast.info('Sample file downloaded')}
-                className="inline-flex items-center gap-1.5 text-[13px] font-medium text-accent hover:underline cursor-pointer"
-              >
-                <Download className="size-3.5" />
-                Download a sample file
-              </button>
             </div>
 
             <div className="flex justify-end pt-4 border-t border-border">
               <button
                 type="button"
                 onClick={() => setStep(2)}
-                className="flex items-center gap-1.5 h-9 px-5 rounded-lg bg-accent hover:bg-accent-hover text-white text-[13px] font-semibold shadow-sm transition cursor-pointer"
+                className="flex items-center gap-1.5 h-8 px-3 rounded-md bg-accent hover:bg-accent-hover text-white text-[13px] font-medium transition cursor-pointer"
               >
                 <span>Continue</span>
                 <ChevronRight className="w-3.5 h-3.5" />
@@ -215,17 +185,17 @@ export const ImportWizard: React.FC = () => {
 
         {/* STEP 2: SCHEMA MAPPING */}
         {step === 2 && (
-          <div className="bg-surface border border-border rounded-2xl p-7 shadow-card ui-rise-in flex flex-col gap-6">
+          <div className="bg-surface border border-border rounded-lg p-7 flex flex-col gap-6">
             <div>
-              <h2 className="text-lg font-semibold tracking-tight text-text-primary mb-1">Match your columns</h2>
+              <h2 className="text-sm font-semibold text-text-primary mb-1">Match your columns</h2>
               <p className="text-[13px] text-text-muted">
                 Tell us which column in your file holds each piece of information.
               </p>
             </div>
 
-            <div className="border border-border rounded-xl overflow-hidden text-xs">
+            <div className="border border-border rounded-lg overflow-hidden text-xs">
               <table className="w-full text-[13px]">
-                <thead className="bg-surface-neutral/60 border-b border-border text-text-muted text-[11px] uppercase tracking-wide font-semibold">
+                <thead className="bg-surface-neutral border-b border-border text-text-muted text-[11px] uppercase tracking-wide font-semibold">
                   <tr>
                     <th className="px-4 py-2 text-left">Ledgerly field</th>
                     <th className="px-4 py-2 text-left">Requirement</th>
@@ -235,11 +205,11 @@ export const ImportWizard: React.FC = () => {
                 </thead>
                 <tbody className="divide-y divide-border">
                   {mappings.map((m, idx) => (
-                    <tr key={idx} className="hover:bg-accent-soft/40">
+                    <tr key={idx} className="hover:bg-canvas">
                       <td className="px-4 py-2.5 font-semibold text-text-primary">{m.label}</td>
                       <td className="px-4 py-2.5">
                         <span
-                          className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${
+                          className={`text-[11px] px-2 py-0.5 rounded-[3px] font-medium ${
                             m.required
                               ? 'bg-danger-soft text-danger border border-danger/30'
                               : 'bg-surface-neutral text-text-muted border border-border'
@@ -279,7 +249,7 @@ export const ImportWizard: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setStep(1)}
-                className="flex items-center gap-1.5 h-9 px-3.5 rounded-lg border border-border bg-surface hover:bg-surface-neutral text-[13px] font-medium text-text-primary cursor-pointer"
+                className="flex items-center gap-1.5 h-8 px-3 rounded-md border border-border bg-surface hover:bg-surface-neutral text-[13px] font-medium text-text-primary cursor-pointer"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
                 <span>Back</span>
@@ -288,7 +258,7 @@ export const ImportWizard: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setStep(3)}
-                className="flex items-center gap-1.5 h-9 px-5 rounded-lg bg-accent hover:bg-accent-hover text-white text-[13px] font-semibold shadow-sm transition cursor-pointer"
+                className="flex items-center gap-1.5 h-8 px-3 rounded-md bg-accent hover:bg-accent-hover text-white text-[13px] font-medium transition cursor-pointer"
               >
                 <span>Check my data</span>
                 <ChevronRight className="w-3.5 h-3.5" />
@@ -299,30 +269,30 @@ export const ImportWizard: React.FC = () => {
 
         {/* STEP 3: DRY-RUN VALIDATION */}
         {step === 3 && (
-          <div className="bg-surface border border-border rounded-2xl p-7 shadow-card ui-rise-in flex flex-col gap-6">
+          <div className="bg-surface border border-border rounded-lg p-7 flex flex-col gap-6">
             <div>
-              <h2 className="text-lg font-semibold tracking-tight text-text-primary mb-1">Check your data</h2>
+              <h2 className="text-sm font-semibold text-text-primary mb-1">Check your data</h2>
               <p className="text-[13px] text-text-muted">
                 This is a preview. Nothing has been saved yet.
               </p>
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-surface-neutral px-3 py-1 text-[13px] font-medium text-text-primary">
+              <span className="inline-flex items-center gap-1.5 rounded-[3px] bg-surface-neutral px-3 py-1 text-[13px] font-medium text-text-primary">
                 {parsedRows.length} rows checked
               </span>
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-success-soft px-3 py-1 text-[13px] font-medium text-success">
+              <span className="inline-flex items-center gap-1.5 rounded-[3px] bg-success-soft px-3 py-1 text-[13px] font-medium text-success">
                 <CheckCircle2 className="size-3.5" />{validRows.length} ready to import
               </span>
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-danger-soft px-3 py-1 text-[13px] font-medium text-danger">
+              <span className="inline-flex items-center gap-1.5 rounded-[3px] bg-danger-soft px-3 py-1 text-[13px] font-medium text-danger">
                 <AlertCircle className="size-3.5" />{errorRows.length} need fixing
               </span>
             </div>
 
             {/* Row-by-Row Result Table */}
-            <div className="border border-border rounded-xl overflow-hidden text-xs">
+            <div className="border border-border rounded-lg overflow-hidden text-xs">
               <table className="w-full text-[13px]">
-                <thead className="bg-surface-neutral/60 border-b border-border text-text-muted text-[11px] uppercase tracking-wide font-semibold">
+                <thead className="bg-surface-neutral border-b border-border text-text-muted text-[11px] uppercase tracking-wide font-semibold">
                   <tr>
                     <th className="px-3 py-2 text-left">Row</th>
                     <th className="px-3 py-2 text-left">Result</th>
@@ -334,7 +304,7 @@ export const ImportWizard: React.FC = () => {
                   {parsedRows.map((r) => (
                     <tr
                       key={r.rowNum}
-                      className={r.status === 'error' ? 'bg-danger-soft/30' : 'hover:bg-accent-soft/40'}
+                      className={r.status === 'error' ? 'bg-danger-soft/30' : 'hover:bg-canvas'}
                     >
                       <td className="px-3 py-2 font-mono font-semibold text-text-muted">#{r.rowNum}</td>
                       <td className="px-3 py-2">
@@ -367,7 +337,7 @@ export const ImportWizard: React.FC = () => {
             </div>
 
             <div className="p-3 bg-surface-neutral border border-border rounded text-[11px] text-text-secondary flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-accent shrink-0" />
+              <ShieldCheck className="w-4 h-4 text-text-muted shrink-0" />
               <span>
                 You can import the <strong>{validRows.length} ready rows</strong> now. Rows that need fixing will be skipped and saved to a separate file you can correct and re-upload.
               </span>
@@ -377,7 +347,7 @@ export const ImportWizard: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setStep(2)}
-                className="flex items-center gap-1.5 h-9 px-3.5 rounded-lg border border-border bg-surface hover:bg-surface-neutral text-[13px] font-medium text-text-primary cursor-pointer"
+                className="flex items-center gap-1.5 h-8 px-3 rounded-md border border-border bg-surface hover:bg-surface-neutral text-[13px] font-medium text-text-primary cursor-pointer"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
                 <span>Back</span>
@@ -387,7 +357,7 @@ export const ImportWizard: React.FC = () => {
                 type="button"
                 disabled={isApplying}
                 onClick={handleApplyImport}
-                className="flex items-center gap-1.5 h-9 px-5 rounded-lg bg-accent hover:bg-accent-hover text-white text-[13px] font-semibold shadow-sm transition cursor-pointer"
+                className="flex items-center gap-1.5 h-8 px-3 rounded-md bg-accent hover:bg-accent-hover text-white text-[13px] font-medium transition cursor-pointer"
               >
                 <span>{isApplying ? 'Importing…' : `Import ${validRows.length} rows`}</span>
                 <ChevronRight className="w-3.5 h-3.5" />
@@ -398,12 +368,10 @@ export const ImportWizard: React.FC = () => {
 
         {/* STEP 4: IMPORT COMPLETED */}
         {step === 4 && (
-          <div className="bg-surface border border-border rounded-2xl p-10 shadow-card ui-rise-in flex flex-col items-center justify-center gap-4 text-center">
-            <div className="size-16 rounded-full bg-success-soft ring-8 ring-success-soft/50 flex items-center justify-center text-success">
-              <CheckCircle2 className="size-8" />
-            </div>
+          <div className="bg-surface border border-border rounded-lg p-10 flex flex-col items-center justify-center gap-4 text-center">
+            <CheckCircle2 className="size-6 text-success" />
             <div>
-              <h2 className="text-xl font-semibold tracking-tight text-text-primary">Import complete</h2>
+              <h2 className="text-xl font-semibold text-text-primary">Import complete</h2>
               <p className="text-xs text-text-muted mt-1">
                 {appliedCount} {selectedEntity} were added to {currentCompany.name}. The import is recorded in your activity log.
               </p>
@@ -413,7 +381,7 @@ export const ImportWizard: React.FC = () => {
               <button
                 type="button"
                 onClick={() => navigate(`/${coSlug}/sales/customers`)}
-                className="flex items-center gap-1.5 h-9 px-5 rounded-lg bg-accent hover:bg-accent-hover text-white text-[13px] font-semibold transition cursor-pointer"
+                className="flex items-center gap-1.5 h-8 px-3 rounded-md bg-accent hover:bg-accent-hover text-white text-[13px] font-medium transition cursor-pointer"
               >
                 <span>View customers</span>
               </button>
@@ -423,7 +391,7 @@ export const ImportWizard: React.FC = () => {
                   setStep(1);
                   setParsedRows(parsedRows);
                 }}
-                className="flex items-center gap-1.5 h-9 px-3.5 rounded-lg border border-border bg-surface hover:bg-surface-neutral text-[13px] font-medium text-text-primary cursor-pointer"
+                className="flex items-center gap-1.5 h-8 px-3 rounded-md border border-border bg-surface hover:bg-surface-neutral text-[13px] font-medium text-text-primary cursor-pointer"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
                 <span>Import another file</span>

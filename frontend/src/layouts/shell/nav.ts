@@ -1,7 +1,7 @@
 import type React from 'react';
 import {
   LayoutDashboard, FileSpreadsheet, CreditCard, BookMarked, BarChart3, CheckSquare, Settings,
-  Building, ShieldCheck, Package, Layers, Coins, FileText, Calendar, History, RefreshCw, Upload, Sparkles,
+  Building, ShieldCheck, Package, Layers, Coins, FileText, Calendar, History, RefreshCw, Upload, ClipboardList,
   Repeat,
   Wand2,
 } from 'lucide-react';
@@ -70,7 +70,7 @@ export const buildNavSections = (coSlug: string, pendingApprovalsCount: number):
       { label: 'Company settings', to: `/${coSlug}/settings`, icon: Settings },
       { label: 'Import data', to: `/${coSlug}/settings/import`, icon: Upload },
       { label: 'Audit log', to: `/${coSlug}/audit-log`, icon: History },
-      { label: 'Setup wizard', to: `/${coSlug}/onboarding`, icon: Sparkles },
+      { label: 'Company setup', to: `/${coSlug}/onboarding`, icon: ClipboardList },
     ],
   },
 ];

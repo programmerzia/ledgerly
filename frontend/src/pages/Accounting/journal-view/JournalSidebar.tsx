@@ -1,5 +1,5 @@
 import React from 'react';
-import { RotateCcw, Printer, Copy, Wrench, Paperclip, Hash, CheckCircle, Send, Clock, Landmark } from 'lucide-react';
+import { RotateCcw, Printer, Copy, Wrench, Paperclip, Hash, CheckCircle, Send, Clock } from 'lucide-react';
 import type { Journal } from '@/types';
 import { StatusPill } from '@/components/domain/StatusPill';
 import { DocumentAuditTimeline } from '@/components/domain/DocumentAuditTimeline';
@@ -44,7 +44,7 @@ export const JournalSidebar: React.FC<Props> = ({ journal, currency, actions, cu
         </div>
         <div>
           <div className="text-xs text-text-muted">Total of this entry</div>
-          <div className="mt-1 text-3xl font-semibold tabular-nums tracking-tight text-text-primary">
+          <div className="mt-1 text-[22px] leading-7 font-medium tabular-nums text-text-primary">
             {formatMoney(journal.total_debit, currency)}
           </div>
           <div className="mt-1 text-[13px] text-text-muted">
@@ -52,14 +52,13 @@ export const JournalSidebar: React.FC<Props> = ({ journal, currency, actions, cu
           </div>
         </div>
         {journal.source_type === 'bank_transaction' && (
-          <div className="flex items-start gap-2 rounded-lg bg-surface-neutral px-3 py-2 text-xs text-text-secondary">
-            <Landmark className="mt-0.5 size-3.5 shrink-0 text-text-muted" />
+          <div className="flex items-start gap-2 rounded-md bg-surface-neutral px-3 py-2 text-xs text-text-secondary">
             <span>From bank line: <span className="font-medium text-text-primary">{bankLineDescription ?? journal.memo}</span></span>
           </div>
         )}
         {pending && (
           isMaker ? (
-            <div className="flex items-center gap-2 rounded-lg border border-warning/30 bg-warning-soft px-3 py-2 text-[13px] font-medium text-warning">
+            <div className="flex items-center gap-2 rounded-md border border-warning/30 bg-warning-soft px-3 py-2 text-[13px] font-medium text-warning">
               <Clock className="size-4 shrink-0" /> Waiting for someone else to approve{makerName ? ` (sent by ${makerName})` : ""}
             </div>
           ) : (
@@ -70,7 +69,7 @@ export const JournalSidebar: React.FC<Props> = ({ journal, currency, actions, cu
               <button
                 type="button"
                 onClick={actions.approve}
-                className="flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-lg bg-success px-3 text-[13px] font-semibold text-white transition hover:opacity-90"
+                className="flex h-8 cursor-pointer items-center justify-center gap-1.5 rounded-md bg-success px-3 text-[13px] font-medium text-white transition hover:opacity-90"
               >
                 <CheckCircle className="size-4" /> Approve
               </button>
@@ -81,7 +80,7 @@ export const JournalSidebar: React.FC<Props> = ({ journal, currency, actions, cu
           <button
             type="button"
             onClick={actions.submit}
-            className="flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-lg bg-accent px-3 text-[13px] font-semibold text-white transition hover:bg-accent-hover"
+            className="flex h-8 cursor-pointer items-center justify-center gap-1.5 rounded-md bg-accent px-3 text-[13px] font-medium text-white transition hover:bg-accent-hover"
           >
             <Send className="size-4" /> Submit for approval
           </button>

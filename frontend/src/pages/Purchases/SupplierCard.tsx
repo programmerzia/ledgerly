@@ -19,7 +19,7 @@ export const SupplierCard: React.FC = () => {
         <p className="text-xs text-text-muted">We couldn't find this supplier. It may have been removed.</p>
         <button
           onClick={() => navigate(`/${coSlug}/suppliers`)}
-          className="inline-flex items-center gap-1.5 h-9 px-3.5 bg-accent hover:bg-accent-hover text-white rounded-lg text-[13px] font-semibold shadow-xs transition-colors cursor-pointer"
+          className="inline-flex items-center gap-1.5 h-8 px-3 bg-accent hover:bg-accent-hover text-white rounded-md text-[13px] font-medium transition-colors cursor-pointer"
         >
           Back to suppliers
         </button>
@@ -39,10 +39,10 @@ export const SupplierCard: React.FC = () => {
       coSlug={coSlug}
       actions={
         <>
-          <button type="button" onClick={() => navigate(`/${coSlug}/payment-run`)} className="inline-flex items-center gap-1.5 h-9 px-3 rounded-lg border border-border hover:border-border-strong bg-surface hover:bg-surface-neutral text-text-primary text-[13px] font-medium transition-colors cursor-pointer">
+          <button type="button" onClick={() => navigate(`/${coSlug}/payment-run`)} className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md border border-border hover:border-border-strong bg-surface hover:bg-surface-neutral text-text-primary text-[13px] font-medium transition-colors cursor-pointer">
             <CreditCard className="size-4 text-text-muted" /> Pay supplier
           </button>
-          <button type="button" onClick={() => navigate(`/${coSlug}/bills/new?contactId=${contact.id}`)} className="inline-flex items-center gap-1.5 h-9 px-3.5 bg-accent hover:bg-accent-hover text-white rounded-lg text-[13px] font-semibold shadow-xs transition-colors cursor-pointer">
+          <button type="button" onClick={() => navigate(`/${coSlug}/bills/new?contactId=${contact.id}`)} className="inline-flex items-center gap-1.5 h-8 px-3 bg-accent hover:bg-accent-hover text-white rounded-md text-[13px] font-medium transition-colors cursor-pointer">
             <Plus className="size-4" /> New bill
           </button>
         </>

@@ -7,7 +7,7 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useLedgerStore, DocumentTab } from '@/mock/store';
-import { LayoutDashboard, FileText, X, Pin, Copy, RefreshCw } from 'lucide-react';
+import { LayoutDashboard, FileText, X, Copy } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   ContextMenu,
@@ -52,9 +52,9 @@ export const DocumentTabStrip: React.FC = () => {
                   onClick={() => handleTabClick(tab)}
                   onAuxClick={(e) => handleAuxClick(e, tab.id)}
                   className={cn(
-                    'group flex items-center gap-1.5 pl-3 pr-1.5 text-[13px] rounded-full border cursor-pointer transition-all duration-150 max-w-[220px] h-8',
+                    'group flex items-center gap-1.5 pl-3 pr-1.5 text-[13px] rounded-md border cursor-pointer transition-colors duration-150 max-w-[220px] h-8',
                     isActive
-                      ? 'bg-surface-elevated border-border text-text-primary font-medium shadow-md'
+                      ? 'bg-surface-elevated border-border text-text-primary font-medium'
                       : 'bg-transparent border-transparent text-text-muted hover:text-text-primary hover:bg-surface-neutral'
                   )}
                   title={`${tab.title} (${tab.url})`}
@@ -80,7 +80,7 @@ export const DocumentTabStrip: React.FC = () => {
                         e.stopPropagation();
                         closeTab(tab.id);
                       }}
-                      className="size-5 grid place-items-center rounded-full hover:bg-border text-text-muted hover:text-text-primary opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition shrink-0"
+                      className="size-5 grid place-items-center rounded-[3px] hover:bg-border text-text-muted hover:text-text-primary opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition shrink-0"
                       title="Close tab (Ctrl+W)"
                     >
                       <X className="size-3" />
@@ -91,7 +91,7 @@ export const DocumentTabStrip: React.FC = () => {
               <ContextMenuContent>
                 <ContextMenuItem onClick={() => handleTabClick(tab)}>
                   <FileText className="mr-2 h-3.5 w-3.5" />
-                  <span>Activate Tab</span>
+                  <span>Activate tab</span>
                 </ContextMenuItem>
                 <ContextMenuItem
                   onClick={() => {
@@ -108,7 +108,7 @@ export const DocumentTabStrip: React.FC = () => {
                     className="text-danger focus:text-danger"
                   >
                     <X className="mr-2 h-3.5 w-3.5" />
-                    <span>Close Tab</span>
+                    <span>Close tab</span>
                   </ContextMenuItem>
                 )}
                 <ContextMenuItem
@@ -116,7 +116,7 @@ export const DocumentTabStrip: React.FC = () => {
                     tabs.filter((t) => !t.pinned && t.id !== tab.id).forEach((t) => closeTab(t.id));
                   }}
                 >
-                  <span>Close Other Tabs</span>
+                  <span>Close other tabs</span>
                 </ContextMenuItem>
               </ContextMenuContent>
             </ContextMenu>

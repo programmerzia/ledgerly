@@ -23,7 +23,7 @@ export const Field: React.FC<{ label: string; hint?: string; className?: string;
 );
 
 export const inputCls =
-  'h-8 w-full rounded-md border border-border bg-surface px-2.5 text-[13px] text-text-primary shadow-sm outline-none placeholder:text-text-muted hover:border-border-strong focus:border-accent focus:ring-2 focus:ring-[var(--ring)]';
+  'h-8 w-full rounded-md border border-border bg-surface px-2.5 text-[13px] text-text-primary outline-none placeholder:text-text-muted hover:border-border-strong focus:border-accent focus:ring-2 focus:ring-[var(--ring)]';
 
 /** Select with an optional "none" choice (Radix forbids empty-string item values). */
 export const SimpleSelect: React.FC<{
@@ -67,7 +67,7 @@ export const Segmented: React.FC<{
         onClick={() => onChange(o.value)}
         className={cn(
           'h-7 rounded-md px-3 text-xs font-medium transition disabled:cursor-not-allowed disabled:opacity-40',
-          value === o.value ? 'bg-surface-elevated text-text-primary shadow-xs' : 'text-text-muted hover:text-text-primary'
+          value === o.value ? 'bg-surface-elevated text-text-primary' : 'text-text-muted hover:text-text-primary'
         )}
       >
         {o.label}

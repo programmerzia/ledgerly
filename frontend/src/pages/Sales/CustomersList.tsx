@@ -10,21 +10,7 @@ import { NameAvatar } from '@/components/domain/NameAvatar';
 import { ContactKpiStrip } from './ContactKpiStrip';
 import { BUSINESS_TODAY, amountDue } from '@/lib/docStatus';
 import { ColumnDef } from '@tanstack/react-table';
-import {
-  Building,
-  Plus,
-  Mail,
-  Phone,
-  ShieldCheck,
-  FileSpreadsheet,
-  Receipt,
-  ExternalLink,
-  DollarSign,
-  Calendar,
-  Users,
-  AlertTriangle,
-  Wallet,
-} from 'lucide-react';
+import { Building, Plus, Mail, Phone, Receipt, ExternalLink } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -179,7 +165,7 @@ export const CustomersList: React.FC = () => {
       cell: ({ row }) => {
         const o = contactOverdueBalance(row.original.id, BUSINESS_TODAY);
         return o > 0 ? (
-          <span className="inline-flex items-center gap-1 rounded-full bg-danger-soft px-2 py-0.5 text-xs font-medium text-danger tabular-nums">
+          <span className="inline-flex items-center gap-1 rounded-[3px] bg-danger-soft px-2 py-0.5 text-xs font-medium text-danger tabular-nums">
             <span className="size-1.5 rounded-full bg-danger" />
             {formatMoney(o, row.original.default_currency)}
           </span>
@@ -219,7 +205,7 @@ export const CustomersList: React.FC = () => {
           <button
             type="button"
             onClick={handleOpenAddModal}
-            className="inline-flex items-center gap-1.5 h-9 px-4 bg-accent hover:bg-accent-hover text-white rounded-lg text-[13px] font-semibold shadow-xs transition cursor-pointer"
+            className="inline-flex items-center gap-1.5 h-8 px-3 bg-accent hover:bg-accent-hover text-white rounded-md text-[13px] font-medium transition cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>New customer</span>
@@ -230,9 +216,9 @@ export const CustomersList: React.FC = () => {
 
       <ContactKpiStrip
         items={[
-          { label: 'Total owed to you', value: formatMoney(kpis.owed, currentCompany.base_currency), sub: `across ${customers.length} customers`, icon: <Wallet />, tone: 'accent' },
-          { label: 'Overdue', value: formatMoney(kpis.overdue, currentCompany.base_currency), sub: kpis.overdueCount > 0 ? `${kpis.overdueCount} ${kpis.overdueCount === 1 ? 'customer' : 'customers'} late` : 'Nobody is late', icon: <AlertTriangle />, tone: kpis.overdue > 0 ? 'danger' : 'success' },
-          { label: 'Active customers', value: kpis.active, sub: 'with an open account', icon: <Users />, tone: 'success' },
+          { label: 'Total owed to you', value: formatMoney(kpis.owed, currentCompany.base_currency), sub: `across ${customers.length} customers`, tone: 'accent' },
+          { label: 'Overdue', value: formatMoney(kpis.overdue, currentCompany.base_currency), sub: kpis.overdueCount > 0 ? `${kpis.overdueCount} ${kpis.overdueCount === 1 ? 'customer' : 'customers'} late` : 'Nobody is late', tone: kpis.overdue > 0 ? 'danger' : 'success' },
+          { label: 'Active customers', value: kpis.active, sub: 'with an open account', tone: 'success' },
         ]}
       />
 
@@ -243,12 +229,11 @@ export const CustomersList: React.FC = () => {
         onClose={() => setSelectedCustomerId(null)}
         title={selectedCustomer?.name || 'Customer Preview'}
         subtitle={selectedCustomer ? `Code: ${selectedCustomer.code} • ${selectedCustomer.default_currency} Base` : undefined}
-        icon={<Building className="w-4 h-4" />}
         onOpenFull={() => selectedCustomer && handleOpenCustomerCard(selectedCustomer)}
         openFullLabel="Open Card"
         badge={
           selectedCustomer ? (
-            <span className="font-mono text-[10px] bg-accent-soft text-accent px-1.5 py-0.5 rounded font-bold border border-accent/20">
+            <span className="font-mono text-[10px] bg-surface-neutral text-text-secondary px-1.5 py-0.5 rounded-[3px] font-semibold">
               {selectedCustomer.code}
             </span>
           ) : undefined
@@ -263,16 +248,16 @@ export const CustomersList: React.FC = () => {
             return (
               <div className="flex flex-col gap-4 text-xs">
                 {/* Financial KPI summary */}
-                <div className="grid grid-cols-2 gap-2.5 p-3.5 rounded-lg bg-surface border border-border shadow-xs">
+                <div className="grid grid-cols-2 gap-2.5 p-3.5 rounded-lg bg-surface border border-border">
                   <div>
-                    <span className="text-[10px] text-text-muted uppercase tracking-wider font-semibold block">Outstanding AR</span>
-                    <span className="font-mono font-bold text-text-primary text-lg mt-0.5 block">
+                    <span className="text-xs text-text-muted font-semibold block">Outstanding AR</span>
+                    <span className="font-mono font-medium text-text-primary text-lg mt-0.5 block">
                       {formatMoney(balance, selectedCustomer.default_currency)}
                     </span>
                   </div>
                   <div>
-                    <span className="text-[10px] text-text-muted uppercase tracking-wider font-semibold block">Overdue</span>
-                    <span className={`font-mono font-bold text-lg mt-0.5 block ${overdue > 0 ? 'text-danger' : 'text-success'}`}>
+                    <span className="text-xs text-text-muted font-semibold block">Overdue</span>
+                    <span className={`font-mono font-medium text-lg mt-0.5 block ${overdue > 0 ? 'text-danger' : 'text-success'}`}>
                       {overdue > 0 ? formatMoney(overdue, selectedCustomer.default_currency) : '$0.00'}
                     </span>
                   </div>
@@ -282,14 +267,14 @@ export const CustomersList: React.FC = () => {
                 {creditLimit > 0 && (
                   <div className="p-3 bg-surface border border-border rounded-lg flex flex-col gap-1.5">
                     <div className="flex items-center justify-between text-[11px]">
-                      <span className="font-medium text-text-secondary">Credit Line Utilization</span>
-                      <span className="font-mono font-bold text-text-primary">
+                      <span className="font-medium text-text-secondary">Credit line used</span>
+                      <span className="font-mono font-semibold text-text-primary">
                         {utilizationPct}% <span className="font-normal text-text-muted">of {formatMoney(creditLimit, selectedCustomer.default_currency)}</span>
                       </span>
                     </div>
-                    <div className="w-full h-2 bg-surface-neutral rounded-full overflow-hidden">
+                    <div className="w-full h-2 bg-surface-neutral rounded-[2px] overflow-hidden">
                       <div
-                        className={`h-full rounded-full transition-all duration-300 ${
+                        className={`h-full rounded-[2px] transition-all duration-150 ${
                           utilizationPct > 85 ? 'bg-danger' : utilizationPct > 60 ? 'bg-warning' : 'bg-success'
                         }`}
                         style={{ width: `${utilizationPct}%` }}
@@ -299,8 +284,8 @@ export const CustomersList: React.FC = () => {
                 )}
 
                 {/* Contact info */}
-                <div className="p-3.5 bg-surface border border-border rounded-lg flex flex-col gap-2 shadow-xs">
-                  <span className="text-[10px] uppercase font-bold text-text-muted tracking-wider">
+                <div className="p-3.5 bg-surface border border-border rounded-lg flex flex-col gap-2">
+                  <span className="text-xs font-medium text-text-muted">
                     Contact & Trade Terms
                   </span>
                   <div className="flex flex-col gap-1.5 text-[11px]">
@@ -328,27 +313,27 @@ export const CustomersList: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => handleOpenCustomerCard(selectedCustomer)}
-                    className="w-full h-8.5 bg-accent hover:bg-accent-hover text-white rounded-md font-semibold transition flex items-center justify-center gap-1.5 shadow-xs cursor-pointer text-xs"
+                    className="w-full h-8.5 bg-accent hover:bg-accent-hover text-white rounded-md font-medium transition flex items-center justify-center gap-1.5 cursor-pointer text-[13px]"
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
-                    <span>Open Customer Card (Enter)</span>
+                    <span>Open customer card (Enter)</span>
                   </button>
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       type="button"
                       onClick={() => navigate(`/${coSlug}/invoices/new?contactId=${selectedCustomer.id}`)}
-                      className="h-8 border border-border bg-surface hover:bg-surface-neutral text-text-primary rounded-md font-medium transition flex items-center justify-center gap-1.5 cursor-pointer text-xs shadow-xs"
+                      className="h-8 border border-border bg-surface hover:bg-surface-neutral text-text-primary rounded-md font-medium transition flex items-center justify-center gap-1.5 cursor-pointer text-xs"
                     >
                       <Plus className="w-3.5 h-3.5 text-accent" />
-                      <span>Create Invoice</span>
+                      <span>Create invoice</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => navigate(`/${coSlug}/receipts/new?contactId=${selectedCustomer.id}`)}
-                      className="h-8 border border-border bg-surface hover:bg-surface-neutral text-text-primary rounded-md font-medium transition flex items-center justify-center gap-1.5 cursor-pointer text-xs shadow-xs"
+                      className="h-8 border border-border bg-surface hover:bg-surface-neutral text-text-primary rounded-md font-medium transition flex items-center justify-center gap-1.5 cursor-pointer text-xs"
                     >
                       <Receipt className="w-3.5 h-3.5 text-accent" />
-                      <span>Record Receipt</span>
+                      <span>Record receipt</span>
                     </button>
                   </div>
                 </div>
@@ -356,14 +341,14 @@ export const CustomersList: React.FC = () => {
                 {/* Invoices List */}
                 <div className="flex flex-col gap-2 mt-1">
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-semibold text-text-muted uppercase tracking-wider">
-                      Recent Invoices ({customerInvoices.length})
+                    <span className="text-xs font-semibold text-text-muted">
+                      Recent invoices ({customerInvoices.length})
                     </span>
                     {customerInvoices.length > 0 && (
                       <span className="text-[10px] text-text-muted">Click row to open</span>
                     )}
                   </div>
-                  <div className="border border-border rounded-lg overflow-hidden bg-surface max-h-56 overflow-y-auto shadow-xs">
+                  <div className="border border-border rounded-lg overflow-hidden bg-surface max-h-56 overflow-y-auto">
                     {customerInvoices.length === 0 ? (
                       <div className="p-5 text-center text-text-muted text-[11px]">
                         No invoices recorded for this customer yet.
@@ -381,10 +366,10 @@ export const CustomersList: React.FC = () => {
                               <span className="text-[10px] text-text-muted">{formatDate(inv.issue_date)}</span>
                             </div>
                             <div className="text-right">
-                              <span className="font-mono font-bold text-text-primary block">
+                              <span className="font-mono font-semibold text-text-primary block">
                                 {formatMoney(inv.total, inv.currency)}
                               </span>
-                              <span className="text-[10px] uppercase font-mono text-text-muted">
+                              <span className="text-xs font-mono text-text-muted">
                                 {inv.status.replace('_', ' ')}
                               </span>
                             </div>
@@ -417,9 +402,9 @@ export const CustomersList: React.FC = () => {
       <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
         <DialogContent className="max-w-lg p-6 bg-surface border border-border rounded-lg shadow-xl">
           <DialogHeader>
-            <DialogTitle className="text-base font-bold text-text-primary flex items-center gap-2">
+            <DialogTitle className="text-base font-semibold text-text-primary flex items-center gap-2">
               <Building className="w-5 h-5 text-accent" />
-              <span>Create Customer Account</span>
+              <span>Create customer</span>
             </DialogTitle>
           </DialogHeader>
 
@@ -470,7 +455,7 @@ export const CustomersList: React.FC = () => {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-[11px] font-semibold text-text-primary mb-1">Email Address</label>
+                <label className="block text-[11px] font-semibold text-text-primary mb-1">Email address</label>
                 <input
                   type="email"
                   placeholder="billing@customer.com"
@@ -502,9 +487,9 @@ export const CustomersList: React.FC = () => {
               </button>
               <button
                 type="submit"
-                className="h-8 px-4 rounded-sm bg-accent hover:bg-accent-hover text-white text-xs font-semibold shadow-xs cursor-pointer"
+                className="h-8 px-3 rounded-md bg-accent hover:bg-accent-hover text-white text-[13px] font-medium cursor-pointer"
               >
-                Save Customer
+                Save customer
               </button>
             </DialogFooter>
           </form>

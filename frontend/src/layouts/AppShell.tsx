@@ -112,7 +112,7 @@ export const AppShell: React.FC = () => {
         {activeImpersonation && (
           <div className="h-8 bg-warning-soft border-b border-warning/30 px-3 flex items-center justify-between text-xs text-warning font-medium z-40 select-none shrink-0">
             <div className="flex items-center gap-2">
-              <span className="flex h-2 w-2 rounded-full bg-warning animate-pulse shrink-0" />
+              <span className="flex h-2 w-2 rounded-full bg-warning shrink-0" />
               <span>
                 <strong>OPERATOR IMPERSONATION:</strong> Viewing as staff <span className="font-mono">{activeImpersonation.adminName}</span>.
                 Mode: <span className="uppercase font-semibold">{activeImpersonation.mode}-only</span>. All tenant writes are blocked.
@@ -163,7 +163,7 @@ export const AppShell: React.FC = () => {
         <div className="flex-1 flex overflow-hidden relative">
           {mobileMenuOpen && (
             <div
-              className="fixed inset-0 bg-black/50 backdrop-blur-xs z-40 lg:hidden transition-opacity"
+              className="fixed inset-0 bg-black/40 z-40 lg:hidden transition-opacity"
               onClick={() => setMobileMenuOpen(false)}
               aria-hidden="true"
             />
@@ -176,10 +176,8 @@ export const AppShell: React.FC = () => {
             collapsed={sidebarCollapsed}
             mobileOpen={mobileMenuOpen}
             onCloseMobile={() => setMobileMenuOpen(false)}
-            user={currentUser}
             navigate={navigate}
             openTab={openTab}
-            onSignOut={handleSignOut}
           />
 
           <main className="flex-1 overflow-y-auto bg-canvas p-3 sm:p-4 md:p-5">

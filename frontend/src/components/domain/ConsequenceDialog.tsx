@@ -7,7 +7,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { ChevronDown, ChevronRight, ShieldCheck, AlertCircle } from 'lucide-react';
+import { ChevronDown, ChevronRight } from 'lucide-react';
 import { formatMoney } from '@/lib/format';
 
 export interface ConsequenceAccountingLine {
@@ -49,12 +49,9 @@ export const ConsequenceDialog: React.FC<ConsequenceDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-md p-6 bg-surface-elevated border border-border shadow-popover rounded-xl">
+      <DialogContent className="max-w-md p-6 bg-surface-elevated border border-border shadow-popover rounded-lg">
         <DialogHeader className="gap-1.5 pb-2 border-b border-border">
           <div className="flex items-center gap-2">
-            <div className="size-8 rounded-lg bg-accent-soft text-accent flex items-center justify-center">
-              <ShieldCheck className="w-4 h-4" />
-            </div>
             <DialogTitle className="text-base font-semibold text-text-primary">
               {title}
             </DialogTitle>
@@ -66,7 +63,7 @@ export const ConsequenceDialog: React.FC<ConsequenceDialogProps> = ({
 
         <div className="py-3 flex flex-col gap-4 text-xs">
           {/* Plain language consequence box */}
-          <div className="p-3.5 bg-accent-soft/40 border border-accent/20 rounded-lg">
+          <div className="p-3.5 bg-surface-neutral border border-border rounded-lg">
             <span className="text-[11px] font-semibold tracking-wide text-accent block mb-1.5">
               What will happen
             </span>
@@ -145,7 +142,7 @@ export const ConsequenceDialog: React.FC<ConsequenceDialogProps> = ({
             type="button"
             onClick={onClose}
             disabled={isSubmitting}
-            className="h-9 px-3.5 rounded-lg border border-border text-xs font-medium text-text-secondary hover:text-text-primary hover:bg-surface-neutral transition"
+            className="h-8 px-3 rounded-md border border-border text-xs font-medium text-text-secondary hover:text-text-primary hover:bg-surface-neutral transition"
           >
             Cancel
           </button>
@@ -153,7 +150,7 @@ export const ConsequenceDialog: React.FC<ConsequenceDialogProps> = ({
             type="button"
             onClick={onConfirm}
             disabled={isSubmitting}
-            className="h-9 px-4 rounded-lg bg-accent hover:bg-accent-hover text-white text-[13px] font-semibold transition disabled:opacity-60"
+            className="h-8 px-3 rounded-md bg-accent hover:bg-accent-hover text-white text-[13px] font-medium transition disabled:opacity-60"
           >
             {isSubmitting ? 'Working...' : confirmLabel || defaultConfirmLabel}
           </button>

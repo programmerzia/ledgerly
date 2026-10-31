@@ -14,7 +14,7 @@ export const menuItemDestructive =
 export const menuIndicatorItem = 'pl-8';
 
 export const menuLabel =
-  'px-2 pb-1 pt-1.5 text-[11px] font-semibold uppercase tracking-wide text-text-muted';
+  'px-2 pb-1 pt-1.5 text-xs font-medium text-text-muted';
 
 export const menuSeparator = '-mx-1 my-1 h-px bg-border';
 

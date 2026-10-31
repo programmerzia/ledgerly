@@ -3,19 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useLedgerStore } from '@/mock/store';
 import { formatMoney, formatDate } from '@/lib/format';
 import { FieldHelp } from '@/components/domain/FieldHelp';
-import {
-  Calendar,
-  Layers,
-  Repeat,
-  Sparkles,
-  Play,
-  CheckCircle2,
-  Clock,
-  ArrowRight,
-  TrendingDown,
-  TrendingUp,
-  FileText,
-} from 'lucide-react';
+import { Play } from 'lucide-react';
 import { toast } from 'sonner';
 import { MoreHorizontal, BookOpen, PauseCircle } from 'lucide-react';
 import { PageHeader } from '@/components/domain/PageHeader';
@@ -222,7 +210,7 @@ export const RecurringJournals: React.FC = () => {
   const MoreMenu: React.FC<{ onRun: () => void; runLabel: string }> = ({ onRun, runLabel }) => (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button type="button" aria-label="More actions" className="flex size-8 items-center justify-center rounded-lg text-text-muted transition hover:bg-surface-neutral hover:text-text-primary">
+        <button type="button" aria-label="More actions" className="flex size-8 items-center justify-center rounded-md text-text-muted transition hover:bg-surface-neutral hover:text-text-primary">
           <MoreHorizontal className="size-4" />
         </button>
       </DropdownMenuTrigger>
@@ -233,10 +221,6 @@ export const RecurringJournals: React.FC = () => {
         <DropdownMenuItem onSelect={() => navigate(`/${coSlug}/journals`)}>
           <BookOpen className="size-4 text-text-muted" /> View journals
         </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem variant="destructive" onSelect={() => toast.info('Pausing is not available in this demo yet')}>
-          <PauseCircle className="size-4" /> Pause
-        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -244,27 +228,22 @@ export const RecurringJournals: React.FC = () => {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        icon={<Repeat />}
         title="Repeating entries"
         subtitle="Set up entries you make every month, and spread big costs over the months they cover."
         actions={
           activeTab === 'recurring' ? (
-            <button type="button" onClick={handleGenerateDrafts} className="flex h-9 items-center gap-1.5 rounded-lg bg-accent px-3.5 text-[13px] font-semibold text-white transition hover:bg-accent-hover">
-              <Sparkles className="size-4" /> Create October drafts
+            <button type="button" onClick={handleGenerateDrafts} className="flex h-8 items-center gap-1.5 rounded-md bg-accent px-3 text-[13px] font-medium text-white transition hover:bg-accent-hover">
+              Create October drafts
             </button>
-          ) : (
-            <button type="button" onClick={() => toast.info('New schedule wizard')} className="flex h-9 items-center gap-1.5 rounded-lg bg-accent px-3.5 text-[13px] font-semibold text-white transition hover:bg-accent-hover">
-              <Play className="size-4" /> New schedule
-            </button>
-          )
+          ) : undefined
         }
       />
 
       <div className="flex items-center gap-1 border-b border-border" role="tablist">
         {([
-          ['recurring', Repeat, `Repeating entries (${templates.length})`],
-          ['schedules', Clock, `Spread costs (${schedules.length})`],
-        ] as const).map(([key, Icon, label]) => (
+          ['recurring', `Repeating entries (${templates.length})`],
+          ['schedules', `Spread costs (${schedules.length})`],
+        ] as const).map(([key, label]) => (
           <button
             key={key}
             type="button"
@@ -272,11 +251,10 @@ export const RecurringJournals: React.FC = () => {
             aria-selected={activeTab === key}
             onClick={() => setActiveTab(key)}
             className={cn(
-              '-mb-px flex items-center gap-2 border-b-2 px-4 py-2.5 text-[13px] font-medium transition-colors',
+              '-mb-px flex items-center gap-2 border-b-2 px-4 py-2 text-[13px] font-medium transition-colors',
               activeTab === key ? 'border-accent text-accent' : 'border-transparent text-text-muted hover:text-text-primary'
             )}
           >
-            <Icon className="size-4" />
             {label}
           </button>
         ))}
@@ -285,10 +263,10 @@ export const RecurringJournals: React.FC = () => {
       {activeTab === 'recurring' && (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {templates.map((tpl) => (
-            <div key={tpl.id} className="flex flex-col justify-between gap-4 rounded-xl border border-border bg-surface p-5 shadow-card transition duration-200 hover:border-border-strong hover:shadow-card-hover">
+            <div key={tpl.id} className="flex flex-col justify-between gap-4 rounded-lg border border-border bg-surface p-5 transition hover:border-border-strong">
               <div className="flex flex-col gap-2">
                 <div className="flex items-center justify-between">
-                  <span className="rounded-full bg-accent-soft px-2 py-0.5 text-xs font-medium capitalize text-accent">
+                  <span className="rounded-[3px] bg-surface-neutral px-1.5 py-px text-xs font-medium capitalize text-text-secondary">
                     {tpl.frequency}, day {tpl.postingDay}
                   </span>
                   <div className="flex items-center gap-1">
@@ -296,8 +274,8 @@ export const RecurringJournals: React.FC = () => {
                     <MoreMenu runLabel="Create draft now" onRun={() => toast.success(`Draft created for ${tpl.name}`)} />
                   </div>
                 </div>
-                <h3 className="text-[15px] font-semibold text-text-primary">{tpl.name}</h3>
-                <div className="mt-1 overflow-hidden rounded-lg border border-border">
+                <h3 className="text-sm font-semibold text-text-primary">{tpl.name}</h3>
+                <div className="mt-1 overflow-hidden rounded-md border border-border">
                   <table className="w-full text-left text-xs">
                     <tbody className="divide-y divide-border tabular-nums">
                       {tpl.lines.map((l, idx) => (
@@ -314,11 +292,11 @@ export const RecurringJournals: React.FC = () => {
                 </div>
               </div>
               <div className="flex items-center justify-between border-t border-border pt-3">
-                <span className="text-lg font-semibold tabular-nums tracking-tight text-text-primary">{formatMoney(tpl.totalDebit)}</span>
+                <span className="text-base font-medium tabular-nums text-text-primary">{formatMoney(tpl.totalDebit)}</span>
                 <button
                   type="button"
                   onClick={() => toast.success(`Draft created for ${tpl.name}`)}
-                  className="h-8 rounded-lg border border-border bg-surface px-3 text-xs font-medium text-text-primary transition hover:bg-surface-neutral"
+                  className="h-8 rounded-md border border-border bg-surface px-3 text-[13px] font-medium text-text-primary transition hover:bg-surface-neutral"
                 >
                   Create draft
                 </button>
@@ -334,10 +312,10 @@ export const RecurringJournals: React.FC = () => {
             const remaining = sch.totalAmount - sch.amortizedAmount;
             const progressPct = Math.round((sch.amortizedAmount / sch.totalAmount) * 100);
             return (
-              <div key={sch.id} className="flex flex-col justify-between gap-4 rounded-xl border border-border bg-surface p-5 shadow-card transition duration-200 hover:border-border-strong hover:shadow-card-hover">
+              <div key={sch.id} className="flex flex-col justify-between gap-4 rounded-lg border border-border bg-surface p-5 transition hover:border-border-strong">
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center justify-between">
-                    <span className={cn('rounded-full px-2 py-0.5 text-xs font-medium', sch.type === 'prepayment' ? 'bg-accent-soft text-accent' : 'bg-violet-soft text-violet')}>
+                    <span className={'rounded-[3px] bg-surface-neutral px-1.5 py-px text-xs font-medium text-text-secondary'}>
                       {sch.type === 'prepayment' ? 'Paid in advance' : 'Owed, not billed yet'}
                     </span>
                     <div className="flex items-center gap-1">
@@ -347,7 +325,7 @@ export const RecurringJournals: React.FC = () => {
                       <MoreMenu runLabel="Record this month" onRun={() => handleRecognizeMonthlyAmortization(sch.id)} />
                     </div>
                   </div>
-                  <h3 className="text-[15px] font-semibold text-text-primary">{sch.title}</h3>
+                  <h3 className="text-sm font-semibold text-text-primary">{sch.title}</h3>
                   <div className="text-xs text-text-muted">
                     {sch.expenseAccount} <span className="mx-1">/</span> {sch.balanceSheetAccount}
                   </div>
@@ -356,20 +334,20 @@ export const RecurringJournals: React.FC = () => {
                       <span>{progressPct}% recorded</span>
                       <span className="tabular-nums">{formatMoney(remaining)} to go</span>
                     </div>
-                    <div className="h-2 overflow-hidden rounded-full bg-surface-neutral">
-                      <div className="h-full rounded-full bg-accent transition-all duration-500 ease-out" style={{ width: `${progressPct}%` }} />
+                    <div className="h-1 overflow-hidden rounded-[1px] bg-surface-neutral">
+                      <div className="h-full rounded-[1px] bg-accent" style={{ width: `${progressPct}%` }} />
                     </div>
                   </div>
                 </div>
                 <div className="flex items-center justify-between border-t border-border pt-3">
                   <div>
                     <div className="text-xs text-text-muted">Each month</div>
-                    <div className="text-lg font-semibold tabular-nums tracking-tight text-text-primary">{formatMoney(sch.monthlyAmount)}</div>
+                    <div className="text-base font-medium tabular-nums text-text-primary">{formatMoney(sch.monthlyAmount)}</div>
                   </div>
                   <button
                     type="button"
                     onClick={() => handleRecognizeMonthlyAmortization(sch.id)}
-                    className="h-8 rounded-lg bg-accent px-3 text-xs font-semibold text-white transition hover:bg-accent-hover"
+                    className="h-8 rounded-md bg-accent px-3 text-[13px] font-medium text-white transition hover:bg-accent-hover"
                   >
                     Record October
                   </button>

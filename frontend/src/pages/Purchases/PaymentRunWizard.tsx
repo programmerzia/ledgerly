@@ -7,19 +7,8 @@ import { SignDialog } from '@/components/domain/SignDialog';
 import { PageHeader } from '@/components/domain/PageHeader';
 import { cn } from '@/lib/utils';
 import { Check } from 'lucide-react';
-import {
-  Coins,
-  CheckCircle2,
-  ArrowRight,
-  ArrowLeft,
-  Building,
-  Calendar,
-  CreditCard,
-  Download,
-  AlertCircle,
-  ShieldCheck,
-  FileSpreadsheet,
-} from 'lucide-react';
+
+import { CheckCircle2, ArrowRight, ArrowLeft, Calendar, CreditCard, Download, ShieldCheck } from 'lucide-react';
 
 export const PaymentRunWizard: React.FC = () => {
   const navigate = useNavigate();
@@ -155,14 +144,14 @@ export const PaymentRunWizard: React.FC = () => {
   };
 
   const STEPS = ['Choose bills', 'Review withholding', 'Done'];
-  const CARD = 'rounded-xl border border-border bg-surface shadow-card';
+  const CARD = 'rounded-lg border border-border bg-surface';
   const FIELD =
     'h-9 px-3 rounded-lg border border-border bg-surface text-[13px] text-text-primary focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition';
   const LABEL = 'flex items-center gap-1.5 text-xs font-medium text-text-secondary';
   const BTN1 =
-    'inline-flex items-center gap-1.5 h-9 px-4 rounded-lg bg-accent hover:bg-accent-hover text-white text-[13px] font-semibold shadow-xs transition-colors disabled:opacity-50 cursor-pointer';
+    'inline-flex items-center gap-1.5 h-8 px-3 rounded-md bg-accent hover:bg-accent-hover text-white text-[13px] font-medium transition-colors disabled:opacity-50 cursor-pointer';
   const BTN2 =
-    'inline-flex items-center gap-1.5 h-9 px-3.5 rounded-lg border border-border hover:border-border-strong bg-surface hover:bg-surface-neutral text-text-primary text-[13px] font-medium transition-colors cursor-pointer';
+    'inline-flex items-center gap-1.5 h-8 px-3 rounded-md border border-border hover:border-border-strong bg-surface hover:bg-surface-neutral text-text-primary text-[13px] font-medium transition-colors cursor-pointer';
   const TH = 'px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-text-muted';
 
   return (
@@ -171,7 +160,6 @@ export const PaymentRunWizard: React.FC = () => {
         breadcrumb={[{ label: 'Bills', to: `/${coSlug}/bills` }, { label: 'Payment run' }]}
         title="Pay several suppliers at once"
         subtitle="Pick the bills to pay. Withholding tax is worked out for you."
-        icon={<Coins />}
       />
 
       {/* Stepper */}
@@ -185,9 +173,9 @@ export const PaymentRunWizard: React.FC = () => {
               <li className="flex items-center gap-2.5" aria-current={active ? 'step' : undefined}>
                 <span
                   className={cn(
-                    'flex size-7 items-center justify-center rounded-full text-xs font-semibold transition-colors',
+                    'flex size-7 items-center justify-center rounded-md text-xs font-semibold transition-colors',
                     done && 'bg-success text-white',
-                    active && 'bg-accent text-white ring-4 ring-accent/15',
+                    active && 'bg-accent text-white',
                     !done && !active && 'bg-surface-neutral text-text-muted'
                   )}
                 >
@@ -204,7 +192,7 @@ export const PaymentRunWizard: React.FC = () => {
       </ol>
 
       {currentStep === 1 && (
-        <div className="flex flex-col gap-5 ui-rise-in">
+        <div className="flex flex-col gap-5">
           <div className={cn(CARD, 'p-5 grid grid-cols-1 md:grid-cols-2 gap-4')}>
             <div className="flex flex-col gap-1.5">
               <label className={LABEL}>
@@ -304,23 +292,23 @@ export const PaymentRunWizard: React.FC = () => {
       )}
 
       {currentStep === 2 && (
-        <div className="flex flex-col gap-5 ui-rise-in">
+        <div className="flex flex-col gap-5">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className={cn(CARD, 'p-5')}>
               <div className="text-xs font-medium text-text-muted">Bills selected</div>
-              <div className="mt-1 text-2xl font-semibold tracking-tight tabular-nums text-text-primary">{formatMoney(totals.gross)}</div>
+              <div className="mt-1 text-[22px] leading-7 font-medium tabular-nums text-text-primary">{formatMoney(totals.gross)}</div>
               <div className="mt-1 text-xs text-text-muted">{selectedBills.length} bills to clear</div>
             </div>
             <div className={cn(CARD, 'p-5')}>
               <div className="flex items-center gap-1.5 text-xs font-medium text-text-muted">
                 <ShieldCheck className="size-3.5" /> Withholding tax held back
               </div>
-              <div className="mt-1 text-2xl font-semibold tracking-tight tabular-nums text-danger">-{formatMoney(totals.wht)}</div>
+              <div className="mt-1 text-[22px] leading-7 font-medium tabular-nums text-danger">-{formatMoney(totals.wht)}</div>
               <div className="mt-1 text-xs text-text-muted">Certificates are created for you</div>
             </div>
-            <div className="rounded-xl border border-accent/30 bg-accent-soft p-5 shadow-card">
-              <div className="text-xs font-medium text-accent">Leaves your bank</div>
-              <div className="mt-1 text-2xl font-semibold tracking-tight tabular-nums text-accent">{formatMoney(totals.net)}</div>
+            <div className="rounded-lg border border-border bg-surface-neutral p-5">
+              <div className="text-xs font-medium text-text-muted">Leaves your bank</div>
+              <div className="mt-1 text-[22px] leading-7 font-medium tabular-nums text-text-primary">{formatMoney(totals.net)}</div>
               <div className="mt-1 text-xs text-text-muted">
                 From {bankAccounts.find((b) => b.id === selectedBankId)?.name || 'your bank account'}
               </div>
@@ -372,24 +360,22 @@ export const PaymentRunWizard: React.FC = () => {
       )}
 
       {currentStep === 3 && (
-        <div className={cn(CARD, 'p-10 flex flex-col items-center text-center gap-4 ui-rise-in')}>
-          <div className="size-14 rounded-full bg-success-soft text-success flex items-center justify-center">
-            <CheckCircle2 className="size-8" />
-          </div>
+        <div className={cn(CARD, 'p-10 flex flex-col items-center text-center gap-4')}>
+          <CheckCircle2 className="size-6 text-success" />
           <div className="flex flex-col gap-1">
-            <h2 className="text-lg font-semibold text-text-primary">Payments are done</h2>
+            <h2 className="text-base font-semibold text-text-primary">Payments are done</h2>
             <p className="text-[13px] text-text-muted max-w-md">
               The selected bills are marked as paid, what you owe suppliers went down, and withholding tax certificates were created.
             </p>
           </div>
-          <dl className="w-full max-w-md divide-y divide-border rounded-xl border border-border text-[13px]">
+          <dl className="w-full max-w-md divide-y divide-border rounded-lg border border-border text-[13px]">
             <div className="flex justify-between px-4 py-2.5">
               <dt className="text-text-muted">Bills paid</dt>
               <dd className="font-semibold text-text-primary tabular-nums">{selectedBills.length}</dd>
             </div>
             <div className="flex justify-between px-4 py-2.5">
               <dt className="text-text-muted">Total sent</dt>
-              <dd className="font-semibold text-accent tabular-nums">{formatMoney(totals.net)}</dd>
+              <dd className="font-semibold text-text-primary tabular-nums">{formatMoney(totals.net)}</dd>
             </div>
             <div className="flex justify-between px-4 py-2.5">
               <dt className="text-text-muted">Withholding certificates</dt>

@@ -10,33 +10,15 @@ import { useAdminStore } from '@/mock/store/adminStore';
 import { mockHistoricalCohorts } from '@/mock/adminData';
 import { adminBillingApi } from '@/mock/api/admin/billing';
 import { toast } from 'sonner';
+import { Download } from 'lucide-react';
 import {
-  TrendingUp,
-  DollarSign,
-  Users,
-  AlertTriangle,
-  Activity,
-  ArrowUpRight,
-  ArrowDownRight,
-  Download,
-  Building2,
-  RefreshCw,
-  ExternalLink,
-  ShieldCheck,
-  CheckCircle2,
-  Clock,
-} from 'lucide-react';
-import {
-  AreaChart,
-  Area,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip as RechartsTooltip,
   ResponsiveContainer,
-  BarChart,
-  Bar,
-  Cell,
 } from 'recharts';
 
 export const AdminDashboard: React.FC = () => {
@@ -87,217 +69,92 @@ export const AdminDashboard: React.FC = () => {
       a.href = url;
       a.download = `ASC606_Revenue_Schedule_${new Date().toISOString().slice(0, 10)}.csv`;
       a.click();
-      toast.success('ASC 606 Monthly Deferred Revenue schedule exported (CSV)');
+      toast.success('ASC 606 deferred revenue schedule exported');
     } catch {
       toast.error('Failed to export revenue schedule');
     }
   };
 
+  const money0 = (minor: number) => `$${(minor / 100).toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+  const atRiskCount = tenants.filter((t) => t.status === 'past_due').length;
+
+  const figures: { label: string; value: string; valueClass?: string; note: string; sub: string; to?: string }[] = [
+    { label: 'Monthly recurring revenue', value: money0(kpis.mrr), note: '+18.4% vs last month', sub: `Net new ${money0(kpis.netNewMrr)}` },
+    { label: 'Annual run rate', value: money0(kpis.arr), note: '92.1% of $500k goal', sub: 'ARR multiple 12.0x' },
+    {
+      label: 'Total tenants', value: String(tenants.length), to: '/admin/tenants',
+      note: `${kpis.activeTenantsCount} paid, ${kpis.trialingTenantsCount} trials`, sub: `Conversion ${kpis.trialConversionRate}%`,
+    },
+    { label: 'Net revenue retention', value: `${kpis.netRevenueRetentionPct}%`, note: `Gross retention ${kpis.grossRevenueRetentionPct}%`, sub: 'Logo churn 1.8% / month' },
+    {
+      label: 'At risk (dunning)', value: String(atRiskCount), valueClass: atRiskCount > 0 ? 'text-warning' : undefined, to: '/admin/billing',
+      note: `${money0(kpis.failedPaymentsAmount)} unpaid`, sub: 'Recovery 82.5%',
+    },
+    { label: 'System health', value: '99.98%', to: '/admin/ops', note: `p95 ${kpis.systemP95LatencyMs} ms`, sub: 'Queues: 0 backlog' },
+  ];
+
+  const linkBtn = 'text-xs text-accent hover:underline cursor-pointer';
+
   return (
-    <div className="flex-1 flex flex-col p-4 space-y-4 max-w-7xl mx-auto w-full select-none text-text-primary">
-      {/* Top Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2 border-b border-border">
+    <div className="flex-1 flex flex-col p-5 gap-5 max-w-7xl mx-auto w-full select-none text-text-primary">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-base sm:text-lg font-bold tracking-tight">Platform Executive Overview</h1>
-            <span className="px-2 py-0.5 rounded-full bg-violet-soft text-violet text-[10px] font-mono font-semibold uppercase">
-              Stripe Mirrored
-            </span>
-          </div>
-          <p className="text-xs text-text-muted mt-0.5">
-            SaaS recurring revenue, cohort retention, tenant lifecycle, and platform telemetry.
+          <h1 className="text-xl font-semibold">Platform overview</h1>
+          <p className="text-[13px] text-text-muted mt-0.5">
+            Recurring revenue, retention, tenant lifecycle and platform health, mirrored from Stripe.
           </p>
         </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={handleExportAsc606}
-            className="h-7 px-2.5 rounded-sm bg-surface border border-border hover:border-border-strong text-text-secondary hover:text-text-primary text-xs font-medium flex items-center gap-1.5 transition cursor-pointer"
-          >
-            <Download className="w-3.5 h-3.5 text-text-muted" />
-            <span className="hidden sm:inline">Export ASC 606 Schedule</span>
-            <span className="sm:hidden">Export ASC 606</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              toast.success('Platform telemetry refreshed from Stripe & Horizon queues');
-            }}
-            className="h-7 px-2.5 rounded-sm bg-violet text-white hover:opacity-90 text-xs font-medium flex items-center gap-1.5 transition cursor-pointer shadow-xs"
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-            <span>Sync Stripe Webhooks</span>
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={handleExportAsc606}
+          className="h-8 px-3 rounded-md bg-surface border border-border hover:border-border-strong text-text-secondary hover:text-text-primary text-[13px] font-medium flex items-center gap-1.5 transition cursor-pointer"
+        >
+          <Download className="w-3.5 h-3.5 text-text-muted" />
+          Export ASC 606 schedule
+        </button>
       </div>
 
-      {/* KPI Cards Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-2.5">
-        {/* Card 1: MRR */}
-        <div className="p-2.5 sm:p-3 rounded bg-surface border border-border flex flex-col justify-between">
-          <div className="flex items-center justify-between text-text-muted text-[10px] sm:text-[11px]">
-            <span className="truncate">Monthly Recurring</span>
-            <DollarSign className="w-3.5 h-3.5 text-violet shrink-0" />
-          </div>
-          <div className="mt-1">
-            <div className="text-lg sm:text-xl font-bold font-mono tracking-tight text-text-primary">
-              ${(kpis.mrr / 100).toLocaleString('en-US', { minimumFractionDigits: 0 })}
-            </div>
-            <div className="flex items-center gap-1 text-[9px] sm:text-[10px] text-success mt-0.5 font-medium truncate">
-              <TrendingUp className="w-3 h-3 shrink-0" />
-              <span>+18.4% vs last mo</span>
-            </div>
-          </div>
-          <div className="text-[9px] sm:text-[10px] text-text-muted mt-1 font-mono pt-1 border-t border-border/60 truncate">
-            Net: +${(kpis.netNewMrr / 100).toLocaleString()}
-          </div>
-        </div>
+      <section className="bg-surface border border-border rounded-lg grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 divide-x divide-y lg:divide-y-0 divide-border">
+        {figures.map((f) => {
+          const inner = (
+            <>
+              <div className="text-xs text-text-muted truncate">{f.label}</div>
+              <div className={`mt-1 text-[22px] leading-7 font-medium tabular-nums truncate ${f.valueClass ?? 'text-text-primary'}`}>{f.value}</div>
+              <div className="mt-1 text-xs text-text-secondary truncate">{f.note}</div>
+              <div className="mt-0.5 text-xs text-text-muted truncate">{f.sub}</div>
+            </>
+          );
+          const cls = 'text-left px-4 py-3 min-w-0';
+          return f.to ? (
+            <button key={f.label} type="button" onClick={() => navigate(f.to!)} className={`${cls} hover:bg-canvas transition-colors cursor-pointer outline-none focus-visible:bg-canvas`}>
+              {inner}
+            </button>
+          ) : (
+            <div key={f.label} className={cls}>{inner}</div>
+          );
+        })}
+      </section>
 
-        {/* Card 2: ARR */}
-        <div className="p-2.5 sm:p-3 rounded bg-surface border border-border flex flex-col justify-between">
-          <div className="flex items-center justify-between text-text-muted text-[10px] sm:text-[11px]">
-            <span className="truncate">Annual Run-Rate</span>
-            <TrendingUp className="w-3.5 h-3.5 text-accent" />
-          </div>
-          <div className="mt-1">
-            <div className="text-xl font-bold font-mono tracking-tight text-text-primary">
-              ${(kpis.arr / 100).toLocaleString('en-US', { minimumFractionDigits: 0 })}
-            </div>
-            <div className="text-[10px] text-text-secondary mt-0.5 font-mono">
-              92.1% of $500k goal
-            </div>
-          </div>
-          <div className="text-[10px] text-text-muted mt-1 font-mono pt-1 border-t border-border/60">
-            ARR Multiple: 12.0×
-          </div>
-        </div>
-
-        {/* Card 3: Active Tenants */}
-        <div
-          onClick={() => navigate('/admin/tenants')}
-          className="p-3 rounded bg-surface border border-border hover:border-violet/40 cursor-pointer transition flex flex-col justify-between"
-        >
-          <div className="flex items-center justify-between text-text-muted text-[11px]">
-            <span>Total Tenants</span>
-            <Users className="w-3.5 h-3.5 text-text-muted" />
-          </div>
-          <div className="mt-1">
-            <div className="text-xl font-bold font-mono tracking-tight text-text-primary">
-              {tenants.length}
-            </div>
-            <div className="flex items-center gap-1.5 text-[10px] text-text-secondary mt-0.5">
-              <span className="text-success font-medium">{kpis.activeTenantsCount} paid</span>
-              <span>•</span>
-              <span className="text-accent font-medium">{kpis.trialingTenantsCount} trials</span>
-            </div>
-          </div>
-          <div className="text-[10px] text-text-muted mt-1 font-mono pt-1 border-t border-border/60">
-            Conv Rate: {kpis.trialConversionRate}%
-          </div>
-        </div>
-
-        {/* Card 4: Retention */}
-        <div className="p-3 rounded bg-surface border border-border flex flex-col justify-between">
-          <div className="flex items-center justify-between text-text-muted text-[11px]">
-            <span>Net Retention</span>
-            <ShieldCheck className="w-3.5 h-3.5 text-success" />
-          </div>
-          <div className="mt-1">
-            <div className="text-xl font-bold font-mono tracking-tight text-text-primary">
-              {kpis.netRevenueRetentionPct}%
-            </div>
-            <div className="text-[10px] text-text-secondary mt-0.5">
-              GRR: <strong className="font-mono">{kpis.grossRevenueRetentionPct}%</strong>
-            </div>
-          </div>
-          <div className="text-[10px] text-text-muted mt-1 font-mono pt-1 border-t border-border/60">
-            Logo Churn: 1.8% / mo
-          </div>
-        </div>
-
-        {/* Card 5: Past Due & Dunning */}
-        <div
-          onClick={() => navigate('/admin/billing')}
-          className="p-3 rounded bg-surface border border-border hover:border-warning/40 cursor-pointer transition flex flex-col justify-between"
-        >
-          <div className="flex items-center justify-between text-text-muted text-[11px]">
-            <span>At Risk (Dunning)</span>
-            <AlertTriangle className="w-3.5 h-3.5 text-warning" />
-          </div>
-          <div className="mt-1">
-            <div className="text-xl font-bold font-mono tracking-tight text-warning">
-              {tenants.filter((t) => t.status === 'past_due').length}
-            </div>
-            <div className="text-[10px] text-warning mt-0.5 font-medium font-mono">
-              ${(kpis.failedPaymentsAmount / 100).toLocaleString()} unpaid
-            </div>
-          </div>
-          <div className="text-[10px] text-text-muted mt-1 font-mono pt-1 border-t border-border/60">
-            Recovery: 82.5%
-          </div>
-        </div>
-
-        {/* Card 6: Platform SLA */}
-        <div
-          onClick={() => navigate('/admin/ops')}
-          className="p-3 rounded bg-surface border border-border hover:border-accent/40 cursor-pointer transition flex flex-col justify-between"
-        >
-          <div className="flex items-center justify-between text-text-muted text-[11px]">
-            <span>System Health</span>
-            <Activity className="w-3.5 h-3.5 text-success" />
-          </div>
-          <div className="mt-1">
-            <div className="text-xl font-bold font-mono tracking-tight text-success">
-              99.98%
-            </div>
-            <div className="text-[10px] text-text-secondary mt-0.5 font-mono">
-              p95: {kpis.systemP95LatencyMs}ms
-            </div>
-          </div>
-          <div className="text-[10px] text-text-muted mt-1 font-mono pt-1 border-t border-border/60">
-            Queues: 0 backlog
-          </div>
-        </div>
-      </div>
-
-      {/* Middle Section: 14-Month Trend & Revenue Breakdown */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-        {/* Left: 14-Month Historical MRR Chart */}
-        <div className="lg:col-span-2 p-3.5 rounded bg-surface border border-border flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <h2 className="text-xs font-semibold text-text-primary">14-Month MRR Growth Trajectory</h2>
-              <p className="text-[10px] text-text-muted">Mirrored from Stripe billing records (Sep 2025 – Oct 2026)</p>
-            </div>
-            <div className="flex items-center gap-3 text-[11px] font-mono">
-              <span className="flex items-center gap-1.5 text-text-secondary">
-                <span className="w-2.5 h-2.5 rounded-xs bg-violet" />
-                Active MRR
-              </span>
-            </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <section className="lg:col-span-2 rounded-lg bg-surface border border-border p-5">
+          <div className="mb-3">
+            <h2 className="text-sm font-semibold text-text-primary">Monthly recurring revenue</h2>
+            <p className="text-xs text-text-muted">Last 14 months, from Stripe billing records</p>
           </div>
 
           <div className="h-60 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={mockHistoricalCohorts} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorMrr" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--violet)" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="var(--violet)" stopOpacity={0.0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.6} />
+              <LineChart data={mockHistoricalCohorts} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                <CartesianGrid vertical={false} stroke="var(--color-border)" />
                 <XAxis
                   dataKey="month"
-                  tick={{ fontSize: 9, fill: 'var(--text-muted)' }}
+                  tick={{ fontSize: 11, fill: 'var(--color-text-muted)' }}
                   tickLine={false}
-                  axisLine={{ stroke: 'var(--border)' }}
+                  axisLine={false}
                   minTickGap={16}
                 />
                 <YAxis
-                  tick={{ fontSize: 10, fill: 'var(--text-muted)' }}
+                  tick={{ fontSize: 11, fill: 'var(--color-text-muted)' }}
                   tickLine={false}
                   axisLine={false}
                   tickFormatter={(val) => `$${Math.round(val / 100000)}k`}
@@ -307,145 +164,110 @@ export const AdminDashboard: React.FC = () => {
                   contentStyle={{
                     backgroundColor: 'var(--surface-elevated)',
                     borderColor: 'var(--border)',
-                    borderRadius: 4,
-                    fontSize: 11,
+                    borderRadius: 6,
+                    fontSize: 12,
                     color: 'var(--text-primary)',
                   }}
                 />
-                <Area
-                  type="monotone"
-                  dataKey="mrr"
-                  stroke="var(--violet)"
-                  strokeWidth={2}
-                  fillOpacity={1}
-                  fill="url(#colorMrr)"
-                />
-              </AreaChart>
+                <Line type="linear" dataKey="mrr" stroke="var(--color-text-primary)" strokeWidth={1.5} dot={false} isAnimationActive={false} />
+              </LineChart>
             </ResponsiveContainer>
           </div>
-        </div>
+        </section>
 
-        {/* Right: Revenue by Plan */}
-        <div className="p-3.5 rounded bg-surface border border-border flex flex-col justify-between">
+        <section className="rounded-lg bg-surface border border-border p-5 flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between mb-1">
-              <h2 className="text-xs font-semibold text-text-primary">Revenue by Tiered Plan</h2>
-              <span className="text-[10px] text-text-muted font-mono">{tenants.length} tenants</span>
+            <div className="flex items-baseline justify-between mb-3">
+              <h2 className="text-sm font-semibold text-text-primary">Revenue by plan</h2>
+              <span className="text-xs text-text-muted tabular-nums">{tenants.length} tenants</span>
             </div>
-            <p className="text-[10px] text-text-muted mb-3">Live subscription breakdown</p>
 
-            <div className="space-y-3">
+            <ul className="divide-y divide-border">
               {revenueByPlan.map((plan) => {
-                const totalMrr = kpis.mrr;
-                const pct = totalMrr > 0 ? Math.round((plan.totalMinor / totalMrr) * 100) : 0;
+                const pct = kpis.mrr > 0 ? Math.round((plan.totalMinor / kpis.mrr) * 100) : 0;
                 return (
-                  <div key={plan.name} className="space-y-1">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="font-medium text-text-secondary truncate">{plan.name}</span>
-                      <div className="flex items-center gap-2 font-mono">
-                        <span className="text-text-muted text-[11px]">{plan.count} tenants</span>
-                        <span className="font-semibold text-text-primary">
-                          ${(plan.totalMinor / 100).toLocaleString()}
-                        </span>
+                  <li key={plan.name} className="py-2">
+                    <div className="flex items-baseline justify-between gap-2 text-[13px]">
+                      <span className="text-text-primary truncate flex-1">{plan.name}</span>
+                      <span className="text-xs text-text-muted tabular-nums">{plan.count} tenants</span>
+                      <span className="w-20 text-right tabular-nums text-text-primary">${(plan.totalMinor / 100).toLocaleString()}</span>
+                    </div>
+                    <div className="mt-1.5 flex items-center gap-2">
+                      <div className="h-1 flex-1 rounded-[1px] bg-surface-neutral" aria-hidden>
+                        <div className="h-full rounded-[1px] bg-accent" style={{ width: `${pct}%` }} />
                       </div>
+                      <span className="w-20 text-right text-xs text-text-muted tabular-nums">{pct}% of MRR</span>
                     </div>
-                    <div className="h-2 w-full bg-surface-neutral rounded-full overflow-hidden flex">
-                      <div
-                        className="h-full bg-violet transition-all duration-500"
-                        style={{ width: `${pct}%` }}
-                      />
-                    </div>
-                    <div className="flex justify-between text-[10px] text-text-muted font-mono">
-                      <span>{pct}% of MRR</span>
-                    </div>
-                  </div>
+                  </li>
                 );
               })}
-            </div>
+            </ul>
           </div>
 
-          <div className="pt-3 border-t border-border mt-3 flex items-center justify-between text-xs">
-            <span className="text-text-muted">Explore Plans Matrix</span>
-            <button
-              onClick={() => navigate('/admin/plans')}
-              className="text-violet hover:underline flex items-center gap-1 font-medium cursor-pointer"
-            >
-              Plans & Pricing →
-            </button>
+          <div className="pt-3 border-t border-border mt-3 flex justify-end">
+            <button onClick={() => navigate('/admin/plans')} className={linkBtn}>Plans and pricing</button>
           </div>
-        </div>
+        </section>
       </div>
 
-      {/* Bottom Section: Tenant Geography & Live Audit Event Ticker */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-        {/* Geography */}
-        <div className="p-3.5 rounded bg-surface border border-border">
-          <div className="flex items-center justify-between mb-2">
-            <div>
-              <h2 className="text-xs font-semibold text-text-primary">Global Tenant Footprint</h2>
-              <p className="text-[10px] text-text-muted">Distribution by regulatory domicile</p>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <section className="rounded-lg bg-surface border border-border p-5">
+          <div className="flex items-baseline justify-between mb-3">
+            <div className="flex items-baseline gap-2">
+              <h2 className="text-sm font-semibold text-text-primary">Tenants by country</h2>
+              <p className="text-xs text-text-muted">Regulatory domicile</p>
             </div>
-            <span className="text-[10px] font-mono text-text-muted">7 Markets</span>
+            <span className="text-xs text-text-muted tabular-nums">{geoBreakdown.length} markets</span>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2">
-            {geoBreakdown.map((g) => (
-              <div key={g.country} className="p-2 rounded bg-surface-neutral/50 border border-border/80">
-                <div className="flex items-center justify-between">
-                  <span className="font-mono text-xs font-bold text-text-primary">{g.country}</span>
-                  <span className="text-[10px] font-mono text-text-muted">{g.pct}%</span>
-                </div>
-                <div className="text-[11px] text-text-secondary mt-1">
-                  <strong>{g.count}</strong> tenants
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+          <table className="w-full text-[13px]">
+            <tbody className="divide-y divide-border">
+              {geoBreakdown.map((g) => (
+                <tr key={g.country}>
+                  <td className="py-1.5 text-text-primary">{g.country}</td>
+                  <td className="py-1.5 text-right tabular-nums text-text-secondary">{g.count} tenants</td>
+                  <td className="py-1.5 w-12 text-right tabular-nums text-text-muted">{g.pct}%</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
 
-        {/* Live Admin Audit Trail Ticker */}
-        <div className="p-3.5 rounded bg-surface border border-border flex flex-col justify-between">
+        <section className="rounded-lg bg-surface border border-border p-5 flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between mb-1">
-              <h2 className="text-xs font-semibold text-text-primary">Live Operator Audit Stream</h2>
-              <span className="text-[10px] font-mono text-success flex items-center gap-1">
-                <CheckCircle2 className="w-3 h-3 text-success" />
-                Hash Chain Verified
-              </span>
+            <div className="flex items-baseline justify-between mb-3">
+              <div className="flex items-baseline gap-2">
+                <h2 className="text-sm font-semibold text-text-primary">Operator audit trail</h2>
+                <p className="text-xs text-text-muted">SHA-256 sealed</p>
+              </div>
+              <span className="text-xs text-success">Hash chain verified</span>
             </div>
-            <p className="text-[10px] text-text-muted mb-2">Immutable vendor back-office actions with SHA-256 seals</p>
 
-            <div className="space-y-1.5 max-h-40 overflow-y-auto no-scrollbar divide-y divide-border/40">
+            <ul className="max-h-48 overflow-y-auto no-scrollbar divide-y divide-border">
               {auditEvents.slice(0, 4).map((event) => (
-                <div key={event.id} className="pt-2 first:pt-0 flex flex-col sm:flex-row sm:items-start justify-between gap-1 text-xs">
-                  <div className="flex flex-col min-w-0">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="font-mono text-[9px] sm:text-[10px] font-semibold text-violet uppercase px-1 py-0.2 rounded bg-violet-soft shrink-0">
+                <li key={event.id} className="py-2 flex items-start justify-between gap-3 text-[13px]">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-[11px] text-text-secondary px-1.5 py-px rounded-[3px] bg-surface-neutral shrink-0 capitalize">
                         {event.action.replace('_', ' ')}
                       </span>
-                      <span className="text-text-primary font-medium text-[11px] truncate">{event.adminName}</span>
+                      <span className="text-text-primary font-medium truncate">{event.adminName}</span>
                     </div>
-                    <span className="text-[10px] text-text-muted mt-0.5 line-clamp-1">{event.reason}</span>
+                    <span className="text-xs text-text-muted mt-0.5 line-clamp-1 block">{event.reason}</span>
                   </div>
-                  <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start shrink-0 font-mono text-[10px] text-text-muted">
+                  <div className="flex flex-col items-end shrink-0 text-xs text-text-muted tabular-nums">
                     <span>{new Date(event.occurredAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                    <span className="text-[9px] text-text-muted truncate max-w-[70px]">#{event.hash.slice(0, 6)}</span>
+                    <span className="truncate max-w-[70px]">#{event.hash.slice(0, 6)}</span>
                   </div>
-                </div>
+                </li>
               ))}
-            </div>
+            </ul>
           </div>
 
-          <div className="pt-2 border-t border-border mt-2 flex items-center justify-between text-xs">
-            <span className="text-text-muted">Full Audit History</span>
-            <button
-              onClick={() => navigate('/admin/staff')}
-              className="text-violet hover:underline flex items-center gap-1 font-medium cursor-pointer"
-            >
-              View All Events →
-            </button>
+          <div className="pt-3 border-t border-border mt-3 flex justify-end">
+            <button onClick={() => navigate('/admin/staff')} className={linkBtn}>View all events</button>
           </div>
-        </div>
+        </section>
       </div>
     </div>
   );

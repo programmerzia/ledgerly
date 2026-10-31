@@ -9,19 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAdminStore } from '@/mock/store/adminStore';
 import { AdminTenant } from '@/types/admin';
 import { toast } from 'sonner';
-import {
-  TrendingUp,
-  CheckCircle2,
-  Clock,
-  AlertTriangle,
-  Mail,
-  Zap,
-  ArrowRight,
-  Building2,
-  Users,
-  CreditCard,
-  Sparkles,
-} from 'lucide-react';
+import { CheckCircle2, Mail } from 'lucide-react';
 
 export const GrowthTrials: React.FC = () => {
   const navigate = useNavigate();
@@ -62,7 +50,7 @@ export const GrowthTrials: React.FC = () => {
   const expiringSoon = tenantsWithMilestones.filter((t) => t.daysLeft <= 3);
 
   const handleNudge = (tenant: AdminTenant) => {
-    toast.success(`Automated onboarding encouragement email dispatched to ${tenant.ownerEmail}!`);
+    toast.success(`Onboarding reminder sent to ${tenant.ownerEmail}`);
   };
 
   const handleExtend = (tenantId: string) => {
@@ -72,7 +60,7 @@ export const GrowthTrials: React.FC = () => {
 
   const handleConvert = (tenantId: string) => {
     changeTenantPlan(tenantId, 'professional', 'monthly', 'Manual sales closure conversion');
-    toast.success('Tenant converted to Professional Plan ($149/mo)!');
+    toast.success('Tenant converted to the Professional plan ($149/mo)');
   };
 
   return (
@@ -81,9 +69,9 @@ export const GrowthTrials: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-border">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-lg font-bold tracking-tight">Trials Pipeline & Product-Led Growth</h1>
-            <span className="px-2 py-0.5 rounded-full bg-violet-soft text-violet text-[10px] font-mono font-semibold">
-              {trialTenants.length} Active Trials • 64.2% Conversion
+            <h1 className="text-xl font-semibold">Trials and growth</h1>
+            <span className="px-2 py-0.5 rounded-[3px] bg-surface-neutral text-text-secondary text-[11px] font-medium">
+              {trialTenants.length} active trials, 64.2% conversion
             </span>
           </div>
           <p className="text-xs text-text-muted mt-0.5">
@@ -94,36 +82,36 @@ export const GrowthTrials: React.FC = () => {
 
       {/* Funnel Overview Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="p-3.5 rounded bg-surface border border-border">
-          <span className="text-[10px] text-text-muted uppercase font-semibold">Active Trials</span>
-          <div className="text-xl font-bold font-mono text-text-primary mt-1">{trialTenants.length}</div>
-          <span className="text-[10px] text-text-secondary mt-0.5 block">14-day standard window</span>
+        <div className="p-3.5 rounded-lg bg-surface border border-border">
+          <span className="text-[11px] text-text-muted font-semibold">Active trials</span>
+          <div className="text-xl font-medium text-text-primary mt-1">{trialTenants.length}</div>
+          <span className="text-[11px] text-text-secondary mt-0.5 block">14-day standard window</span>
         </div>
 
-        <div className="p-3.5 rounded bg-surface border border-border">
-          <span className="text-[10px] text-text-muted uppercase font-semibold">Expiring &lt; 3 Days</span>
-          <div className="text-xl font-bold font-mono text-warning mt-1">{expiringSoon.length}</div>
-          <span className="text-[10px] text-warning mt-0.5 block font-medium">Requires immediate sales nudge</span>
+        <div className="p-3.5 rounded-lg bg-surface border border-border">
+          <span className="text-[11px] text-text-muted font-semibold">Expiring &lt; 3 Days</span>
+          <div className="text-xl font-medium text-warning mt-1">{expiringSoon.length}</div>
+          <span className="text-[11px] text-warning mt-0.5 block font-medium">Requires immediate sales nudge</span>
         </div>
 
-        <div className="p-3.5 rounded bg-surface border border-border">
-          <span className="text-[10px] text-text-muted uppercase font-semibold">Median Time-to-Value</span>
-          <div className="text-xl font-bold font-mono text-success mt-1">1.8 Days</div>
-          <span className="text-[10px] text-text-secondary mt-0.5 block">Sign-up to first posted ledger journal</span>
+        <div className="p-3.5 rounded-lg bg-surface border border-border">
+          <span className="text-[11px] text-text-muted font-semibold">Median Time-to-Value</span>
+          <div className="text-xl font-medium text-success mt-1">1.8 Days</div>
+          <span className="text-[11px] text-text-secondary mt-0.5 block">Sign-up to first posted ledger journal</span>
         </div>
 
-        <div className="p-3.5 rounded bg-surface border border-border">
-          <span className="text-[10px] text-text-muted uppercase font-semibold">Trial-to-Paid Win Rate</span>
-          <div className="text-xl font-bold font-mono text-violet mt-1">64.2%</div>
-          <span className="text-[10px] text-success mt-0.5 block font-medium">+6.4% QoQ expansion</span>
+        <div className="p-3.5 rounded-lg bg-surface border border-border">
+          <span className="text-[11px] text-text-muted font-semibold">Trial-to-Paid Win Rate</span>
+          <div className="text-xl font-medium text-text-secondary mt-1">64.2%</div>
+          <span className="text-[11px] text-success mt-0.5 block font-medium">+6.4% QoQ expansion</span>
         </div>
       </div>
 
       {/* Activation Milestones Matrix */}
-      <div className="rounded bg-surface border border-border p-4 space-y-3">
+      <div className="rounded-lg bg-surface border border-border p-4 space-y-3">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-text-primary">
+            <h3 className="text-xs font-semibold text-text-primary">
               Product Activation Milestones (Time-to-First-Value)
             </h3>
             <p className="text-[11px] text-text-muted">Tenants who complete all 4 milestones convert at 88%</p>
@@ -134,14 +122,14 @@ export const GrowthTrials: React.FC = () => {
           <table className="w-full text-left text-xs border-collapse">
             <thead>
               <tr className="h-8 bg-surface-neutral/60 border-b border-border text-text-muted text-[11px] uppercase font-semibold">
-                <th className="px-3">Tenant Organization</th>
+                <th className="px-3">Tenant organization</th>
                 <th className="px-3 text-center">1. Created Entity</th>
                 <th className="px-3 text-center">2. Posted Invoice</th>
                 <th className="px-3 text-center">3. Invited Checker</th>
                 <th className="px-3 text-center">4. Bank Feed</th>
-                <th className="px-3">Activation Score</th>
-                <th className="px-3">Days Left</th>
-                <th className="px-3 text-right">Growth Action</th>
+                <th className="px-3">Activation score</th>
+                <th className="px-3">Days left</th>
+                <th className="px-3 text-right">Growth action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/60">
@@ -150,7 +138,7 @@ export const GrowthTrials: React.FC = () => {
                   <td className="px-3 font-semibold text-text-primary">
                     <div className="flex flex-col">
                       <span>{t.name}</span>
-                      <span className="text-[10px] font-mono text-text-muted">{t.ownerEmail}</span>
+                      <span className="text-[11px] font-mono text-text-muted">{t.ownerEmail}</span>
                     </div>
                   </td>
 
@@ -193,7 +181,7 @@ export const GrowthTrials: React.FC = () => {
                   {/* Score */}
                   <td className="px-3">
                     <div className="flex items-center gap-2">
-                      <div className="h-1.5 w-16 bg-surface-neutral rounded-full overflow-hidden">
+                      <div className="h-1 w-16 bg-surface-neutral rounded-[1px] overflow-hidden">
                         <div
                           className={`h-full ${t.milestones.score >= 75 ? 'bg-success' : t.milestones.score >= 50 ? 'bg-accent' : 'bg-warning'}`}
                           style={{ width: `${t.milestones.score}%` }}
@@ -205,7 +193,7 @@ export const GrowthTrials: React.FC = () => {
 
                   {/* Days left */}
                   <td className="px-3 font-mono text-[11px]">
-                    <span className={t.daysLeft <= 3 ? 'text-warning font-bold' : 'text-text-muted'}>
+                    <span className={t.daysLeft <= 3 ? 'text-warning font-semibold' : 'text-text-muted'}>
                       {t.daysLeft} days
                     </span>
                   </td>
@@ -224,14 +212,14 @@ export const GrowthTrials: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => handleExtend(t.id)}
-                        className="px-2 py-0.5 rounded text-[11px] border border-border hover:bg-surface-neutral text-text-secondary font-medium"
+                        className="px-2 py-0.5 rounded-[3px] text-[11px] border border-border hover:bg-surface-neutral text-text-secondary font-medium"
                       >
                         +7d
                       </button>
                       <button
                         type="button"
                         onClick={() => handleConvert(t.id)}
-                        className="px-2 py-0.5 rounded text-[11px] bg-violet text-white hover:opacity-90 font-semibold shadow-xs"
+                        className="px-2 py-0.5 rounded-[3px] text-[11px] bg-accent text-white hover:bg-accent-hover font-semibold"
                       >
                         Convert
                       </button>

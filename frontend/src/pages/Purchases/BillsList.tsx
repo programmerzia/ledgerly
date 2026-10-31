@@ -15,21 +15,7 @@ import { PageHeader } from '@/components/domain/PageHeader';
 import { Kbd } from '@/components/ui/kbd';
 import { toast } from 'sonner';
 import { api } from '@/mock/api';
-import {
-  Eye,
-  CreditCard,
-  Bell,
-  Copy,
-  Download,
-  RotateCcw,
-  Plus,
-  FileText,
-  ExternalLink,
-  CheckCircle2,
-  AlertCircle,
-  Building,
-  Coins,
-} from 'lucide-react';
+import { Eye, CreditCard, Bell, Copy, Download, RotateCcw, Plus, ExternalLink, CheckCircle2, AlertCircle, Building, Coins } from 'lucide-react';
 
 export const BillsList: React.FC = () => {
   const navigate = useNavigate();
@@ -213,12 +199,11 @@ export const BillsList: React.FC = () => {
       <PageHeader
         title="Bills"
         subtitle="Track what you owe suppliers"
-        icon={<FileText />}
         actions={
           <button
             type="button"
             onClick={() => navigate(`/${coSlug}/bills/new`)}
-            className="inline-flex items-center gap-1.5 h-9 px-3.5 bg-accent hover:bg-accent-hover text-white rounded-lg text-[13px] font-semibold shadow-xs transition-colors"
+            className="inline-flex items-center gap-1.5 h-8 px-3 bg-accent hover:bg-accent-hover text-white rounded-md text-[13px] font-medium transition-colors"
           >
             <Plus className="size-4" />
             <span>New bill</span>
@@ -272,7 +257,6 @@ export const BillsList: React.FC = () => {
             ? `Supplier: ${suppliersMap.get(selectedBill.contact_id)?.name || 'Supplier'} • Ref: ${selectedBill.reference}`
             : undefined
         }
-        icon={<FileText className="w-4 h-4" />}
         onOpenFull={() => selectedBill && handleOpenTab(selectedBill)}
         openFullLabel="Open Bill"
         badge={selectedBill ? <StatusPill status={paymentStatus(selectedBill)} size="sm" /> : undefined}
@@ -281,7 +265,7 @@ export const BillsList: React.FC = () => {
             <div className="flex flex-col gap-4 text-xs">
               {/* Supplier info */}
               <div className="p-3 bg-surface-neutral/60 border border-border rounded-sm flex flex-col gap-1.5">
-                <div className="text-[10px] uppercase font-bold text-text-muted flex items-center gap-1">
+                <div className="text-xs font-medium text-text-muted flex items-center gap-1">
                   <Building className="w-3 h-3 text-accent" />
                   Supplier
                 </div>
@@ -294,8 +278,8 @@ export const BillsList: React.FC = () => {
               </div>
 
               {/* Consequence Preview Banner */}
-              <div className="p-2.5 bg-accent/5 border border-accent/20 rounded-sm text-text-primary flex flex-col gap-1">
-                <span className="font-semibold text-[11px] text-accent uppercase tracking-wide flex items-center gap-1">
+              <div className="p-2.5 bg-surface-neutral border border-border rounded-md text-text-primary flex flex-col gap-1">
+                <span className="font-medium text-xs text-text-muted flex items-center gap-1">
                   <Coins className="w-3.5 h-3.5" />
                   How it is recorded
                 </span>
@@ -334,11 +318,11 @@ export const BillsList: React.FC = () => {
               {/* Key Dates & Currency */}
               <div className="grid grid-cols-2 gap-2 p-2.5 bg-surface-neutral/40 border border-border rounded-sm text-[11px]">
                 <div>
-                  <span className="text-text-muted block">Issue Date</span>
+                  <span className="text-text-muted block">Issue date</span>
                   <span className="font-mono text-text-primary font-medium">{selectedBill.issue_date}</span>
                 </div>
                 <div>
-                  <span className="text-text-muted block">Due Date</span>
+                  <span className="text-text-muted block">Due date</span>
                   <span className="font-mono text-text-primary font-medium">{selectedBill.due_date}</span>
                 </div>
                 <div>
@@ -366,7 +350,7 @@ export const BillsList: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setSignDialogOpen(true)}
-                    className="w-full h-8 bg-success hover:bg-success/90 text-white rounded-sm font-semibold transition flex items-center justify-center gap-1.5 shadow-xs"
+                    className="w-full h-8 bg-success hover:bg-success/90 text-white rounded-sm font-semibold transition flex items-center justify-center gap-1.5"
                   >
                     <CheckCircle2 className="w-3.5 h-3.5" />
                     <span>Approve bill</span>
@@ -376,7 +360,7 @@ export const BillsList: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => handleOpenTab(selectedBill)}
-                  className="w-full h-8 bg-accent hover:bg-accent-hover text-white rounded-sm font-semibold transition flex items-center justify-center gap-1.5 shadow-xs"
+                  className="w-full h-8 bg-accent hover:bg-accent-hover text-white rounded-md font-medium transition flex items-center justify-center gap-1.5"
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
                   <span>Open bill (Enter)</span>

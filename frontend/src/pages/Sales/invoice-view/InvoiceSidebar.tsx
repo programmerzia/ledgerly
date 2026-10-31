@@ -67,6 +67,8 @@ interface Props {
   journalLines: JournalPreviewLine[];
   coSlug: string;
   actions: InvoiceSidebarActions;
+  /** False for the person who created or submitted it (maker ≠ checker). */
+  canApprove: boolean;
 }
 
 const SectionTitle: React.FC<{ children: React.ReactNode; aside?: React.ReactNode }> = ({ children, aside }) => (
@@ -84,6 +86,7 @@ export const InvoiceSidebar: React.FC<Props> = ({
   journalLines,
   coSlug,
   actions,
+  canApprove,
 }) => {
   const [journalOpen, setJournalOpen] = useState(false);
   const [recurringOpen, setRecurringOpen] = useState(false);
@@ -122,7 +125,7 @@ export const InvoiceSidebar: React.FC<Props> = ({
           <div className="text-xs text-text-muted">{pay === 'paid' ? 'Total paid' : 'Amount due'}</div>
           <div
             className={cn(
-              'mt-1 text-3xl font-semibold tracking-tight tabular-nums',
+              'mt-1 text-[22px] leading-7 font-medium tabular-nums',
               pay === 'overdue' ? 'text-danger' : pay === 'paid' ? 'text-success' : 'text-text-primary'
             )}
           >
@@ -134,9 +137,9 @@ export const InvoiceSidebar: React.FC<Props> = ({
         </div>
         {posted && (
           <div>
-            <div className="h-2 rounded-full bg-surface-neutral overflow-hidden" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label="Paid">
+            <div className="h-2 rounded-[2px] bg-surface-neutral overflow-hidden" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label="Paid">
               <div
-                className={cn('h-full rounded-full transition-all duration-300', pct === 100 ? 'bg-success' : 'bg-accent')}
+                className={cn('h-full rounded-[2px] transition-all duration-150', pct === 100 ? 'bg-success' : 'bg-accent')}
                 style={{ width: `${pct}%` }}
               />
             </div>
@@ -154,10 +157,13 @@ export const InvoiceSidebar: React.FC<Props> = ({
               <Send className="size-4" /> Submit for approval
             </button>
           )}
-          {invoice.status === 'pending_approval' && (
+          {invoice.status === 'pending_approval' && canApprove && (
             <button type="button" onClick={actions.approve} className={cn(BTN_PRIMARY, 'flex-1')}>
               <CheckCircle2 className="size-4" /> Approve
             </button>
+          )}
+          {invoice.status === 'pending_approval' && !canApprove && (
+            <p className="flex-1 text-[13px] text-text-muted">Waiting for someone else to approve.</p>
           )}
           {posted && due > 0 && (
             <button type="button" onClick={actions.recordPayment} className={cn(BTN_PRIMARY, 'flex-1 whitespace-nowrap', pay === 'overdue' && 'basis-full')}>

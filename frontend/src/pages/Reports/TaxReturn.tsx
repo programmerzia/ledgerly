@@ -1,5 +1,4 @@
 import React, { useMemo, useState } from 'react';
-import { ArrowDownLeft, ArrowUpRight, Landmark } from 'lucide-react';
 import { useLedgerStore } from '@/mock/store';
 import { BUSINESS_TODAY } from '@/lib/docStatus';
 import { formatMoney } from '@/lib/format';
@@ -100,11 +99,9 @@ export const TaxReturn: React.FC = () => {
       subtitle={`${period?.name ?? ''} · Standard rate ${(taxCodes.find((t) => t.id === 'tax-vat5')?.rate ?? 0) * 100}%`}
     >
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <KpiCard icon={<ArrowUpRight />} tint="danger" label="VAT you charged customers" value={money(outputVat)} hint="Output VAT, owed to the tax authority" />
-        <KpiCard icon={<ArrowDownLeft />} tint="success" label="VAT you paid suppliers" value={money(inputVat)} hint="Input VAT, you can reclaim this" />
+        <KpiCard label="VAT you charged customers" value={money(outputVat)} hint="Output VAT, owed to the tax authority" />
+        <KpiCard label="VAT you paid suppliers" value={money(inputVat)} hint="Input VAT, you can reclaim this" />
         <KpiCard
-          icon={<Landmark />}
-          tint={refund ? 'success' : 'accent'}
           label={refund ? 'VAT refund due to you' : 'VAT to pay'}
           value={money(Math.abs(netPayable))}
           hint={refund ? 'You paid more VAT than you charged' : 'Charged minus paid'}
@@ -127,11 +124,11 @@ export const TaxReturn: React.FC = () => {
             {rows.map((r) => (
               <div key={r.id} className={`${GRID} items-baseline px-4 py-2 text-xs`}>
                 <span className="text-text-primary">{r.name}</span>
-                <span className="text-right font-mono tabular-nums text-text-secondary">{(r.rate * 100).toFixed(0)}%</span>
-                <span className="text-right font-mono tabular-nums">{money(r.salesNet)}</span>
-                <span className="text-right font-mono tabular-nums">{money(r.outputVat)}</span>
-                <span className="text-right font-mono tabular-nums">{money(r.purchasesNet)}</span>
-                <span className="text-right font-mono tabular-nums">{money(r.inputVat)}</span>
+                <span className="text-right tabular-nums text-text-secondary">{(r.rate * 100).toFixed(0)}%</span>
+                <span className="text-right tabular-nums">{money(r.salesNet)}</span>
+                <span className="text-right tabular-nums">{money(r.outputVat)}</span>
+                <span className="text-right tabular-nums">{money(r.purchasesNet)}</span>
+                <span className="text-right tabular-nums">{money(r.inputVat)}</span>
               </div>
             ))}
           </div>
@@ -140,24 +137,24 @@ export const TaxReturn: React.FC = () => {
               <span className="text-text-primary">Recorded without an invoice or bill</span>
               <span />
               <span />
-              <span className="text-right font-mono tabular-nums">{money(otherOutput)}</span>
+              <span className="text-right tabular-nums">{money(otherOutput)}</span>
               <span />
-              <span className="text-right font-mono tabular-nums">{money(otherInput)}</span>
+              <span className="text-right tabular-nums">{money(otherInput)}</span>
             </div>
           )}
-          <div className={`${GRID} items-baseline px-4 py-3 border-t-2 border-border bg-surface-neutral/50 text-[13px] font-semibold`}>
+          <div className={`${GRID} items-baseline px-4 py-3 border-t border-text-primary border-b-[3px] border-double text-[13px] font-semibold`}>
             <span className="text-text-primary">Total</span>
             <span />
-            <span className="text-right font-mono tabular-nums">{money(sum('salesNet'))}</span>
-            <span className="text-right font-mono tabular-nums">{money(outputVat)}</span>
-            <span className="text-right font-mono tabular-nums">{money(sum('purchasesNet'))}</span>
-            <span className="text-right font-mono tabular-nums">{money(inputVat)}</span>
+            <span className="text-right tabular-nums">{money(sum('salesNet'))}</span>
+            <span className="text-right tabular-nums">{money(outputVat)}</span>
+            <span className="text-right tabular-nums">{money(sum('purchasesNet'))}</span>
+            <span className="text-right tabular-nums">{money(inputVat)}</span>
           </div>
         </div>
       </ReportCard>
 
       <div className="text-xs text-text-muted px-1">
-        Withholding tax held from supplier payments, still to be paid over: <span className="font-mono font-medium text-text-primary">{money(whtOwed)}</span>. It is filed separately.
+        Withholding tax held from supplier payments, still to be paid over: <span className="tabular-nums font-medium text-text-primary">{money(whtOwed)}</span>. It is filed separately.
       </div>
     </ReportShell>
   );

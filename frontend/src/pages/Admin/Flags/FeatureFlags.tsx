@@ -8,16 +8,7 @@ import React, { useState } from 'react';
 import { useAdminStore } from '@/mock/store/adminStore';
 import { PennantFeatureFlag } from '@/types/admin';
 import { toast } from 'sonner';
-import {
-  Flag,
-  Percent,
-  CheckCircle2,
-  AlertTriangle,
-  Sliders,
-  ShieldAlert,
-  Search,
-  Building2,
-} from 'lucide-react';
+import { Search } from 'lucide-react';
 
 export const FeatureFlags: React.FC = () => {
   const { featureFlags, updateFeatureFlagRollout, toggleFeatureFlagTenantOverride, tenants } = useAdminStore();
@@ -41,9 +32,9 @@ export const FeatureFlags: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-border">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-lg font-bold tracking-tight">Pennant Feature Flags & Gating</h1>
-            <span className="px-2 py-0.5 rounded-full bg-violet-soft text-violet text-[10px] font-mono font-semibold">
-              {featureFlags.length} Defined Flags
+            <h1 className="text-xl font-semibold">Feature flags</h1>
+            <span className="px-2 py-0.5 rounded-[3px] bg-surface-neutral text-text-secondary text-[11px] font-medium">
+              {featureFlags.length} flags
             </span>
           </div>
           <p className="text-xs text-text-muted mt-0.5">
@@ -57,31 +48,31 @@ export const FeatureFlags: React.FC = () => {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search feature flags..."
-            className="h-8 pl-8 pr-3 w-56 text-xs bg-surface border border-border rounded-sm text-text-primary focus:outline-none focus:ring-1 focus:ring-accent"
+            placeholder="Search feature flags"
+            className="h-8 pl-8 pr-3 w-56 text-xs bg-surface border border-border rounded-md text-text-primary focus:outline-none focus:ring-1 focus:ring-accent"
           />
         </div>
       </div>
 
       {/* Feature Flags Table */}
-      <div className="rounded bg-surface border border-border divide-y divide-border/60 text-xs">
+      <div className="rounded-lg bg-surface border border-border divide-y divide-border/60 text-xs">
         {filteredFlags.map((flag) => {
           return (
             <div key={flag.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="space-y-1 max-w-xl">
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-sm text-text-primary">{flag.name}</span>
-                  <span className="font-mono text-[10px] text-violet bg-violet-soft px-1.5 py-0.2 rounded font-semibold">
+                  <span className="font-semibold text-sm text-text-primary">{flag.name}</span>
+                  <span className="font-mono text-[11px] text-text-secondary bg-surface-neutral px-1.5 py-px rounded font-semibold">
                     {flag.key}
                   </span>
                   {flag.rolloutPercentage === 0 && (
-                    <span className="font-mono text-[10px] text-danger bg-danger-soft px-1.5 py-0.2 rounded font-bold uppercase animate-pulse">
+                    <span className="font-mono text-[11px] text-danger bg-danger-soft px-1.5 py-px rounded font-semibold">
                       Disabled (0%)
                     </span>
                   )}
                 </div>
                 <p className="text-text-muted text-xs">{flag.description}</p>
-                <div className="text-[10px] font-mono text-text-muted">
+                <div className="text-[11px] font-mono text-text-muted">
                   Allowed Plans: {flag.planEntitlements.join(', ').toUpperCase()} • Overrides: {Object.keys(flag.tenantOverrides).length} Tenants
                 </div>
               </div>
@@ -101,7 +92,7 @@ export const FeatureFlags: React.FC = () => {
                     step="5"
                     value={flag.rolloutPercentage}
                     onChange={(e) => handleRolloutChange(flag.id, parseInt(e.target.value))}
-                    className="w-32 accent-violet cursor-pointer"
+                    className="w-32 accent-accent cursor-pointer"
                   />
                 </div>
 
@@ -109,7 +100,7 @@ export const FeatureFlags: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setSelectedFlagForOverrides(flag)}
-                  className="h-8 px-3 rounded border border-border hover:bg-surface-neutral font-medium text-xs cursor-pointer"
+                  className="h-8 px-3 rounded-md border border-border hover:bg-surface-neutral font-medium text-xs cursor-pointer"
                 >
                   Manage Overrides ({Object.keys(flag.tenantOverrides).length})
                 </button>
@@ -121,12 +112,12 @@ export const FeatureFlags: React.FC = () => {
 
       {/* Tenant Overrides Modal */}
       {selectedFlagForOverrides && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="w-full max-w-lg bg-surface border border-border rounded-lg shadow-xl p-5 space-y-4">
             <div className="flex items-center justify-between pb-2 border-b border-border">
               <div>
-                <h3 className="text-sm font-bold text-text-primary">Tenant Overrides: {selectedFlagForOverrides.name}</h3>
-                <span className="text-[10px] font-mono text-text-muted">{selectedFlagForOverrides.key}</span>
+                <h3 className="text-sm font-semibold text-text-primary">Tenant Overrides: {selectedFlagForOverrides.name}</h3>
+                <span className="text-[11px] font-mono text-text-muted">{selectedFlagForOverrides.key}</span>
               </div>
               <button
                 type="button"
@@ -150,7 +141,7 @@ export const FeatureFlags: React.FC = () => {
                   <div key={t.id} className="py-2 flex items-center justify-between">
                     <div>
                       <div className="font-semibold text-text-primary">{t.name}</div>
-                      <div className="text-[10px] font-mono text-text-muted">{t.slug} • {t.subscription.planCode}</div>
+                      <div className="text-[11px] font-mono text-text-muted">{t.slug} • {t.subscription.planCode}</div>
                     </div>
                     <button
                       type="button"
@@ -158,7 +149,7 @@ export const FeatureFlags: React.FC = () => {
                         toggleFeatureFlagTenantOverride(selectedFlagForOverrides.id, t.id, !isEnabled);
                         toast.success(`Override updated for ${t.name}`);
                       }}
-                      className={`h-6 px-2.5 rounded text-[11px] font-medium cursor-pointer transition ${
+                      className={`h-6 px-2.5 rounded-[3px] text-[11px] font-medium cursor-pointer transition ${
                         isEnabled ? 'bg-success text-white' : 'bg-surface-neutral text-text-muted'
                       }`}
                     >
@@ -173,7 +164,7 @@ export const FeatureFlags: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setSelectedFlagForOverrides(null)}
-                className="h-8 px-4 rounded bg-violet text-white text-xs font-semibold cursor-pointer shadow-xs"
+                className="h-8 px-4 rounded-md bg-accent text-white text-[13px] font-medium cursor-pointer"
               >
                 Done
               </button>

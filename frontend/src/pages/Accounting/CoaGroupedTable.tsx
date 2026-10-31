@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Search, CheckSquare, Square, ExternalLink, FileText, Copy, Download, Landmark, Scale, PiggyBank, TrendingUp, Receipt, type LucideIcon } from 'lucide-react';
+import { Search, CheckSquare, Square, ExternalLink, FileText, Copy, Download, type LucideIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Account } from '@/types';
@@ -49,18 +49,10 @@ export const typeBadgeClass = (type: string) => {
 };
 
 export const TypePill: React.FC<{ type: string }> = ({ type }) => (
-  <span className={cn('text-[11px] font-medium px-2 py-0.5 rounded-full border', typeBadgeClass(type))}>
+  <span className={cn('text-[11px] font-medium px-2 py-0.5 rounded-[3px] border', typeBadgeClass(type))}>
     {TYPE_LABEL[type] ?? type}
   </span>
 );
-
-const SECTION_ICON: Record<string, { icon: LucideIcon; tone: string }> = {
-  asset: { icon: Landmark, tone: 'bg-accent-soft text-accent' },
-  liability: { icon: Scale, tone: 'bg-warning-soft text-warning' },
-  equity: { icon: PiggyBank, tone: 'bg-violet-soft text-violet' },
-  income: { icon: TrendingUp, tone: 'bg-success-soft text-success' },
-  expense: { icon: Receipt, tone: 'bg-danger-soft text-danger' },
-};
 
 export interface CoaAction {
   label: string;
@@ -248,7 +240,7 @@ export const CoaGroupedTable: React.FC<Props> = ({
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-        <div className="flex items-center gap-1 bg-surface-neutral p-1 rounded-lg border border-border overflow-x-auto no-scrollbar flex-nowrap max-w-full">
+        <div className="flex items-center gap-1 bg-surface-neutral p-0.5 rounded-md overflow-x-auto no-scrollbar flex-nowrap max-w-full">
           {tabs.map((tab) => {
             const active = filterType === tab.value;
             return (
@@ -257,15 +249,15 @@ export const CoaGroupedTable: React.FC<Props> = ({
                 type="button"
                 onClick={() => setFilterType(tab.value)}
                 className={cn(
-                  'flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-md text-[13px] font-medium transition-colors shrink-0 whitespace-nowrap cursor-pointer',
-                  active ? 'bg-surface-elevated text-text-primary shadow-card font-semibold' : 'text-text-muted hover:text-text-primary'
+                  'flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-[4px] text-[13px] font-medium transition-colors shrink-0 whitespace-nowrap cursor-pointer',
+                  active ? 'bg-surface-elevated text-text-primary' : 'text-text-muted hover:text-text-primary'
                 )}
               >
                 <span>{tab.label}</span>
                 <span
                   className={cn(
-                    'text-[10px] px-1.5 rounded-full',
-                    active ? 'bg-accent-soft text-accent' : 'bg-surface-neutral text-text-secondary'
+                    'text-[11px] px-1.5 rounded-[3px]',
+                    active ? 'bg-surface-neutral text-text-primary' : 'text-text-muted'
                   )}
                 >
                   {tab.count}
@@ -285,16 +277,15 @@ export const CoaGroupedTable: React.FC<Props> = ({
               setFocusedIndex(0);
             }}
             placeholder="Search by code, name or type"
-            className="h-9 pl-8 pr-8 text-[13px] bg-surface border border-border rounded-lg text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 w-full sm:w-72"
+            className="h-8 pl-8 pr-8 text-[13px] bg-surface border border-border rounded-md text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 w-full sm:w-72"
           />
           <Kbd className="absolute right-2 pointer-events-none">/</Kbd>
         </div>
       </div>
 
       {selectedIds.size > 0 && (
-        <div className="flex items-center justify-between p-2.5 bg-surface-elevated border border-accent/40 rounded-md text-xs">
-          <span className="font-semibold text-accent flex items-center gap-1.5">
-            <CheckSquare className="w-4 h-4" />
+        <div className="flex items-center justify-between p-2.5 bg-surface-elevated border border-border-strong rounded-md text-xs">
+          <span className="font-semibold text-text-primary">
             {selectedIds.size} selected
           </span>
           <button
@@ -307,11 +298,11 @@ export const CoaGroupedTable: React.FC<Props> = ({
         </div>
       )}
 
-      <div className="border border-border rounded-xl bg-surface overflow-hidden shadow-card">
+      <div className="border border-border rounded-lg bg-surface overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-left text-xs">
             <thead>
-              <tr className="sticky top-0 z-10 bg-surface/95 backdrop-blur border-b border-border text-[11px] font-semibold text-text-muted">
+              <tr className="sticky top-0 z-10 bg-surface border-b border-border text-[11px] font-semibold text-text-muted">
                 <th className="w-8 px-2 h-8 text-center">
                   <button
                     type="button"
@@ -345,14 +336,11 @@ export const CoaGroupedTable: React.FC<Props> = ({
                   <tr className="bg-surface-neutral/70 border-y border-border">
                     <td colSpan={COLS} className="px-3 h-11">
                       <span className="flex items-center gap-2.5">
-                        <span className={cn('flex size-6 items-center justify-center rounded-md', SECTION_ICON[g.value].tone)}>
-                          {React.createElement(SECTION_ICON[g.value].icon, { className: 'size-3.5' })}
-                        </span>
                         <span className="text-[13px] font-semibold text-text-primary">{g.label}</span>
-                        <span className="rounded-full bg-surface px-1.5 text-[11px] font-medium text-text-muted ring-1 ring-inset ring-border">{g.rows.length}</span>
+                        <span className="rounded-[3px] bg-surface px-1.5 text-[11px] font-medium text-text-muted ring-1 ring-inset ring-border">{g.rows.length}</span>
                       </span>
                     </td>
-                    <td className="px-3 text-right font-mono text-[13px] font-bold tabular-nums text-text-primary">{fmt(g.subtotal)}</td>
+                    <td className="px-3 text-right text-[13px] font-semibold tabular-nums text-text-primary">{fmt(g.subtotal)}</td>
                     <td />
                   </tr>
                   {g.rows.map(({ account: a, amount }) => {
@@ -404,7 +392,7 @@ export const CoaGroupedTable: React.FC<Props> = ({
                               </button>
                             </td>
                             <td className="px-3 font-mono font-semibold text-accent whitespace-nowrap">{a.code}</td>
-                            <td className="px-3 font-medium text-text-primary whitespace-nowrap">{a.name}{!a.is_active && <span className="ml-2 rounded-full bg-surface-neutral px-2 py-0.5 text-[11px] font-medium text-text-muted">Inactive</span>}</td>
+                            <td className="px-3 font-medium text-text-primary whitespace-nowrap">{a.name}{!a.is_active && <span className="ml-2 rounded-[3px] bg-surface-neutral px-2 py-0.5 text-[11px] font-medium text-text-muted">Inactive</span>}</td>
                             <td className="px-3">
                               <TypePill type={a.account_type} />
                             </td>
@@ -412,7 +400,7 @@ export const CoaGroupedTable: React.FC<Props> = ({
                             <td className="px-3 text-text-muted">{cap(a.normal_balance)}</td>
                             <td className="px-3">
                               {needsBranch && (
-                                <span className="text-[11px] text-accent bg-accent-soft px-2 py-0.5 rounded-full font-medium whitespace-nowrap">
+                                <span className="text-[11px] text-accent bg-accent-soft px-2 py-0.5 rounded-[3px] font-medium whitespace-nowrap">
                                   Branch needed
                                 </span>
                               )}

@@ -8,18 +8,7 @@ import React, { useState } from 'react';
 import { useAdminStore } from '@/mock/store/adminStore';
 import { Coupon } from '@/types/admin';
 import { toast } from 'sonner';
-import {
-  Ticket,
-  Plus,
-  Search,
-  CheckCircle2,
-  Percent,
-  Calendar,
-  Users,
-  Briefcase,
-  Copy,
-  ExternalLink,
-} from 'lucide-react';
+import { Plus, Search, Percent, Briefcase, Copy } from 'lucide-react';
 
 export const CouponsList: React.FC = () => {
   const { coupons, createCoupon } = useAdminStore();
@@ -78,7 +67,7 @@ export const CouponsList: React.FC = () => {
 
   const handleCopyCode = (couponCode: string) => {
     navigator.clipboard.writeText(couponCode);
-    toast.success(`Coupon code ${couponCode} copied to clipboard!`);
+    toast.success(`Coupon code ${couponCode} copied`);
   };
 
   return (
@@ -87,9 +76,9 @@ export const CouponsList: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-border">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-lg font-bold tracking-tight">Coupons & Commercial Discounts</h1>
-            <span className="px-2 py-0.5 rounded-full bg-violet-soft text-violet text-[10px] font-mono font-semibold">
-              {coupons.length} Active Codes
+            <h1 className="text-xl font-semibold">Coupons and discounts</h1>
+            <span className="px-2 py-0.5 rounded-[3px] bg-surface-neutral text-text-secondary text-[11px] font-medium">
+              {coupons.length} active codes
             </span>
           </div>
           <p className="text-xs text-text-muted mt-0.5">
@@ -104,28 +93,28 @@ export const CouponsList: React.FC = () => {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search coupons..."
-              className="h-8 pl-8 pr-3 w-52 text-xs bg-surface border border-border rounded-sm text-text-primary focus:outline-none focus:ring-1 focus:ring-accent"
+              placeholder="Search coupons"
+              className="h-8 pl-8 pr-3 w-52 text-xs bg-surface border border-border rounded-md text-text-primary focus:outline-none focus:ring-1 focus:ring-accent"
             />
           </div>
 
           <button
             type="button"
             onClick={() => setShowCreateModal(true)}
-            className="h-8 px-3 rounded-sm bg-violet text-white hover:opacity-90 text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer shadow-xs"
+            className="h-8 px-3 rounded-md bg-accent text-white hover:bg-accent-hover text-[13px] font-medium flex items-center gap-1.5 transition cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>Create Coupon</span>
+            <span>Create coupon</span>
           </button>
         </div>
       </div>
 
       {/* 36px Dense Controls Table */}
-      <div className="rounded bg-surface border border-border overflow-hidden">
+      <div className="rounded-lg bg-surface border border-border overflow-hidden">
         <table className="w-full text-left text-xs border-collapse">
           <thead>
             <tr className="h-8 bg-surface-neutral/60 border-b border-border text-text-muted text-[11px] uppercase font-semibold">
-              <th className="px-3">Coupon Code</th>
+              <th className="px-3">Coupon code</th>
               <th className="px-3">Discount</th>
               <th className="px-3">Duration</th>
               <th className="px-3">Redemptions</th>
@@ -144,14 +133,13 @@ export const CouponsList: React.FC = () => {
               return (
                 <tr key={c.id} className="h-9 hover:bg-surface-neutral/50 transition-colors">
                   {/* Code */}
-                  <td className="px-3 font-mono font-bold text-violet flex items-center gap-1.5">
-                    <Ticket className="w-3.5 h-3.5 text-text-muted" />
+                  <td className="px-3 font-mono font-semibold text-text-secondary flex items-center gap-1.5">
                     <span>{c.code}</span>
                   </td>
 
                   {/* Discount */}
                   <td className="px-3 font-mono font-semibold text-text-primary">
-                    <span className="px-1.5 py-0.2 rounded bg-success-soft text-success text-[11px]">
+                    <span className="px-1.5 py-px rounded bg-success-soft text-success text-[11px]">
                       {discountText}
                     </span>
                   </td>
@@ -161,7 +149,7 @@ export const CouponsList: React.FC = () => {
 
                   {/* Redemptions */}
                   <td className="px-3 font-mono text-text-secondary">
-                    <span className={isExhausted ? 'text-danger font-bold' : ''}>
+                    <span className={isExhausted ? 'text-danger font-semibold' : ''}>
                       {c.timesRedeemed} / {c.maxRedemptions || '∞'}
                     </span>
                   </td>
@@ -179,7 +167,7 @@ export const CouponsList: React.FC = () => {
                   </td>
 
                   {/* Stripe ID */}
-                  <td className="px-3 font-mono text-[10px] text-text-muted truncate max-w-[120px]">
+                  <td className="px-3 font-mono text-[11px] text-text-muted truncate max-w-[120px]">
                     {c.stripeCouponId}
                   </td>
 
@@ -208,14 +196,14 @@ export const CouponsList: React.FC = () => {
 
       {/* Create Coupon Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <form
             onSubmit={handleCreateCoupon}
-            className="w-full max-w-md bg-surface border border-border rounded-lg shadow-xl p-5 space-y-4 animate-in fade-in zoom-in-95 duration-150"
+            className="w-full max-w-md bg-surface border border-border rounded-lg shadow-xl p-5 space-y-4"
           >
             <div className="flex items-center justify-between pb-2 border-b border-border">
-              <h3 className="text-sm font-bold text-text-primary">Create Promotional Coupon</h3>
-              <span className="text-[10px] font-mono text-violet">Stripe Sync</span>
+              <h3 className="text-sm font-semibold text-text-primary">Create promotional coupon</h3>
+              <span className="text-[11px] font-mono text-text-secondary">Stripe Sync</span>
             </div>
 
             <div className="space-y-3 text-xs">
@@ -227,17 +215,17 @@ export const CouponsList: React.FC = () => {
                   value={code}
                   onChange={(e) => setCode(e.target.value.toUpperCase())}
                   placeholder="e.g. Q4GROWTH30"
-                  className="w-full h-8 px-2.5 font-mono uppercase bg-surface border border-border rounded text-xs"
+                  className="w-full h-8 px-2.5 font-mono bg-surface border border-border rounded-md text-xs"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="font-semibold text-text-secondary block mb-1">Discount Type</label>
+                  <label className="font-semibold text-text-secondary block mb-1">Discount type</label>
                   <select
                     value={discountType}
                     onChange={(e) => setDiscountType(e.target.value as any)}
-                    className="w-full h-8 px-2 bg-surface border border-border rounded text-xs"
+                    className="w-full h-8 px-2 bg-surface border border-border rounded-md text-xs"
                   >
                     <option value="percent">Percent Off (%)</option>
                     <option value="amount">Fixed Amount ($)</option>
@@ -251,7 +239,7 @@ export const CouponsList: React.FC = () => {
                     max={discountType === 'percent' ? 100 : 1000}
                     value={discountValue}
                     onChange={(e) => setDiscountValue(parseInt(e.target.value) || 0)}
-                    className="w-full h-8 px-2.5 font-mono bg-surface border border-border rounded text-xs"
+                    className="w-full h-8 px-2.5 font-mono bg-surface border border-border rounded-md text-xs"
                   />
                 </div>
               </div>
@@ -262,7 +250,7 @@ export const CouponsList: React.FC = () => {
                   <select
                     value={duration}
                     onChange={(e) => setDuration(e.target.value as any)}
-                    className="w-full h-8 px-2 bg-surface border border-border rounded text-xs"
+                    className="w-full h-8 px-2 bg-surface border border-border rounded-md text-xs"
                   >
                     <option value="once">Once</option>
                     <option value="repeating">Repeating (Months)</option>
@@ -278,20 +266,20 @@ export const CouponsList: React.FC = () => {
                       max="24"
                       value={durationMonths}
                       onChange={(e) => setDurationMonths(parseInt(e.target.value) || 1)}
-                      className="w-full h-8 px-2.5 font-mono bg-surface border border-border rounded text-xs"
+                      className="w-full h-8 px-2.5 font-mono bg-surface border border-border rounded-md text-xs"
                     />
                   </div>
                 )}
               </div>
 
               <div>
-                <label className="font-semibold text-text-secondary block mb-1">Max Redemptions Limit</label>
+                <label className="font-semibold text-text-secondary block mb-1">Max redemptions limit</label>
                 <input
                   type="number"
                   min="1"
                   value={maxRedemptions}
                   onChange={(e) => setMaxRedemptions(parseInt(e.target.value) || 1)}
-                  className="w-full h-8 px-2.5 font-mono bg-surface border border-border rounded text-xs"
+                  className="w-full h-8 px-2.5 font-mono bg-surface border border-border rounded-md text-xs"
                 />
               </div>
 
@@ -302,7 +290,7 @@ export const CouponsList: React.FC = () => {
                   value={partnerAttribution}
                   onChange={(e) => setPartnerAttribution(e.target.value)}
                   placeholder="e.g. BDO Somalia or PwC East Africa"
-                  className="w-full h-8 px-2.5 bg-surface border border-border rounded text-xs"
+                  className="w-full h-8 px-2.5 bg-surface border border-border rounded-md text-xs"
                 />
               </div>
             </div>
@@ -311,13 +299,13 @@ export const CouponsList: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setShowCreateModal(false)}
-                className="h-8 px-3 rounded border border-border hover:bg-surface-neutral text-xs cursor-pointer"
+                className="h-8 px-3 rounded-md border border-border hover:bg-surface-neutral text-xs cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="h-8 px-4 rounded bg-violet text-white hover:opacity-90 text-xs font-semibold cursor-pointer shadow-xs"
+                className="h-8 px-4 rounded-md bg-accent text-white hover:bg-accent-hover text-[13px] font-medium cursor-pointer"
               >
                 Create & Mirror to Stripe
               </button>

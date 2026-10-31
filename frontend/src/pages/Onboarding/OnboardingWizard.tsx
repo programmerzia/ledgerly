@@ -1,23 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLedgerStore } from '@/mock/store';
-import {
-  Building2,
-  DollarSign,
-  BookOpen,
-  Landmark,
-  Layers,
-  Scale,
-  CheckCircle2,
-  ChevronRight,
-  ChevronLeft,
-  ArrowRight,
-  ShieldCheck,
-  AlertCircle,
-  Sparkles,
-} from 'lucide-react';
+import { Building2, DollarSign, BookOpen, Landmark, Layers, Scale, ChevronRight, ChevronLeft, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
-import { WizardStepper, StepIllustration } from './WizardStepper';
+import { WizardStepper } from './WizardStepper';
 
 interface StepItem {
   id: number;
@@ -96,22 +82,20 @@ export const OnboardingWizard: React.FC = () => {
     }, 600);
   };
 
-  const stepTone = (['accent', 'violet', 'accent', 'success', 'violet', 'success'] as const)[currentStep - 1];
   return (
     <div className="min-h-screen bg-surface-canvas flex flex-col py-6 px-4 sm:px-6">
       <div className="max-w-3xl mx-auto w-full mb-8">
         <div className="flex items-center justify-between pb-5">
           <div className="flex items-center gap-3">
-            <div className="flex size-9 items-center justify-center rounded-xl bg-brand text-sm font-bold text-white shadow-card">L</div>
             <div>
-              <h1 className="text-[15px] font-semibold tracking-tight text-text-primary">Set up your company</h1>
+              <h1 className="text-[15px] font-semibold text-text-primary">Set up your company</h1>
               <p className="text-xs text-text-muted">About 3 minutes · you can change everything later</p>
             </div>
           </div>
           <button
             type="button"
             onClick={() => navigate(`/${coSlug}/dashboard`)}
-            className="h-8 rounded-lg px-3 text-[13px] font-medium text-text-muted transition hover:bg-surface-neutral hover:text-text-primary cursor-pointer"
+            className="h-8 rounded-md px-3 text-[13px] font-medium text-text-muted transition-colors hover:bg-surface-neutral hover:text-text-primary cursor-pointer"
           >
             Skip for now
           </button>
@@ -119,13 +103,12 @@ export const OnboardingWizard: React.FC = () => {
         <WizardStepper steps={STEPS} current={currentStep} onSelect={setCurrentStep} />
       </div>
 
-      <div className="max-w-2xl mx-auto w-full rounded-2xl border border-border bg-surface p-7 shadow-card flex flex-col gap-6 ui-rise-in" key={currentStep}>
+      <div className="max-w-2xl mx-auto w-full rounded-lg border border-border bg-surface p-7 flex flex-col gap-6" key={currentStep}>
         <div>
-          <div className="flex items-center gap-4 mb-6">
-            <StepIllustration icon={STEPS[currentStep - 1].icon} tone={stepTone} />
+          <div className="mb-6">
             <div>
-              <div className="text-[11px] font-semibold uppercase tracking-wide text-text-muted">Step {currentStep} of {STEPS.length}</div>
-              <h2 className="text-xl font-semibold tracking-tight text-text-primary">{STEPS[currentStep - 1].title}</h2>
+              <div className="text-xs text-text-muted">Step {currentStep} of {STEPS.length}</div>
+              <h2 className="text-xl font-semibold text-text-primary">{STEPS[currentStep - 1].title}</h2>
               <p className="text-[13px] text-text-muted">{STEPS[currentStep - 1].subtitle}</p>
             </div>
           </div>
@@ -235,7 +218,7 @@ export const OnboardingWizard: React.FC = () => {
 
               <div
                 onClick={() => setSelectedTemplate('ifrs_standard')}
-                className={`p-4 rounded-xl border cursor-pointer transition flex items-start gap-3 ${
+                className={`p-4 rounded-lg border cursor-pointer transition flex items-start gap-3 ${
                   selectedTemplate === 'ifrs_standard'
                     ? 'border-accent bg-accent-soft text-text-primary'
                     : 'border-border bg-surface hover:bg-surface-neutral'
@@ -251,7 +234,7 @@ export const OnboardingWizard: React.FC = () => {
                 <div className="flex-1">
                   <div className="font-semibold text-text-primary flex items-center justify-between">
                     <span>Standard business (recommended)</span>
-                    <span className="text-[10px] font-mono bg-accent/10 text-accent px-1.5 py-0.5 rounded">38 Accounts</span>
+                    <span className="text-[10px] font-mono bg-surface-neutral text-text-secondary px-1.5 py-0.5 rounded-[3px]">38 accounts</span>
                   </div>
                   <p className="text-[11px] text-text-muted mt-1 leading-normal">
                     Preconfigured with 1000 Cash, 1200 AR Control, 2000 AP Control, 2100 VAT, 3000 Equity, 4000 Sales, 5000 COGS, and 6000 Operating Expenses.
@@ -261,7 +244,7 @@ export const OnboardingWizard: React.FC = () => {
 
               <div
                 onClick={() => setSelectedTemplate('telecom_isp')}
-                className={`p-4 rounded-xl border cursor-pointer transition flex items-start gap-3 ${
+                className={`p-4 rounded-lg border cursor-pointer transition flex items-start gap-3 ${
                   selectedTemplate === 'telecom_isp'
                     ? 'border-accent bg-accent-soft text-text-primary'
                     : 'border-border bg-surface hover:bg-surface-neutral'
@@ -277,7 +260,7 @@ export const OnboardingWizard: React.FC = () => {
                 <div className="flex-1">
                   <div className="font-semibold text-text-primary flex items-center justify-between">
                     <span>Telecom and tech services</span>
-                    <span className="text-[10px] font-mono bg-surface-neutral text-text-muted px-1.5 py-0.5 rounded">46 Accounts</span>
+                    <span className="text-[10px] font-mono bg-surface-neutral text-text-muted px-1.5 py-0.5 rounded">46 accounts</span>
                   </div>
                   <p className="text-[11px] text-text-muted mt-1 leading-normal">
                     Includes dedicated accounts for fiber infrastructure amortization, IP transit costs, bandwidth sales, and equipment depreciation.
@@ -287,7 +270,7 @@ export const OnboardingWizard: React.FC = () => {
 
               <div
                 onClick={() => setSelectedTemplate('ngo_grant')}
-                className={`p-4 rounded-xl border cursor-pointer transition flex items-start gap-3 ${
+                className={`p-4 rounded-lg border cursor-pointer transition flex items-start gap-3 ${
                   selectedTemplate === 'ngo_grant'
                     ? 'border-accent bg-accent-soft text-text-primary'
                     : 'border-border bg-surface hover:bg-surface-neutral'
@@ -303,7 +286,7 @@ export const OnboardingWizard: React.FC = () => {
                 <div className="flex-1">
                   <div className="font-semibold text-text-primary flex items-center justify-between">
                     <span>Non-profit with donor funds</span>
-                    <span className="text-[10px] font-mono bg-surface-neutral text-text-muted px-1.5 py-0.5 rounded">42 Accounts</span>
+                    <span className="text-[10px] font-mono bg-surface-neutral text-text-muted px-1.5 py-0.5 rounded">42 accounts</span>
                   </div>
                   <p className="text-[11px] text-text-muted mt-1 leading-normal">
                     Configured for restricted grant funds, USAID/UN fund tracking, program expense classification, and project dimensions.
@@ -455,7 +438,7 @@ export const OnboardingWizard: React.FC = () => {
             type="button"
             onClick={handleBack}
             disabled={currentStep === 1}
-            className="flex items-center gap-1.5 h-9 px-3.5 rounded-lg border border-border bg-surface hover:bg-surface-neutral text-[13px] font-medium text-text-primary transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+            className="flex items-center gap-1.5 h-8 px-3 rounded-md border border-border bg-surface hover:bg-surface-neutral text-[13px] font-medium text-text-primary transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
           >
             <ChevronLeft className="w-4 h-4" />
             <span>Back</span>
@@ -465,7 +448,7 @@ export const OnboardingWizard: React.FC = () => {
             type="button"
             disabled={isSubmitting}
             onClick={handleNext}
-            className="flex items-center gap-1.5 h-9 px-5 rounded-lg bg-accent hover:bg-accent-hover text-white text-[13px] font-semibold shadow-sm transition cursor-pointer disabled:opacity-60"
+            className="flex items-center gap-1.5 h-8 px-3 rounded-md bg-accent hover:bg-accent-hover text-white text-[13px] font-medium transition cursor-pointer disabled:opacity-60"
           >
             <span>{currentStep === 6 ? (isSubmitting ? 'Finishing…' : 'Finish setup') : 'Continue'}</span>
             <ChevronRight className="w-4 h-4" />

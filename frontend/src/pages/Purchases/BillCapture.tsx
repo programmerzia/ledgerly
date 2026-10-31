@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { CheckCircle2, FileUp, Sparkles, X } from 'lucide-react';
+import { CheckCircle2, FileUp, X } from 'lucide-react';
 import type { Contact } from '@/types';
 import { BUSINESS_TODAY } from '@/lib/docStatus';
 import { cn } from '@/lib/utils';
@@ -84,19 +84,17 @@ export const BillDropZone: React.FC<{ onFile: (file: File) => void }> = ({ onFil
         pick(e.dataTransfer.files?.[0]);
       }}
       className={cn(
-        'flex items-center gap-3 rounded-xl border border-dashed px-4 py-3 transition-colors',
-        over ? 'border-accent bg-accent-soft' : 'border-border-strong bg-surface/60'
+        'flex items-center gap-3 rounded-lg border border-dashed px-4 py-3 transition-colors',
+        over ? 'border-accent bg-surface-neutral' : 'border-border-strong bg-surface'
       )}
     >
-      <span className="grid size-9 place-items-center rounded-lg bg-accent-soft text-accent">
-        <FileUp className="size-4" />
-      </span>
+      <FileUp className="size-4 shrink-0 text-text-muted" />
       <div className="flex-1 text-[13px]">
         <span className="font-medium text-text-primary">Drop a bill PDF or photo, or </span>
         <button type="button" onClick={() => input.current?.click()} className="font-medium text-accent hover:underline">
           browse
         </button>
-        <div className="text-xs text-text-muted">We'll fill in what we can read. You check it before anything is saved.</div>
+        <div className="text-xs text-text-muted">Fields are read from the file. Check them before saving.</div>
       </div>
       <input
         ref={input}
@@ -132,10 +130,9 @@ export const BillExtractedPanel: React.FC<PanelProps> = ({ extraction: x, suppli
     ['reference', 'Reference', x.reference],
   ];
   return (
-    <section className="rounded-xl border border-accent/30 bg-accent-soft/40 p-4 flex flex-col gap-3" aria-label="Extracted from the bill">
+    <section className="rounded-lg border border-border bg-surface p-4 flex flex-col gap-3" aria-label="Extracted from the bill">
       <div className="flex items-center gap-2">
-        <Sparkles className="size-4 text-accent" />
-        <h3 className="text-sm font-semibold text-text-primary">Read from the bill — please check</h3>
+        <h3 className="text-sm font-semibold text-text-primary">Read from the bill: check before using</h3>
         <span className="text-xs text-text-muted truncate">from {x.fileName}</span>
         <button type="button" onClick={onDismiss} aria-label="Dismiss" className="ml-auto grid size-7 place-items-center rounded-md text-text-muted hover:bg-surface-neutral">
           <X className="size-4" />
@@ -146,7 +143,7 @@ export const BillExtractedPanel: React.FC<PanelProps> = ({ extraction: x, suppli
           <li key={field} className="rounded-lg bg-surface border border-border px-3 py-2">
             <div className="text-xs font-medium text-text-muted">{label}</div>
             <div className="truncate text-[13px] font-medium text-text-primary tabular-nums">{value}</div>
-            <span className={cn('mt-1 inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium', CHIP[x.confidence[field]])}>
+            <span className={cn('mt-1 inline-flex rounded-[3px] px-1.5 py-0.5 text-[11px] font-medium', CHIP[x.confidence[field]])}>
               {CHIP_LABEL[x.confidence[field]]}
             </span>
           </li>

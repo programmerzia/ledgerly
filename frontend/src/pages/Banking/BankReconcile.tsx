@@ -4,7 +4,7 @@ import { api } from '@/mock/api';
 import { useLedgerStore } from '@/mock/store';
 import { formatMoney, formatDate } from '@/lib/format';
 import { toast } from 'sonner';
-import { CheckCircle2, Sparkles, ShieldCheck, Check, Landmark, Link2, Wand2, Clock, Settings2 } from 'lucide-react';
+import { CheckCircle2, ShieldCheck, Check, Link2, Clock, Settings2 } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { CreateTab } from './reconcile/CreateTab';
 import type { BankRule, BankStatementLine } from '@/types';
@@ -215,31 +215,29 @@ export const BankReconcile: React.FC = () => {
     return () => window.removeEventListener('keydown', onKey);
   });
 
-  const paneCard = 'flex flex-col rounded-xl border border-border bg-surface shadow-card overflow-hidden';
+  const paneCard = 'flex flex-col rounded-lg border border-border bg-surface overflow-hidden';
   const rowBase = 'relative w-full text-left px-4 py-3 transition-colors duration-150 outline-none focus-visible:bg-accent-soft/50';
 
   return (
     <div className="flex flex-col gap-5">
       <PageHeader
         breadcrumb={[{ label: 'Bank & cash', to: `/${coSlug}/banking` }, { label: currentBank.name }]}
-        icon={<Landmark />}
         title="Reconcile bank account"
         subtitle="Pair each bank statement line with the matching entry in your books, until nothing is left over."
         actions={
           <>
             <Link
               to={`/${coSlug}/banking/rules`}
-              className="flex h-9 items-center gap-1.5 rounded-lg border border-border bg-surface px-3 text-[13px] font-medium text-text-secondary transition hover:bg-surface-neutral hover:text-text-primary"
+              className="flex h-8 items-center gap-1.5 rounded-md border border-border bg-surface px-3 text-[13px] font-medium text-text-secondary transition-colors hover:bg-surface-neutral hover:text-text-primary"
             >
-              <Settings2 className="size-4" />
+              <Settings2 className="size-4 text-text-muted" />
               Rules
             </Link>
             <button
               type="button"
               onClick={handleAcceptAll}
-              className="flex h-9 items-center gap-1.5 rounded-lg border border-border bg-surface px-3 text-[13px] font-medium text-text-secondary transition hover:bg-surface-neutral hover:text-text-primary"
+              className="flex h-8 items-center gap-1.5 rounded-md border border-border bg-surface px-3 text-[13px] font-medium text-text-secondary transition-colors hover:bg-surface-neutral hover:text-text-primary"
             >
-              <Sparkles className="size-4 text-accent" />
               Accept all suggested{suggestedCount > 0 ? ` (${suggestedCount})` : ''}
             </button>
             <Tooltip>
@@ -249,7 +247,7 @@ export const BankReconcile: React.FC = () => {
                     type="button"
                     disabled={!isDifferenceZero}
                     onClick={() => setIsFinishedModalOpen(true)}
-                    className="flex h-9 items-center gap-1.5 rounded-lg bg-success px-3.5 text-[13px] font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="flex h-8 items-center gap-1.5 rounded-md bg-success px-3 text-[13px] font-medium text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <CheckCircle2 className="size-4" />
                     Finish reconciliation
@@ -267,21 +265,19 @@ export const BankReconcile: React.FC = () => {
       />
 
       {/* Sticky progress header */}
-      <div className="sticky top-0 z-10 -mx-1 rounded-xl border border-border bg-surface/95 px-5 py-4 shadow-card backdrop-blur" data-testid="recon-progress">
+      <div className="sticky top-0 z-10 -mx-1 rounded-lg border border-border bg-surface px-5 py-4" data-testid="recon-progress">
         <div className="flex flex-wrap items-center gap-x-8 gap-y-3">
           <div>
             <div className="text-xs text-text-muted">Difference</div>
             <div
               className={cn(
-                'mt-0.5 flex items-center gap-2 text-2xl font-semibold tabular-nums tracking-tight',
+                'mt-0.5 flex items-center gap-2 text-[22px] leading-7 font-medium tabular-nums',
                 isDifferenceZero ? 'text-success' : 'text-text-primary'
               )}
             >
               {formatMoney(isDifferenceZero ? 0 : difference)}
               {isDifferenceZero ? (
-                <span className="ui-rise-in flex size-6 items-center justify-center rounded-full bg-success text-white">
-                  <Check className="size-4" />
-                </span>
+                <span className="text-xs font-normal text-success">Balanced</span>
               ) : (
                 <span className="text-xs font-normal text-text-muted">goal: $0.00</span>
               )}
@@ -294,9 +290,9 @@ export const BankReconcile: React.FC = () => {
               </span>
               <span className="tabular-nums">{progress}%</span>
             </div>
-            <div className="h-2 overflow-hidden rounded-full bg-surface-neutral">
+            <div className="h-1.5 overflow-hidden rounded-[2px] bg-surface-neutral">
               <div
-                className={cn('h-full rounded-full transition-all duration-500 ease-out', isDifferenceZero ? 'bg-success' : 'bg-accent')}
+                className={cn('h-full transition-all duration-150', isDifferenceZero ? 'bg-success' : 'bg-accent')}
                 style={{ width: `${progress}%` }}
               />
             </div>
@@ -327,17 +323,13 @@ export const BankReconcile: React.FC = () => {
         <section className={paneCard} aria-label="Bank statement lines">
           <div className="flex items-center justify-between border-b border-border px-4 py-3">
             <div className="flex items-center gap-2">
-              <span className="flex size-6 items-center justify-center rounded-full bg-accent-soft text-[11px] font-semibold text-accent">1</span>
               <h2 className="text-sm font-semibold text-text-primary">From your bank</h2>
-              <span className="rounded-full bg-warning-soft px-2 py-0.5 text-[11px] font-medium text-warning">{unmatchedStatementLines.length} to match</span>
+              <span className="rounded-[3px] bg-warning-soft px-2 py-0.5 text-[11px] font-medium text-warning">{unmatchedStatementLines.length} to match</span>
             </div>
           </div>
           <div className="max-h-[460px] divide-y divide-border overflow-y-auto">
             {unmatchedStatementLines.length === 0 && (
-              <div className="ui-rise-in flex flex-col items-center gap-2 px-4 py-12 text-center">
-                <span className="flex size-12 items-center justify-center rounded-full bg-success-soft text-success">
-                  <CheckCircle2 className="size-6" />
-                </span>
+              <div className="flex flex-col items-center gap-2 px-4 py-12 text-center">
                 <p className="text-sm font-semibold text-text-primary">Every statement line is matched</p>
                 <p className="text-xs text-text-muted">Difference is $0.00. You can finish the reconciliation.</p>
               </div>
@@ -346,7 +338,7 @@ export const BankReconcile: React.FC = () => {
               const isSelected = selectedStatementLineId === line.id;
               const rule = ruleSuggestionFor(line.id);
               return (
-                <div key={line.id} className={cn(isSelected ? 'bg-accent-soft/60' : 'hover:bg-surface-neutral/70')}>
+                <div key={line.id} className={cn(isSelected ? 'bg-surface-neutral' : 'hover:bg-canvas')}>
                 <button
                   type="button"
                   onClick={() => setSelectedStatementLineId(line.id)}
@@ -365,22 +357,20 @@ export const BankReconcile: React.FC = () => {
                     <span className="shrink-0 tabular-nums">{formatDate(line.txn_date)}</span>
                   </div>
                   {line.confidence && !rule && (
-                    <div className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-violet-soft px-2 py-0.5 text-[11px] font-medium text-violet">
-                      <Sparkles className="size-3" />
+                    <div className="mt-1.5 inline-flex items-center rounded-[3px] bg-surface-neutral px-1.5 py-0.5 text-[11px] font-medium text-text-secondary">
                       {line.confidence}% sure of a match
                     </div>
                   )}
                 </button>
                 {rule && (
                   <div className="flex items-center gap-2 px-4 pb-2.5">
-                    <span className="inline-flex min-w-0 items-center gap-1 rounded-full bg-violet-soft px-2 py-0.5 text-[11px] font-medium text-violet" data-testid="rule-chip">
-                      <Wand2 className="size-3 shrink-0" />
+                    <span className="inline-flex min-w-0 items-center gap-1 rounded-[3px] bg-surface-neutral px-1.5 py-0.5 text-[11px] font-medium text-text-secondary" data-testid="rule-chip">
                       <span className="truncate">Rule: {rule.name} → {accountLabel(rule.account_id)}</span>
                     </span>
                     <button
                       type="button"
                       onClick={() => acceptRule(line, rule)}
-                      className="ml-auto flex h-6 shrink-0 items-center gap-1 rounded-md bg-accent px-2 text-[11px] font-semibold text-white transition hover:bg-accent-hover"
+                      className="ml-auto flex h-6 shrink-0 items-center gap-1 rounded-md bg-accent px-2 text-[11px] font-medium text-white transition hover:bg-accent-hover"
                     >
                       <Check className="size-3" /> Accept
                     </button>
@@ -395,7 +385,7 @@ export const BankReconcile: React.FC = () => {
                   <span className="truncate">{line.counterparty}</span>
                   <Link
                     to={`/${coSlug}/journals/${line.pending_journal_id}`}
-                    className="inline-flex shrink-0 items-center gap-1 rounded-full bg-warning-soft px-2 py-0.5 text-[11px] font-medium text-warning hover:underline"
+                    className="inline-flex shrink-0 items-center gap-1 rounded-[3px] bg-warning-soft px-2 py-0.5 text-[11px] font-medium text-warning hover:underline"
                   >
                     <Clock className="size-3" /> Waiting for approval
                   </Link>
@@ -404,11 +394,9 @@ export const BankReconcile: React.FC = () => {
               </div>
             ))}
             {matchedStatementLines.map((line) => (
-              <div key={line.id} className="ui-rise-in flex items-center justify-between gap-3 bg-success-soft/30 px-4 py-2.5 text-xs">
+              <div key={line.id} className="flex items-center justify-between gap-3 bg-success-soft/30 px-4 py-2.5 text-xs">
                 <span className="flex items-center gap-2 truncate text-text-secondary">
-                  <span className="flex size-4 items-center justify-center rounded-full bg-success text-white">
-                    <Check className="size-3" />
-                  </span>
+                  <Check className="size-3.5 text-success" />
                   <span className="truncate">{line.counterparty}</span>
                 </span>
                 <span className="tabular-nums text-text-muted">{formatMoney(line.amount)}</span>
@@ -421,7 +409,6 @@ export const BankReconcile: React.FC = () => {
         <section className={paneCard} aria-label="Entries in your books">
           <div className="flex items-center justify-between border-b border-border px-4 py-3">
             <div className="flex items-center gap-2">
-              <span className="flex size-6 items-center justify-center rounded-full bg-accent-soft text-[11px] font-semibold text-accent">2</span>
               <h2 className="text-sm font-semibold text-text-primary">From your books</h2>
               <span className="text-xs text-text-muted">not yet on a statement</span>
             </div>
@@ -445,7 +432,7 @@ export const BankReconcile: React.FC = () => {
                   key={txn.id}
                   onClick={() => setSelectedBookTxnId(txn.id)}
                   aria-pressed={isSelected}
-                  className={cn(rowBase, isSelected ? 'bg-accent-soft/60' : 'hover:bg-surface-neutral/70')}
+                  className={cn(rowBase, isSelected ? 'bg-accent-soft/60' : 'hover:bg-canvas')}
                 >
                   {isSelected && <span className="absolute inset-y-0 left-0 w-0.5 bg-accent" />}
                   <div className="flex items-center justify-between gap-3">
@@ -464,7 +451,7 @@ export const BankReconcile: React.FC = () => {
                     <span className="shrink-0 tabular-nums">{formatDate(txn.date)}</span>
                   </div>
                   {exact && (
-                    <div className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-success-soft px-2 py-0.5 text-[11px] font-medium text-success">
+                    <div className="mt-1.5 inline-flex items-center gap-1 rounded-[3px] bg-success-soft px-2 py-0.5 text-[11px] font-medium text-success">
                       <Link2 className="size-3" />
                       Same amount as the selected line
                     </div>
@@ -482,7 +469,7 @@ export const BankReconcile: React.FC = () => {
             <button
               type="button"
               onClick={handleMatch}
-              className="flex h-9 items-center gap-1.5 rounded-lg bg-accent px-4 text-[13px] font-semibold text-white transition hover:bg-accent-hover"
+              className="flex h-8 items-center gap-1.5 rounded-md bg-accent px-3 text-[13px] font-medium text-white transition hover:bg-accent-hover"
             >
               <Check className="size-4" />
               Match
@@ -507,30 +494,30 @@ export const BankReconcile: React.FC = () => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-sm font-semibold">
               <ShieldCheck className="w-5 h-5 text-success" />
-              <span>Bank Reconciliation Audit Certification</span>
+              <span>Bank reconciliation certificate</span>
             </DialogTitle>
           </DialogHeader>
 
           <div className="flex flex-col gap-3 text-xs text-text-secondary ">
             <div className="p-4 bg-surface-neutral rounded-md border border-border flex flex-col gap-2">
               <div className="flex justify-between">
-                <span className="text-text-muted">Bank Account:</span>
+                <span className="text-text-muted">Bank account:</span>
                 <span className="font-semibold text-text-primary">{currentBank.name}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-text-muted">Statement Ending Date:</span>
+                <span className="text-text-muted">Statement end date:</span>
                 <span className="text-text-primary">2026-10-31</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-text-muted">Statement Ending Balance:</span>
+                <span className="text-text-muted">Statement end balance:</span>
                 <span className="font-semibold text-text-primary">{formatMoney(currentBank.last_statement_balance)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-text-muted">Adjusted Book Balance:</span>
+                <span className="text-text-muted">Adjusted book balance:</span>
                 <span className="font-semibold text-text-primary">{formatMoney(currentBank.last_statement_balance)}</span>
               </div>
-              <div className="flex justify-between pt-2 border-t border-border font-bold text-sm">
-                <span className="text-success font-sans">Final Variance:</span>
+              <div className="flex justify-between pt-2 border-t border-border font-semibold text-sm">
+                <span className="text-success font-sans">Final variance:</span>
                 <span className="text-success">$0.00 (Zero Difference)</span>
               </div>
             </div>
@@ -547,7 +534,7 @@ export const BankReconcile: React.FC = () => {
               onClick={() => setIsFinishedModalOpen(false)}
               className="px-3.5 py-1.5 rounded-sm border border-border hover:bg-surface-neutral text-xs font-medium text-text-secondary"
             >
-              Close View
+              Close
             </button>
             <button
               type="button"
@@ -563,7 +550,7 @@ export const BankReconcile: React.FC = () => {
                 toast.success('Reconciliation certified and sealed into audit log. BANK_REC check passed.');
                 navigate(`/${coSlug}/periods`);
               }}
-              className="px-4 py-1.5 rounded-sm bg-success hover:opacity-90 text-white text-xs font-semibold shadow-xs cursor-pointer"
+              className="px-4 py-1.5 rounded-sm bg-success hover:opacity-90 text-white text-xs font-semibold cursor-pointer"
             >
               Lock Reconciliation & View Periods
             </button>

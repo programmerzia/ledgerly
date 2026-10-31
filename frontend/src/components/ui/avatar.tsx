@@ -1,14 +1,8 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 
-const PALETTE = [
-  'bg-accent-soft text-accent',
-  'bg-violet-soft text-violet',
-  'bg-success-soft text-success',
-  'bg-warning-soft text-warning',
-  'bg-info-soft text-info',
-  'bg-danger-soft text-danger',
-];
+/** One neutral tone for everyone: colour is reserved for meaning (status, money), not decoration. */
+const TONE = 'bg-surface-neutral text-text-secondary ring-1 ring-inset ring-border';
 
 export function nameHash(name: string): number {
   let h = 0;
@@ -36,16 +30,16 @@ interface AvatarProps extends React.HTMLAttributes<HTMLSpanElement> {
   square?: boolean;
 }
 
-/** Initials avatar with a deterministic soft colour derived from the name. */
+/** Initials avatar. */
 export const Avatar = ({ name, size = 'md', square, className, ...props }: AvatarProps) => (
   <span
     aria-hidden="true"
     title={name}
     className={cn(
-      'inline-flex shrink-0 select-none items-center justify-center font-semibold',
-      square ? 'rounded-lg' : 'rounded-full',
+      'inline-flex shrink-0 select-none items-center justify-center font-medium',
+      square ? 'rounded-md' : 'rounded-full',
       SIZES[size],
-      PALETTE[nameHash(name) % PALETTE.length],
+      TONE,
       className
     )}
     {...props}

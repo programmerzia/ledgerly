@@ -85,7 +85,7 @@ export const BottomStatusBar: React.FC<StatusBarProps> = ({
         )}
 
         {activeSignature && signatureTimeRemaining && (
-          <span className="flex items-center gap-1 text-accent bg-accent-soft px-1.5 h-5 rounded-full shrink-0">
+          <span className="flex items-center gap-1 text-accent bg-accent-soft px-1.5 h-5 rounded-[3px] shrink-0">
             <ShieldCheck className="size-3 shrink-0" />
             <span>Signed <span className="tabular-nums">{signatureTimeRemaining}</span></span>
           </span>

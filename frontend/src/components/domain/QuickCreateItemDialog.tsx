@@ -153,7 +153,7 @@ export const QuickCreateItemDialog: React.FC<Props> = ({ open, onOpenChange, onC
             </button>
             <button
               type="submit"
-              className="h-8 px-4 rounded-sm bg-accent hover:bg-accent-hover text-white text-xs font-semibold"
+              className="h-8 px-3 rounded-md bg-accent hover:bg-accent-hover text-white text-[13px] font-medium"
             >
               Create item <Kbd className="ml-1 bg-white/20 border-white/30 text-white">↵</Kbd>
             </button>

@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLedgerStore } from '@/mock/store';
 import { formatMoney, formatDate } from '@/lib/format';
-import { Printer, ShieldCheck, CheckCircle2, XCircle, ArrowLeft } from 'lucide-react';
+import { Printer, CheckCircle2, XCircle, ArrowLeft } from 'lucide-react';
 import { PageHeader } from '@/components/domain/PageHeader';
 import { cn } from '@/lib/utils';
 import { amountDue } from '@/lib/docStatus';
@@ -10,9 +10,7 @@ import { amountDue } from '@/lib/docStatus';
 const Section: React.FC<{ n: number; title: string; children: React.ReactNode }> = ({ n, title, children }) => (
   <section className="flex flex-col gap-3 break-inside-avoid">
     <h3 className="flex items-center gap-2 border-b border-border pb-2 text-sm font-semibold text-text-primary">
-      <span className="flex size-5 items-center justify-center rounded-full bg-accent-soft text-[11px] font-semibold text-accent print:border print:border-border print:bg-transparent">
-        {n}
-      </span>
+      <span className="text-text-muted tabular-nums">{n}.</span>
       {title}
     </h3>
     {children}
@@ -53,14 +51,14 @@ export const ClosePack: React.FC = () => {
               <button
                 type="button"
                 onClick={() => navigate(`/${coSlug}/periods`)}
-                className="flex h-9 items-center gap-1.5 rounded-lg border border-border bg-surface px-3 text-[13px] font-medium text-text-secondary transition hover:bg-surface-neutral"
+                className="flex h-8 items-center gap-1.5 rounded-md border border-border bg-surface px-3 text-[13px] font-medium text-text-secondary transition hover:bg-surface-neutral"
               >
                 <ArrowLeft className="size-4" /> Back
               </button>
               <button
                 type="button"
                 onClick={() => window.print()}
-                className="flex h-9 items-center gap-1.5 rounded-lg bg-accent px-3.5 text-[13px] font-semibold text-white transition hover:bg-accent-hover"
+                className="flex h-8 items-center gap-1.5 rounded-md bg-accent px-3 text-[13px] font-medium text-white transition hover:bg-accent-hover"
               >
                 <Printer className="size-4" /> Print or save PDF
               </button>
@@ -69,14 +67,11 @@ export const ClosePack: React.FC = () => {
         />
       </div>
 
-      <article className="mx-auto flex w-full max-w-4xl flex-col gap-8 rounded-xl border border-border bg-surface px-6 py-8 shadow-card sm:px-12 sm:py-10 print:max-w-none print:border-0 print:p-0 print:shadow-none">
+      <article className="mx-auto flex w-full max-w-4xl flex-col gap-8 rounded-lg border border-border bg-surface px-6 py-8 sm:px-12 sm:py-10 print:max-w-none print:border-0 print:p-0 print:shadow-none">
         <header className="flex flex-wrap items-start justify-between gap-4 border-b border-border pb-6">
           <div className="flex items-center gap-3">
-            <span className="flex size-11 items-center justify-center rounded-xl bg-brand text-lg font-bold text-white">
-              {currentCompany.name.charAt(0).toUpperCase()}
-            </span>
             <div>
-              <h2 className="text-2xl font-semibold tracking-tight text-text-primary">Month-end close pack</h2>
+              <h2 className="text-xl font-semibold text-text-primary">Month-end close pack</h2>
               <p className="mt-0.5 text-[13px] text-text-muted">
                 {currentCompany.legal_name} · Tax ID {currentCompany.tax_id} · {cur}
               </p>
@@ -89,11 +84,10 @@ export const ClosePack: React.FC = () => {
             </div>
             <div
               className={cn(
-                'mt-2 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium',
+                'mt-2 inline-flex items-center gap-1.5 rounded-[3px] px-2 py-0.5 text-xs font-medium',
                 allPass ? 'bg-success-soft text-success' : 'bg-warning-soft text-warning'
               )}
             >
-              <ShieldCheck className="size-3.5" />
               {allPass ? 'All checks passed' : 'Some checks still open'}
             </div>
           </div>
@@ -155,7 +149,7 @@ export const ClosePack: React.FC = () => {
             ].map((c) => (
               <div key={c.label} className="rounded-lg border border-border p-4">
                 <div className="text-xs text-text-muted">{c.label}</div>
-                <div className="mt-1 text-2xl font-semibold tabular-nums tracking-tight text-text-primary">{money(c.value)}</div>
+                <div className="mt-1 text-[22px] leading-7 font-medium tabular-nums text-text-primary">{money(c.value)}</div>
                 {c.docs === c.value ? (
                   <div className="mt-2 flex items-center gap-1.5 text-xs font-medium text-success">
                     <CheckCircle2 className="size-3.5" /> Matches the {c.docsLabel} ({money(c.docs)})
@@ -174,15 +168,15 @@ export const ClosePack: React.FC = () => {
           <div className="grid gap-4 rounded-lg border border-border bg-surface-neutral/40 p-4 sm:grid-cols-3">
             <div>
               <div className="text-xs text-text-muted">Total debits</div>
-              <div className="mt-1 text-lg font-semibold tabular-nums text-text-primary">{money(totalDr)}</div>
+              <div className="mt-1 text-base font-medium tabular-nums text-text-primary">{money(totalDr)}</div>
             </div>
             <div>
               <div className="text-xs text-text-muted">Total credits</div>
-              <div className="mt-1 text-lg font-semibold tabular-nums text-text-primary">{money(totalCr)}</div>
+              <div className="mt-1 text-base font-medium tabular-nums text-text-primary">{money(totalCr)}</div>
             </div>
             <div>
               <div className="text-xs text-text-muted">Difference</div>
-              <div className={cn('mt-1 text-lg font-semibold tabular-nums', totalDr === totalCr ? 'text-success' : 'text-danger')}>
+              <div className={cn('mt-1 text-base font-medium tabular-nums', totalDr === totalCr ? 'text-success' : 'text-danger')}>
                 {money(totalDr - totalCr)}
               </div>
             </div>

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { AlertCircle, Check, Wand2 } from 'lucide-react';
+import { AlertCircle, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { useLedgerStore } from '@/mock/store';
 import { splitGross } from '@/mock/BankTransactions';
@@ -151,8 +151,8 @@ export const CreateTab: React.FC<Props> = ({ line, onDone }) => {
   return (
     <form ref={formRef} onSubmit={submit} className="flex flex-col gap-3 p-4" data-testid="create-tab">
       {rule && (
-        <div className="flex items-center gap-1.5 rounded-lg bg-violet-soft px-2.5 py-1.5 text-xs text-violet">
-          <Wand2 className="size-3.5" /> Filled in from rule "{rule.name}". Check it, then press Enter.
+        <div className="flex items-center gap-1.5 rounded-md bg-surface-neutral px-2.5 py-1.5 text-xs text-text-secondary">
+          Filled in from rule "{rule.name}". Check it, then press Enter.
         </div>
       )}
       <Segmented
@@ -248,7 +248,7 @@ export const CreateTab: React.FC<Props> = ({ line, onDone }) => {
         <button
           type="submit"
           disabled={busy}
-          className="ml-auto flex h-9 items-center gap-1.5 rounded-lg bg-accent px-4 text-[13px] font-semibold text-white transition hover:bg-accent-hover disabled:opacity-60"
+          className="ml-auto flex h-8 items-center gap-1.5 rounded-md bg-accent px-3 text-[13px] font-medium text-white transition hover:bg-accent-hover disabled:opacity-60"
         >
           <Check className="size-4" />
           Record {formatMoney(gross, currency)}

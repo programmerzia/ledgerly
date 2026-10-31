@@ -30,7 +30,7 @@ export const IncomeExpenseChart: React.FC<{ d: DashboardData; to: string; index:
         sub={`Monthly, in ${d.base}`}
         right={
           <div className="flex items-center gap-3 shrink-0">
-            <div role="tablist" aria-label="Range" className="inline-flex p-0.5 rounded-lg bg-surface-neutral">
+            <div role="tablist" aria-label="Range" className="inline-flex p-0.5 rounded-md border border-border">
               {RANGES.map((r) => (
                 <button
                   key={r.id}
@@ -38,7 +38,7 @@ export const IncomeExpenseChart: React.FC<{ d: DashboardData; to: string; index:
                   aria-selected={range === r.id}
                   type="button"
                   onClick={() => setRange(r.id)}
-                  className={`h-6 px-2.5 text-xs font-medium rounded-md cursor-pointer transition-colors ${range === r.id ? 'bg-surface text-text-primary shadow-sm' : 'text-text-muted hover:text-text-primary'}`}
+                  className={`h-6 px-2.5 text-xs rounded-[4px] cursor-pointer transition-colors ${range === r.id ? 'bg-surface-neutral text-text-primary font-medium' : 'text-text-muted hover:text-text-primary'}`}
                 >
                   {r.label}
                 </button>
@@ -49,9 +49,9 @@ export const IncomeExpenseChart: React.FC<{ d: DashboardData; to: string; index:
         }
       />
       <div className="px-5 flex items-center gap-4 text-xs text-text-secondary">
-        <span className="flex items-center gap-1.5"><span className="size-2 rounded-full bg-accent" />Income</span>
-        <span className="flex items-center gap-1.5"><span className="size-2 rounded-full bg-violet" />Expenses</span>
-        <span className="flex items-center gap-1.5"><span className="w-3 h-0.5 rounded bg-success" />Net profit</span>
+        <span className="flex items-center gap-1.5"><span className="size-2 rounded-[2px] bg-accent" />Income</span>
+        <span className="flex items-center gap-1.5"><span className="size-2 rounded-[2px] bg-text-muted/50" />Expenses</span>
+        <span className="flex items-center gap-1.5"><span className="w-3 h-px bg-text-primary" />Net profit</span>
       </div>
       {empty ? (
         <p className="text-xs text-text-muted py-16 text-center">No income or expenses recorded yet.</p>
@@ -59,13 +59,13 @@ export const IncomeExpenseChart: React.FC<{ d: DashboardData; to: string; index:
         <div className="h-72 px-3 pb-3 pt-2 text-xs">
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }} barGap={4} barCategoryGap="28%">
-              <CartesianGrid vertical={false} stroke="var(--color-border)" strokeDasharray="3 4" />
+              <CartesianGrid vertical={false} stroke="var(--color-border)" />
               <XAxis dataKey="label" tickLine={false} axisLine={false} fontSize={11} tick={{ fill: 'var(--color-text-muted)' }} />
               <YAxis tickLine={false} axisLine={false} width={44} fontSize={11} tick={{ fill: 'var(--color-text-muted)' }} tickFormatter={compact} />
               <Tooltip cursor={{ fill: 'var(--color-surface-neutral)', opacity: 0.6 }} content={<ChartTooltip currency={d.base} />} />
-              <Bar dataKey="income" name="Income" fill="var(--color-accent)" radius={[4, 4, 0, 0]} maxBarSize={22} isAnimationActive={false} />
-              <Bar dataKey="expenses" name="Expenses" fill="var(--color-violet)" fillOpacity={0.75} radius={[4, 4, 0, 0]} maxBarSize={22} isAnimationActive={false} />
-              <Line dataKey="net" name="Net profit" type="monotone" stroke="var(--color-success)" strokeWidth={2} dot={{ r: 3, fill: 'var(--color-surface)', strokeWidth: 2 }} isAnimationActive={false} />
+              <Bar dataKey="income" name="Income" fill="var(--color-accent)" radius={[1, 1, 0, 0]} maxBarSize={18} isAnimationActive={false} />
+              <Bar dataKey="expenses" name="Expenses" fill="var(--color-text-muted)" fillOpacity={0.4} radius={[1, 1, 0, 0]} maxBarSize={18} isAnimationActive={false} />
+              <Line dataKey="net" name="Net profit" type="monotone" stroke="var(--color-text-primary)" strokeWidth={1.5} dot={false} isAnimationActive={false} />
             </ComposedChart>
           </ResponsiveContainer>
         </div>

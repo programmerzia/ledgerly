@@ -138,30 +138,31 @@ export const ProfitAndLoss: React.FC = () => {
     colored,
   }) => (
     <>
-      <span className={`text-right font-mono ${strong ? 'font-semibold' : ''} ${colored ? tone(c) : 'text-text-primary'}`}>
+      <span className={`text-right tabular-nums ${strong ? 'font-semibold' : ''} ${colored ? tone(c) : 'text-text-primary'}`}>
         {money(c)}
       </span>
       {showCompare && (
         <>
-          <span className="text-right font-mono text-text-secondary">{money(prev)}</span>
-          <span className={`text-right font-mono ${colored ? tone(c - prev) : 'text-text-secondary'}`}>
+          <span className="text-right tabular-nums text-text-secondary">{money(prev)}</span>
+          <span className={`text-right tabular-nums ${colored ? tone(c - prev) : 'text-text-secondary'}`}>
             {money(c - prev)}
           </span>
-          <span className="text-right font-mono text-text-muted">{pct(c - prev, prev)}</span>
+          <span className="text-right tabular-nums text-text-muted">{pct(c - prev, prev)}</span>
         </>
       )}
     </>
   );
 
-  const TotalRow: React.FC<{ label: string; t: { current: number; previous: number }; note?: string; big?: boolean }> = ({
+  const TotalRow: React.FC<{ label: string; t: { current: number; previous: number }; note?: string; big?: boolean; final?: boolean }> = ({
     label,
     t,
     note,
     big,
+    final,
   }) => (
     <div
       className={`grid ${cols} gap-3 items-baseline px-2 py-2 border-t border-border font-semibold ${
-        big ? 'text-sm border-t-2 border-b-2 py-3 bg-surface-neutral/50' : 'text-xs'
+        final ? 'text-sm border-t border-text-primary border-b-[3px] border-double py-2.5' : big ? 'text-sm border-text-primary py-2.5' : 'text-xs'
       }`}
     >
       <span className="text-text-primary">
@@ -199,7 +200,7 @@ export const ProfitAndLoss: React.FC = () => {
               className={`grid ${cols} gap-3 items-baseline px-2 py-1.5 hover:bg-surface-neutral cursor-pointer group`}
             >
               <span className="text-text-primary group-hover:text-accent group-hover:underline">
-                <span className="font-mono text-text-muted mr-2">{l.account.code}</span>
+                <span className="font-code text-text-muted mr-2">{l.account.code}</span>
                 {l.account.name}
               </span>
               <Cells cur={l.current * s.flip} prev={l.previous * s.flip} />
@@ -233,7 +234,7 @@ export const ProfitAndLoss: React.FC = () => {
             aria-label="Period"
             value={period.id}
             onChange={(e) => setPeriodId(e.target.value)}
-            className="h-8 px-2 rounded-sm border border-border bg-surface text-xs text-text-primary focus:outline-none focus:border-accent"
+            className="h-8 px-2 rounded-md border border-border bg-surface text-xs text-text-primary focus:outline-none focus:border-accent"
           >
             {selectable.map((p) => (
               <option key={p.id} value={p.id}>
@@ -241,13 +242,13 @@ export const ProfitAndLoss: React.FC = () => {
               </option>
             ))}
           </select>
-          <div className="flex rounded-sm border border-border overflow-hidden text-xs" role="group" aria-label="Basis">
+          <div className="flex rounded-md border border-border overflow-hidden text-xs" role="group" aria-label="Basis">
             {(['month', 'ytd'] as const).map((b) => (
               <button
                 key={b}
                 type="button"
                 onClick={() => setBasis(b)}
-                className={`h-8 px-2.5 cursor-pointer ${basis === b ? 'bg-accent-soft text-accent font-semibold' : 'bg-surface text-text-secondary hover:bg-surface-neutral'}`}
+                className={`h-8 px-2.5 cursor-pointer ${basis === b ? 'bg-surface-neutral text-text-primary font-medium' : 'bg-surface text-text-secondary hover:bg-surface-neutral'}`}
               >
                 {b === 'month' ? 'Month' : 'Year to date'}
               </button>
@@ -269,7 +270,7 @@ export const ProfitAndLoss: React.FC = () => {
           <button
             type="button"
             onClick={() => window.print()}
-            className="flex items-center gap-1.5 h-8 px-3 rounded-sm border border-border hover:bg-surface-neutral bg-surface text-text-primary text-xs font-medium transition-colors"
+            className="flex items-center gap-1.5 h-8 px-3 rounded-md border border-border hover:bg-surface-neutral bg-surface text-text-primary text-[13px] font-medium transition-colors"
           >
             <Printer className="w-3.5 h-3.5" />
             <span>Print</span>
@@ -277,7 +278,7 @@ export const ProfitAndLoss: React.FC = () => {
           <button
             type="button"
             onClick={() => toast.success('Profit and loss exported')}
-            className="flex items-center gap-1.5 h-8 px-3 bg-accent hover:bg-accent-hover text-white rounded-sm text-xs font-semibold shadow-xs transition-colors"
+            className="flex items-center gap-1.5 h-8 px-3 bg-accent hover:bg-accent-hover text-white rounded-md text-[13px] font-medium transition-colors"
           >
             <Download className="w-3.5 h-3.5" />
             <span>Export</span>
@@ -285,7 +286,7 @@ export const ProfitAndLoss: React.FC = () => {
         </div>
       </div>
 
-      <div className="bg-surface border border-border rounded-md p-4 sm:p-6 w-full overflow-x-auto">
+      <div className="bg-surface border border-border rounded-lg p-4 sm:p-6 w-full overflow-x-auto">
         <div className="min-w-[520px]">
           <div className={`grid ${cols} gap-3 px-2 pb-2 border-b border-border text-[11px] font-semibold text-text-muted`}>
             <span>Account</span>
@@ -310,7 +311,7 @@ export const ProfitAndLoss: React.FC = () => {
           {renderSection(opex)}
           <TotalRow label="Operating profit" t={subtotals.operating} big />
           {renderSection(other)}
-          <TotalRow label="Net profit" t={subtotals.net} big />
+          <TotalRow label="Net profit" t={subtotals.net} big final />
         </div>
       </div>
     </div>

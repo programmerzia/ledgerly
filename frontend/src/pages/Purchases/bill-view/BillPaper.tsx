@@ -10,7 +10,7 @@ interface Props {
   company: Company;
 }
 
-const LABEL = 'text-[11px] font-semibold uppercase tracking-wide text-text-muted';
+const LABEL = 'text-xs font-semibold text-text-muted';
 
 /** The supplier bill rendered as a paper sheet, with the withholding tax line when present. */
 export const BillPaper: React.FC<Props> = ({ bill, contact, company }) => {
@@ -24,7 +24,7 @@ export const BillPaper: React.FC<Props> = ({ bill, contact, company }) => {
   return (
     <article
       aria-label={`Bill ${bill.number ?? bill.reference ?? 'draft'}`}
-      className="relative overflow-hidden rounded-xl bg-surface border border-border shadow-card px-6 py-8 sm:px-12 sm:py-12"
+      className="relative overflow-hidden rounded-lg bg-surface border border-border px-6 py-8 sm:px-12 sm:py-12"
     >
       {stamp && (
         <div
@@ -51,7 +51,7 @@ export const BillPaper: React.FC<Props> = ({ bill, contact, company }) => {
           {contact?.tax_id && <div className="text-xs text-text-muted mt-1">Tax ID {contact.tax_id}</div>}
         </div>
         <div className="text-right">
-          <h2 className="text-3xl font-semibold tracking-tight text-text-primary">{isDebit ? 'Debit note' : 'Supplier bill'}</h2>
+          <h2 className="text-3xl font-semibold text-text-primary">{isDebit ? 'Debit note' : 'Supplier bill'}</h2>
           <div className="mt-1 text-sm font-medium text-text-secondary tabular-nums">{bill.number ?? bill.reference ?? 'Draft'}</div>
         </div>
       </div>

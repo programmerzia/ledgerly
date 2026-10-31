@@ -6,7 +6,7 @@ import { Invoice } from '@/types';
 import { DataTable } from '@/components/domain/DataTable';
 import { StatusPill } from '@/components/domain/StatusPill';
 import { formatMoney, formatDate } from '@/lib/format';
-import { Plus, FileText, ExternalLink, Eye, CreditCard, Bell, Copy, Download, RotateCcw, Printer, Building, Repeat, Calendar, Layers, ShieldCheck, FileSpreadsheet } from 'lucide-react';
+import { Plus, ExternalLink, Eye, CreditCard, Bell, Copy, Download, RotateCcw, Printer, Repeat, Layers, ShieldCheck } from 'lucide-react';
 import { DocumentAuditTimeline } from '@/components/domain/DocumentAuditTimeline';
 import { SplitPane } from '@/components/domain/SplitPane';
 import { CoachPanel } from '@/components/domain/CoachPanel';
@@ -171,18 +171,17 @@ export const InvoicesList: React.FC = () => {
       <PageHeader
         title="Invoices"
         subtitle="Bill customers and track what's owed"
-        icon={<FileText />}
         actions={
           <>
           <button
             type="button"
             onClick={() => navigate(`/${coSlug}/invoices/recurring`)}
-            className="inline-flex items-center gap-1.5 h-9 px-3 rounded-lg border border-border hover:border-border-strong bg-surface hover:bg-surface-neutral text-text-primary text-[13px] font-medium transition-colors"
+            className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md border border-border hover:border-border-strong bg-surface hover:bg-surface-neutral text-text-primary text-[13px] font-medium transition-colors"
           >
             <Repeat className="size-4 text-text-muted" />
             <span>Recurring</span>
             {activeSchedules > 0 && (
-              <span className="min-w-5 h-5 px-1.5 grid place-items-center rounded-full bg-accent-soft text-accent text-[11px] font-semibold tabular-nums">
+              <span className="min-w-5 h-5 px-1.5 grid place-items-center rounded-[3px] bg-surface-neutral text-text-secondary text-[11px] font-medium tabular-nums">
                 {activeSchedules}
               </span>
             )}
@@ -190,7 +189,7 @@ export const InvoicesList: React.FC = () => {
           <button
             type="button"
             onClick={() => navigate(`/${coSlug}/invoices/new`)}
-            className="inline-flex items-center gap-1.5 h-9 px-3.5 bg-accent hover:bg-accent-hover text-white rounded-lg text-[13px] font-semibold shadow-xs transition-colors"
+            className="inline-flex items-center gap-1.5 h-8 px-3 bg-accent hover:bg-accent-hover text-white rounded-md text-[13px] font-medium transition-colors"
           >
             <Plus className="size-4" />
             <span>New invoice</span>
@@ -245,7 +244,6 @@ export const InvoicesList: React.FC = () => {
             ? `Customer: ${contacts.find((c) => c.id === selectedInvoice.contact_id)?.name || 'Customer'} • Issued ${formatDate(selectedInvoice.issue_date)}`
             : undefined
         }
-        icon={<FileSpreadsheet className="w-4 h-4" />}
         onOpenFull={() => {
           if (!selectedInvoice) return;
           const invId = selectedInvoice.id;
@@ -314,20 +312,20 @@ export const InvoicesList: React.FC = () => {
                   {/* Financial Snapshot */}
                   <div className="grid grid-cols-3 gap-2 p-3 rounded-md bg-surface-neutral/60 border border-border text-xs">
                     <div>
-                      <span className="text-[10px] text-text-muted uppercase tracking-wider block">Total</span>
-                      <span className="font-mono font-bold text-text-primary text-sm mt-0.5 block">
+                      <span className="text-xs text-text-muted block">Total</span>
+                      <span className="font-mono font-semibold text-text-primary text-sm mt-0.5 block">
                         {formatMoney(selectedInvoice.total, selectedInvoice.currency)}
                       </span>
                     </div>
                     <div>
-                      <span className="text-[10px] text-text-muted uppercase tracking-wider block">Paid</span>
+                      <span className="text-xs text-text-muted block">Paid</span>
                       <span className="font-mono font-semibold text-text-muted text-sm mt-0.5 block">
                         {formatMoney(selectedInvoice.settled, selectedInvoice.currency)}
                       </span>
                     </div>
                     <div>
-                      <span className="text-[10px] text-text-muted uppercase tracking-wider block">Amount due</span>
-                      <span className="font-mono font-bold text-accent text-sm mt-0.5 block">
+                      <span className="text-xs text-text-muted block">Amount due</span>
+                      <span className="font-mono font-semibold text-accent text-sm mt-0.5 block">
                         {formatMoney(selectedInvoice.total - selectedInvoice.settled, selectedInvoice.currency)}
                       </span>
                     </div>
@@ -337,7 +335,7 @@ export const InvoicesList: React.FC = () => {
                   <div className="flex flex-col gap-1.5">
                     <span className="text-xs font-semibold text-text-primary flex items-center gap-1.5">
                       <Layers className="w-3.5 h-3.5 text-text-muted" />
-                      Line Items ({selectedInvoice.lines.length})
+                      Line items ({selectedInvoice.lines.length})
                     </span>
                     <div className="border border-border rounded-md overflow-hidden bg-surface">
                       <table className="w-full text-left text-xs table-dense">
@@ -438,7 +436,7 @@ export const InvoicesList: React.FC = () => {
                     });
                     navigate(`/${coSlug}/invoices/${invId}`);
                   }}
-                  className="w-full h-8 bg-accent hover:bg-accent-hover text-white rounded-sm text-xs font-semibold shadow-xs transition flex items-center justify-center gap-1.5"
+                  className="w-full h-8 bg-accent hover:bg-accent-hover text-white rounded-md text-[13px] font-medium transition flex items-center justify-center gap-1.5"
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
                   <span>Open invoice (Enter)</span>

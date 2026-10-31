@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { CheckCircle2, Clock, AlertTriangle, Download, X, Play, RotateCcw } from 'lucide-react';
+import { Clock, Download, X, Play } from 'lucide-react';
 
 interface DemoStepMetric {
   id: number;
@@ -92,7 +92,7 @@ export const UsabilityTracker: React.FC = () => {
   const completedCount = steps.filter((s) => s.completed).length;
 
   return (
-    <div className="fixed bottom-8 right-6 w-96 bg-surface-elevated border border-line-border rounded-lg shadow-2xl p-4 z-50 flex flex-col gap-3 text-xs animate-in slide-in-from-bottom-4 duration-150">
+    <div className="fixed bottom-8 right-6 w-96 bg-surface-elevated border border-line-border rounded-lg shadow-lg p-4 z-50 flex flex-col gap-3 text-xs">
       {/* Header */}
       <div className="flex items-center justify-between pb-2 border-b border-line-border">
         <div className="flex items-center gap-2">
@@ -104,7 +104,7 @@ export const UsabilityTracker: React.FC = () => {
             type="button"
             onClick={exportMetricsJson}
             className="p-1 rounded text-ink-muted hover:text-ink-900 hover:bg-surface-neutral transition"
-            title="Export Telemetry JSON"
+            title="Export telemetry JSON"
           >
             <Download className="w-3.5 h-3.5" />
           </button>
@@ -112,7 +112,7 @@ export const UsabilityTracker: React.FC = () => {
             type="button"
             onClick={() => setIsVisible(false)}
             className="p-1 rounded text-ink-muted hover:text-ink-900 hover:bg-surface-neutral transition"
-            title="Close Panel (Ctrl+Shift+U)"
+            title="Close panel (Ctrl+Shift+U)"
           >
             <X className="w-3.5 h-3.5" />
           </button>
@@ -184,7 +184,7 @@ export const UsabilityTracker: React.FC = () => {
                     handleIncrementError(s.id);
                   }}
                   className="px-1 text-ink-muted hover:text-danger rounded hover:bg-surface-subtle"
-                  title="Record User Friction/Error"
+                  title="Record friction or error"
                 >
                   +err
                 </button>

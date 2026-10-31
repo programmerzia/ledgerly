@@ -33,7 +33,7 @@ export const StatusSummaryStrip: React.FC<Props> = ({ buckets, active, onChange,
         className={cn(
           'relative flex-1 min-w-[140px] text-left px-4 py-3 transition-colors duration-150 outline-none',
           'focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-inset',
-          isActive ? 'bg-accent-soft/60' : 'hover:bg-surface-neutral/70'
+          isActive ? 'bg-surface-neutral' : 'hover:bg-canvas'
         )}
       >
         <div className="flex items-center gap-1.5 text-xs font-medium text-text-secondary">
@@ -42,7 +42,7 @@ export const StatusSummaryStrip: React.FC<Props> = ({ buckets, active, onChange,
         </div>
         <div
           className={cn(
-            'mt-1 text-xl font-semibold tracking-tight tabular-nums',
+            'mt-1 text-xl font-medium tabular-nums',
             danger && (amount ?? 0) > 0 ? 'text-danger' : 'text-text-primary'
           )}
         >
@@ -63,7 +63,7 @@ export const StatusSummaryStrip: React.FC<Props> = ({ buckets, active, onChange,
 
   return (
     <div
-      className="flex flex-wrap rounded-xl border border-border bg-surface shadow-[var(--shadow-card,0_1px_2px_rgba(16,24,40,0.06))] overflow-hidden divide-x divide-border [&>button]:border-b [&>button]:border-border sm:[&>button]:border-b-0"
+      className="flex flex-wrap rounded-lg border border-border bg-surface overflow-hidden divide-x divide-border [&>button]:border-b [&>button]:border-border sm:[&>button]:border-b-0"
       role="group"
       aria-label="Filter by status"
     >

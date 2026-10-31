@@ -9,9 +9,9 @@ import {
 import { CLASSIFICATIONS } from './CoaGroupedTable';
 
 const inputCls =
-  'h-9 w-full px-3 rounded-lg border border-border bg-surface text-[13px] text-text-primary transition focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20';
-const btnGhost = 'h-9 px-3.5 rounded-lg border border-border bg-surface hover:bg-surface-neutral text-[13px] font-medium text-text-primary cursor-pointer';
-const btnPrimary = 'h-9 px-4 rounded-lg bg-accent hover:bg-accent-hover text-white text-[13px] font-semibold shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed';
+  'h-8 w-full px-3 rounded-md border border-border bg-surface text-[13px] text-text-primary transition focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20';
+const btnGhost = 'h-8 px-3 rounded-md border border-border bg-surface hover:bg-surface-neutral text-[13px] font-medium text-text-primary cursor-pointer';
+const btnPrimary = 'h-8 px-4 rounded-md bg-accent hover:bg-accent-hover text-white text-[13px] font-medium cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed';
 
 const Row: React.FC<{ label: string; hint?: string; children: React.ReactNode }> = ({ label, hint, children }) => (
   <label className="flex flex-col gap-1.5">
@@ -168,7 +168,7 @@ export const DeactivateAccountDialog: React.FC<{ account: Account | null; onClos
               toast.success(`${account.code} ${account.name} deactivated`);
               onClose();
             }}
-            className="h-9 px-4 rounded-lg bg-danger text-white text-[13px] font-semibold shadow-sm cursor-pointer hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="h-8 px-4 rounded-md bg-danger text-white text-[13px] font-medium cursor-pointer hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Deactivate
           </button>

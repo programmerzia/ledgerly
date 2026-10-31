@@ -1,5 +1,5 @@
 /**
- * Keyboard Shortcuts Overlay ('?') per 08_Mock_Refactor_Prompt.md Block C.1,
+ * Keyboard shortcuts Overlay ('?') per 08_Mock_Refactor_Prompt.md Block C.1,
  * rebuilt using Radix Dialog primitive per 09_Mock_Polish_Prompt.md Block 1.
  */
 
@@ -50,13 +50,13 @@ export const ShortcutsOverlay: React.FC = () => {
       { id: 'f2', key: 'f2', description: 'Edit selected cell', scope: 'grid', action: () => {} },
     ],
     'General & Windows': [
-      { id: 'ctrl-k', key: 'ctrl+k', description: 'Open Command Palette', scope: 'global', action: () => {} },
+      { id: 'ctrl-k', key: 'ctrl+k', description: 'Open command palette', scope: 'global', action: () => {} },
       { id: 'ctrl-w', key: 'ctrl+w', description: 'Close active document tab', scope: 'global', action: () => {} },
       { id: 'ctrl-tab', key: 'ctrl+tab', description: 'Switch to next document tab', scope: 'global', action: () => {} },
-      { id: 'ctrl-shift-d', key: 'ctrl+shift+d', description: 'Toggle Dark / Light mode', scope: 'global', action: () => {} },
+      { id: 'ctrl-shift-d', key: 'ctrl+shift+d', description: 'Toggle dark or light mode', scope: 'global', action: () => {} },
       { id: 'bracket', key: '[', description: 'Toggle navigation sidebar', scope: 'global', action: () => {} },
       { id: 'shift-f', key: 'shift+f', description: 'Toggle full screen', scope: 'global', action: () => {} },
-      { id: 'ctrl-comma', key: 'ctrl+,', description: 'Open Settings', scope: 'global', action: () => {} },
+      { id: 'ctrl-comma', key: 'ctrl+,', description: 'Open settings', scope: 'global', action: () => {} },
       { id: 'esc', key: 'Esc', description: 'Close modal, drawer, or tab', scope: 'global', action: () => {} },
       { id: 'question', key: '?', description: 'Toggle this keyboard shortcut guide', scope: 'global', action: () => {} },
     ],
@@ -69,7 +69,7 @@ export const ShortcutsOverlay: React.FC = () => {
         <DialogHeader className="px-5 py-3 border-b border-border bg-surface-neutral/40">
           <DialogTitle className="flex items-center gap-2 text-sm font-semibold text-text-primary">
             <Keyboard className="w-4 h-4 text-accent" />
-            <span>Keyboard Shortcuts</span>
+            <span>Keyboard shortcuts</span>
             
           </DialogTitle>
         </DialogHeader>
@@ -78,7 +78,7 @@ export const ShortcutsOverlay: React.FC = () => {
         <div className="p-5 max-h-[70vh] overflow-y-auto space-y-5 text-xs">
           {Object.entries(groups).map(([groupTitle, list]) => (
             <div key={groupTitle}>
-              <h4 className="text-[11px] font-semibold tracking-wider uppercase text-text-muted mb-2">
+              <h4 className="text-xs font-semibold text-text-muted mb-2">
                 {groupTitle}
               </h4>
               <div className="grid grid-cols-2 gap-x-6 gap-y-2">
@@ -89,7 +89,7 @@ export const ShortcutsOverlay: React.FC = () => {
                       {item.key.split(' ').map((token, idx) => (
                         <kbd
                           key={idx}
-                          className="px-1.5 h-5 min-w-5 inline-flex items-center justify-center font-sans text-[11px] font-medium bg-surface-neutral text-text-primary border border-border rounded-md shadow-sm"
+                          className="px-1.5 h-5 min-w-5 inline-flex items-center justify-center font-sans text-[11px] font-medium bg-surface-neutral text-text-primary border border-border rounded-md"
                         >
                           {token}
                         </kbd>

@@ -10,11 +10,8 @@ import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip
  * regardless of which theme is currently active, so the values are mirrored from index.css.
  */
 const PREVIEWS: { id: string; label: string; canvas: string; surface: string; sidebar: string; border: string; text: string; muted: string; accent: string }[] = [
-  { id: 'light', label: 'Light', canvas: '#F7F8FA', surface: '#FFFFFF', sidebar: '#FBFBFC', border: '#E6E8EC', text: '#111827', muted: '#D5D9E0', accent: '#2F5BEA' },
-  { id: 'dark', label: 'Dark', canvas: '#0B0F17', surface: '#111827', sidebar: '#0E131C', border: '#1F2937', text: '#F3F4F6', muted: '#2B3647', accent: '#6D8CF5' },
-  { id: 'midnight', label: 'Midnight', canvas: '#070D1E', surface: '#0E172E', sidebar: '#091124', border: '#1E2E50', text: '#F0F4FC', muted: '#2A3E6D', accent: '#3B82F6' },
-  { id: 'forest', label: 'Forest', canvas: '#07130C', surface: '#0E2015', sidebar: '#09170E', border: '#1F4530', text: '#F0FDF4', muted: '#2A5C41', accent: '#10B981' },
-  { id: 'sepia', label: 'Sepia', canvas: '#F8F5EE', surface: '#FFFFFF', sidebar: '#F4EFE6', border: '#E2D7C5', text: '#292218', muted: '#CEBEA7', accent: '#B45309' },
+  { id: 'light', label: 'Light', canvas: '#F6F5F1', surface: '#FFFFFF', sidebar: '#F1EFEA', border: '#E2DFD7', text: '#1C1B18', muted: '#CBC7BC', accent: '#2350B8' },
+  { id: 'dark', label: 'Dark', canvas: '#161614', surface: '#1D1D1A', sidebar: '#191917', border: '#33322E', text: '#ECEAE4', muted: '#46453F', accent: '#86A3E6' },
 ];
 
 const DENSITIES: [UIRowDensity, string][] = [['compact', 'Compact'], ['default', 'Default'], ['comfortable', 'Comfortable']];
@@ -39,9 +36,9 @@ export const ThemeSwitcher: React.FC<Props> = ({ currentTheme, isDark, applyThem
       </TooltipTrigger>
       <TooltipContent shortcut="Ctrl+Shift+D">Theme</TooltipContent>
     </Tooltip>
-    <PopoverContent align="end" sideOffset={8} className="w-[328px] p-3 rounded-xl shadow-lg">
+    <PopoverContent align="end" sideOffset={8} className="w-[260px] p-3 shadow-lg">
       <div className="text-[11px] font-semibold uppercase tracking-wide text-text-muted mb-2">Appearance</div>
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-2 gap-2">
         {PREVIEWS.map((t) => {
           const active = currentTheme === t.id;
           return (

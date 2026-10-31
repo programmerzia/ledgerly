@@ -103,7 +103,7 @@ export const BillSidebar: React.FC<Props> = ({ bill, contact, supplierBalance, p
           <div className="text-xs text-text-muted">{pay === 'paid' ? 'Total paid' : 'Amount to pay'}</div>
           <div
             className={cn(
-              'mt-1 text-3xl font-semibold tracking-tight tabular-nums',
+              'mt-1 text-[22px] leading-7 font-medium tabular-nums',
               pay === 'overdue' ? 'text-danger' : pay === 'paid' ? 'text-success' : 'text-text-primary'
             )}
           >
@@ -113,8 +113,8 @@ export const BillSidebar: React.FC<Props> = ({ bill, contact, supplierBalance, p
         </div>
         {posted && (
           <div>
-            <div className="h-2 rounded-full bg-surface-neutral overflow-hidden" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label="Paid">
-              <div className={cn('h-full rounded-full transition-all duration-300', pct === 100 ? 'bg-success' : 'bg-accent')} style={{ width: `${pct}%` }} />
+            <div className="h-2 rounded-[2px] bg-surface-neutral overflow-hidden" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label="Paid">
+              <div className={cn('h-full rounded-[2px] transition-all duration-150', pct === 100 ? 'bg-success' : 'bg-accent')} style={{ width: `${pct}%` }} />
             </div>
             <div className="mt-1.5 flex justify-between text-xs text-text-muted tabular-nums">
               <span>{formatMoney(bill.settled, bill.currency)} paid</span>

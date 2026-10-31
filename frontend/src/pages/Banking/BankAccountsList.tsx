@@ -9,7 +9,6 @@ import {
   ArrowRight,
   Plus,
   ArrowLeftRight,
-  Wand2,
 } from 'lucide-react';
 import { PageHeader } from '@/components/domain/PageHeader';
 import { BankAccountCard } from './BankAccountCard';
@@ -99,30 +98,28 @@ export const BankAccountsList: React.FC = () => {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        icon={<CreditCard />}
         title="Bank & cash accounts"
         subtitle={`${currentCompany.name} · balances, statements and reconciliation`}
         actions={
           <>
             <Link
               to={`/${coSlug}/banking/rules`}
-              className="flex h-9 items-center gap-1.5 rounded-lg border border-border bg-surface px-3 text-[13px] font-medium text-text-secondary transition hover:bg-surface-neutral hover:text-text-primary"
+              className="flex h-8 items-center gap-1.5 rounded-md border border-border bg-surface px-3 text-[13px] font-medium text-text-secondary transition-colors hover:bg-surface-neutral hover:text-text-primary"
             >
-              <Wand2 className="size-4 text-accent" />
               Rules
             </Link>
             <button
               type="button"
               onClick={() => setIsTransferModalOpen(true)}
-              className="flex h-9 items-center gap-1.5 rounded-lg border border-border bg-surface px-3 text-[13px] font-medium text-text-secondary transition hover:bg-surface-neutral hover:text-text-primary"
+              className="flex h-8 items-center gap-1.5 rounded-md border border-border bg-surface px-3 text-[13px] font-medium text-text-secondary transition-colors hover:bg-surface-neutral hover:text-text-primary"
             >
-              <ArrowLeftRight className="size-4 text-accent" />
+              <ArrowLeftRight className="size-4 text-text-muted" />
               Transfer money
             </button>
             <button
               type="button"
               onClick={handleOpenAddModal}
-              className="flex h-9 items-center gap-1.5 rounded-lg bg-accent px-3.5 text-[13px] font-semibold text-white transition hover:bg-accent-hover"
+              className="flex h-8 items-center gap-1.5 rounded-md bg-accent px-3 text-[13px] font-medium text-white transition hover:bg-accent-hover"
             >
               <Plus className="size-4" />
               Add account
@@ -139,19 +136,19 @@ export const BankAccountsList: React.FC = () => {
           {
             title: '1. Connect or Add Bank Account',
             desc: 'Configure operating, savings, or petty cash accounts mapped to GL 1010-1090.',
-            actionLabel: 'Add Account',
+            actionLabel: 'Add account',
             onAction: handleOpenAddModal,
           },
           {
             title: '2. Import Statement Feeds',
             desc: 'Upload CSV/OFX statement lines or fetch real-time bank transactions.',
-            actionLabel: 'Reconcile Feed',
+            actionLabel: 'Reconcile feed',
             onAction: () => navigate(`/${coSlug}/banking/reconcile`),
           },
           {
             title: '3. Zero-Difference Reconciliation',
             desc: 'Match statement lines against ledger receipts and payments until Difference = 0.',
-            actionLabel: 'Start Reconcile',
+            actionLabel: 'Start reconciling',
             onAction: () => navigate(`/${coSlug}/banking/reconcile`),
           },
         ]}
@@ -179,14 +176,14 @@ export const BankAccountsList: React.FC = () => {
             <div className="flex flex-col gap-5">
               <SheetHeader className="border-b border-border pb-4">
                 <div className="flex items-center gap-2">
-                  <span className="font-mono text-xs font-bold text-accent bg-accent-soft px-2 py-0.5 rounded">
+                  <span className="font-mono text-xs font-semibold text-text-secondary bg-surface-neutral px-1.5 py-0.5 rounded-[3px]">
                     {selectedBank.currency}
                   </span>
-                  <span className="text-[11px] font-semibold text-text-muted uppercase tracking-wider">
+                  <span className="text-xs font-semibold text-text-muted">
                     Operating Bank Feed
                   </span>
                 </div>
-                <SheetTitle className="text-xl font-bold text-text-primary mt-1">
+                <SheetTitle className="text-base font-semibold text-text-primary mt-1">
                   {selectedBank.name}
                 </SheetTitle>
                 <SheetDescription className="text-xs text-text-muted">
@@ -197,18 +194,18 @@ export const BankAccountsList: React.FC = () => {
               {/* Balances Card */}
               <div className="grid grid-cols-2 gap-3 p-3.5 rounded-md bg-surface-neutral/60 border border-border font-mono text-xs">
                 <div>
-                  <span className="text-[10px] text-text-muted uppercase font-sans font-medium block">
-                    Current Book Balance
+                  <span className="text-xs text-text-muted font-sans font-medium block">
+                    Current book balance
                   </span>
-                  <div className="font-bold text-text-primary text-base mt-1">
+                  <div className="font-semibold text-text-primary text-base mt-1">
                     {formatMoney(balanceOf(selectedBank.account_id), selectedBank.currency)}
                   </div>
                 </div>
                 <div>
-                  <span className="text-[10px] text-text-muted uppercase font-sans font-medium block">
-                    Last Statement Balance
+                  <span className="text-xs text-text-muted font-sans font-medium block">
+                    Last statement balance
                   </span>
-                  <div className="font-bold text-text-primary text-base mt-1">
+                  <div className="font-semibold text-text-primary text-base mt-1">
                     {formatMoney(selectedBank.last_statement_balance, selectedBank.currency)}
                   </div>
                 </div>
@@ -217,8 +214,8 @@ export const BankAccountsList: React.FC = () => {
               {/* Statement Feeds Stream */}
               <div className="flex flex-col gap-2">
                 <span className="text-xs font-semibold text-text-primary flex items-center justify-between">
-                  <span>Recent Statement Lines ({bankLines.length})</span>
-                  <span className="text-[11px] text-text-muted">Direct Electronic Bank Feed</span>
+                  <span>Recent statement lines ({bankLines.length})</span>
+                  <span className="text-[11px] text-text-muted">Bank feed</span>
                 </span>
 
                 <div className="border border-border rounded-md overflow-hidden bg-surface">
@@ -277,9 +274,9 @@ export const BankAccountsList: React.FC = () => {
                   setSelectedBankId(null);
                   navigate(`/${coSlug}/banking/${bId}/reconcile`);
                 }}
-                className="flex items-center gap-1.5 h-8 px-3.5 bg-accent hover:bg-accent-hover text-white rounded-sm text-xs font-semibold shadow-xs transition"
+                className="flex items-center gap-1.5 h-8 px-3 bg-accent hover:bg-accent-hover text-white rounded-md text-[13px] font-medium transition"
               >
-                <span>Open Reconciliation Workspace</span>
+                <span>Open reconciliation</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </SheetFooter>
@@ -332,7 +329,7 @@ export const BankAccountsList: React.FC = () => {
 
               <div className="flex flex-col gap-1">
                 <label className="text-[11px] font-medium text-text-secondary">
-                  Account Number (Last 4)
+                  Account number (last 4)
                 </label>
                 <input
                   type="text"
@@ -381,7 +378,7 @@ export const BankAccountsList: React.FC = () => {
 
             <div className="flex flex-col gap-1">
               <label className="text-[11px] font-medium text-text-secondary">
-                Opening Statement Balance ($)
+                Opening statement balance ($)
               </label>
               <input
                 type="number"
@@ -402,9 +399,9 @@ export const BankAccountsList: React.FC = () => {
               </button>
               <button
                 type="submit"
-                className="h-8 px-3.5 bg-accent hover:bg-accent-hover text-white rounded-sm text-xs font-semibold shadow-xs transition"
+                className="h-8 px-3 bg-accent hover:bg-accent-hover text-white rounded-md text-[13px] font-medium transition"
               >
-                Connect Account
+                Add account
               </button>
             </DialogFooter>
           </form>

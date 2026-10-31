@@ -424,7 +424,7 @@ export function DataTable<TData, TValue>({
                   className={cn(
                     'flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-md text-xs font-medium transition-colors shrink-0 whitespace-nowrap cursor-pointer',
                     isActive
-                      ? 'bg-surface-elevated text-text-primary shadow-card font-semibold'
+                      ? 'bg-surface-elevated text-text-primary font-semibold'
                       : 'text-text-muted hover:text-text-primary'
                   )}
                 >
@@ -432,7 +432,7 @@ export function DataTable<TData, TValue>({
                   {tab.count !== undefined && (
                     <span
                       className={cn(
-                        'text-[10px] px-1.5 py-0.2 rounded-full font-mono',
+                        'text-[10px] px-1.5 py-0.2 rounded-[3px] font-mono',
                         isActive ? 'bg-accent-soft text-accent' : 'bg-surface-neutral text-text-secondary'
                       )}
                     >
@@ -495,7 +495,7 @@ export function DataTable<TData, TValue>({
         <div
           role="toolbar"
           aria-label="Bulk actions"
-          className="ui-rise-in fixed bottom-14 left-1/2 z-40 flex max-w-[calc(100vw-2rem)] -translate-x-1/2 items-center gap-4 rounded-xl border border-border-strong bg-surface-elevated py-2 pl-4 pr-2 text-xs shadow-popover"
+          className="fixed bottom-14 left-1/2 z-40 flex max-w-[calc(100vw-2rem)] -translate-x-1/2 items-center gap-4 rounded-lg border border-border-strong bg-surface-elevated py-2 pl-4 pr-2 text-xs shadow-popover"
         >
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-2 text-[13px] font-semibold text-text-primary">
@@ -541,13 +541,13 @@ export function DataTable<TData, TValue>({
       )}
 
       {/* Dense Table (36px rows per spec, horizontal borders only, no vertical borders) */}
-      <div className="border border-border rounded-xl bg-surface overflow-hidden shadow-card">
+      <div className="border border-border rounded-lg bg-surface overflow-hidden">
         <div className="overflow-auto max-h-[70vh]">
           <table className="w-full border-collapse text-left text-[13px]">
             <thead className="sticky top-0 z-20">
               {table.getHeaderGroups().map((headerGroup) => (
                 <tr key={headerGroup.id} className="border-b border-border text-col-header">
-                  <th className="w-8 px-2 text-center bg-surface/95 backdrop-blur">
+                  <th className="w-8 px-2 text-center bg-surface">
                     <button
                       type="button"
                       onClick={toggleSelectAll}
@@ -568,7 +568,7 @@ export function DataTable<TData, TValue>({
                         key={header.id}
                         onClick={header.column.getToggleSortingHandler()}
                         className={cn(
-                          'group/th h-9 px-3 select-none bg-surface/95 backdrop-blur font-semibold text-text-muted transition-colors uppercase tracking-wide text-[11px]',
+                          'group/th h-9 px-3 select-none bg-surface font-semibold text-text-muted transition-colors uppercase tracking-wide text-[11px]',
                           canSort && 'cursor-pointer hover:text-text-primary'
                         )}
                       >
@@ -585,7 +585,7 @@ export function DataTable<TData, TValue>({
                       </th>
                     );
                   })}
-                  {rowActions && <th className="w-0 p-0 bg-surface/95 backdrop-blur" />}
+                  {rowActions && <th className="w-0 p-0 bg-surface" />}
                 </tr>
               ))}
             </thead>
@@ -668,7 +668,7 @@ export function DataTable<TData, TValue>({
                           ))}
                           {rowActions && (
                             <td className="relative w-0 p-0" onClick={(e) => e.stopPropagation()}>
-                              <div className="absolute right-2 top-1/2 z-10 flex -translate-y-1/2 items-center gap-0.5 rounded-lg border border-border bg-surface-elevated p-0.5 opacity-0 shadow-card transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 group-focus-within:opacity-100">
+                              <div className="absolute right-2 top-1/2 z-10 flex -translate-y-1/2 items-center gap-0.5 rounded-lg border border-border bg-surface-elevated p-0.5 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 group-focus-within:opacity-100">
                                 {rowActions(row.original)
                                   .filter((a) => !a.destructive)
                                   .slice(0, 3)
@@ -856,7 +856,7 @@ export function DataTable<TData, TValue>({
               }}
               disabled={!table.getCanPreviousPage()}
               className="flex size-7 items-center justify-center rounded-md border border-border bg-surface disabled:opacity-40 disabled:cursor-not-allowed hover:bg-surface-neutral transition-colors cursor-pointer"
-              title="Previous Page (press '[')"
+              title="Previous page (press '[')"
             >
               <ChevronLeft className="w-3.5 h-3.5" />
             </button>
@@ -871,7 +871,7 @@ export function DataTable<TData, TValue>({
               }}
               disabled={!table.getCanNextPage()}
               className="flex size-7 items-center justify-center rounded-md border border-border bg-surface disabled:opacity-40 disabled:cursor-not-allowed hover:bg-surface-neutral transition-colors cursor-pointer"
-              title="Next Page (press ']')"
+              title="Next page (press ']')"
             >
               <ChevronRight className="w-3.5 h-3.5" />
             </button>

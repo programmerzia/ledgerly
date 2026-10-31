@@ -114,7 +114,6 @@ export const AuditLog: React.FC = () => {
   return (
     <div className="flex flex-col gap-4">
       <PageHeader
-        icon={<History />}
         title="Activity log"
         subtitle="A permanent record of who did what. Each entry is linked to the one before it, so nothing can be changed quietly."
         actions={
@@ -122,10 +121,9 @@ export const AuditLog: React.FC = () => {
             type="button"
             onClick={handleRunVerify}
             disabled={isVerifying}
-            className="flex h-9 items-center gap-1.5 rounded-lg bg-accent px-3.5 text-[13px] font-semibold text-white transition hover:bg-accent-hover disabled:opacity-70"
+            className="flex h-8 items-center gap-1.5 rounded-md bg-accent px-3 text-[13px] font-medium text-white transition hover:bg-accent-hover disabled:opacity-70"
           >
-            <ShieldCheck className={`size-4 ${isVerifying ? 'animate-pulse' : ''}`} />
-            {isVerifying ? 'Checking...' : 'Verify chain'}
+            {isVerifying ? 'Checking' : 'Verify chain'}
             <Kbd className="ml-1 border-white/30 bg-white/20 text-white">V</Kbd>
           </button>
         }
@@ -134,13 +132,12 @@ export const AuditLog: React.FC = () => {
       {verifyResult && (
         <div
           role="status"
-          className={`ui-rise-in flex items-center justify-between gap-3 rounded-xl border px-4 py-3 text-[13px] ${
+          className={`flex items-center justify-between gap-3 rounded-lg border px-4 py-3 text-[13px] ${
             verifyResult.isValid ? 'border-success/30 bg-success-soft text-success' : 'border-danger/30 bg-danger-soft text-danger'
           }`}
         >
           <div className="flex items-center gap-3">
-            {verifyResult.isValid ? <CheckCircle2 className="size-5 shrink-0" /> : <AlertTriangle className="size-5 shrink-0" />}
-            <div>
+                        <div>
               <div className="font-semibold">{verifyResult.isValid ? 'Chain verified. Nothing has been changed.' : 'Chain check failed'}</div>
               <p className="mt-0.5 text-xs opacity-90">
                 {verifyResult.isValid
@@ -169,7 +166,7 @@ export const AuditLog: React.FC = () => {
         icon={<ShieldCheck className="w-4 h-4" />}
         badge={
           selectedEvent ? (
-            <span className="font-mono text-[10px] bg-accent-soft text-accent px-1.5 py-0.5 rounded font-bold border border-accent/20">
+            <span className="text-[11px] bg-surface-neutral text-text-secondary px-1.5 py-px rounded-[3px] font-medium">
               {selectedEvent.action}
             </span>
           ) : undefined
@@ -179,7 +176,7 @@ export const AuditLog: React.FC = () => {
             <div className="flex flex-col gap-4 text-xs">
               {/* Event metadata */}
               <div className="p-3 bg-surface-neutral/60 border border-border rounded-lg flex flex-col gap-2">
-                <span className="font-bold text-text-primary text-[11px] uppercase tracking-wider">
+                <span className="font-semibold text-text-primary text-xs">
                   About this entry
                 </span>
                 <div className="grid grid-cols-2 gap-2 text-[11px]">
@@ -208,7 +205,7 @@ export const AuditLog: React.FC = () => {
 
               {/* Action Detail */}
               <div className="p-3 bg-surface border border-border rounded-lg flex flex-col gap-1">
-                <span className="text-text-muted uppercase font-bold text-[10px]">
+                <span className="text-text-muted uppercase font-semibold text-[10px]">
                   What it means
                 </span>
                 <p className="text-text-primary leading-relaxed font-medium">
@@ -218,7 +215,7 @@ export const AuditLog: React.FC = () => {
 
               {/* Before / After Diff */}
               <div className="p-3 bg-surface-neutral/40 border border-border rounded-lg flex flex-col gap-2 font-mono text-[11px]">
-                <span className="font-bold text-text-primary font-sans uppercase text-[10px] flex items-center gap-1">
+                <span className="font-semibold text-text-primary font-sans uppercase text-[10px] flex items-center gap-1">
                   <Code2 className="w-3.5 h-3.5 text-accent" />
                   What changed
                 </span>
@@ -263,7 +260,7 @@ export const AuditLog: React.FC = () => {
 
               {/* Cryptographic Hashes */}
               <div className="p-3 bg-surface-neutral/60 border border-border rounded-lg flex flex-col gap-2 font-mono text-[11px]">
-                <span className="font-bold text-text-primary font-sans uppercase text-[10px] flex items-center gap-1">
+                <span className="font-semibold text-text-primary font-sans uppercase text-[10px] flex items-center gap-1">
                   <Lock className="w-3.5 h-3.5 text-accent" />
                   Tamper-proof seal
                 </span>
@@ -293,7 +290,7 @@ export const AuditLog: React.FC = () => {
           filterTabs={filterTabs}
           activeTab={selectedAction}
           onTabChange={setSelectedAction}
-          searchPlaceholder="Search by person, action or document..."
+          searchPlaceholder="Search by person, action or document"
           rowDensity={uiDensity}
           rowActions={rowActions}
           contextMenuTitle={(r) => humanize(r.action)}

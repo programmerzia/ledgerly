@@ -10,22 +10,7 @@ import { StripeInvoiceMirrored } from '@/types/admin';
 import { StatusPill } from '@/components/domain/StatusPill';
 import { adminBillingApi } from '@/mock/api/admin/billing';
 import { toast } from 'sonner';
-import {
-  CreditCard,
-  Download,
-  Search,
-  Filter,
-  ShieldCheck,
-  AlertTriangle,
-  RotateCcw,
-  CheckCircle2,
-  Clock,
-  ArrowRight,
-  KeyRound,
-  FileText,
-  DollarSign,
-  TrendingDown,
-} from 'lucide-react';
+import { Download, Search, Filter, ShieldCheck, KeyRound } from 'lucide-react';
 
 export const BillingOps: React.FC = () => {
   const {
@@ -89,7 +74,7 @@ export const BillingOps: React.FC = () => {
       decideApproval(selectedApprovalId, decision, pinInput, rejectionReason);
       setShowSignDialog(false);
       setSelectedApprovalId(null);
-      toast.success(`Refund request marked as ${decision.toUpperCase()}!`);
+      toast.success(`Refund request ${decision}`);
     } catch (err: any) {
       toast.error(err.message || 'Approval signing failed');
     }
@@ -101,9 +86,9 @@ export const BillingOps: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-border">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-lg font-bold tracking-tight">Billing & Revenue Operations</h1>
-            <span className="px-2 py-0.5 rounded-full bg-violet-soft text-violet text-[10px] font-mono font-semibold">
-              Stripe Mirrored • 400 Invoices
+            <h1 className="text-xl font-semibold">Billing operations</h1>
+            <span className="px-2 py-0.5 rounded-[3px] bg-surface-neutral text-text-secondary text-[11px] font-medium">
+              Mirrored from Stripe, 400 invoices
             </span>
           </div>
           <p className="text-xs text-text-muted mt-0.5">
@@ -115,7 +100,7 @@ export const BillingOps: React.FC = () => {
           <button
             type="button"
             onClick={handleExportAsc606}
-            className="h-8 px-3 rounded-sm bg-surface border border-border hover:border-border-strong text-text-primary text-xs font-medium flex items-center gap-1.5 transition cursor-pointer"
+            className="h-8 px-3 rounded-md bg-surface border border-border hover:border-border-strong text-text-primary text-xs font-medium flex items-center gap-1.5 transition cursor-pointer"
           >
             <Download className="w-3.5 h-3.5 text-text-muted" />
             <span>Export ASC 606 Schedule</span>
@@ -130,7 +115,7 @@ export const BillingOps: React.FC = () => {
           onClick={() => setActiveTab('invoices')}
           className={`px-3 py-1.5 border-b-2 font-medium flex items-center gap-1.5 transition cursor-pointer shrink-0 whitespace-nowrap ${
             activeTab === 'invoices'
-              ? 'border-violet text-violet font-semibold'
+              ? 'border-accent text-accent font-semibold'
               : 'border-transparent text-text-muted hover:text-text-primary'
           }`}
         >
@@ -142,13 +127,13 @@ export const BillingOps: React.FC = () => {
           onClick={() => setActiveTab('refunds_queue')}
           className={`px-3 py-1.5 border-b-2 font-medium flex items-center gap-1.5 transition cursor-pointer shrink-0 whitespace-nowrap ${
             activeTab === 'refunds_queue'
-              ? 'border-violet text-violet font-semibold'
+              ? 'border-accent text-accent font-semibold'
               : 'border-transparent text-text-muted hover:text-text-primary'
           }`}
         >
           <span>Dual-Approval Refunds Queue</span>
           {pendingRefunds.length > 0 && (
-            <span className="px-1.5 py-0.2 rounded-full bg-warning-soft text-warning font-mono text-[10px] font-bold">
+            <span className="px-1.5 py-px rounded-[3px] bg-warning-soft text-warning font-mono text-[11px] font-semibold">
               {pendingRefunds.length} Pending
             </span>
           )}
@@ -159,11 +144,11 @@ export const BillingOps: React.FC = () => {
           onClick={() => setActiveTab('dunning')}
           className={`px-3 py-1.5 border-b-2 font-medium flex items-center gap-1.5 transition cursor-pointer shrink-0 whitespace-nowrap ${
             activeTab === 'dunning'
-              ? 'border-violet text-violet font-semibold'
+              ? 'border-accent text-accent font-semibold'
               : 'border-transparent text-text-muted hover:text-text-primary'
           }`}
         >
-          <span>Dunning Cadence & Suspension Rules</span>
+          <span>Dunning cadence and suspension rules</span>
         </button>
 
         <button
@@ -171,7 +156,7 @@ export const BillingOps: React.FC = () => {
           onClick={() => setActiveTab('tax_recon')}
           className={`px-3 py-1.5 border-b-2 font-medium flex items-center gap-1.5 transition cursor-pointer shrink-0 whitespace-nowrap ${
             activeTab === 'tax_recon'
-              ? 'border-violet text-violet font-semibold'
+              ? 'border-accent text-accent font-semibold'
               : 'border-transparent text-text-muted hover:text-text-primary'
           }`}
         >
@@ -191,17 +176,17 @@ export const BillingOps: React.FC = () => {
                   type="text"
                   value={invoiceSearch}
                   onChange={(e) => setInvoiceSearch(e.target.value)}
-                  placeholder="Filter invoice or tenant ID..."
-                  className="h-8 pl-8 pr-3 w-56 text-xs bg-surface border border-border rounded-sm text-text-primary focus:outline-none focus:ring-1 focus:ring-accent"
+                  placeholder="Filter invoice or tenant ID"
+                  className="h-8 pl-8 pr-3 w-56 text-xs bg-surface border border-border rounded-md text-text-primary focus:outline-none focus:ring-1 focus:ring-accent"
                 />
               </div>
 
               <select
                 value={invoiceStatusFilter}
                 onChange={(e) => setInvoiceStatusFilter(e.target.value)}
-                className="h-8 px-2 bg-surface border border-border rounded-sm text-xs text-text-secondary"
+                className="h-8 px-2 bg-surface border border-border rounded-md text-xs text-text-secondary"
               >
-                <option value="all">All Invoice Statuses</option>
+                <option value="all">All invoice statuses</option>
                 <option value="paid">Paid</option>
                 <option value="open">Open (Past Due)</option>
                 <option value="refunded">Refunded</option>
@@ -215,14 +200,14 @@ export const BillingOps: React.FC = () => {
           </div>
 
           {/* 36px Table */}
-          <div className="rounded bg-surface border border-border overflow-hidden">
+          <div className="rounded-lg bg-surface border border-border overflow-hidden">
             <div className="overflow-x-auto max-h-[520px]">
               <table className="w-full text-left text-xs border-collapse">
-                <thead className="sticky top-0 bg-surface-neutral/90 backdrop-blur-xs border-b border-border z-10">
+                <thead className="sticky top-0 bg-surface-neutral border-b border-border z-10">
                   <tr className="h-8 text-text-muted text-[11px] uppercase font-semibold">
                     <th className="px-3">Invoice #</th>
                     <th className="px-3">Tenant ID</th>
-                    <th className="px-3">Issued Date</th>
+                    <th className="px-3">Issued date</th>
                     <th className="px-3">Status</th>
                     <th className="px-3 text-right">Subtotal</th>
                     <th className="px-3 text-right">Tax (VAT)</th>
@@ -234,7 +219,7 @@ export const BillingOps: React.FC = () => {
                 <tbody className="divide-y divide-border/60">
                   {filteredInvoices.slice(0, 50).map((inv: StripeInvoiceMirrored) => (
                     <tr key={inv.id} className="h-9 hover:bg-surface-neutral/50 transition-colors">
-                      <td className="px-3 font-mono font-bold text-text-primary">{inv.number}</td>
+                      <td className="px-3 font-mono font-semibold text-text-primary">{inv.number}</td>
                       <td className="px-3 font-mono text-text-secondary">{inv.tenantId}</td>
                       <td className="px-3 font-mono text-[11px] text-text-muted">{inv.paidAt || inv.dueAt}</td>
                       <td className="px-3">
@@ -246,7 +231,7 @@ export const BillingOps: React.FC = () => {
                       <td className="px-3 text-right font-mono text-text-muted">
                         ${(inv.tax / 100).toFixed(2)}
                       </td>
-                      <td className="px-3 text-right font-mono font-bold text-text-primary">
+                      <td className="px-3 text-right font-mono font-semibold text-text-primary">
                         ${(inv.total / 100).toFixed(2)}
                       </td>
                       <td className="px-3 font-mono text-[11px] text-text-muted">
@@ -278,7 +263,7 @@ export const BillingOps: React.FC = () => {
       {activeTab === 'refunds_queue' && (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-text-primary">
+            <h3 className="text-xs font-semibold text-text-primary">
               Maker / Checker Authorization Queue (Four-Eyes Principle)
             </h3>
             <span className="text-[11px] text-text-muted font-mono">
@@ -286,7 +271,7 @@ export const BillingOps: React.FC = () => {
             </span>
           </div>
 
-          <div className="rounded bg-surface border border-border divide-y divide-border/60">
+          <div className="rounded-lg bg-surface border border-border divide-y divide-border/60">
             {approvals.length === 0 ? (
               <div className="p-8 text-center text-text-muted text-xs">
                 No refund requests pending review.
@@ -300,10 +285,10 @@ export const BillingOps: React.FC = () => {
                   <div key={req.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <span className="font-mono font-bold text-text-primary uppercase px-1.5 py-0.2 rounded bg-surface-neutral">
+                        <span className="font-mono font-semibold text-text-primary px-1.5 py-px rounded bg-surface-neutral">
                           {req.kind}
                         </span>
-                        <span className="font-bold text-text-primary">
+                        <span className="font-semibold text-text-primary">
                           Amount: ${((req.amount || 0) / 100).toFixed(2)} {req.currency || 'USD'}
                         </span>
                         <StatusPill status={req.status as any} />
@@ -311,7 +296,7 @@ export const BillingOps: React.FC = () => {
                       <div className="text-text-muted text-[11px]">
                         Target Invoice: <span className="font-mono text-text-primary">{req.subjectData?.invoiceId || req.tenantId}</span> • Reason: {req.description || req.subjectData?.reason}
                       </div>
-                      <div className="text-[10px] font-mono text-text-muted">
+                      <div className="text-[11px] font-mono text-text-muted">
                         Requested by: <span className="text-text-primary">{req.requestedBy.name}</span> on {new Date(req.createdAt).toLocaleString()}
                         {req.decidedAt && req.approvedBy && ` • Decided by: ${req.approvedBy.name}`}
                       </div>
@@ -331,10 +316,10 @@ export const BillingOps: React.FC = () => {
                                 setSelectedApprovalId(req.id);
                                 setShowSignDialog(true);
                               }}
-                              className="h-8 px-3 rounded bg-violet text-white hover:opacity-90 font-medium text-xs flex items-center gap-1.5 cursor-pointer shadow-xs"
+                              className="h-8 px-3 rounded-md bg-accent text-white hover:bg-accent-hover font-medium text-[13px] flex items-center gap-1.5 cursor-pointer"
                             >
                               <KeyRound className="w-3.5 h-3.5" />
-                              <span>Sign & Decide</span>
+                              <span>Sign and decide</span>
                             </button>
                           )}
                         </>
@@ -354,34 +339,34 @@ export const BillingOps: React.FC = () => {
 
       {/* Tab 3: Dunning Cadence */}
       {activeTab === 'dunning' && (
-        <div className="p-4 rounded bg-surface border border-border space-y-4 text-xs">
+        <div className="p-4 rounded-lg bg-surface border border-border space-y-4 text-xs">
           <div>
-            <h3 className="font-bold text-sm text-text-primary">Automated SaaS Dunning Lifecycle Engine</h3>
+            <h3 className="font-semibold text-sm text-text-primary">Automated SaaS Dunning Lifecycle Engine</h3>
             <p className="text-text-muted mt-0.5">Configured per docs/10_SaaS_Admin.md §5 lifecycle transitions</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-            <div className="p-3 rounded bg-surface-neutral/50 border border-border space-y-1">
+            <div className="p-3 rounded-md bg-surface-neutral/50 border border-border space-y-1">
               <span className="font-semibold text-text-primary">Stage 1: Grace Period</span>
-              <div className="font-mono text-violet font-bold text-sm">Days 1 – 7</div>
+              <div className="font-mono text-text-secondary font-semibold text-sm">Days 1 – 7</div>
               <p className="text-[11px] text-text-muted">Retry card every 48h. Soft amber in-app warning banner shown.</p>
             </div>
 
-            <div className="p-3 rounded bg-surface-neutral/50 border border-border space-y-1">
+            <div className="p-3 rounded-md bg-surface-neutral/50 border border-border space-y-1">
               <span className="font-semibold text-text-primary">Stage 2: Read-Only Mode</span>
-              <div className="font-mono text-warning font-bold text-sm">Days 8 – 21</div>
+              <div className="font-mono text-warning font-semibold text-sm">Days 8 – 21</div>
               <p className="text-[11px] text-text-muted">Posting blocked. Customer can only view reports and update payment card.</p>
             </div>
 
-            <div className="p-3 rounded bg-surface-neutral/50 border border-border space-y-1">
+            <div className="p-3 rounded-md bg-surface-neutral/50 border border-border space-y-1">
               <span className="font-semibold text-text-primary">Stage 3: Account Suspension</span>
-              <div className="font-mono text-danger font-bold text-sm">Day 22</div>
+              <div className="font-mono text-danger font-semibold text-sm">Day 22</div>
               <p className="text-[11px] text-text-muted">App locked. DNS redirected to customer billing portal.</p>
             </div>
 
-            <div className="p-3 rounded bg-surface-neutral/50 border border-border space-y-1">
+            <div className="p-3 rounded-md bg-surface-neutral/50 border border-border space-y-1">
               <span className="font-semibold text-text-primary">Stage 4: Data Retention & Purge</span>
-              <div className="font-mono text-text-secondary font-bold text-sm">Day 90+</div>
+              <div className="font-mono text-text-secondary font-semibold text-sm">Day 90+</div>
               <p className="text-[11px] text-text-muted">GDPR encrypted archive retained for 90 days before permanent deletion.</p>
             </div>
           </div>
@@ -390,24 +375,24 @@ export const BillingOps: React.FC = () => {
 
       {/* Tab 4: Tax Recon */}
       {activeTab === 'tax_recon' && (
-        <div className="p-4 rounded bg-surface border border-border space-y-3 text-xs">
-          <h3 className="font-bold text-sm text-text-primary">Stripe Automated Tax & Bank Payout Reconciliation</h3>
+        <div className="p-4 rounded-lg bg-surface border border-border space-y-3 text-xs">
+          <h3 className="font-semibold text-sm text-text-primary">Stripe Automated Tax & Bank Payout Reconciliation</h3>
           <p className="text-text-muted">Tax collected by jurisdiction and reconciled to Stripe balance payout batches.</p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div className="p-3 rounded bg-surface-neutral/50 border border-border">
-              <div className="text-[10px] text-text-muted uppercase">VAT Collected (Kenya 16%)</div>
-              <div className="text-base font-mono font-bold text-text-primary mt-1">$2,140.00</div>
-              <div className="text-[10px] text-success mt-0.5">KRA e-TIMS Synced</div>
+            <div className="p-3 rounded-md bg-surface-neutral/50 border border-border">
+              <div className="text-[11px] text-text-muted">VAT Collected (Kenya 16%)</div>
+              <div className="text-base font-mono font-semibold text-text-primary mt-1">$2,140.00</div>
+              <div className="text-[11px] text-success mt-0.5">KRA e-TIMS Synced</div>
             </div>
-            <div className="p-3 rounded bg-surface-neutral/50 border border-border">
-              <div className="text-[10px] text-text-muted uppercase">EU Reverse-Charge (0%)</div>
-              <div className="text-base font-mono font-bold text-text-primary mt-1">$4,820.00</div>
-              <div className="text-[10px] text-text-muted mt-0.5">VIES Validated</div>
+            <div className="p-3 rounded-md bg-surface-neutral/50 border border-border">
+              <div className="text-[11px] text-text-muted">EU Reverse-Charge (0%)</div>
+              <div className="text-base font-mono font-semibold text-text-primary mt-1">$4,820.00</div>
+              <div className="text-[11px] text-text-muted mt-0.5">VIES Validated</div>
             </div>
-            <div className="p-3 rounded bg-surface-neutral/50 border border-border">
-              <div className="text-[10px] text-text-muted uppercase">Next Stripe Net Payout</div>
-              <div className="text-base font-mono font-bold text-text-primary mt-1">$36,260.00</div>
-              <div className="text-[10px] text-text-muted mt-0.5">Settles Nov 01, 2026</div>
+            <div className="p-3 rounded-md bg-surface-neutral/50 border border-border">
+              <div className="text-[11px] text-text-muted">Next Stripe net payout</div>
+              <div className="text-base font-mono font-semibold text-text-primary mt-1">$36,260.00</div>
+              <div className="text-[11px] text-text-muted mt-0.5">Settles Nov 01, 2026</div>
             </div>
           </div>
         </div>
@@ -415,11 +400,11 @@ export const BillingOps: React.FC = () => {
 
       {/* SignDialog Dual-Approval PIN Signing Modal */}
       {showSignDialog && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-4">
-          <div className="w-full max-w-md bg-surface border border-border rounded-lg shadow-xl p-5 space-y-4 animate-in fade-in zoom-in-95 duration-150">
-            <div className="flex items-center gap-2 text-violet">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="w-full max-w-md bg-surface border border-border rounded-lg shadow-xl p-5 space-y-4">
+            <div className="flex items-center gap-2 text-text-secondary">
               <ShieldCheck className="w-5 h-5 shrink-0" />
-              <h3 className="text-sm font-bold text-text-primary">Dual-Approval Signing (PIN Verification)</h3>
+              <h3 className="text-sm font-semibold text-text-primary">Dual-Approval Signing (PIN Verification)</h3>
             </div>
             <p className="text-xs text-text-muted">
               Signing as <strong className="text-text-primary">{currentAdmin.name}</strong> ({currentAdmin.role.toUpperCase()}).
@@ -435,9 +420,9 @@ export const BillingOps: React.FC = () => {
                   value={pinInput}
                   onChange={(e) => setPinInput(e.target.value.replace(/\D/g, ''))}
                   placeholder="******"
-                  className="w-full h-9 px-3 text-center tracking-[0.4em] font-mono font-bold text-base bg-surface border border-border rounded"
+                  className="w-full h-9 px-3 text-center tracking-[0.4em] font-mono font-semibold text-base bg-surface border border-border rounded-md"
                 />
-                <span className="text-[10px] font-mono text-text-muted block mt-1">
+                <span className="text-[11px] font-mono text-text-muted block mt-1">
                   Demo PIN for {currentAdmin.name}: {currentAdmin.signingPin}
                 </span>
               </div>
@@ -447,7 +432,7 @@ export const BillingOps: React.FC = () => {
               <button
                 type="button"
                 onClick={() => handleDecideApproval('rejected')}
-                className="h-8 px-3 rounded bg-danger-soft text-danger hover:opacity-90 font-medium text-xs cursor-pointer"
+                className="h-8 px-3 rounded-md bg-danger-soft text-danger hover:opacity-90 font-medium text-xs cursor-pointer"
               >
                 Reject Request
               </button>
@@ -456,14 +441,14 @@ export const BillingOps: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowSignDialog(false)}
-                  className="h-8 px-3 rounded border border-border hover:bg-surface-neutral text-xs cursor-pointer"
+                  className="h-8 px-3 rounded-md border border-border hover:bg-surface-neutral text-xs cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="button"
                   onClick={() => handleDecideApproval('approved')}
-                  className="h-8 px-4 rounded bg-success text-white hover:opacity-90 font-semibold text-xs cursor-pointer shadow-xs"
+                  className="h-8 px-4 rounded-md bg-success text-white hover:opacity-90 font-medium text-[13px] cursor-pointer"
                 >
                   Authorize & Sign
                 </button>

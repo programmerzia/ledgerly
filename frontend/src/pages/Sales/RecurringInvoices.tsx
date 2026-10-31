@@ -52,13 +52,12 @@ export const RecurringInvoices: React.FC = () => {
       <PageHeader
         breadcrumb={[{ label: 'Invoices', to: `/${coSlug}/invoices` }, { label: 'Recurring' }]}
         title="Recurring invoices"
-        subtitle="Set up an invoice once and we'll prepare it every month or quarter"
-        icon={<Repeat />}
+        subtitle="Prepare an invoice every month or quarter from one template"
         actions={
           <button
             type="button"
             onClick={() => setDialogOpen(true)}
-            className="inline-flex items-center gap-1.5 h-9 px-3.5 bg-accent hover:bg-accent-hover text-white rounded-lg text-[13px] font-semibold shadow-xs transition-colors"
+            className="inline-flex items-center gap-1.5 h-8 px-3 bg-accent hover:bg-accent-hover text-white rounded-md text-[13px] font-medium transition-colors"
           >
             <Plus className="size-4" /> New schedule
           </button>
@@ -66,7 +65,7 @@ export const RecurringInvoices: React.FC = () => {
       />
 
       {dueCount > 0 && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-warning/30 bg-warning-soft px-4 py-3 text-[13px]">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-warning/30 bg-warning-soft px-4 py-3 text-[13px]">
           <span className="flex items-center gap-2 font-medium text-text-primary">
             <CalendarClock className="size-4 text-warning" />
             {dueCount} {dueCount === 1 ? 'invoice is' : 'invoices are'} due
@@ -74,7 +73,7 @@ export const RecurringInvoices: React.FC = () => {
           <button
             type="button"
             onClick={() => runNow()}
-            className="h-8 px-3 rounded-lg bg-accent hover:bg-accent-hover text-white text-[13px] font-semibold"
+            className="h-8 px-3 rounded-md bg-accent hover:bg-accent-hover text-white text-[13px] font-medium"
           >
             Create {dueCount === 1 ? 'it' : 'them'}
           </button>
@@ -99,7 +98,7 @@ export const RecurringInvoices: React.FC = () => {
             return (
               <section
                 key={r.id}
-                className={cn('rounded-xl border border-border bg-surface p-4 shadow-card flex flex-col gap-3', !r.is_active && 'opacity-70')}
+                className={cn('rounded-lg border border-border bg-surface p-4 flex flex-col gap-3', !r.is_active && 'opacity-70')}
                 aria-label={r.name}
               >
                 <div className="flex items-start gap-3">
@@ -137,7 +136,7 @@ export const RecurringInvoices: React.FC = () => {
                   </DropdownMenu>
                 </div>
 
-                <div className="text-2xl font-semibold tracking-tight tabular-nums text-text-primary">
+                <div className="text-[22px] leading-7 font-medium tabular-nums text-text-primary">
                   {template ? formatMoney(template.total, template.currency) : '—'}
                 </div>
 

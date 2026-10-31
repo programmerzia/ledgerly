@@ -41,7 +41,7 @@ export const NotificationsMenu: React.FC<Props> = ({ notifications, setNotificat
             <button type="button" aria-label={`Notifications${unread ? `, ${unread} unread` : ''}`} className={ICON_BTN}>
               <Bell className="size-4" />
               {unread > 0 && (
-                <span className="absolute top-1 right-1 min-w-4 h-4 px-1 grid place-items-center rounded-full bg-danger text-white text-[10px] font-semibold leading-none ring-2 ring-surface">
+                <span className="absolute top-1 right-1 min-w-4 h-4 px-1 grid place-items-center rounded-[3px] bg-accent text-white text-[10px] font-medium leading-none ring-2 ring-surface">
                   {unread}
                 </span>
               )}
@@ -50,7 +50,7 @@ export const NotificationsMenu: React.FC<Props> = ({ notifications, setNotificat
         </TooltipTrigger>
         <TooltipContent>Notifications</TooltipContent>
       </Tooltip>
-      <PopoverContent align="end" sideOffset={8} className="w-[380px] max-w-[calc(100vw-1rem)] p-0 rounded-xl shadow-lg overflow-hidden">
+      <PopoverContent align="end" sideOffset={8} className="w-[380px] max-w-[calc(100vw-1rem)] p-0 overflow-hidden">
         <div className="flex items-center justify-between px-4 pt-3 pb-2">
           <h3 className="text-sm font-semibold text-text-primary">Notifications</h3>
           <button
@@ -70,18 +70,18 @@ export const NotificationsMenu: React.FC<Props> = ({ notifications, setNotificat
               onClick={() => setTab(t)}
               className={cn(
                 'relative h-8 px-2 text-xs font-medium capitalize transition cursor-pointer',
-                tab === t ? 'text-text-primary after:absolute after:inset-x-1 after:-bottom-px after:h-0.5 after:bg-accent after:rounded-full' : 'text-text-muted hover:text-text-primary'
+                tab === t ? 'text-text-primary after:absolute after:inset-x-1 after:-bottom-px after:h-0.5 after:bg-text-primary' : 'text-text-muted hover:text-text-primary'
               )}
             >
               {t}
-              {t === 'unread' && unread > 0 && <span className="ml-1.5 rounded-full bg-accent-soft text-accent px-1.5 text-[10px]">{unread}</span>}
+              {t === 'unread' && unread > 0 && <span className="ml-1.5 text-text-muted text-[11px]">{unread}</span>}
             </button>
           ))}
         </div>
         <div className="max-h-[360px] overflow-y-auto">
           {list.length === 0 ? (
             <div className="py-10 px-6 text-center">
-              <div className="mx-auto size-10 grid place-items-center rounded-full bg-surface-neutral text-text-muted"><BellOff className="size-4" /></div>
+              <BellOff className="mx-auto size-5 text-text-muted" />
               <p className="mt-3 text-sm font-medium text-text-primary">You're all caught up</p>
               <p className="text-xs text-text-muted mt-0.5">New approvals and period reminders will show up here.</p>
             </div>

@@ -72,7 +72,7 @@ export const InvoiceView: React.FC = () => {
         </p>
         <button
           onClick={() => navigate(`/${coSlug}/invoices`)}
-          className="h-8 px-4 rounded-lg bg-accent hover:bg-accent-hover text-white text-xs font-semibold shadow-xs transition"
+          className="h-8 px-3 rounded-md bg-accent hover:bg-accent-hover text-white text-[13px] font-medium transition"
         >
           Back to invoices
         </button>
@@ -85,9 +85,10 @@ export const InvoiceView: React.FC = () => {
 
 const InvoiceDetail: React.FC<{ invoice: Invoice; setInvoice: (i: Invoice) => void }> = ({ invoice, setInvoice }) => {
   const navigate = useNavigate();
-  const { currentCompany, currentUser, contacts, accounts, settlements, invoices } = useLedgerStore();
+  const { currentCompany, currentUser, currentPeriod, users, contacts, accounts, settlements, invoices } = useLedgerStore();
   const coSlug = currentCompany.slug;
   const contact = contacts.find((c) => c.id === invoice.contact_id);
+  const makerName = users.find((u) => u.id === invoice.created_by)?.name ?? 'the maker';
 
   const [signDialogOpen, setSignDialogOpen] = useState(false);
   const [signAction, setSignAction] = useState<'approve' | 'reverse' | 'fix_this' | null>(null);
@@ -96,7 +97,7 @@ const InvoiceDetail: React.FC<{ invoice: Invoice; setInvoice: (i: Invoice) => vo
   const [emailMode, setEmailMode] = useState<'invoice' | 'reminder' | null>(null);
   const [isAttachDialogOpen, setIsAttachDialogOpen] = useState(false);
   const [isRefundDialogOpen, setIsRefundDialogOpen] = useState(false);
-  const [reverseReason, setReverseReason] = useState('Customer cancellation & billing dispute settlement');
+  const [reverseReason, setReverseReason] = useState('');
 
   // Journal preview is derived from the invoice lines, never hard-coded.
   const journalLines: JournalPreviewLine[] = [
@@ -228,7 +229,7 @@ const InvoiceDetail: React.FC<{ invoice: Invoice; setInvoice: (i: Invoice) => vo
       />
 
       {invoice.status === 'reversed' && invoice.reversed_by_id && (
-        <div className="px-4 py-3 bg-violet-soft border border-violet/30 rounded-xl text-[13px] flex items-center gap-2 text-violet font-medium">
+        <div className="px-4 py-3 bg-violet-soft border border-violet/30 rounded-lg text-[13px] flex items-center gap-2 text-violet font-medium">
           <RotateCcw className="size-4 shrink-0" />
           <span>
             This invoice was reversed.{' '}
@@ -240,7 +241,7 @@ const InvoiceDetail: React.FC<{ invoice: Invoice; setInvoice: (i: Invoice) => vo
       )}
 
       {invoice.reversal_of_id && (
-        <div className="px-4 py-3 bg-violet-soft border border-violet/30 rounded-xl text-[13px] flex items-center gap-2 text-violet font-medium">
+        <div className="px-4 py-3 bg-violet-soft border border-violet/30 rounded-lg text-[13px] flex items-center gap-2 text-violet font-medium">
           <Link2 className="size-4 shrink-0" />
           <span>
             This document cancels another invoice.{' '}
@@ -260,6 +261,7 @@ const InvoiceDetail: React.FC<{ invoice: Invoice; setInvoice: (i: Invoice) => vo
           payments={payments}
           journalLines={journalLines}
           coSlug={coSlug}
+          canApprove={invoice.created_by !== currentUser.id && invoice.submitted_by !== currentUser.id}
           actions={{
             approve: handleApprove,
             submit: handleSubmit,
@@ -281,13 +283,13 @@ const InvoiceDetail: React.FC<{ invoice: Invoice; setInvoice: (i: Invoice) => vo
       {invoice.status === 'pending_approval' && (
         <ApprovalBar
           makerId={invoice.created_by}
-          makerName="Rahim Ahmed"
+          makerName={makerName}
           currentUserId={currentUser.id}
           submittedAt={invoice.created_at}
           amount={invoice.total}
           currency={invoice.currency}
-          periodName="Oct 2026"
-          documentNumber={invoice.number || 'DRAFT-0043'}
+          periodName={currentPeriod.name}
+          documentNumber={invoice.number || 'Draft'}
           onApprove={handleApprove}
           onReturn={handleReturn}
         />
@@ -332,11 +334,11 @@ const InvoiceDetail: React.FC<{ invoice: Invoice; setInvoice: (i: Invoice) => vo
         }}
         onConfirm={handleConfirmSign}
         documentTitle={`Invoice for ${contact?.name || 'Customer'}`}
-        documentNumber={invoice.number || 'DRAFT-0043'}
+        documentNumber={invoice.number || 'Draft'}
         amount={invoice.total}
         currency={invoice.currency}
-        periodName="Oct 2026"
-        makerName="Rahim Ahmed"
+        periodName={currentPeriod.name}
+        makerName={makerName}
         actionTitle={
           signAction === 'reverse'
             ? 'Authorize & Post Reversal'

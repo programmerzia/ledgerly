@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Repeat } from 'lucide-react';
 import { useLedgerStore } from '@/mock/store';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { formatMoney } from '@/lib/format';
@@ -20,7 +19,7 @@ export const addMonthsISO = (date: string, months: number): string => {
 
 const FIELD =
   'w-full h-9 px-2.5 rounded-lg border border-border bg-surface text-[13px] text-text-primary focus:border-accent outline-hidden';
-const LABEL = 'text-[11px] font-semibold uppercase tracking-wide text-text-muted';
+const LABEL = 'text-xs font-semibold text-text-muted';
 
 interface Props {
   open: boolean;
@@ -97,17 +96,14 @@ export const MakeRecurringDialog: React.FC<Props> = ({ open, onOpenChange, invoi
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md bg-surface border border-border p-6 shadow-xl rounded-xl">
+      <DialogContent className="max-w-md bg-surface border border-border p-6 shadow-xl rounded-lg">
         <form onSubmit={submit} className="flex flex-col gap-4">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-base font-semibold text-text-primary">
-              <span className="grid size-8 place-items-center rounded-lg bg-accent-soft text-accent">
-                <Repeat className="size-4" />
-              </span>
               Make this invoice recurring
             </DialogTitle>
             <DialogDescription>
-              We'll create a copy on each date and send it for approval. Nothing is posted until someone approves it.
+              A copy is created on each date and sent for approval. Nothing is posted until someone approves it.
             </DialogDescription>
           </DialogHeader>
 
@@ -143,10 +139,10 @@ export const MakeRecurringDialog: React.FC<Props> = ({ open, onOpenChange, invoi
           {error && <p className="text-[13px] text-danger" role="alert">{error}</p>}
 
           <DialogFooter className="gap-2">
-            <button type="button" onClick={() => onOpenChange(false)} className="h-9 px-3 rounded-lg border border-border bg-surface hover:bg-surface-neutral text-[13px] font-medium text-text-primary">
+            <button type="button" onClick={() => onOpenChange(false)} className="h-8 px-3 rounded-md border border-border bg-surface hover:bg-surface-neutral text-[13px] font-medium text-text-primary">
               Cancel
             </button>
-            <button type="submit" disabled={!template} className="h-9 px-4 rounded-lg bg-accent hover:bg-accent-hover text-white text-[13px] font-semibold disabled:opacity-50">
+            <button type="submit" disabled={!template} className="h-8 px-3 rounded-md bg-accent hover:bg-accent-hover text-white text-[13px] font-medium disabled:opacity-50">
               Start repeating
             </button>
           </DialogFooter>

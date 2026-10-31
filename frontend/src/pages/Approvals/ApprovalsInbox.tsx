@@ -5,19 +5,7 @@ import type { BulkApprovalTarget } from '@/types';
 import { useLedgerStore } from '@/mock/store';
 import { formatMoney, formatDateTime } from '@/lib/format';
 import { SignDialog } from '@/components/domain/SignDialog';
-import {
-  CheckSquare,
-  Clock,
-  CheckCircle,
-  CheckCircle2,
-  RotateCcw,
-  ExternalLink,
-  FileSpreadsheet,
-  FileText,
-  BookMarked,
-  XCircle,
-  Lock,
-} from 'lucide-react';
+import { Clock, CheckCircle, CheckCircle2, RotateCcw, ExternalLink, XCircle, Lock } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Kbd } from '@/components/ui/kbd';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
@@ -68,7 +56,7 @@ export const ApprovalsInbox: React.FC = () => {
         document_type: 'sales_invoice' as const,
         document_id: i.id,
         document_number: i.number || 'DRAFT',
-        title: `Sales Invoice: ${contacts.find((c) => c.id === i.contact_id)?.name || 'Customer'}`,
+        title: `Sales invoice: ${contacts.find((c) => c.id === i.contact_id)?.name || 'Customer'}`,
         contact_name: contacts.find((c) => c.id === i.contact_id)?.name || 'Customer',
         amount: i.total,
         currency: i.currency,
@@ -84,7 +72,7 @@ export const ApprovalsInbox: React.FC = () => {
         document_type: 'purchase_bill' as const,
         document_id: b.id,
         document_number: b.number || 'DRAFT-BILL',
-        title: `Purchase Bill: ${contacts.find((c) => c.id === b.contact_id)?.name || 'Supplier'}`,
+        title: `Purchase bill: ${contacts.find((c) => c.id === b.contact_id)?.name || 'Supplier'}`,
         contact_name: contacts.find((c) => c.id === b.contact_id)?.name || 'Supplier',
         amount: b.total,
         currency: b.currency,
@@ -100,7 +88,7 @@ export const ApprovalsInbox: React.FC = () => {
         document_type: 'manual_journal' as const,
         document_id: j.id,
         document_number: j.number || 'DRAFT-JRN',
-        title: `Manual Journal: ${j.memo}`,
+        title: `Manual journal: ${j.memo}`,
         contact_name: 'General Ledger',
         amount: j.total_debit,
         currency: 'USD',
@@ -252,9 +240,9 @@ export const ApprovalsInbox: React.FC = () => {
   };
 
   const GROUPS = [
-    { type: 'sales_invoice', label: 'Sales invoices', icon: FileSpreadsheet },
-    { type: 'purchase_bill', label: 'Supplier bills', icon: FileText },
-    { type: 'manual_journal', label: 'Manual journals', icon: BookMarked },
+    { type: 'sales_invoice', label: 'Sales invoices' },
+    { type: 'purchase_bill', label: 'Supplier bills' },
+    { type: 'manual_journal', label: 'Manual journals' },
   ] as const;
 
   const ageLabel = (iso: string) => {
@@ -271,11 +259,10 @@ export const ApprovalsInbox: React.FC = () => {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        icon={<CheckSquare />}
         title="Approvals"
         subtitle="Documents are posted only after a second person approves them."
         meta={
-          <span className="rounded-full border border-border bg-surface-neutral px-2.5 py-0.5 text-xs text-text-secondary">
+          <span className="rounded-[3px] border border-border bg-surface-neutral px-2.5 py-0.5 text-xs text-text-secondary">
             Signed in as <span className="font-medium text-text-primary">{currentUser.name}</span>
           </span>
         }
@@ -297,7 +284,7 @@ export const ApprovalsInbox: React.FC = () => {
             {t.label}
             <span
               className={cn(
-                'rounded-full px-1.5 text-[11px] font-semibold tabular-nums',
+                'rounded-[3px] px-1.5 text-[11px] font-semibold tabular-nums',
                 t.key === 'waiting' && t.count > 0 ? 'bg-warning-soft text-warning' : 'bg-surface-neutral text-text-secondary'
               )}
             >
@@ -322,24 +309,17 @@ export const ApprovalsInbox: React.FC = () => {
       )}
 
       {displayList.length === 0 ? (
-        <div className="ui-rise-in flex flex-col items-center rounded-xl border border-border bg-surface px-6 py-16 text-center shadow-card">
-          <span className="flex size-14 items-center justify-center rounded-full bg-success-soft text-success">
-            <CheckCircle2 className="size-7" />
-          </span>
-          <h3 className="mt-4 text-base font-semibold text-text-primary">You are all caught up</h3>
+        <div className="flex flex-col items-center rounded-lg border border-border bg-surface px-6 py-16 text-center">
+          <h3 className="text-sm font-semibold text-text-primary">Nothing to approve</h3>
           <p className="mt-1 max-w-sm text-[13px] text-text-muted">Nothing is waiting for approval in this view. New requests will show up here.</p>
         </div>
       ) : (
         GROUPS.map((g) => {
           const items = displayList.filter((i) => i.document_type === g.type);
           if (items.length === 0) return null;
-          const Icon = g.icon;
           return (
             <section key={g.type} className="flex flex-col gap-2.5">
               <div className="flex items-center gap-2">
-                <span className="flex size-7 items-center justify-center rounded-lg bg-accent-soft text-accent">
-                  <Icon className="size-4" />
-                </span>
                 <h2 className="text-sm font-semibold text-text-primary">{g.label}</h2>
                 <span className="text-xs text-text-muted">{items.length}</span>
               </div>
@@ -350,7 +330,7 @@ export const ApprovalsInbox: React.FC = () => {
                     <div
                       key={item.id}
                       data-testid="approval-card"
-                      className="flex flex-col justify-between gap-4 rounded-xl border border-border bg-surface p-4 shadow-card transition duration-200 hover:border-border-strong hover:shadow-card-hover md:flex-row md:items-center"
+                      className="flex flex-col justify-between gap-4 rounded-lg border border-border bg-surface p-4 transition-colors hover:border-border-strong md:flex-row md:items-center"
                     >
                       <div className="flex min-w-0 items-center gap-3">
                         {isMaker ? (
@@ -388,7 +368,7 @@ export const ApprovalsInbox: React.FC = () => {
                       </div>
 
                       <div className="flex items-center justify-between gap-5 md:justify-end">
-                        <div className="text-right text-lg font-semibold tabular-nums tracking-tight text-text-primary">
+                        <div className="text-right text-base font-medium tabular-nums text-text-primary">
                           {formatMoney(item.amount, item.currency)}
                         </div>
                         <div className="flex items-center gap-2">
@@ -446,7 +426,7 @@ export const ApprovalsInbox: React.FC = () => {
         <div
           role="toolbar"
           aria-label="Approve selected"
-          className="ui-rise-in sticky bottom-4 z-30 mx-auto flex max-w-full items-center gap-3 rounded-xl border border-border-strong bg-surface-elevated py-2 pl-4 pr-2 shadow-popover"
+          className="sticky bottom-4 z-30 mx-auto flex max-w-full items-center gap-3 rounded-lg border border-border-strong bg-surface-elevated py-2 pl-4 pr-2 shadow-popover"
         >
           <span className="flex items-center gap-2 text-[13px] font-semibold text-text-primary">
             <span className="flex size-5 items-center justify-center rounded-md bg-accent text-[11px] text-white">{selectedItems.length}</span>
@@ -551,7 +531,7 @@ export const ApprovalsInbox: React.FC = () => {
               </li>
             ))}
           </ul>
-          <button type="button" onClick={() => setResults(null)} className="h-9 rounded-lg bg-accent text-xs font-semibold text-white hover:bg-accent-hover">Done</button>
+          <button type="button" onClick={() => setResults(null)} className="h-8 rounded-md bg-accent text-[13px] font-medium text-white hover:bg-accent-hover">Done</button>
         </SheetContent>
       </Sheet>
 
@@ -593,7 +573,7 @@ export const ApprovalsInbox: React.FC = () => {
               type="button"
               onClick={handleConfirmReturn}
               disabled={loading || !returnComment.trim()}
-              className="h-8 px-4 rounded-lg bg-warning hover:opacity-90 text-white text-xs font-semibold shadow-xs transition-colors disabled:opacity-50"
+              className="h-8 px-4 rounded-lg bg-warning hover:opacity-90 text-white text-xs font-semibold transition-colors disabled:opacity-50"
             >
               Send back
             </button>

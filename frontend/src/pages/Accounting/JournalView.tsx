@@ -11,21 +11,7 @@ import { BTN_SECONDARY } from '@/pages/Sales/invoice-view/shared';
 import { SignDialog } from '@/components/domain/SignDialog';
 import { formatMoney, formatDate } from '@/lib/format';
 import { toast } from 'sonner';
-import {
-  RotateCcw,
-  Printer,
-  Copy,
-  BookOpen,
-  CheckCircle2,
-  AlertTriangle,
-  Link2,
-  Wrench,
-  Paperclip,
-  Upload,
-  FileText,
-  ChevronDown,
-  ChevronUp,
-} from 'lucide-react';
+import { RotateCcw, Printer, Paperclip, Upload, FileText, ChevronDown, ChevronUp } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -158,8 +144,7 @@ export const JournalView: React.FC = () => {
       />
 
       {journal.status === 'reversed' && journal.reversed_by_id && (
-        <div className="flex items-center gap-2 rounded-xl border border-violet/30 bg-violet-soft px-4 py-3 text-[13px] font-medium text-violet">
-          <RotateCcw className="size-4 shrink-0" />
+        <div className="flex items-center gap-2 rounded-lg border border-border bg-surface-neutral px-4 py-3 text-[13px] font-medium text-text-secondary">
           <span>
             This journal was reversed.{' '}
             <button type="button" className="underline" onClick={() => navigate(`/${coSlug}/journals/${journal.reversed_by_id}`)}>
@@ -170,8 +155,7 @@ export const JournalView: React.FC = () => {
       )}
 
       {journal.reversal_of_id && (
-        <div className="flex items-center gap-2 rounded-xl border border-violet/30 bg-violet-soft px-4 py-3 text-[13px] font-medium text-violet">
-          <Link2 className="size-4 shrink-0" />
+        <div className="flex items-center gap-2 rounded-lg border border-border bg-surface-neutral px-4 py-3 text-[13px] font-medium text-text-secondary">
           <span>
             This entry cancels another journal.{' '}
             <button type="button" className="underline" onClick={() => navigate(`/${coSlug}/journals/${journal.reversal_of_id}`)}>
@@ -211,9 +195,9 @@ export const JournalView: React.FC = () => {
 
       {/* Return for changes */}
       <Dialog open={isReturnOpen} onOpenChange={setIsReturnOpen}>
-        <DialogContent className="max-w-md bg-surface-elevated border border-border p-6 shadow-popover rounded-xl">
+        <DialogContent className="max-w-md bg-surface-elevated border border-border p-6 shadow-popover rounded-lg">
           <DialogHeader>
-            <DialogTitle className="text-base font-bold text-text-primary">Send back for changes</DialogTitle>
+            <DialogTitle className="text-base font-semibold text-text-primary">Send back for changes</DialogTitle>
           </DialogHeader>
           <label htmlFor="journal-return-reason" className="text-xs font-semibold text-text-primary">Why are you sending it back?</label>
           <textarea
@@ -229,17 +213,17 @@ export const JournalView: React.FC = () => {
             className="w-full rounded-lg border border-border bg-surface p-2 text-xs text-text-primary focus:outline-none focus:ring-1 focus:ring-accent"
           />
           <DialogFooter className="mt-2 flex justify-end gap-2">
-            <button type="button" onClick={() => setIsReturnOpen(false)} className="h-9 px-3.5 rounded-lg border border-border bg-surface text-xs hover:bg-surface-neutral cursor-pointer">Cancel</button>
-            <button type="button" onClick={handleReturn} disabled={!returnReason.trim()} className="h-9 px-3.5 rounded-lg bg-warning text-white text-xs font-semibold disabled:opacity-50 cursor-pointer">Send back</button>
+            <button type="button" onClick={() => setIsReturnOpen(false)} className="h-9 px-3 rounded-md border border-border bg-surface text-xs hover:bg-surface-neutral cursor-pointer">Cancel</button>
+            <button type="button" onClick={handleReturn} disabled={!returnReason.trim()} className="h-9 px-3 rounded-md bg-warning text-white text-xs font-semibold disabled:opacity-50 cursor-pointer">Send back</button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Confirmation Reversal Dialog */}
       <Dialog open={isReverseOpen} onOpenChange={setIsReverseOpen}>
-        <DialogContent className="max-w-lg bg-surface-elevated border border-border p-6 shadow-popover rounded-xl">
+        <DialogContent className="max-w-lg bg-surface-elevated border border-border p-6 shadow-popover rounded-lg">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-base font-bold text-text-primary">
+            <DialogTitle className="flex items-center gap-2 text-base font-semibold text-text-primary">
               <RotateCcw className="w-5 h-5 text-danger" />
               <span>Reverse {journal.number}</span>
             </DialogTitle>
@@ -261,7 +245,7 @@ export const JournalView: React.FC = () => {
                 type="text"
                 value={reverseReason}
                 onChange={(e) => setReverseReason(e.target.value)}
-                className="w-full h-8 px-2.5 rounded-lg border border-border bg-surface text-xs text-text-primary focus:border-accent outline-hidden"
+                className="w-full h-8 px-2.5 rounded-md border border-border bg-surface text-xs text-text-primary focus:border-accent outline-hidden"
                 placeholder="e.g. posted to the wrong account"
               />
             </div>
@@ -297,7 +281,7 @@ export const JournalView: React.FC = () => {
             <button
               type="button"
               onClick={() => setIsReverseOpen(false)}
-              className="h-9 px-3.5 rounded-lg border border-border bg-surface text-text-primary text-xs hover:bg-surface-neutral cursor-pointer"
+              className="h-8 px-3 rounded-md border border-border bg-surface text-text-primary text-[13px] font-medium hover:bg-surface-neutral cursor-pointer"
             >
               Cancel
             </button>
@@ -309,7 +293,7 @@ export const JournalView: React.FC = () => {
                 setSignAction('reverse');
                 setSignDialogOpen(true);
               }}
-              className="h-9 px-3.5 rounded-lg bg-danger hover:bg-danger/90 text-white text-xs font-semibold shadow-xs disabled:opacity-50 cursor-pointer"
+              className="h-8 px-3 rounded-md bg-danger hover:bg-danger/90 text-white text-[13px] font-medium disabled:opacity-50 cursor-pointer"
             >
               Continue to PIN
             </button>
@@ -319,10 +303,9 @@ export const JournalView: React.FC = () => {
 
       {/* Fix This Dialog */}
       <Dialog open={isFixThisOpen} onOpenChange={setIsFixThisOpen}>
-        <DialogContent className="max-w-md bg-surface-elevated border border-border p-6 shadow-popover rounded-xl">
+        <DialogContent className="max-w-md bg-surface-elevated border border-border p-6 shadow-popover rounded-lg">
           <DialogHeader>
-            <DialogTitle className="text-base font-bold text-text-primary flex items-center gap-2">
-              <Wrench className="w-5 h-5 text-accent" />
+            <DialogTitle className="text-base font-semibold text-text-primary flex items-center gap-2">
               Fix {journal.number}
             </DialogTitle>
           </DialogHeader>
@@ -339,7 +322,7 @@ export const JournalView: React.FC = () => {
             <button
               type="button"
               onClick={() => setIsFixThisOpen(false)}
-              className="h-9 px-3.5 rounded-lg border border-border bg-surface text-text-primary text-xs hover:bg-surface-neutral cursor-pointer"
+              className="h-8 px-3 rounded-md border border-border bg-surface text-text-primary text-[13px] font-medium hover:bg-surface-neutral cursor-pointer"
             >
               Cancel
             </button>
@@ -350,7 +333,7 @@ export const JournalView: React.FC = () => {
                 setSignAction('fix_this');
                 setSignDialogOpen(true);
               }}
-              className="h-9 px-3.5 rounded-lg bg-accent hover:bg-accent-hover text-white text-xs font-semibold shadow-xs cursor-pointer"
+              className="h-8 px-3 rounded-md bg-accent hover:bg-accent-hover text-white text-[13px] font-medium cursor-pointer"
             >
               Continue to PIN
             </button>
@@ -360,9 +343,9 @@ export const JournalView: React.FC = () => {
 
       {/* Attachments Dialog */}
       <Dialog open={isAttachOpen} onOpenChange={setIsAttachOpen}>
-        <DialogContent className="max-w-md bg-surface-elevated border border-border p-6 shadow-popover rounded-xl">
+        <DialogContent className="max-w-md bg-surface-elevated border border-border p-6 shadow-popover rounded-lg">
           <DialogHeader>
-            <DialogTitle className="text-base font-bold text-text-primary flex items-center gap-2">
+            <DialogTitle className="text-base font-semibold text-text-primary flex items-center gap-2">
               <Paperclip className="w-5 h-5 text-accent" />
               Files ({attachments.length})
             </DialogTitle>
@@ -404,7 +387,7 @@ export const JournalView: React.FC = () => {
             <button
               type="button"
               onClick={() => setIsAttachOpen(false)}
-              className="h-9 px-3.5 rounded-lg border border-border bg-surface text-text-primary text-xs hover:bg-surface-neutral cursor-pointer"
+              className="h-8 px-3 rounded-md border border-border bg-surface text-text-primary text-[13px] font-medium hover:bg-surface-neutral cursor-pointer"
             >
               Close
             </button>
@@ -421,7 +404,7 @@ export const JournalView: React.FC = () => {
         }}
         onConfirm={handleConfirmSign}
         documentTitle={`Journal Entry: ${journal.number || 'Manual Journal'}`}
-        documentNumber={journal.number || 'JNL-2026-0001'}
+        documentNumber={journal.number || 'Draft'}
         amount={journal.total_debit}
         currency={currentCompany.base_currency}
         periodName="Oct 2026"

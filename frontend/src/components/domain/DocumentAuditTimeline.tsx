@@ -15,6 +15,7 @@ import {
   ChevronDown,
 } from 'lucide-react';
 
+
 export interface DocumentAuditTimelineProps {
   documentId: string;
   documentNumber?: string | null;
@@ -252,9 +253,10 @@ export const DocumentAuditTimeline: React.FC<DocumentAuditTimelineProps> = ({
         {entries.map((entry) => (
           <li key={entry.id} className="relative flex gap-3 min-w-0">
             <span
-              className={`relative z-10 flex size-6 shrink-0 items-center justify-center rounded-full ring-4 ring-surface ${dotTone(entry.badgeClass).split(' ').filter((c) => !c.startsWith('border')).join(' ')}`}
+              aria-hidden
+              className={`relative z-10 flex size-6 shrink-0 items-center justify-center bg-surface ${dotTone(entry.badgeClass).split(' ').filter((c) => c.startsWith('text-')).join(' ')}`}
             >
-              {entry.icon}
+              <span className="size-2 rounded-full bg-current" />
             </span>
             <div className="min-w-0 flex-1 pt-0.5">
               <p className="text-[13px] leading-snug text-text-primary break-words">

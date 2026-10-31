@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLedgerlyStore } from '@/mock/store';
 import { AuthLayout } from './AuthLayout';
-import { ArrowRight, KeyRound } from 'lucide-react';
 
 export const TwoFactor: React.FC = () => {
   const [code, setCode] = useState('829104');
@@ -19,18 +18,12 @@ export const TwoFactor: React.FC = () => {
   const inputRef = React.useRef<HTMLInputElement>(null);
   return (
     <AuthLayout>
-      <div className="flex flex-col gap-6 rounded-2xl border border-border bg-surface p-8 shadow-card">
-        <div className="flex flex-col gap-3">
-          <span className="flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-accent-soft to-violet-soft text-accent ring-1 ring-inset ring-border">
-            <KeyRound className="size-6" />
-          </span>
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-text-primary">Check your authenticator</h1>
-            <p className="mt-1 text-[13px] text-text-muted">
-              Enter the 6-digit code from your app for{' '}
-              <span className="font-medium text-text-primary">{currentUser.email}</span>.
-            </p>
-          </div>
+      <div className="flex flex-col gap-6">
+        <div>
+          <h1 className="text-[22px] font-semibold text-text-primary">Enter your code</h1>
+          <p className="mt-1 text-[13px] text-text-muted">
+            From the authenticator app you set up for <span className="text-text-primary">{currentUser.email}</span>.
+          </p>
         </div>
 
         <form onSubmit={handleVerify} className="flex flex-col gap-5">
@@ -39,8 +32,8 @@ export const TwoFactor: React.FC = () => {
               {digits.map((d, i) => (
                 <span
                   key={i}
-                  className={`flex h-14 flex-1 items-center justify-center rounded-xl border bg-surface-neutral/50 font-mono text-2xl font-semibold text-text-primary transition ${
-                    i === Math.min(code.length, 5) ? 'border-accent ring-2 ring-accent/20' : 'border-border'
+                  className={`flex h-12 flex-1 items-center justify-center rounded-md border bg-surface font-code text-xl text-text-primary transition ${
+                    i === Math.min(code.length, 5) ? 'border-accent ring-2 ring-accent/15' : 'border-border-strong'
                   }`}
                 >
                   {d.trim()}
@@ -58,15 +51,14 @@ export const TwoFactor: React.FC = () => {
                 className="absolute inset-0 h-full w-full cursor-text opacity-0"
               />
             </div>
-            <span className="text-xs text-text-muted">Demo: the code is already filled in (829104).</span>
+            <span className="text-xs text-text-muted">Demo: the code 829104 is filled in for you.</span>
           </div>
 
           <button
             type="submit"
-            className="flex h-10 items-center justify-center gap-2 rounded-lg bg-accent text-[13px] font-semibold text-white shadow-sm transition hover:bg-accent-hover"
+            className="h-9 rounded-md bg-accent text-[14px] font-medium text-white transition hover:bg-accent-hover cursor-pointer"
           >
-            <span>Verify and sign in</span>
-            <ArrowRight className="size-4" />
+            Verify
           </button>
         </form>
 
@@ -74,7 +66,7 @@ export const TwoFactor: React.FC = () => {
           <button type="button" onClick={() => navigate('/login')} className="hover:text-text-primary cursor-pointer">
             Use a different account
           </button>
-          <a href="#" className="text-accent hover:underline">Use a recovery code</a>
+          <a href="#" className="text-text-muted hover:text-accent">Use a recovery code</a>
         </div>
       </div>
     </AuthLayout>

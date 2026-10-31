@@ -8,19 +8,7 @@ import React, { useState } from 'react';
 import { useAdminStore } from '@/mock/store/adminStore';
 import { Plan, SupportedCurrency } from '@/types/admin';
 import { toast } from 'sonner';
-import {
-  Package,
-  Check,
-  X,
-  CreditCard,
-  Plus,
-  RefreshCw,
-  Layers,
-  Users,
-  ShieldCheck,
-  Zap,
-  Lock,
-} from 'lucide-react';
+import { Check, X, RefreshCw, Users } from 'lucide-react';
 
 export const PlansList: React.FC = () => {
   const { plans, mockPlanAddons } = useAdminStore() as any;
@@ -46,9 +34,9 @@ export const PlansList: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-border">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-lg font-bold tracking-tight">Plans & Entitlements Matrix</h1>
-            <span className="px-2 py-0.5 rounded-full bg-violet-soft text-violet text-[10px] font-mono font-semibold">
-              Stripe Products Synced
+            <h1 className="text-xl font-semibold">Plans and entitlements</h1>
+            <span className="px-2 py-0.5 rounded-[3px] bg-surface-neutral text-text-secondary text-[11px] font-medium">
+              Synced with Stripe
             </span>
           </div>
           <p className="text-xs text-text-muted mt-0.5">
@@ -66,7 +54,7 @@ export const PlansList: React.FC = () => {
                 type="button"
                 onClick={() => setCurrency(c)}
                 className={`px-2.5 py-1 font-mono font-medium cursor-pointer transition ${
-                  currency === c ? 'bg-violet text-white' : 'text-text-muted hover:text-text-primary'
+                  currency === c ? 'bg-accent text-white' : 'text-text-muted hover:text-text-primary'
                 }`}
               >
                 {c}
@@ -80,7 +68,7 @@ export const PlansList: React.FC = () => {
               type="button"
               onClick={() => setInterval('monthly')}
               className={`px-2.5 py-1 font-medium cursor-pointer transition ${
-                interval === 'monthly' ? 'bg-violet text-white' : 'text-text-muted hover:text-text-primary'
+                interval === 'monthly' ? 'bg-accent text-white' : 'text-text-muted hover:text-text-primary'
               }`}
             >
               Monthly
@@ -89,7 +77,7 @@ export const PlansList: React.FC = () => {
               type="button"
               onClick={() => setInterval('annual')}
               className={`px-2.5 py-1 font-medium cursor-pointer transition ${
-                interval === 'annual' ? 'bg-violet text-white' : 'text-text-muted hover:text-text-primary'
+                interval === 'annual' ? 'bg-accent text-white' : 'text-text-muted hover:text-text-primary'
               }`}
             >
               Annual (-15%)
@@ -110,14 +98,14 @@ export const PlansList: React.FC = () => {
             <div
               key={p.id}
               className={`p-4 rounded-lg bg-surface border flex flex-col justify-between transition-all ${
-                p.code === 'business' ? 'border-violet shadow-sm ring-1 ring-violet/20' : 'border-border'
+                p.code === 'business' ? 'border-accent ring-1 ring-accent/20' : 'border-border'
               }`}
             >
               <div>
                 <div className="flex items-center justify-between">
-                  <h3 className="font-bold text-sm text-text-primary">{p.name}</h3>
+                  <h3 className="font-semibold text-sm text-text-primary">{p.name}</h3>
                   {p.code === 'business' && (
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-violet text-white font-semibold">
+                    <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-accent text-white font-semibold">
                       Popular
                     </span>
                   )}
@@ -127,21 +115,21 @@ export const PlansList: React.FC = () => {
                 {/* Price Display */}
                 <div className="mt-3 pb-3 border-b border-border/60">
                   <div className="flex items-baseline gap-1">
-                    <span className="text-2xl font-bold font-mono text-text-primary">
+                    <span className="text-2xl font-semibold font-mono text-text-primary">
                       {currencySymbols[currency]}{displayPrice}
                     </span>
                     <span className="text-[11px] text-text-muted font-mono">
                       /{interval === 'annual' ? 'yr' : 'mo'}
                     </span>
                   </div>
-                  <div className="text-[10px] text-text-muted font-mono mt-0.5">
+                  <div className="text-[11px] text-text-muted font-mono mt-0.5">
                     Stripe Product: {version.stripeProductId}
                   </div>
                 </div>
 
                 {/* Quotas & Limits */}
                 <div className="mt-3 space-y-2 text-xs">
-                  <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider block">
+                  <span className="text-[11px] font-semibold text-text-muted block">
                     Included Limits
                   </span>
                   <div className="flex justify-between py-0.5">
@@ -153,7 +141,7 @@ export const PlansList: React.FC = () => {
                     <span className="font-mono font-semibold">{version.limits.users} seats</span>
                   </div>
                   <div className="flex justify-between py-0.5">
-                    <span className="text-text-muted">Journal Lines</span>
+                    <span className="text-text-muted">Journal lines</span>
                     <span className="font-mono font-semibold">{version.limits.journalLinesPerMonth.toLocaleString()} / mo</span>
                   </div>
                   <div className="flex justify-between py-0.5">
@@ -168,7 +156,7 @@ export const PlansList: React.FC = () => {
 
                 {/* Entitlements Checklist */}
                 <div className="mt-4 pt-3 border-t border-border/60 space-y-1.5 text-xs">
-                  <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider block">
+                  <span className="text-[11px] font-semibold text-text-muted block">
                     Feature Entitlements
                   </span>
                   <div className="flex items-center gap-2 text-text-secondary">
@@ -181,11 +169,11 @@ export const PlansList: React.FC = () => {
                   </div>
                   <div className="flex items-center gap-2 text-text-secondary">
                     {version.entitlements.fixedAssets ? <Check className="w-3.5 h-3.5 text-success" /> : <X className="w-3.5 h-3.5 text-text-muted opacity-40" />}
-                    <span>Fixed Assets Register & Depreciation</span>
+                    <span>Fixed assets register and depreciation</span>
                   </div>
                   <div className="flex items-center gap-2 text-text-secondary">
                     {version.entitlements.budgets ? <Check className="w-3.5 h-3.5 text-success" /> : <X className="w-3.5 h-3.5 text-text-muted opacity-40" />}
-                    <span>Budgets & Variance Reporting</span>
+                    <span>Budgets and variance reporting</span>
                   </div>
                   <div className="flex items-center gap-2 text-text-secondary">
                     {version.entitlements.apiAccess ? <Check className="w-3.5 h-3.5 text-success" /> : <X className="w-3.5 h-3.5 text-text-muted opacity-40" />}
@@ -198,26 +186,16 @@ export const PlansList: React.FC = () => {
                 </div>
               </div>
 
-              {/* Card Footer Button */}
-              <div className="mt-4 pt-3 border-t border-border">
-                <button
-                  type="button"
-                  onClick={() => toast.info(`Plan versioning is managed via Stripe Product sync. Current version: v${version.version}`)}
-                  className="w-full h-8 rounded border border-border hover:bg-surface-neutral text-text-primary text-xs font-medium cursor-pointer transition"
-                >
-                  Configure Plan v{version.version}
-                </button>
-              </div>
             </div>
           );
         })}
       </div>
 
       {/* Add-Ons Catalog */}
-      <div className="rounded bg-surface border border-border p-4 space-y-3">
+      <div className="rounded-lg bg-surface border border-border p-4 space-y-3">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-text-primary">
+            <h3 className="text-xs font-semibold text-text-primary">
               Available Add-On Packages & Metered Overage
             </h3>
             <p className="text-[11px] text-text-muted">Modular add-ons attachable to any active tenant subscription</p>
@@ -225,7 +203,7 @@ export const PlansList: React.FC = () => {
           <button
             type="button"
             onClick={() => toast.success('Stripe Add-On catalog refreshed')}
-            className="h-7 px-2.5 rounded border border-border text-xs flex items-center gap-1.5 hover:bg-surface-neutral cursor-pointer"
+            className="h-8 px-2.5 rounded-md border border-border text-xs flex items-center gap-1.5 hover:bg-surface-neutral cursor-pointer"
           >
             <RefreshCw className="w-3 h-3 text-text-muted" />
             <span>Sync Add-Ons</span>
@@ -234,10 +212,10 @@ export const PlansList: React.FC = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
           {allAddons.map((addon) => (
-            <div key={addon.code} className="p-3 rounded bg-surface-neutral/40 border border-border/80 space-y-1">
+            <div key={addon.code} className="p-3 rounded-md bg-surface-neutral/40 border border-border/80 space-y-1">
               <div className="flex items-center justify-between">
                 <span className="font-semibold text-text-primary">{addon.name}</span>
-                <span className="font-mono text-violet font-bold">{addon.price}</span>
+                <span className="font-mono text-text-secondary font-semibold">{addon.price}</span>
               </div>
               <p className="text-[11px] text-text-muted">{addon.desc}</p>
             </div>

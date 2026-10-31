@@ -89,8 +89,8 @@ export const TrialBalance: React.FC = () => {
                   </span>
                   {!open ? (
                     <>
-                      <span className="text-right font-mono tabular-nums">{cell(dr)}</span>
-                      <span className="text-right font-mono tabular-nums">{cell(cr)}</span>
+                      <span className="text-right tabular-nums">{cell(dr)}</span>
+                      <span className="text-right tabular-nums">{cell(cr)}</span>
                     </>
                   ) : (
                     <><span /><span /></>
@@ -107,14 +107,14 @@ export const TrialBalance: React.FC = () => {
                             onClick={() => go(r.account.code)}
                             onKeyDown={(e) => e.key === 'Enter' && go(r.account.code)}
                             title="View transactions"
-                            className={`${GRID} items-baseline px-2 py-1.5 text-xs cursor-pointer hover:bg-accent-soft/40 rounded-md group focus-visible:outline-2 outline-accent`}
+                            className={`${GRID} items-baseline px-2 py-1.5 text-xs cursor-pointer hover:bg-canvas rounded-md group focus-visible:outline-2 outline-accent`}
                           >
                             <span className="text-text-primary group-hover:text-accent group-hover:underline">
-                              <span className="font-mono text-text-muted mr-2">{r.account.code}</span>
+                              <span className="font-code text-text-muted mr-2">{r.account.code}</span>
                               {r.account.name}
                             </span>
-                            <span className="text-right font-mono tabular-nums text-text-primary">{cell(r.closingDebit)}</span>
-                            <span className="text-right font-mono tabular-nums text-text-primary">{cell(r.closingCredit)}</span>
+                            <span className="text-right tabular-nums text-text-primary">{cell(r.closingDebit)}</span>
+                            <span className="text-right tabular-nums text-text-primary">{cell(r.closingCredit)}</span>
                           </div>
                         </ContextMenuTrigger>
                         <ContextMenuContent>
@@ -140,28 +140,28 @@ export const TrialBalance: React.FC = () => {
                 {open && (
                   <div className={`${GRID} items-baseline px-2 py-2 border-t border-border text-[13px] font-semibold`}>
                     <span className="text-text-primary">Total {g.title.toLowerCase()}</span>
-                    <span className="text-right font-mono tabular-nums">{cell(dr)}</span>
-                    <span className="text-right font-mono tabular-nums">{cell(cr)}</span>
+                    <span className="text-right tabular-nums">{cell(dr)}</span>
+                    <span className="text-right tabular-nums">{cell(cr)}</span>
                   </div>
                 )}
               </div>
             );
           })}
 
-          <div className={`${GRID} items-baseline px-2 py-3 mt-2 border-y-2 border-border bg-surface-neutral/50 text-sm font-semibold`}>
+          <div className={`${GRID} items-baseline px-2 py-3 mt-2 border-t border-text-primary border-b-[3px] border-double text-sm font-semibold`}>
             <span className="text-text-primary">
               Total
               <span className="ml-2 font-normal text-xs text-text-muted">
                 {period ? `as of ${longDate(period.ends_on)}` : ''}
               </span>
             </span>
-            <span className="text-right font-mono tabular-nums">{money(tb.totalDebit)}</span>
-            <span className="text-right font-mono tabular-nums">{money(tb.totalCredit)}</span>
+            <span className="text-right tabular-nums">{money(tb.totalDebit)}</span>
+            <span className="text-right tabular-nums">{money(tb.totalCredit)}</span>
           </div>
           {diff !== 0 && (
             <div className="mt-3 flex justify-between px-2 text-xs font-semibold text-danger" role="alert">
               <span>Difference (debits less credits)</span>
-              <span className="font-mono tabular-nums">{money(diff)}</span>
+              <span className="tabular-nums">{money(diff)}</span>
             </div>
           )}
         </div>

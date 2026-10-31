@@ -8,7 +8,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useLedgerStore } from '@/mock/store';
 import { formatMoney } from '@/lib/format';
-import { ShieldCheck, AlertTriangle, Lock, CheckCircle2 } from 'lucide-react';
+import { AlertTriangle, Lock, CheckCircle2 } from 'lucide-react';
 import { Avatar } from '@/components/ui/avatar';
 import { Kbd } from '@/components/ui/kbd';
 import { cn } from '@/lib/utils';
@@ -252,9 +252,6 @@ export const SignDialog: React.FC<SignDialogProps> = ({
       <DialogContent className="max-w-[760px] overflow-hidden border-border bg-surface-elevated p-0 shadow-popover">
         <DialogHeader className="border-b border-border px-6 py-4">
           <DialogTitle className="flex items-center gap-3 text-base font-semibold text-text-primary">
-            <span className="flex size-8 items-center justify-center rounded-lg bg-accent-soft text-accent">
-              <ShieldCheck className="size-4" />
-            </span>
             Confirm with your PIN
           </DialogTitle>
         </DialogHeader>
@@ -264,10 +261,10 @@ export const SignDialog: React.FC<SignDialogProps> = ({
           <div className="flex flex-col justify-between gap-5 bg-surface-neutral/40 p-6">
             <div className="space-y-4">
               <div className="text-[11px] font-semibold tracking-wide text-text-muted">What you are signing</div>
-              <div className="rounded-xl border border-border bg-surface p-4 shadow-card">
+              <div className="rounded-lg border border-border bg-surface p-4">
                 <div className="truncate text-[13px] font-medium text-text-primary">{documentTitle}</div>
                 {amount !== undefined && (
-                  <div className="mt-1 text-2xl font-semibold tabular-nums tracking-tight text-text-primary">
+                  <div className="mt-1 text-[22px] leading-7 font-medium tabular-nums text-text-primary">
                     {formatMoney(amount, currency)}
                   </div>
                 )}
@@ -298,7 +295,7 @@ export const SignDialog: React.FC<SignDialogProps> = ({
           <div className="flex flex-col justify-between gap-5 p-6">
             <div className="space-y-4">
               {isSignatureCached ? (
-                <div className="space-y-2 rounded-xl border border-accent/25 bg-accent-soft/40 p-4">
+                <div className="space-y-2 rounded-lg border border-border bg-surface-neutral p-4">
                   <div className="flex items-center gap-2 text-[13px] font-semibold text-text-primary">
                     <CheckCircle2 className="size-4 shrink-0 text-accent" />
                     You signed a moment ago ({cachedTimeRemaining} left)
@@ -308,7 +305,7 @@ export const SignDialog: React.FC<SignDialogProps> = ({
                   </p>
                 </div>
               ) : lockoutSeconds > 0 ? (
-                <div className="space-y-2 rounded-xl border border-danger/30 bg-danger-soft p-5 text-center">
+                <div className="space-y-2 rounded-lg border border-danger/30 bg-danger-soft p-5 text-center">
                   <Lock className="mx-auto size-6 text-danger" />
                   <div className="text-sm font-semibold text-danger">Signing is paused</div>
                   <p className="text-xs text-text-secondary">
@@ -379,7 +376,7 @@ export const SignDialog: React.FC<SignDialogProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="h-9 rounded-lg border border-border px-3.5 text-[13px] font-medium text-text-secondary transition hover:bg-surface-neutral"
+                className="h-8 rounded-md border border-border px-3 text-[13px] font-medium text-text-secondary transition hover:bg-surface-neutral"
               >
                 Cancel
               </button>
@@ -387,7 +384,7 @@ export const SignDialog: React.FC<SignDialogProps> = ({
                 type="button"
                 onClick={handleSubmit}
                 disabled={lockoutSeconds > 0}
-                className="h-9 rounded-lg bg-accent px-4 text-[13px] font-semibold text-white transition hover:bg-accent-hover disabled:opacity-50"
+                className="h-8 rounded-md bg-accent px-3 text-[13px] font-medium text-white transition hover:bg-accent-hover disabled:opacity-50"
               >
                 {isSignatureCached ? `Sign as ${currentUser.name.split(' ')[0]}` : actionTitle}
               </button>

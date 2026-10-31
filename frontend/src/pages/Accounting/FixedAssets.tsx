@@ -9,21 +9,7 @@ import { DataTable, type RowAction } from '@/components/domain/DataTable';
 import { formatMoney } from '@/lib/format';
 import { SplitPane } from '@/components/domain/SplitPane';
 import { SignDialog } from '@/components/domain/SignDialog';
-import {
-  Package,
-  Plus,
-  Search,
-  Calendar,
-  Building,
-  CheckCircle2,
-  AlertCircle,
-  Coins,
-  ShieldCheck,
-  TrendingDown,
-  Layers,
-  FileSpreadsheet,
-  Trash2,
-} from 'lucide-react';
+import { Plus, Calendar, Building, CheckCircle2, ShieldCheck, TrendingDown, Layers, FileSpreadsheet, Trash2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -86,12 +72,9 @@ export const FixedAssets: React.FC = () => {
       header: 'Asset',
       cell: ({ row }) => (
         <div className="flex items-center gap-3">
-          <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent">
-            <Package className="size-4" />
-          </span>
           <div className="min-w-0">
             <div className="truncate font-medium text-text-primary">{row.original.name}</div>
-            <div className="font-mono text-[11px] text-text-muted">{row.original.number}</div>
+            <div className="font-code text-[11px] text-text-muted">{row.original.number}</div>
           </div>
         </div>
       ),
@@ -118,9 +101,9 @@ export const FixedAssets: React.FC = () => {
         const pct = deprPct(row.original);
         return (
           <div className="flex w-36 items-center gap-2" title={`${formatMoney(getAccumDepr(row.original))} depreciated so far`}>
-            <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface-neutral">
+            <div className="h-1 flex-1 overflow-hidden rounded-[1px] bg-surface-neutral">
               <div
-                className={`h-full rounded-full ${pct > 80 ? 'bg-warning' : 'bg-accent'}`}
+                className={`h-full rounded-[1px] ${pct > 80 ? 'bg-warning' : 'bg-accent'}`}
                 style={{ width: `${pct}%` }}
               />
             </div>
@@ -142,7 +125,7 @@ export const FixedAssets: React.FC = () => {
       accessorKey: 'status',
       header: 'Status',
       cell: ({ row }) => (
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-success-soft px-2 py-0.5 text-xs font-medium capitalize text-success">
+        <span className="inline-flex items-center gap-1.5 rounded-[3px] bg-success-soft px-2 py-0.5 text-xs font-medium capitalize text-success">
           <span className="size-1.5 rounded-full bg-success" />
           {row.original.status}
         </span>
@@ -220,8 +203,8 @@ export const FixedAssets: React.FC = () => {
     <button
       type="button"
       onClick={() => setActiveTab(id)}
-      className={`rounded-md px-3 py-1.5 text-[13px] font-medium transition cursor-pointer ${
-        activeTab === id ? 'bg-surface text-text-primary shadow-card font-semibold' : 'text-text-muted hover:text-text-primary'
+      className={`rounded-[4px] px-3 py-1 text-[13px] font-medium transition cursor-pointer ${
+        activeTab === id ? 'bg-surface text-text-primary' : 'text-text-muted hover:text-text-primary'
       }`}
     >
       {label}
@@ -240,20 +223,16 @@ export const FixedAssets: React.FC = () => {
     },
   ];
 
-  const kpi = (label: string, value: number, tone: string, icon: React.ReactNode) => (
-    <div className="flex items-center gap-3 rounded-xl border border-border bg-surface p-4 shadow-card">
-      <span className={`flex size-9 items-center justify-center rounded-lg ${tone}`}>{icon}</span>
-      <div>
-        <div className="text-xs text-text-muted">{label}</div>
-        <div className="text-xl font-semibold tabular-nums tracking-tight text-text-primary">{formatMoney(value)}</div>
-      </div>
+  const kpi = (label: string, value: number) => (
+    <div className="px-5 py-3">
+      <div className="text-xs text-text-muted">{label}</div>
+      <div className="mt-1 text-[22px] leading-7 font-medium tabular-nums text-text-primary">{formatMoney(value)}</div>
     </div>
   );
 
   return (
     <div className="flex flex-col gap-5">
       <PageHeader
-        icon={<Package />}
         title="Fixed assets"
         subtitle="Equipment and property you own, and how much value they lose each month"
         actions={
@@ -261,7 +240,7 @@ export const FixedAssets: React.FC = () => {
             <button
               type="button"
               onClick={() => setIsNewAssetOpen(true)}
-              className="flex h-9 items-center gap-1.5 rounded-lg bg-accent px-3.5 text-[13px] font-semibold text-white shadow-sm transition hover:bg-accent-hover cursor-pointer"
+              className="flex h-8 items-center gap-1.5 rounded-md bg-accent px-3 text-[13px] font-medium text-white transition hover:bg-accent-hover cursor-pointer"
             >
               <Plus className="size-4" />
               <span>Add asset</span>
@@ -270,13 +249,13 @@ export const FixedAssets: React.FC = () => {
         }
       />
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        {kpi('Original cost', totals.cost, 'bg-accent-soft text-accent', <Coins className="size-4" />)}
-        {kpi('Depreciated so far', totals.accum, 'bg-warning-soft text-warning', <TrendingDown className="size-4" />)}
-        {kpi('Value today', totals.nbv, 'bg-success-soft text-success', <ShieldCheck className="size-4" />)}
+      <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-border rounded-lg border border-border bg-surface">
+        {kpi('Original cost', totals.cost)}
+        {kpi('Depreciated so far', totals.accum)}
+        {kpi('Value today', totals.nbv)}
       </div>
 
-      <div className="flex w-fit items-center gap-1 rounded-lg border border-border bg-surface-neutral p-1">
+      <div className="flex w-fit items-center gap-1 rounded-md bg-surface-neutral p-0.5">
         {tabBtn('register', 'Asset list')}
         {tabBtn('depreciation', 'Monthly depreciation')}
       </div>
@@ -291,7 +270,7 @@ export const FixedAssets: React.FC = () => {
           icon={<Building className="w-4 h-4" />}
           badge={
             selectedAsset && (
-              <span className="rounded-full bg-accent-soft px-2 py-0.5 font-mono text-[11px] font-semibold text-accent">
+              <span className="rounded-[3px] bg-surface-neutral px-1.5 py-px font-code text-[11px] font-medium text-text-secondary">
                 {selectedAsset.number}
               </span>
             )
@@ -299,7 +278,7 @@ export const FixedAssets: React.FC = () => {
           detailContent={
             selectedAsset && (
               <div className="flex flex-col gap-4 text-[13px]">
-                <div className="rounded-xl border border-border bg-surface-neutral/50 p-4">
+                <div className="rounded-lg border border-border bg-surface-neutral/50 p-4">
                   <div className="flex items-center justify-between">
                     <div>
                       <span className="block text-xs text-text-muted">Value today</span>
@@ -314,13 +293,13 @@ export const FixedAssets: React.FC = () => {
                       </span>
                     </div>
                   </div>
-                  <div className="mt-3 h-2 overflow-hidden rounded-full bg-surface-neutral">
-                    <div className="h-full rounded-full bg-accent" style={{ width: `${deprPct(selectedAsset)}%` }} />
+                  <div className="mt-3 h-1 overflow-hidden rounded-[1px] bg-surface-neutral">
+                    <div className="h-full rounded-[1px] bg-accent" style={{ width: `${deprPct(selectedAsset)}%` }} />
                   </div>
                   <div className="mt-1 text-xs text-text-muted">{Math.round(deprPct(selectedAsset))}% of its value used up</div>
                 </div>
 
-                <dl className="flex flex-col divide-y divide-border rounded-xl border border-border bg-surface px-4">
+                <dl className="flex flex-col divide-y divide-border rounded-lg border border-border bg-surface px-4">
                   {[
                     ['Category', categoryLabel(selectedAsset.category_id)],
                     ['Bought on', selectedAsset.acquired_on],
@@ -343,7 +322,7 @@ export const FixedAssets: React.FC = () => {
             columns={columns}
             data={filteredAssets}
             activeRowId={selectedAssetId}
-            searchPlaceholder="Filter assets by number, name, category..."
+            searchPlaceholder="Filter assets by number, name, category"
             rowDensity={uiDensity}
             onRowClick={(row) => setSelectedAssetId(row.id)}
             rowActions={assetActions}
@@ -363,9 +342,9 @@ export const FixedAssets: React.FC = () => {
           )}
 
           {/* Config card */}
-          <div className="p-4 bg-surface border border-border rounded-xl shadow-card grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+          <div className="p-4 bg-surface border border-border rounded-lg grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
             <div className="flex flex-col gap-1">
-              <label className="text-[11px] font-semibold text-text-muted uppercase tracking-wider flex items-center gap-1">
+              <label className="text-[11px] font-semibold text-text-muted flex items-center gap-1">
                 <Calendar className="w-3.5 h-3.5 text-accent" />
                 Run date
               </label>
@@ -373,24 +352,24 @@ export const FixedAssets: React.FC = () => {
                 type="date"
                 value={asOfDate}
                 onChange={(e) => setAsOfDate(e.target.value)}
-                className="h-8 px-2.5 font-mono text-text-primary rounded-lg border border-border bg-surface focus:outline-none focus:border-accent"
+                className="h-8 px-2.5 font-mono text-text-primary rounded-md border border-border bg-surface focus:outline-none focus:border-accent"
               />
             </div>
 
             <div className="flex flex-col gap-1">
-              <label className="text-[11px] font-semibold text-text-muted uppercase tracking-wider">
+              <label className="text-[11px] font-semibold text-text-muted">
                 Accounting period
               </label>
-              <div className="h-8 px-2.5 flex items-center rounded-lg border border-border bg-surface-neutral font-medium text-text-primary">
+              <div className="h-8 px-2.5 flex items-center rounded-md border border-border bg-surface-neutral font-medium text-text-primary">
                 October 2026
               </div>
             </div>
           </div>
 
           {/* Preview Schedule */}
-          <div className="p-4 bg-surface border border-border rounded-xl shadow-card flex flex-col gap-3 text-xs">
+          <div className="p-4 bg-surface border border-border rounded-lg flex flex-col gap-3 text-xs">
             <div className="flex items-center justify-between">
-              <span className="font-bold text-text-primary uppercase tracking-wider text-[11px]">
+              <span className="font-semibold text-text-primary text-[11px]">
                 This month’s depreciation
               </span>
               <span className="text-[11px] text-text-muted">
@@ -423,8 +402,8 @@ export const FixedAssets: React.FC = () => {
 
             {/* Total and Execute */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pt-4 border-t border-border">
-              <div className="p-3 bg-accent-soft/60 border border-accent/20 rounded-md text-text-primary max-w-md">
-                <span className="font-semibold text-[11px] text-accent uppercase tracking-wide block mb-1">
+              <div className="p-3 bg-surface-neutral border border-border rounded-md text-text-primary max-w-md">
+                <span className="font-semibold text-[11px] text-accent block mb-1">
                   What this does
                 </span>
                 <p className="text-[11px] text-text-muted leading-relaxed">
@@ -438,7 +417,7 @@ export const FixedAssets: React.FC = () => {
               <div className="flex flex-col items-end gap-3">
                 <div className="text-right">
                   <span className="text-text-muted text-xs block">Total this month</span>
-                  <span className="text-xl font-bold font-mono text-num text-danger">
+                  <span className="text-xl font-medium text-num text-danger">
                     {formatMoney(deprPreview.total_depreciation)}
                   </span>
                 </div>
@@ -446,7 +425,7 @@ export const FixedAssets: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setSignDialogOpen(true)}
-                  className="h-8 px-5 bg-accent hover:bg-accent-hover text-white rounded-lg font-semibold text-xs shadow-2xs transition flex items-center gap-1.5"
+                  className="h-8 px-5 bg-accent hover:bg-accent-hover text-white rounded-md font-medium text-[13px] transition flex items-center gap-1.5"
                 >
                   <ShieldCheck className="w-3.5 h-3.5" />
                   <span>Sign and record depreciation</span>
@@ -462,7 +441,7 @@ export const FixedAssets: React.FC = () => {
         <DialogContent className="max-w-[480px] p-5">
           <form onSubmit={handleCreateAsset} className="flex flex-col gap-4 text-xs">
             <DialogHeader>
-              <DialogTitle className="text-sm font-bold text-text-primary">Add an asset</DialogTitle>
+              <DialogTitle className="text-sm font-semibold text-text-primary">Add an asset</DialogTitle>
             </DialogHeader>
 
             <div className="flex flex-col gap-1">
@@ -472,7 +451,7 @@ export const FixedAssets: React.FC = () => {
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
                 placeholder="e.g. Core Cisco Fiber Switch 9300"
-                className="h-9 px-3 rounded-lg border border-border bg-surface text-[13px] text-text-primary"
+                className="h-9 px-3 rounded-md border border-border bg-surface text-[13px] text-text-primary"
                 required
               />
             </div>
@@ -483,12 +462,12 @@ export const FixedAssets: React.FC = () => {
                 <select
                   value={newCategory}
                   onChange={(e) => setNewCategory(e.target.value)}
-                  className="h-8 px-2 rounded-lg border border-border bg-surface text-text-primary"
+                  className="h-8 px-2 rounded-md border border-border bg-surface text-text-primary"
                 >
                   <option value="IT & Telecom Equipment">IT & Telecom Equipment</option>
-                  <option value="Vehicles & Transport">Vehicles & Transport</option>
+                  <option value="Vehicles & Transport">Vehicles and transport</option>
                   <option value="Office Furniture & Fixtures">Office Furniture</option>
-                  <option value="Generators & Power Units">Generators & Power Units</option>
+                  <option value="Generators & Power Units">Generators and power units</option>
                 </select>
               </div>
 
@@ -499,7 +478,7 @@ export const FixedAssets: React.FC = () => {
                   step="0.01"
                   value={newCost}
                   onChange={(e) => setNewCost(e.target.value)}
-                  className="h-8 px-2 font-mono text-right rounded-lg border border-border bg-surface text-text-primary"
+                  className="h-8 px-2 font-mono text-right rounded-md border border-border bg-surface text-text-primary"
                   required
                 />
               </div>
@@ -511,7 +490,7 @@ export const FixedAssets: React.FC = () => {
                 type="number"
                 value={newMonths}
                 onChange={(e) => setNewMonths(e.target.value)}
-                className="h-8 px-2 font-mono rounded-lg border border-border bg-surface text-text-primary"
+                className="h-8 px-2 font-mono rounded-md border border-border bg-surface text-text-primary"
                 required
               />
             </div>
@@ -520,13 +499,13 @@ export const FixedAssets: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsNewAssetOpen(false)}
-                className="h-8 px-3 rounded-lg border border-border bg-surface hover:bg-surface-neutral text-text-secondary transition"
+                className="h-8 px-3 rounded-md border border-border bg-surface hover:bg-surface-neutral text-text-secondary transition"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="h-8 px-4 rounded-lg bg-accent text-white font-semibold hover:bg-accent-hover transition shadow-xs"
+                className="h-8 px-4 rounded-md bg-accent text-white font-medium hover:bg-accent-hover transition"
               >
                 Save asset
               </button>

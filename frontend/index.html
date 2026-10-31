@@ -8,11 +8,12 @@
     <!-- Google Fonts: Inter (variable) & JetBrains Mono -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
     <script>
       try {
         const urlParams = new URLSearchParams(window.location.search);
-        const t = urlParams.get('theme') || localStorage.getItem('ledgerly_theme') || 'light';
+        const saved = urlParams.get('theme') || localStorage.getItem('ledgerly_theme') || 'light';
+        const t = saved === 'dark' || saved === 'midnight' || saved === 'forest' ? 'dark' : 'light';
         document.documentElement.setAttribute('data-theme', t);
       } catch (e) {}
     </script>

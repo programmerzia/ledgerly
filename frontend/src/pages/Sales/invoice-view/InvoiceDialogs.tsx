@@ -7,7 +7,7 @@ import { formatMoney, formatDate } from '@/lib/format';
 
 const GHOST_BTN = 'h-8 px-3 rounded-lg border border-border bg-surface text-text-primary text-xs hover:bg-surface-neutral cursor-pointer';
 const FIELD = 'w-full h-8 px-2.5 rounded-lg border border-border bg-surface text-xs text-text-primary focus:border-accent outline-hidden';
-const CONTENT = 'bg-surface border border-border p-6 shadow-xl rounded-xl';
+const CONTENT = 'bg-surface border border-border p-6 shadow-xl rounded-lg';
 
 /* ---------------------------- Reverse ---------------------------- */
 interface ReverseProps {
@@ -87,7 +87,7 @@ export const ReverseInvoiceDialog: React.FC<ReverseProps> = ({ invoice, open, on
             type="button"
             disabled={!reason.trim()}
             onClick={onAuthorize}
-            className="h-8 px-3 rounded-lg bg-danger hover:bg-danger/90 text-white text-xs font-semibold shadow-xs disabled:opacity-50 cursor-pointer"
+            className="h-8 px-3 rounded-lg bg-danger hover:bg-danger/90 text-white text-xs font-semibold disabled:opacity-50 cursor-pointer"
           >
             Authorize reversal with PIN
           </button>
@@ -130,7 +130,7 @@ export const FixInvoiceDialog: React.FC<FixProps> = ({ invoice, open, onOpenChan
         <button
           type="button"
           onClick={onAuthorize}
-          className="h-8 px-3 rounded-lg bg-accent hover:bg-accent-hover text-white text-xs font-semibold shadow-xs cursor-pointer"
+          className="h-8 px-3 rounded-md bg-accent hover:bg-accent-hover text-white text-[13px] font-medium cursor-pointer"
         >
           Authorize fix and create draft
         </button>
@@ -216,7 +216,7 @@ export const EmailInvoiceDialog: React.FC<EmailProps> = ({ invoice, companyName,
           <button
             type="button"
             onClick={send}
-            className="h-8 px-3 rounded-lg bg-accent hover:bg-accent-hover text-white text-xs font-semibold shadow-xs cursor-pointer"
+            className="h-8 px-3 rounded-md bg-accent hover:bg-accent-hover text-white text-[13px] font-medium cursor-pointer"
           >
             {mode === 'reminder' ? 'Send reminder' : 'Send invoice'}
           </button>

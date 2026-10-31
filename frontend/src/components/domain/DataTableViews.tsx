@@ -99,7 +99,7 @@ export const ViewsMenu: React.FC<ViewsMenuProps> = ({ views, defaultId, onApply,
         >
           <Bookmark className="size-3.5" />
           <span>Views</span>
-          {views.length > 0 && <span className="rounded-full bg-surface-neutral px-1.5 text-[10px] tabular-nums">{views.length}</span>}
+          {views.length > 0 && <span className="rounded-[3px] bg-surface-neutral px-1.5 text-[10px] tabular-nums">{views.length}</span>}
         </button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-72 p-2">
@@ -167,7 +167,7 @@ export const ViewsMenu: React.FC<ViewsMenuProps> = ({ views, defaultId, onApply,
             type="button"
             onClick={submit}
             disabled={!name.trim()}
-            className="h-8 cursor-pointer rounded-lg bg-accent px-3 text-xs font-semibold text-white transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
+            className="h-8 cursor-pointer rounded-md bg-accent px-3 text-[13px] font-medium text-white transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
           >
             Save
           </button>

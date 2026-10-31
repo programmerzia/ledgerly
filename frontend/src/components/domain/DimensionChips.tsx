@@ -80,8 +80,8 @@ export const DimensionChips: React.FC<DimensionChipsProps> = ({
         className="w-64 p-3 border-border bg-surface-elevated shadow-md flex flex-col gap-3"
       >
         <div className="flex items-center justify-between pb-1.5 border-b border-border">
-          <span className="text-xs font-semibold text-text-primary uppercase tracking-wide">
-            Line Dimensions
+          <span className="text-xs font-semibold text-text-primary">
+            Line dimensions
           </span>
           <span className="text-[10px] text-text-muted">* Required</span>
         </div>
@@ -105,9 +105,9 @@ export const DimensionChips: React.FC<DimensionChipsProps> = ({
           </select>
         </div>
 
-        {/* Cost Centre dimension */}
+        {/* Cost centre dimension */}
         <div className="flex flex-col gap-1">
-          <label className="text-[11px] font-medium text-text-secondary">Cost Centre</label>
+          <label className="text-[11px] font-medium text-text-secondary">Cost centre</label>
           <select
             value={values.cost_centre || ''}
             onChange={(e) =>

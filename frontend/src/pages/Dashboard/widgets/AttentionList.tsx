@@ -1,47 +1,42 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle2 } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { Card, CardHeader } from './Card';
 
 export interface AttentionRow {
   id: string;
-  icon: React.ReactNode;
-  tone: string;
   text: string;
   detail?: string;
+  /** Overdue money and the like; shown in the danger colour. */
+  urgent?: boolean;
   cta: string;
   to: string;
 }
 
-export const AttentionList: React.FC<{ rows: AttentionRow[]; index: number; className?: string }> = ({ rows, index, className }) => {
+/** Today's to-do list, written the way a bookkeeper would note it. */
+export const AttentionList: React.FC<{ rows: AttentionRow[]; className?: string }> = ({ rows, className }) => {
   const navigate = useNavigate();
   return (
-    <Card index={index} className={className}>
-      <CardHeader
-        title="Needs your attention"
-        right={rows.length > 0 ? <span className="text-xs font-semibold rounded-full bg-warning-soft text-warning px-2 py-0.5">{rows.length}</span> : undefined}
-      />
+    <Card className={className}>
+      <CardHeader title="To do" sub={rows.length > 0 ? `${rows.length} open` : undefined} />
       {rows.length === 0 ? (
-        <div className="px-5 py-10 flex flex-col items-center gap-2 text-center">
-          <span className="size-12 rounded-full bg-success-soft text-success flex items-center justify-center"><CheckCircle2 className="size-6" /></span>
-          <p className="text-sm font-medium text-text-primary">You're all caught up</p>
-          <p className="text-xs text-text-muted">Nothing needs your attention right now.</p>
-        </div>
+        <p className="px-5 pb-6 text-[13px] text-text-muted">Nothing waiting on you.</p>
       ) : (
-        <ul className="divide-y divide-border">
+        <ul className="border-t border-border divide-y divide-border">
           {rows.map((row) => (
-            <li key={row.id} className="px-5 py-3 flex items-center gap-3">
-              <span className={`size-8 rounded-lg flex items-center justify-center shrink-0 ${row.tone}`}>{row.icon}</span>
-              <div className="flex-1 min-w-0">
-                <div className="text-[13px] text-text-primary leading-snug">{row.text}</div>
-                {row.detail && <div className="tabular-nums text-xs text-text-muted mt-0.5">{row.detail}</div>}
-              </div>
+            <li key={row.id}>
               <button
                 type="button"
                 onClick={() => navigate(row.to)}
-                className="h-7 px-3 rounded-lg border border-border hover:border-accent hover:text-accent hover:bg-accent-soft text-xs font-semibold text-text-primary transition-colors cursor-pointer shrink-0"
+                className="group w-full px-5 py-2.5 flex items-center gap-3 text-left hover:bg-canvas transition-colors cursor-pointer"
               >
-                {row.cta}
+                <div className="flex-1 min-w-0">
+                  <div className="text-[13px] text-text-primary">{row.text}</div>
+                  {row.detail && <div className={`tabular-nums text-xs mt-0.5 ${row.urgent ? 'text-danger' : 'text-text-muted'}`}>{row.detail}</div>}
+                </div>
+                <span className="text-xs text-text-muted group-hover:text-accent flex items-center gap-0.5 shrink-0">
+                  {row.cta}<ChevronRight className="size-3.5" />
+                </span>
               </button>
             </li>
           ))}

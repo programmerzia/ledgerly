@@ -40,7 +40,7 @@ export const ConflictDialog: React.FC = () => {
         <DialogHeader className="px-5 py-3 border-b border-border bg-warning-soft flex flex-row items-center gap-2.5">
           <AlertCircle className="w-5 h-5 text-warning shrink-0" />
           <DialogTitle className="text-sm font-semibold text-text-primary">
-            Concurrent Edit Conflict (HTTP 409)
+            Edit conflict (HTTP 409)
           </DialogTitle>
         </DialogHeader>
 
@@ -52,13 +52,13 @@ export const ConflictDialog: React.FC = () => {
 
           <div className="grid grid-cols-2 gap-3 text-[11px]">
             <div className="bg-surface-neutral p-3 rounded-md border border-border space-y-1">
-              <div className="font-semibold text-text-primary">Server Version</div>
+              <div className="font-semibold text-text-primary">Server version</div>
               <p className="text-text-muted">
                 {pendingConflict.serverVersion?.memo || 'Modified remotely by finance manager.'}
               </p>
             </div>
-            <div className="bg-accent-soft p-3 rounded-md border border-accent/20 space-y-1">
-              <div className="font-semibold text-accent">Your Queued Version</div>
+            <div className="bg-surface-neutral p-3 rounded-md border border-border space-y-1">
+              <div className="font-semibold text-accent">Your queued version</div>
               <p className="text-text-muted">
                 {pendingConflict.localVersion?.memo || 'Local offline draft changes.'}
               </p>
@@ -78,7 +78,7 @@ export const ConflictDialog: React.FC = () => {
             className="px-3 py-1.5 text-xs font-medium text-text-secondary hover:text-text-primary hover:bg-surface-neutral rounded-sm border border-border transition flex items-center gap-1.5"
           >
             <Copy className="w-3.5 h-3.5" />
-            <span>Keep Both (Save Copy)</span>
+            <span>Keep both (save a copy)</span>
           </button>
           <button
             type="button"
@@ -86,12 +86,12 @@ export const ConflictDialog: React.FC = () => {
             className="px-3 py-1.5 text-xs font-medium text-warning hover:bg-warning-soft rounded-sm border border-warning/30 transition flex items-center gap-1.5"
           >
             <Check className="w-3.5 h-3.5" />
-            <span>Overwrite Server</span>
+            <span>Overwrite server version</span>
           </button>
           <button
             type="button"
             onClick={handleReload}
-            className="px-3 py-1.5 text-xs font-medium bg-accent text-white rounded-sm shadow-xs hover:bg-accent-hover transition flex items-center gap-1.5"
+            className="px-3 py-1.5 text-[13px] font-medium bg-accent text-white rounded-md hover:bg-accent-hover transition flex items-center gap-1.5"
           >
             <RefreshCw className="w-3.5 h-3.5" />
             <span>Discard & Reload Server</span>

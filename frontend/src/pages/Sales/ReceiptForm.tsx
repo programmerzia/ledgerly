@@ -7,7 +7,7 @@ import { MoneyInput } from '@/components/domain/MoneyInput';
 import { FieldHelp } from '@/components/domain/FieldHelp';
 import { ConsequenceDialog, ConsequenceAccountingLine } from '@/components/domain/ConsequenceDialog';
 import { formatMoney, formatDate } from '@/lib/format';
-import { Receipt, ArrowLeft, Send, Sparkles, CheckCircle2, ShieldCheck, DollarSign } from 'lucide-react';
+import { Send, DollarSign } from 'lucide-react';
 import { toast } from 'sonner';
 import { PageHeader } from '@/components/domain/PageHeader';
 
@@ -171,13 +171,12 @@ export const ReceiptForm: React.FC = () => {
         breadcrumb={[{ label: 'Invoices', to: `/${coSlug}/invoices` }, { label: 'New receipt' }]}
         title="Record a payment received"
         subtitle={<>Match money from a customer to their invoices. <span className="text-accent font-medium">Saved {lastSavedSeconds} s ago</span></>}
-        icon={<Receipt />}
         actions={
           <button
             type="button"
             onClick={() => setShowConsequence(true)}
             disabled={isSubmitting || totalReceiptAmount <= 0}
-            className="flex items-center gap-1.5 h-9 px-4 bg-accent hover:bg-accent-hover disabled:opacity-40 text-white rounded-lg text-[13px] font-semibold shadow-xs transition"
+            className="flex items-center gap-1.5 h-8 px-3 bg-accent hover:bg-accent-hover disabled:opacity-40 text-white rounded-md text-[13px] font-medium transition"
           >
             <Send className="size-4" />
             <span>Post receipt</span>
@@ -186,7 +185,7 @@ export const ReceiptForm: React.FC = () => {
       />
 
       {/* Primary Parameters Card */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-5 bg-surface border border-border rounded-xl shadow-card">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-5 bg-surface border border-border rounded-lg">
         <div className="flex flex-col gap-1 md:col-span-2">
           <label className="text-xs font-medium text-text-secondary flex items-center">
             Customer
@@ -212,7 +211,7 @@ export const ReceiptForm: React.FC = () => {
 
         <div className="flex flex-col gap-1">
           <label className="text-xs font-medium text-text-secondary flex items-center">
-            Deposit Bank Account
+            Deposit bank account
             <FieldHelp
               help="Bank or treasury account where received funds are deposited."
               example="Premier Bank USD (GL 1010)"
@@ -233,7 +232,7 @@ export const ReceiptForm: React.FC = () => {
 
         <div className="flex flex-col gap-1">
           <label className="text-xs font-medium text-text-secondary flex items-center">
-            Receipt Amount
+            Receipt amount
             <FieldHelp
               help="Total amount received in the bank deposit transaction."
               example="$12,000.00"
@@ -249,7 +248,7 @@ export const ReceiptForm: React.FC = () => {
 
         <div className="flex flex-col gap-1">
           <label className="text-xs font-medium text-text-secondary flex items-center">
-            Receipt Date
+            Receipt date
             <FieldHelp
               help="Date funds cleared into the bank account."
               example="2026-10-28"
@@ -265,7 +264,7 @@ export const ReceiptForm: React.FC = () => {
 
         <div className="flex flex-col gap-1">
           <label className="text-xs font-medium text-text-secondary flex items-center">
-            Payment Reference
+            Payment reference
             <FieldHelp
               help="Bank transfer reference number, wire confirmation, or cheque number."
               example="WIRE-HT-OCT26-09"
@@ -299,22 +298,21 @@ export const ReceiptForm: React.FC = () => {
       </div>
 
       {/* Allocation Table */}
-      <div className="bg-surface border border-border rounded-xl p-5 shadow-card flex flex-col gap-4">
+      <div className="bg-surface border border-border rounded-lg p-5 flex flex-col gap-4">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3">
           <div>
-            <h2 className="text-sm font-semibold text-text-primary">Open Invoices for Settlement</h2>
+            <h2 className="text-sm font-semibold text-text-primary">Open invoices</h2>
             <p className="text-xs text-text-muted mt-0.5">
-              Select or edit allocation amounts across open customer invoices
+              Enter how much of this payment goes against each invoice
             </p>
           </div>
 
           <button
             type="button"
             onClick={handleAutoAllocate}
-            className="flex items-center gap-1.5 h-8 px-3 bg-accent-soft text-accent hover:bg-accent hover:text-white border border-accent/20 rounded-lg text-xs font-semibold transition shadow-xs"
+            className="flex items-center gap-1.5 h-8 px-3 border border-border bg-surface text-text-secondary hover:border-border-strong hover:bg-surface-neutral rounded-md text-[13px] font-medium transition-colors"
           >
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Auto-Allocate Oldest First</span>
+            <span>Allocate oldest first</span>
           </button>
         </div>
 
@@ -323,12 +321,12 @@ export const ReceiptForm: React.FC = () => {
           <thead>
             <tr className="bg-surface-neutral border-b border-border text-col-header">
               <th className="w-28 py-2 px-2">Invoice #</th>
-              <th className="w-28 py-2 px-2">Issue Date</th>
-              <th className="w-28 py-2 px-2">Due Date</th>
-              <th className="w-32 text-right py-2 px-2">Original Total</th>
-              <th className="w-32 text-right py-2 px-2">Balance Due</th>
-              <th className="w-40 text-right py-2 px-2">Allocated Amount</th>
-              <th className="w-32 text-right py-2 px-3">Remaining Balance</th>
+              <th className="w-28 py-2 px-2">Issue date</th>
+              <th className="w-28 py-2 px-2">Due date</th>
+              <th className="w-32 text-right py-2 px-2">Original total</th>
+              <th className="w-32 text-right py-2 px-2">Balance due</th>
+              <th className="w-40 text-right py-2 px-2">Allocated amount</th>
+              <th className="w-32 text-right py-2 px-3">Remaining balance</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
@@ -377,8 +375,8 @@ export const ReceiptForm: React.FC = () => {
             )}
           </tbody>
           <tfoot>
-            <tr className="bg-surface-neutral font-mono font-bold text-xs border-t-2 border-border">
-              <td colSpan={5} className="text-right pr-4 uppercase tracking-wider text-text-muted py-2">
+            <tr className="bg-surface-neutral font-mono font-semibold text-xs border-t-2 border-border">
+              <td colSpan={5} className="text-right pr-4 text-text-muted py-2">
                 Total Allocated:
               </td>
               <td className="text-right text-accent py-2 text-num">{formatMoney(totalAllocated)}</td>
@@ -390,14 +388,14 @@ export const ReceiptForm: React.FC = () => {
         </table>
 
         {/* Realised FX Gain/Loss Live Preview */}
-        <div className="p-3.5 bg-accent-soft/30 rounded-md border border-accent/20 flex flex-wrap items-center justify-between text-xs gap-3">
+        <div className="p-3.5 bg-surface-neutral rounded-md border border-border flex flex-wrap items-center justify-between text-xs gap-3">
           <div className="flex items-center gap-2">
             <DollarSign className="w-4 h-4 text-accent" />
             <div>
               <span className="font-semibold text-text-primary">
                 Realised Exchange Gain Preview:
               </span>{' '}
-              <span className="text-success font-mono font-bold">
+              <span className="text-success font-mono font-semibold">
                 +{formatMoney(fxGainAmount)} (Dr Bank / Cr AR / Cr Realised FX Gain 4900)
               </span>
             </div>
@@ -411,7 +409,7 @@ export const ReceiptForm: React.FC = () => {
         isOpen={showConsequence}
         onClose={() => setShowConsequence(false)}
         onConfirm={handleConfirmPost}
-        title="Post Customer Receipt & Allocations"
+        title="Post receipt and allocations"
         actionType="post"
         plainLanguageEffect={`This will immediately post a customer receipt of ${formatMoney(totalReceiptAmount, currency)} from ${selectedContact?.name || 'Hormuud Telecom'} into ${selectedBank?.name || 'Premier Bank USD'}, settling open invoice balances and recording $25.00 in Realised FX Gain.`}
         accountingLines={accountingPreviewLines}

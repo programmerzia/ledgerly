@@ -5,7 +5,7 @@ import { Account } from '@/types';
 import { CoaGroupedTable, TypePill, type CoaAction } from './CoaGroupedTable';
 import { SplitPane } from '@/components/domain/SplitPane';
 import { formatMoney } from '@/lib/format';
-import { BookMarked, Plus, Layers, ShieldCheck, Tag, FileText, Pencil, ListPlus, Ban } from 'lucide-react';
+import { Plus, Layers, ShieldCheck, Tag, FileText, Pencil, ListPlus, Ban } from 'lucide-react';
 import { PageHeader } from '@/components/domain/PageHeader';
 import { Kbd } from '@/components/ui/kbd';
 import { AccountDialog, DeactivateAccountDialog, type AccountDialogMode } from './AccountDialogs';
@@ -86,14 +86,13 @@ export const ChartOfAccounts: React.FC = () => {
   return (
     <div className="flex flex-col gap-5">
       <PageHeader
-        icon={<BookMarked />}
         title="Chart of accounts"
         subtitle={`${currentCompany.name} · the list of accounts your books are organised by`}
         actions={
           <button
             type="button"
             onClick={() => setDialog({ kind: 'new' })}
-            className="flex items-center gap-1.5 h-9 px-3.5 bg-accent hover:bg-accent-hover text-white rounded-lg text-[13px] font-semibold shadow-sm transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 h-8 px-3 bg-accent hover:bg-accent-hover text-white rounded-md text-[13px] font-medium transition-colors cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>New account</span>
@@ -109,7 +108,7 @@ export const ChartOfAccounts: React.FC = () => {
         storageKey="ledgerly_accounts_split_width"
         isOpen={Boolean(selectedAccount)}
         onClose={() => setSelectedAccountId(null)}
-        title={selectedAccount ? `${selectedAccount.code} - ${selectedAccount.name}` : 'Account Details'}
+        title={selectedAccount ? `${selectedAccount.code} - ${selectedAccount.name}` : 'Account details'}
         subtitle={
           selectedAccount
             ? `Normal side: ${selectedAccount.normal_balance} · Subtype: ${selectedAccount.account_subtype}`
@@ -127,9 +126,9 @@ export const ChartOfAccounts: React.FC = () => {
           selectedAccount && (
             <div className="flex flex-col gap-4 text-xs">
               {/* Account Meta */}
-              <div className="p-3 bg-surface-neutral/60 border border-border rounded-sm flex flex-col gap-1.5">
+              <div className="p-3 bg-surface-neutral/60 border border-border rounded-md flex flex-col gap-1.5">
                 <div className="flex items-center justify-between">
-                  <span className="font-mono font-bold text-accent text-sm">{selectedAccount.code}</span>
+                  <span className="font-code font-semibold text-text-primary text-sm">{selectedAccount.code}</span>
                   <span className="text-[11px] text-text-muted capitalize">
                     Normal side: {selectedAccount.normal_balance}
                   </span>
@@ -143,8 +142,8 @@ export const ChartOfAccounts: React.FC = () => {
               {/* Balance KPI */}
               <div className="p-3 rounded-md bg-accent/5 border border-accent/20 flex items-center justify-between">
                 <div>
-                  <span className="text-[10px] text-text-muted uppercase tracking-wider block">Balance</span>
-                  <span className="font-mono font-bold text-text-primary text-base mt-0.5 block">
+                  <span className="text-[10px] text-text-muted block">Balance</span>
+                  <span className="font-mono font-semibold text-text-primary text-base mt-0.5 block">
                     {formatMoney(balanceOf(selectedAccount.id), currentCompany.base_currency)}
                   </span>
                 </div>
@@ -156,7 +155,7 @@ export const ChartOfAccounts: React.FC = () => {
 
               {/* Dimension Rules */}
               <div className="p-3 bg-surface border border-border rounded-md flex flex-col gap-1.5">
-                <span className="text-[10px] uppercase font-bold text-text-muted tracking-wider flex items-center gap-1">
+                <span className="text-[10px] font-semibold text-text-muted flex items-center gap-1">
                   <Tag className="w-3 h-3 text-accent" />
                   Dimension rules
                 </span>

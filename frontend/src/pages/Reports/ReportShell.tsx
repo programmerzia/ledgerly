@@ -1,5 +1,5 @@
 import React from 'react';
-import { BarChart3, Download, Printer } from 'lucide-react';
+import { Download, Printer } from 'lucide-react';
 import { toast } from 'sonner';
 import { useLedgerStore } from '@/mock/store';
 import { BUSINESS_TODAY } from '@/lib/docStatus';
@@ -66,7 +66,6 @@ export const ReportShell: React.FC<ReportShellProps> = ({
   return (
     <div className="flex flex-col gap-5">
       <PageHeader
-        icon={<BarChart3 />}
         title={title}
         subtitle={descriptor ? `${currentCompany.name} · ${descriptor}` : currentCompany.name}
       />
@@ -97,7 +96,7 @@ export const ReportShell: React.FC<ReportShellProps> = ({
           <button
             type="button"
             onClick={() => window.print()}
-            className="flex items-center gap-1.5 h-8 px-3 rounded-lg border border-border hover:bg-surface-neutral bg-surface text-text-primary text-xs font-medium transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 h-8 px-3 rounded-md border border-border hover:bg-surface-neutral bg-surface text-text-primary text-[13px] font-medium transition-colors cursor-pointer"
           >
             <Printer className="size-3.5" />
             <span>Print</span>
@@ -105,7 +104,7 @@ export const ReportShell: React.FC<ReportShellProps> = ({
           <button
             type="button"
             onClick={() => toast.success(`${title} exported`)}
-            className="flex items-center gap-1.5 h-8 px-3 bg-accent hover:bg-accent-hover text-white rounded-lg text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 h-8 px-3 bg-accent hover:bg-accent-hover text-white rounded-md text-[13px] font-medium transition-colors cursor-pointer"
           >
             <Download className="size-3.5" />
             <span>Export</span>

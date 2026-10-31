@@ -8,7 +8,7 @@ import { FieldHelp } from '@/components/domain/FieldHelp';
 import { DisabledTooltip } from '@/components/domain/DisabledTooltip';
 import { ConsequenceDialog, ConsequenceAccountingLine } from '@/components/domain/ConsequenceDialog';
 import { formatMoney } from '@/lib/format';
-import { ArrowLeft, Send, AlertTriangle, ShieldAlert, CheckCircle2 } from 'lucide-react';
+import { Send, AlertTriangle, ShieldAlert, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export const JournalForm: React.FC = () => {
@@ -254,7 +254,7 @@ export const JournalForm: React.FC = () => {
               type="button"
               onClick={handleOpenConsequence}
               disabled={isSubmitting || !isBalanced || isPeriodClosed}
-              className="flex h-9 items-center gap-1.5 rounded-lg bg-accent px-4 text-[13px] font-semibold text-white transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex h-8 items-center gap-1.5 rounded-md bg-accent px-3 text-[13px] font-medium text-white transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-40"
             >
               <Send className="size-4" />
               <span>Post journal</span>
@@ -265,11 +265,11 @@ export const JournalForm: React.FC = () => {
 
       {/* Blocked Period Warning Banner */}
       {isPeriodClosed && (
-        <div className="p-4 bg-danger-soft/20 text-danger border border-danger/40 rounded-xl text-xs flex items-center justify-between animate-in fade-in">
+        <div className="p-4 bg-danger-soft text-danger border border-danger/40 rounded-lg text-xs flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <ShieldAlert className="w-5 h-5 shrink-0" />
             <div>
-              <div className="font-bold">You cannot post here: {selectedPeriod?.name} is closed</div>
+              <div className="font-semibold">You cannot post here: {selectedPeriod?.name} is closed</div>
               <div className="text-[11px] opacity-90 mt-0.5">
                 Closed months cannot be changed. Ask to reopen it, which needs approval from two people.
               </div>
@@ -282,7 +282,7 @@ export const JournalForm: React.FC = () => {
                 state: { returnTo: location.pathname, periodId: selectedPeriod?.id },
               })
             }
-            className="px-3 py-1 bg-surface border border-danger text-danger hover:bg-danger hover:text-white rounded-lg text-xs font-semibold transition shrink-0 ml-4 cursor-pointer"
+            className="h-8 px-3 bg-surface border border-danger text-danger hover:bg-danger hover:text-white rounded-md text-[13px] font-medium transition shrink-0 ml-4 cursor-pointer"
           >
             Ask to reopen
           </button>
@@ -291,13 +291,13 @@ export const JournalForm: React.FC = () => {
 
       {/* Multi-Violation Banner (0.3) */}
       {submitAttempted && (headerViolations.length > 0 || (errorMessage && !isPeriodClosed)) && (
-        <div className="p-3 bg-danger-soft/20 text-danger border border-danger/30 rounded-xl text-xs font-medium flex flex-col gap-1.5 animate-in fade-in">
+        <div className="p-3 bg-danger-soft text-danger border border-danger/30 rounded-lg text-xs font-medium flex flex-col gap-1.5">
           {headerViolations.length > 0 ? (
             headerViolations.map((v, i) => (
               <div key={i} className="flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4 shrink-0 text-danger" />
                 <span>
-                  <strong className="font-mono uppercase font-bold text-[10px] mr-1.5 px-1 bg-danger/10 rounded">
+                  <strong className="font-mono uppercase font-semibold text-[10px] mr-1.5 px-1 bg-danger/10 rounded">
                     {v.code}
                   </strong>
                   {v.message}
@@ -314,7 +314,7 @@ export const JournalForm: React.FC = () => {
       )}
 
       {/* Header Fields: Date, Reference, Period */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-5 bg-surface border border-border rounded-xl shadow-card">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-5 bg-surface border border-border rounded-lg">
         <div className="flex flex-col gap-1">
           <label className="text-xs font-medium text-text-secondary flex items-center justify-between">
             <span className="flex items-center">
@@ -340,7 +340,7 @@ export const JournalForm: React.FC = () => {
             type="date"
             value={journalDate}
             onChange={(e) => setJournalDate(e.target.value)}
-            className="h-9 px-2.5 bg-surface border border-border rounded-lg text-xs text-text-primary focus:outline-none focus:border-accent"
+            className="h-8 px-2.5 bg-surface border border-border rounded-md text-xs text-text-primary focus:outline-none focus:border-accent"
           />
         </div>
 
@@ -355,7 +355,7 @@ export const JournalForm: React.FC = () => {
           <select
             value={explicitPeriodId || ''}
             onChange={(e) => setExplicitPeriodId(e.target.value)}
-            className="h-9 px-2 bg-surface border border-border rounded-lg text-xs text-text-primary focus:outline-none focus:border-accent"
+            className="h-8 px-2 bg-surface border border-border rounded-md text-xs text-text-primary focus:outline-none focus:border-accent"
           >
             <option value="">
               Auto ({autoResolvedPeriod?.name || 'From Date'})
@@ -381,7 +381,7 @@ export const JournalForm: React.FC = () => {
             value={reference}
             onChange={(e) => setReference(e.target.value)}
             placeholder="e.g. ADJ-OCT-REALLOC"
-            className="h-9 px-2.5 bg-surface border border-border rounded-lg text-xs text-text-primary focus:outline-none focus:border-accent"
+            className="h-8 px-2.5 bg-surface border border-border rounded-md text-xs text-text-primary focus:outline-none focus:border-accent"
           />
         </div>
 
@@ -390,7 +390,7 @@ export const JournalForm: React.FC = () => {
             Currency
             <FieldHelp help="Journals are posted in the company base currency." example="USD" />
           </label>
-          <div className="h-9 px-2.5 bg-surface-neutral border border-border rounded-lg text-xs flex items-center whitespace-nowrap text-text-secondary">
+          <div className="h-8 px-2.5 bg-surface-neutral border border-border rounded-md text-xs flex items-center whitespace-nowrap text-text-secondary">
             {currentCompany.base_currency} · base currency
           </div>
         </div>
@@ -407,8 +407,8 @@ export const JournalForm: React.FC = () => {
             type="text"
             value={memo}
             onChange={(e) => setMemo(e.target.value)}
-            placeholder="Provide audit explanation for this adjustment..."
-            className="h-9 px-2.5 bg-surface border border-border rounded-lg text-xs text-text-primary focus:outline-none focus:border-accent"
+            placeholder="Explain why this entry is needed"
+            className="h-8 px-2.5 bg-surface border border-border rounded-md text-xs text-text-primary focus:outline-none focus:border-accent"
           />
         </div>
       </div>
@@ -436,11 +436,11 @@ export const JournalForm: React.FC = () => {
 
         <div className="flex items-center justify-end gap-2 text-xs text-text-secondary pt-1">
           <span>
-            Debits <span className="font-mono text-text-primary">{formatMoney(totalDebit)}</span>
+            Debits <span className="tabular-nums text-text-primary">{formatMoney(totalDebit)}</span>
           </span>
           <span className="text-text-muted">·</span>
           <span>
-            Credits <span className="font-mono text-text-primary">{formatMoney(totalCredit)}</span>
+            Credits <span className="tabular-nums text-text-primary">{formatMoney(totalCredit)}</span>
           </span>
           <span className="text-text-muted">·</span>
           {isBalanced ? (

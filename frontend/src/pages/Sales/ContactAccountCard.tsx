@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Eye, Printer, Download, CreditCard, Wallet, AlertTriangle, TrendingUp, ArrowDownLeft } from 'lucide-react';
+import { Eye, Printer, Download, CreditCard } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Contact, Invoice, Settlement } from '@/types';
 import { PageHeader } from '@/components/domain/PageHeader';
@@ -43,7 +43,7 @@ interface Props {
   actions: React.ReactNode;
 }
 
-const CARD = 'rounded-xl border border-border bg-surface shadow-card';
+const CARD = 'rounded-lg border border-border bg-surface';
 
 export const ContactAccountCard: React.FC<Props> = ({ kind, contact, docs, settlements, balance, overdue, companyName, coSlug, actions }) => {
   const navigate = useNavigate();
@@ -94,14 +94,6 @@ export const ContactAccountCard: React.FC<Props> = ({ kind, contact, docs, settl
       header: 'Type',
       cell: ({ row }) => (
         <span className="inline-flex items-center gap-2 text-text-primary">
-          <span
-            className={cn(
-              'flex size-6 items-center justify-center rounded-md [&>svg]:size-3.5',
-              row.original.isPayment ? 'bg-success-soft text-success' : 'bg-accent-soft text-accent'
-            )}
-          >
-            {row.original.isPayment ? <ArrowDownLeft /> : <Wallet />}
-          </span>
           {row.original.type}
         </span>
       ),
@@ -177,21 +169,18 @@ export const ContactAccountCard: React.FC<Props> = ({ kind, contact, docs, settl
             label: isCustomer ? 'Balance owed to you' : 'Balance you owe',
             value: formatMoney(balance, cur),
             sub: 'Open on posted documents',
-            icon: <Wallet />,
             tone: 'accent',
           },
           {
             label: 'Overdue',
             value: formatMoney(overdue, cur),
             sub: overdue > 0 ? 'Past the payment terms' : 'Nothing is late',
-            icon: <AlertTriangle />,
             tone: overdue > 0 ? 'danger' : 'success',
           },
           {
             label: isCustomer ? 'Paid by them this year' : 'Paid to them this year',
             value: formatMoney(paidYtd, cur),
             sub: `${paymentCount} ${paymentCount === 1 ? 'payment' : 'payments'}`,
-            icon: <TrendingUp />,
             tone: 'success',
           },
         ]}
@@ -212,7 +201,7 @@ export const ContactAccountCard: React.FC<Props> = ({ kind, contact, docs, settl
           >
             {t.label}
             {t.count !== undefined && (
-              <span className={cn('rounded-full px-1.5 text-[11px] tabular-nums', tab === t.key ? 'bg-accent-soft text-accent' : 'bg-surface-neutral text-text-muted')}>
+              <span className={cn('rounded-[3px] px-1.5 text-[11px] tabular-nums', tab === t.key ? 'bg-accent-soft text-accent' : 'bg-surface-neutral text-text-muted')}>
                 {t.count}
               </span>
             )}

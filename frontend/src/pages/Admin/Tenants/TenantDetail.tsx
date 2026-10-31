@@ -23,17 +23,10 @@ import {
   FileText,
   History,
   CheckCircle2,
-  AlertTriangle,
-  Clock,
   RotateCcw,
   Download,
   ShieldAlert,
-  Percent,
-  Calendar,
-  KeyRound,
   FileDown,
-  Lock,
-  Plus,
 } from 'lucide-react';
 
 export const TenantDetail: React.FC = () => {
@@ -101,11 +94,11 @@ export const TenantDetail: React.FC = () => {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
         <Building2 className="w-10 h-10 text-text-muted mb-2" />
-        <h2 className="text-sm font-semibold">Tenant Not Found</h2>
+        <h2 className="text-sm font-semibold">Tenant not found</h2>
         <p className="text-xs text-text-muted mt-1">Tenant ID "{id}" does not exist in registry.</p>
         <button
           onClick={() => navigate('/admin/tenants')}
-          className="mt-4 px-3 py-1.5 rounded bg-violet text-white text-xs font-medium cursor-pointer"
+          className="mt-4 px-3 py-1.5 rounded bg-accent text-white text-xs font-medium cursor-pointer"
         >
           ← Back to Tenants
         </button>
@@ -226,10 +219,10 @@ export const TenantDetail: React.FC = () => {
           </button>
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-lg font-bold tracking-tight">{tenant.name}</h1>
+              <h1 className="text-xl font-semibold">{tenant.name}</h1>
               <span className="font-mono text-xs text-text-muted">({tenant.slug})</span>
               <StatusPill status={tenant.status as any} />
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-violet-soft text-violet font-semibold uppercase">
+              <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-surface-neutral text-text-secondary font-semibold">
                 {tenant.subscription.planCode}
               </span>
             </div>
@@ -246,7 +239,7 @@ export const TenantDetail: React.FC = () => {
           <button
             type="button"
             onClick={() => handleImpersonate('read')}
-            className="h-7 px-2.5 rounded-sm bg-violet text-white hover:opacity-90 text-xs font-medium flex items-center gap-1.5 transition cursor-pointer shadow-xs"
+            className="h-8 px-2.5 rounded-md bg-accent text-white hover:bg-accent-hover text-[13px] font-medium flex items-center gap-1.5 transition cursor-pointer"
           >
             <UserCheck className="w-3.5 h-3.5" />
             <span>Impersonate (Read)</span>
@@ -255,17 +248,17 @@ export const TenantDetail: React.FC = () => {
           <button
             type="button"
             onClick={() => setShowPlanChangeModal(true)}
-            className="h-7 px-2.5 rounded-sm bg-surface border border-border hover:border-border-strong text-text-primary text-xs font-medium flex items-center gap-1.5 transition cursor-pointer"
+            className="h-8 px-2.5 rounded-md bg-surface border border-border hover:border-border-strong text-text-primary text-xs font-medium flex items-center gap-1.5 transition cursor-pointer"
           >
             <CreditCard className="w-3.5 h-3.5 text-text-muted" />
-            <span>Change Plan</span>
+            <span>Change plan</span>
           </button>
 
           {tenant.status === 'suspended' ? (
             <button
               type="button"
               onClick={() => reactivateTenant(tenant.id, 'Operator manual reactivation')}
-              className="h-7 px-2.5 rounded-sm bg-success text-white hover:opacity-90 text-xs font-medium flex items-center gap-1.5 transition cursor-pointer shadow-xs"
+              className="h-8 px-2.5 rounded-md bg-success text-white hover:opacity-90 text-[13px] font-medium flex items-center gap-1.5 transition cursor-pointer"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span>Reactivate</span>
@@ -274,7 +267,7 @@ export const TenantDetail: React.FC = () => {
             <button
               type="button"
               onClick={() => suspendTenant(tenant.id, 'Operator manual suspension')}
-              className="h-7 px-2.5 rounded-sm bg-surface border border-danger/40 hover:bg-danger-soft text-danger text-xs font-medium flex items-center gap-1.5 transition cursor-pointer"
+              className="h-8 px-2.5 rounded-md bg-surface border border-danger/40 hover:bg-danger-soft text-danger text-xs font-medium flex items-center gap-1.5 transition cursor-pointer"
             >
               <span>Suspend</span>
             </button>
@@ -294,7 +287,7 @@ export const TenantDetail: React.FC = () => {
               onClick={() => setActiveTab(tab.id)}
               className={`px-3 py-1.5 border-b-2 font-medium flex items-center gap-1.5 transition-colors cursor-pointer shrink-0 ${
                 isActive
-                  ? 'border-violet text-violet font-semibold'
+                  ? 'border-accent text-accent font-semibold'
                   : 'border-transparent text-text-muted hover:text-text-primary hover:border-border'
               }`}
             >
@@ -309,18 +302,18 @@ export const TenantDetail: React.FC = () => {
       {activeTab === 'overview' && (
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div className="p-3.5 rounded bg-surface border border-border space-y-2">
-              <span className="text-[10px] font-semibold text-text-muted uppercase tracking-wider">
+            <div className="p-3.5 rounded-lg bg-surface border border-border space-y-2">
+              <span className="text-[11px] font-semibold text-text-muted">
                 Subscription & Pricing
               </span>
               <div className="flex justify-between py-1 border-b border-border/40 text-xs">
                 <span className="text-text-muted">Monthly Recurring MRR</span>
-                <span className="font-mono font-bold text-text-primary">
+                <span className="font-mono font-semibold text-text-primary">
                   ${(tenant.subscription.amount / 100).toLocaleString()}
                 </span>
               </div>
               <div className="flex justify-between py-1 border-b border-border/40 text-xs">
-                <span className="text-text-muted">Billing Cycle</span>
+                <span className="text-text-muted">Billing cycle</span>
                 <span className="font-mono capitalize text-text-secondary">
                   {tenant.subscription.billingInterval}
                 </span>
@@ -337,64 +330,64 @@ export const TenantDetail: React.FC = () => {
               </div>
             </div>
 
-            <div className="p-3.5 rounded bg-surface border border-border space-y-2">
-              <span className="text-[10px] font-semibold text-text-muted uppercase tracking-wider">
+            <div className="p-3.5 rounded-lg bg-surface border border-border space-y-2">
+              <span className="text-[11px] font-semibold text-text-muted">
                 Primary Contact & Security
               </span>
               <div className="text-xs font-semibold text-text-primary">{tenant.ownerName}</div>
               <div className="text-[11px] font-mono text-text-muted">{tenant.ownerEmail}</div>
               <div className="text-[11px] text-text-muted">Direct Support Link: Tier 1 SLA</div>
               <div className="pt-2 border-t border-border/40 flex items-center justify-between text-[11px]">
-                <span className="text-text-muted">Data Residency</span>
+                <span className="text-text-muted">Data residency</span>
                 <span className="font-mono text-success font-medium">{tenant.dataResidency} (Local Vault)</span>
               </div>
             </div>
 
-            <div className="p-3.5 rounded bg-surface border border-border space-y-2">
-              <span className="text-[10px] font-semibold text-text-muted uppercase tracking-wider">
+            <div className="p-3.5 rounded-lg bg-surface border border-border space-y-2">
+              <span className="text-[11px] font-semibold text-text-muted">
                 Lifecycle & Health
               </span>
               <div className="flex justify-between py-1 border-b border-border/40 text-xs">
-                <span className="text-text-muted">Health Rating</span>
-                <span className="font-mono font-bold text-success">{tenant.healthScore} / 100</span>
+                <span className="text-text-muted">Health rating</span>
+                <span className="font-mono font-semibold text-success">{tenant.healthScore} / 100</span>
               </div>
               <div className="flex justify-between py-1 border-b border-border/40 text-xs">
-                <span className="text-text-muted">Created Date</span>
+                <span className="text-text-muted">Created date</span>
                 <span className="font-mono text-text-muted">{new Date(tenant.createdAt).toLocaleDateString()}</span>
               </div>
               <div className="flex justify-between py-1 text-xs">
-                <span className="text-text-muted">Last Activity</span>
+                <span className="text-text-muted">Last activity</span>
                 <span className="font-mono text-text-muted">{new Date(tenant.lastActivityAt).toLocaleString()}</span>
               </div>
             </div>
           </div>
 
           {/* Usage vs Limits Quotas */}
-          <div className="p-4 rounded bg-surface border border-border space-y-3">
+          <div className="p-4 rounded-lg bg-surface border border-border space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-xs font-bold text-text-primary uppercase tracking-wider">
+              <h3 className="text-xs font-semibold text-text-primary">
                 Service Entitlements vs Metered Usage
               </h3>
               <span className="text-[11px] text-text-muted font-mono">Soft limits warn at 80%</span>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-1.5 p-3 rounded bg-surface-neutral/40 border border-border/60">
+              <div className="space-y-1.5 p-3 rounded-md bg-surface-neutral/40 border border-border/60">
                 <div className="flex justify-between text-xs">
-                  <span className="text-text-muted">Companies Enrolled</span>
+                  <span className="text-text-muted">Companies enrolled</span>
                   <span className="font-mono font-semibold">
                     {tenant.companiesCount} / {tenant.subscription.planCode === 'enterprise' ? 10 : 5}
                   </span>
                 </div>
                 <div className="h-2 w-full bg-surface-neutral rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-violet"
+                    className="h-full bg-accent"
                     style={{ width: `${(tenant.companiesCount / (tenant.subscription.planCode === 'enterprise' ? 10 : 5)) * 100}%` }}
                   />
                 </div>
               </div>
 
-              <div className="space-y-1.5 p-3 rounded bg-surface-neutral/40 border border-border/60">
+              <div className="space-y-1.5 p-3 rounded-md bg-surface-neutral/40 border border-border/60">
                 <div className="flex justify-between text-xs">
                   <span className="text-text-muted">User Seats (Makers & Checkers)</span>
                   <span className="font-mono font-semibold">
@@ -409,9 +402,9 @@ export const TenantDetail: React.FC = () => {
                 </div>
               </div>
 
-              <div className="space-y-1.5 p-3 rounded bg-surface-neutral/40 border border-border/60">
+              <div className="space-y-1.5 p-3 rounded-md bg-surface-neutral/40 border border-border/60">
                 <div className="flex justify-between text-xs">
-                  <span className="text-text-muted">Monthly Journal Lines</span>
+                  <span className="text-text-muted">Monthly journal lines</span>
                   <span className="font-mono font-semibold">
                     {tenant.usage.journalLinesThisMonth.toLocaleString()} / {tenant.subscription.planCode === 'enterprise' ? '100,000' : '25,000'}
                   </span>
@@ -433,16 +426,16 @@ export const TenantDetail: React.FC = () => {
       {/* Tab 2: Subscription & Proration */}
       {activeTab === 'subscription' && (
         <div className="space-y-4">
-          <div className="p-4 rounded bg-surface border border-border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="p-4 rounded-lg bg-surface border border-border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="space-y-1">
-              <span className="text-[10px] font-semibold text-text-muted uppercase">Active Subscription</span>
+              <span className="text-[11px] font-semibold text-text-muted">Active subscription</span>
               <div className="flex items-center gap-2">
-                <h3 className="text-base font-bold text-text-primary capitalize">{tenant.subscription.planCode} Plan</h3>
+                <h3 className="text-base font-semibold text-text-primary capitalize">{tenant.subscription.planCode} Plan</h3>
                 <span className="font-mono text-xs px-2 py-0.5 rounded bg-surface-neutral font-semibold">
                   ${(tenant.subscription.amount / 100).toFixed(2)} / {tenant.subscription.billingInterval}
                 </span>
                 {tenant.subscription.discountCouponId && (
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-success-soft text-success font-semibold">
+                  <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-success-soft text-success font-semibold">
                     Coupon: {tenant.subscription.discountCouponId} ({tenant.subscription.discountPercent}% OFF)
                   </span>
                 )}
@@ -456,7 +449,7 @@ export const TenantDetail: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setShowPlanChangeModal(true)}
-                className="h-8 px-3 rounded-sm bg-violet text-white hover:opacity-90 text-xs font-medium cursor-pointer shadow-xs"
+                className="h-8 px-3 rounded-md bg-accent text-white hover:bg-accent-hover text-[13px] font-medium cursor-pointer"
               >
                 Change Plan / Upgrade
               </button>
@@ -464,7 +457,7 @@ export const TenantDetail: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowExtendTrialModal(true)}
-                  className="h-8 px-3 rounded-sm bg-surface border border-border hover:border-border-strong text-text-primary text-xs font-medium cursor-pointer"
+                  className="h-8 px-3 rounded-md bg-surface border border-border hover:border-border-strong text-text-primary text-xs font-medium cursor-pointer"
                 >
                   Extend 14-Day Trial
                 </button>
@@ -472,7 +465,7 @@ export const TenantDetail: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setShowCouponModal(true)}
-                className="h-8 px-3 rounded-sm bg-surface border border-border hover:border-border-strong text-text-primary text-xs font-medium cursor-pointer"
+                className="h-8 px-3 rounded-md bg-surface border border-border hover:border-border-strong text-text-primary text-xs font-medium cursor-pointer"
               >
                 Apply Coupon Code
               </button>
@@ -480,15 +473,15 @@ export const TenantDetail: React.FC = () => {
           </div>
 
           {/* Stripe Subscription Breakdown */}
-          <div className="rounded bg-surface border border-border p-4 space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-text-primary">
+          <div className="rounded-lg bg-surface border border-border p-4 space-y-3">
+            <h4 className="text-xs font-semibold text-text-primary">
               Subscription Line Items
             </h4>
             <div className="divide-y divide-border/60 text-xs">
               <div className="py-2 flex items-center justify-between">
                 <div>
                   <div className="font-semibold text-text-primary capitalize">{tenant.subscription.planCode} Base License</div>
-                  <div className="text-[10px] text-text-muted">
+                  <div className="text-[11px] text-text-muted">
                     Includes {plans.find((p) => p.code === tenant.subscription.planCode)?.currentVersion.limits.companies ?? 3} companies & {plans.find((p) => p.code === tenant.subscription.planCode)?.currentVersion.limits.users ?? 5} users
                   </div>
                 </div>
@@ -499,7 +492,7 @@ export const TenantDetail: React.FC = () => {
               <div className="py-2 flex items-center justify-between">
                 <div>
                   <div className="font-semibold text-text-primary">Stripe Automated Tax (VAT/GST)</div>
-                  <div className="text-[10px] text-text-muted">Jurisdiction: {tenant.country} (Reverse-charge registered)</div>
+                  <div className="text-[11px] text-text-muted">Jurisdiction: {tenant.country} (Reverse-charge registered)</div>
                 </div>
                 <div className="font-mono text-text-secondary">$0.00 (Exempt)</div>
               </div>
@@ -512,18 +505,18 @@ export const TenantDetail: React.FC = () => {
       {activeTab === 'invoices' && (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-text-primary">
+            <h3 className="text-xs font-semibold text-text-primary">
               Mirrored Stripe Invoices ({tenantInvoices.length})
             </h3>
-            <span className="text-[10px] font-mono text-text-muted">Two-person approval enforced for refunds</span>
+            <span className="text-[11px] font-mono text-text-muted">Two-person approval enforced for refunds</span>
           </div>
 
-          <div className="rounded bg-surface border border-border overflow-hidden">
+          <div className="rounded-lg bg-surface border border-border overflow-hidden">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="h-8 bg-surface-neutral/60 border-b border-border text-text-muted text-[11px] uppercase font-semibold">
-                  <th className="px-3">Invoice Number</th>
-                  <th className="px-3">Issued Date</th>
+                  <th className="px-3">Invoice number</th>
+                  <th className="px-3">Issued date</th>
                   <th className="px-3">Status</th>
                   <th className="px-3 text-right">Amount</th>
                   <th className="px-3">Dunning</th>
@@ -543,7 +536,7 @@ export const TenantDetail: React.FC = () => {
                       <td className="px-3 font-mono font-semibold text-text-primary">{inv.number}</td>
                       <td className="px-3 font-mono text-text-muted">{inv.paidAt || inv.dueAt}</td>
                       <td className="px-3"><StatusPill status={inv.status as any} /></td>
-                      <td className="px-3 text-right font-mono font-bold text-text-primary">
+                      <td className="px-3 text-right font-mono font-semibold text-text-primary">
                         ${(inv.total / 100).toFixed(2)}
                       </td>
                       <td className="px-3 font-mono text-[11px] text-text-muted">Stage {inv.dunningStage}</td>
@@ -565,7 +558,7 @@ export const TenantDetail: React.FC = () => {
                                 setRefundAmountMinor(inv.total);
                                 setShowRefundModal(true);
                               }}
-                              className="px-2 py-0.5 rounded text-[11px] bg-danger-soft text-danger hover:opacity-90 font-medium cursor-pointer"
+                              className="px-2 py-0.5 rounded-[3px] text-[11px] bg-danger-soft text-danger hover:opacity-90 font-medium cursor-pointer"
                             >
                               Request Refund
                             </button>
@@ -584,41 +577,41 @@ export const TenantDetail: React.FC = () => {
       {/* Tab 4: Usage Meters */}
       {activeTab === 'usage' && (
         <div className="space-y-4">
-          <div className="p-4 rounded bg-surface border border-border space-y-3">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-text-primary">
+          <div className="p-4 rounded-lg bg-surface border border-border space-y-3">
+            <h3 className="text-xs font-semibold text-text-primary">
               Daily Metered Resource Consumption
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-              <div className="p-3 rounded bg-surface-neutral/50 border border-border">
-                <span className="text-[10px] text-text-muted uppercase">Journal Lines Posted</span>
-                <div className="text-lg font-mono font-bold text-text-primary mt-1">
+              <div className="p-3 rounded-md bg-surface-neutral/50 border border-border">
+                <span className="text-[11px] text-text-muted">Journal lines posted</span>
+                <div className="text-lg font-mono font-semibold text-text-primary mt-1">
                   {tenant.usage.journalLinesThisMonth.toLocaleString()}
                 </div>
-                <div className="text-[10px] text-success mt-0.5">Under monthly threshold</div>
+                <div className="text-[11px] text-success mt-0.5">Under monthly threshold</div>
               </div>
 
-              <div className="p-3 rounded bg-surface-neutral/50 border border-border">
-                <span className="text-[10px] text-text-muted uppercase">API Requests (24h)</span>
-                <div className="text-lg font-mono font-bold text-text-primary mt-1">
+              <div className="p-3 rounded-md bg-surface-neutral/50 border border-border">
+                <span className="text-[11px] text-text-muted">API Requests (24h)</span>
+                <div className="text-lg font-mono font-semibold text-text-primary mt-1">
                   {tenant.usage.apiCallsToday.toLocaleString()}
                 </div>
-                <div className="text-[10px] text-text-muted mt-0.5">Rate Limit: 1,000 req/min</div>
+                <div className="text-[11px] text-text-muted mt-0.5">Rate Limit: 1,000 req/min</div>
               </div>
 
-              <div className="p-3 rounded bg-surface-neutral/50 border border-border">
-                <span className="text-[10px] text-text-muted uppercase">Encrypted Storage</span>
-                <div className="text-lg font-mono font-bold text-text-primary mt-1">
+              <div className="p-3 rounded-md bg-surface-neutral/50 border border-border">
+                <span className="text-[11px] text-text-muted">Encrypted storage</span>
+                <div className="text-lg font-mono font-semibold text-text-primary mt-1">
                   {(tenant.usage.storageMbUsed / 1024).toFixed(1)} GB
                 </div>
-                <div className="text-[10px] text-text-muted mt-0.5">Cap: 50 GB</div>
+                <div className="text-[11px] text-text-muted mt-0.5">Cap: 50 GB</div>
               </div>
 
-              <div className="p-3 rounded bg-surface-neutral/50 border border-border">
-                <span className="text-[10px] text-text-muted uppercase">Active Bank Feeds</span>
-                <div className="text-lg font-mono font-bold text-text-primary mt-1">
+              <div className="p-3 rounded-md bg-surface-neutral/50 border border-border">
+                <span className="text-[11px] text-text-muted">Active bank feeds</span>
+                <div className="text-lg font-mono font-semibold text-text-primary mt-1">
                   2 Active
                 </div>
-                <div className="text-[10px] text-success mt-0.5">Direct Plaid / API link</div>
+                <div className="text-[11px] text-success mt-0.5">Direct Plaid / API link</div>
               </div>
             </div>
           </div>
@@ -629,20 +622,20 @@ export const TenantDetail: React.FC = () => {
       {activeTab === 'users' && (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-text-primary">
+            <h3 className="text-xs font-semibold text-text-primary">
               Enrolled Users & Access Controls ({tenant.usersCount})
             </h3>
-            <span className="text-[10px] text-text-muted font-mono">2FA Enforced for all roles</span>
+            <span className="text-[11px] text-text-muted font-mono">2FA Enforced for all roles</span>
           </div>
 
-          <div className="rounded bg-surface border border-border overflow-hidden">
+          <div className="rounded-lg bg-surface border border-border overflow-hidden">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="h-8 bg-surface-neutral/60 border-b border-border text-text-muted text-[11px] uppercase font-semibold">
-                  <th className="px-3">Name & Email</th>
-                  <th className="px-3">Tenant Role</th>
+                  <th className="px-3">Name and email</th>
+                  <th className="px-3">Tenant role</th>
                   <th className="px-3">2FA State</th>
-                  <th className="px-3">Last Login</th>
+                  <th className="px-3">Last login</th>
                   <th className="px-3 text-right">Actions</th>
                 </tr>
               </thead>
@@ -650,11 +643,11 @@ export const TenantDetail: React.FC = () => {
                 <tr className="h-9 hover:bg-surface-neutral/50">
                   <td className="px-3 py-1">
                     <div className="font-semibold text-text-primary">{tenant.ownerName}</div>
-                    <div className="text-[10px] font-mono text-text-muted">{tenant.ownerEmail}</div>
+                    <div className="text-[11px] font-mono text-text-muted">{tenant.ownerEmail}</div>
                   </td>
-                  <td className="px-3 font-medium text-violet">Owner / Admin</td>
+                  <td className="px-3 font-medium text-text-secondary">Owner / Admin</td>
                   <td className="px-3">
-                    <span className="px-1.5 py-0.2 rounded text-[10px] font-mono font-semibold bg-success-soft text-success">
+                    <span className="px-1.5 py-px rounded-[3px] text-[11px] font-mono font-semibold bg-success-soft text-success">
                       Verified (TOTP)
                     </span>
                   </td>
@@ -678,14 +671,14 @@ export const TenantDetail: React.FC = () => {
       {/* Tab 6: Companies */}
       {activeTab === 'companies' && (
         <div className="space-y-3">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-text-primary">
+          <h3 className="text-xs font-semibold text-text-primary">
             Operating Legal Entities ({tenant.companiesCount})
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-            <div className="p-3.5 rounded bg-surface border border-border space-y-2">
+            <div className="p-3.5 rounded-lg bg-surface border border-border space-y-2">
               <div className="flex items-center justify-between">
-                <span className="font-bold text-text-primary">Acme Trading Ltd</span>
-                <span className="font-mono text-[10px] px-1.5 py-0.2 rounded bg-surface-neutral text-text-secondary">
+                <span className="font-semibold text-text-primary">Acme Trading Ltd</span>
+                <span className="font-mono text-[11px] px-1.5 py-px rounded bg-surface-neutral text-text-secondary">
                   USD
                 </span>
               </div>
@@ -696,10 +689,10 @@ export const TenantDetail: React.FC = () => {
               </div>
             </div>
 
-            <div className="p-3.5 rounded bg-surface border border-border space-y-2">
+            <div className="p-3.5 rounded-lg bg-surface border border-border space-y-2">
               <div className="flex items-center justify-between">
-                <span className="font-bold text-text-primary">Acme Logistics East Africa</span>
-                <span className="font-mono text-[10px] px-1.5 py-0.2 rounded bg-surface-neutral text-text-secondary">
+                <span className="font-semibold text-text-primary">Acme Logistics East Africa</span>
+                <span className="font-mono text-[11px] px-1.5 py-px rounded bg-surface-neutral text-text-secondary">
                   KES
                 </span>
               </div>
@@ -718,14 +711,14 @@ export const TenantDetail: React.FC = () => {
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-xs font-bold uppercase tracking-wider text-text-primary">
+              <h3 className="text-xs font-semibold text-text-primary">
                 Pennant Feature Flag Overrides
               </h3>
               <p className="text-[11px] text-text-muted">Override global rollout percentages for this specific tenant instance</p>
             </div>
           </div>
 
-          <div className="rounded bg-surface border border-border divide-y divide-border/60 text-xs">
+          <div className="rounded-lg bg-surface border border-border divide-y divide-border/60 text-xs">
             {featureFlags.map((flag) => {
               const override = flag.tenantOverrides ? flag.tenantOverrides[tenant.id] : undefined;
               const isEnabled = override !== undefined ? override : flag.globalDefault;
@@ -735,7 +728,7 @@ export const TenantDetail: React.FC = () => {
                   <div>
                     <div className="font-semibold text-text-primary">{flag.name}</div>
                     <div className="text-[11px] text-text-muted">{flag.description}</div>
-                    <div className="text-[10px] font-mono text-violet mt-0.5">Key: {flag.key}</div>
+                    <div className="text-[11px] font-mono text-text-secondary mt-0.5">Key: {flag.key}</div>
                   </div>
 
                   <div className="flex items-center gap-3">
@@ -766,8 +759,8 @@ export const TenantDetail: React.FC = () => {
       {activeTab === 'support' && (
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="p-4 rounded bg-surface border border-border space-y-3">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-text-primary">
+            <div className="p-4 rounded-lg bg-surface border border-border space-y-3">
+              <h3 className="text-xs font-semibold text-text-primary">
                 Staff Impersonation Diagnostics
               </h3>
               <p className="text-xs text-text-muted">
@@ -778,7 +771,7 @@ export const TenantDetail: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => handleImpersonate('read')}
-                  className="h-8 px-3 rounded-sm bg-violet text-white text-xs font-medium hover:opacity-90 flex items-center gap-1.5 cursor-pointer shadow-xs"
+                  className="h-8 px-3 rounded-md bg-accent text-white text-[13px] font-medium hover:bg-accent-hover flex items-center gap-1.5 cursor-pointer"
                 >
                   <UserCheck className="w-3.5 h-3.5" />
                   <span>Start Read-Only Session</span>
@@ -789,16 +782,16 @@ export const TenantDetail: React.FC = () => {
                     toast.info('Write-mode requires a second approver request.');
                     navigate('/admin/staff');
                   }}
-                  className="h-8 px-3 rounded-sm bg-surface border border-border text-text-primary text-xs font-medium hover:bg-surface-neutral flex items-center gap-1.5 cursor-pointer"
+                  className="h-8 px-3 rounded-md bg-surface border border-border text-text-primary text-xs font-medium hover:bg-surface-neutral flex items-center gap-1.5 cursor-pointer"
                 >
                   <ShieldAlert className="w-3.5 h-3.5 text-warning" />
-                  <span>Request Write Mode</span>
+                  <span>Request write mode</span>
                 </button>
               </div>
             </div>
 
-            <div className="p-4 rounded bg-surface border border-border space-y-3">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-text-primary">
+            <div className="p-4 rounded-lg bg-surface border border-border space-y-3">
+              <h3 className="text-xs font-semibold text-text-primary">
                 Compliance & Data Portability
               </h3>
               <p className="text-xs text-text-muted">
@@ -808,7 +801,7 @@ export const TenantDetail: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleGdprExport}
-                  className="h-8 px-3 rounded-sm bg-surface border border-border hover:border-border-strong text-text-primary text-xs font-medium flex items-center gap-1.5 cursor-pointer"
+                  className="h-8 px-3 rounded-md bg-surface border border-border hover:border-border-strong text-text-primary text-xs font-medium flex items-center gap-1.5 cursor-pointer"
                 >
                   <Download className="w-3.5 h-3.5 text-text-muted" />
                   <span>Trigger GDPR Export</span>
@@ -816,10 +809,10 @@ export const TenantDetail: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => toast.success('Tamper-evident ledger integrity verified. All journal blocks match SHA-256 seal.')}
-                  className="h-8 px-3 rounded-sm bg-surface border border-border hover:border-border-strong text-text-primary text-xs font-medium flex items-center gap-1.5 cursor-pointer"
+                  className="h-8 px-3 rounded-md bg-surface border border-border hover:border-border-strong text-text-primary text-xs font-medium flex items-center gap-1.5 cursor-pointer"
                 >
                   <CheckCircle2 className="w-3.5 h-3.5 text-success" />
-                  <span>Verify Ledger Seal</span>
+                  <span>Verify ledger seal</span>
                 </button>
               </div>
             </div>
@@ -830,19 +823,19 @@ export const TenantDetail: React.FC = () => {
       {/* Tab 9: Notes & Tickets */}
       {activeTab === 'notes' && (
         <div className="space-y-4">
-          <form onSubmit={handleAddNote} className="p-3.5 rounded bg-surface border border-border space-y-2">
-            <label className="text-xs font-semibold text-text-primary">Add Internal Support Note</label>
+          <form onSubmit={handleAddNote} className="p-3.5 rounded-lg bg-surface border border-border space-y-2">
+            <label className="text-xs font-semibold text-text-primary">Add internal support note</label>
             <textarea
               rows={2}
               value={internalNote}
               onChange={(e) => setInternalNote(e.target.value)}
-              placeholder="Record support diagnostic notes, account manager context, or concessions..."
-              className="w-full p-2 bg-surface-neutral/60 border border-border rounded-sm text-xs text-text-primary focus:outline-none focus:ring-1 focus:ring-accent"
+              placeholder="Record support diagnostic notes, account manager context, or concessions"
+              className="w-full p-2 bg-surface-neutral/60 border border-border rounded-md text-xs text-text-primary focus:outline-none focus:ring-1 focus:ring-accent"
             />
             <div className="flex justify-end">
               <button
                 type="submit"
-                className="h-7 px-3 rounded bg-violet text-white text-xs font-medium hover:opacity-90 cursor-pointer shadow-xs"
+                className="h-8 px-3 rounded-md bg-accent text-white text-[13px] font-medium hover:bg-accent-hover cursor-pointer"
               >
                 Post Note
               </button>
@@ -851,10 +844,10 @@ export const TenantDetail: React.FC = () => {
 
           <div className="space-y-2">
             {notesList.map((note, idx) => (
-              <div key={idx} className="p-3 rounded bg-surface border border-border text-xs space-y-1">
-                <div className="flex items-center justify-between text-text-muted text-[10px] font-mono">
+              <div key={idx} className="p-3 rounded-lg bg-surface border border-border text-xs space-y-1">
+                <div className="flex items-center justify-between text-text-muted text-[11px] font-mono">
                   <span>Staff Note #{notesList.length - idx}</span>
-                  <span>Pinned Note</span>
+                  <span>Pinned note</span>
                 </div>
                 <p className="text-text-primary">{note}</p>
               </div>
@@ -867,16 +860,16 @@ export const TenantDetail: React.FC = () => {
       {activeTab === 'audit' && (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-text-primary">
+            <h3 className="text-xs font-semibold text-text-primary">
               Cryptographic Staff Audit Chain ({tenantAudit.length} events)
             </h3>
-            <span className="text-[10px] font-mono text-success flex items-center gap-1">
+            <span className="text-[11px] font-mono text-success flex items-center gap-1">
               <CheckCircle2 className="w-3 h-3 text-success" />
               SHA-256 Tamper-Evident Chain
             </span>
           </div>
 
-          <div className="rounded bg-surface border border-border overflow-hidden">
+          <div className="rounded-lg bg-surface border border-border overflow-hidden">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="h-8 bg-surface-neutral/60 border-b border-border text-text-muted text-[11px] uppercase font-semibold">
@@ -884,7 +877,7 @@ export const TenantDetail: React.FC = () => {
                   <th className="px-3">Operator</th>
                   <th className="px-3">Action</th>
                   <th className="px-3">Reason / Context</th>
-                  <th className="px-3 text-right">Block Hash</th>
+                  <th className="px-3 text-right">Block hash</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/60">
@@ -900,12 +893,12 @@ export const TenantDetail: React.FC = () => {
                       <td className="px-3 font-mono text-text-muted">{new Date(a.occurredAt).toLocaleString()}</td>
                       <td className="px-3 font-semibold text-text-primary">{a.adminName}</td>
                       <td className="px-3">
-                        <span className="px-1.5 py-0.2 rounded bg-violet-soft text-violet font-mono text-[10px] font-bold uppercase">
+                        <span className="px-1.5 py-px rounded bg-surface-neutral text-text-secondary font-mono text-[11px] font-semibold">
                           {a.action}
                         </span>
                       </td>
                       <td className="px-3 text-text-secondary truncate max-w-[280px]">{a.reason}</td>
-                      <td className="px-3 text-right font-mono text-[10px] text-text-muted">
+                      <td className="px-3 text-right font-mono text-[11px] text-text-muted">
                         {a.hash.slice(0, 10)}...
                       </td>
                     </tr>
@@ -919,16 +912,16 @@ export const TenantDetail: React.FC = () => {
 
       {/* Plan Change Modal with Proration Preview */}
       {showPlanChangeModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-4">
-          <div className="w-full max-w-lg bg-surface border border-border rounded-lg shadow-xl p-5 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="w-full max-w-lg bg-surface border border-border rounded-lg shadow-xl p-5 space-y-4">
             <div className="flex items-center justify-between pb-2 border-b border-border">
-              <h3 className="text-sm font-bold text-text-primary">Change Subscription Plan</h3>
-              <span className="text-xs font-mono text-violet capitalize">Current: {tenant.subscription.planCode}</span>
+              <h3 className="text-sm font-semibold text-text-primary">Change subscription plan</h3>
+              <span className="text-xs font-mono text-text-secondary capitalize">Current: {tenant.subscription.planCode}</span>
             </div>
 
             <div className="space-y-3 text-xs">
               <div>
-                <label className="font-semibold text-text-secondary block mb-1">Target Plan</label>
+                <label className="font-semibold text-text-secondary block mb-1">Target plan</label>
                 <div className="grid grid-cols-2 gap-2">
                   {(['starter', 'professional', 'business', 'enterprise'] as PlanCode[]).map((code) => (
                     <button
@@ -937,12 +930,12 @@ export const TenantDetail: React.FC = () => {
                       onClick={() => setTargetPlanCode(code)}
                       className={`p-2 rounded border text-left cursor-pointer transition ${
                         targetPlanCode === code
-                          ? 'border-violet bg-violet-soft/30 font-semibold'
+                          ? 'border-accent bg-accent-soft font-semibold'
                           : 'border-border bg-surface hover:border-border-strong'
                       }`}
                     >
-                      <div className="capitalize font-bold text-text-primary">{code}</div>
-                      <div className="text-[10px] text-text-muted">
+                      <div className="capitalize font-semibold text-text-primary">{code}</div>
+                      <div className="text-[11px] text-text-muted">
                         ${code === 'starter' ? '49' : code === 'professional' ? '149' : code === 'business' ? '349' : '899'}/mo
                       </div>
                     </button>
@@ -951,13 +944,13 @@ export const TenantDetail: React.FC = () => {
               </div>
 
               <div>
-                <label className="font-semibold text-text-secondary block mb-1">Billing Interval</label>
+                <label className="font-semibold text-text-secondary block mb-1">Billing interval</label>
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
                     onClick={() => setTargetInterval('monthly')}
                     className={`py-1.5 px-3 rounded border text-center font-medium cursor-pointer ${
-                      targetInterval === 'monthly' ? 'border-violet bg-violet-soft/30 text-violet' : 'border-border'
+                      targetInterval === 'monthly' ? 'border-accent bg-surface-neutral text-text-secondary' : 'border-border'
                     }`}
                   >
                     Monthly
@@ -966,7 +959,7 @@ export const TenantDetail: React.FC = () => {
                     type="button"
                     onClick={() => setTargetInterval('annual')}
                     className={`py-1.5 px-3 rounded border text-center font-medium cursor-pointer ${
-                      targetInterval === 'annual' ? 'border-violet bg-violet-soft/30 text-violet' : 'border-border'
+                      targetInterval === 'annual' ? 'border-accent bg-surface-neutral text-text-secondary' : 'border-border'
                     }`}
                   >
                     Annual (Save 15%)
@@ -975,8 +968,8 @@ export const TenantDetail: React.FC = () => {
               </div>
 
               {/* Live Proration Breakdown Box */}
-              <div className="p-3 rounded bg-surface-neutral border border-border space-y-1.5 font-mono text-xs">
-                <div className="text-[10px] font-bold text-text-muted uppercase">Proration Preview (Stripe Engine)</div>
+              <div className="p-3 rounded-md bg-surface-neutral border border-border space-y-1.5 font-mono text-xs">
+                <div className="text-[11px] font-semibold text-text-muted">Proration Preview (Stripe Engine)</div>
                 <div className="flex justify-between">
                   <span className="text-text-muted">New Plan Base:</span>
                   <span>${(prorationPreview.newCharge / 100).toFixed(2)}</span>
@@ -985,9 +978,9 @@ export const TenantDetail: React.FC = () => {
                   <span>Unused Time Credit:</span>
                   <span>-${(prorationPreview.credit / 100).toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between pt-1 border-t border-border font-bold text-text-primary">
+                <div className="flex justify-between pt-1 border-t border-border font-semibold text-text-primary">
                   <span>Net Charged Today:</span>
-                  <span className="text-violet">${(prorationPreview.net / 100).toFixed(2)}</span>
+                  <span className="text-text-secondary">${(prorationPreview.net / 100).toFixed(2)}</span>
                 </div>
               </div>
 
@@ -997,7 +990,7 @@ export const TenantDetail: React.FC = () => {
                   type="text"
                   value={planChangeReason}
                   onChange={(e) => setPlanChangeReason(e.target.value)}
-                  className="w-full h-8 px-2.5 bg-surface border border-border rounded text-xs"
+                  className="w-full h-8 px-2.5 bg-surface border border-border rounded-md text-xs"
                 />
               </div>
             </div>
@@ -1006,14 +999,14 @@ export const TenantDetail: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setShowPlanChangeModal(false)}
-                className="h-8 px-3 rounded border border-border hover:bg-surface-neutral text-xs cursor-pointer"
+                className="h-8 px-3 rounded-md border border-border hover:bg-surface-neutral text-xs cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleConfirmPlanChange}
-                className="h-8 px-4 rounded bg-violet text-white hover:opacity-90 text-xs font-semibold cursor-pointer shadow-xs"
+                className="h-8 px-4 rounded-md bg-accent text-white hover:bg-accent-hover text-[13px] font-medium cursor-pointer"
               >
                 Apply Plan & Prorate
               </button>
@@ -1024,9 +1017,9 @@ export const TenantDetail: React.FC = () => {
 
       {/* Extend Trial Modal */}
       {showExtendTrialModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="w-full max-w-md bg-surface border border-border rounded-lg shadow-xl p-5 space-y-4">
-            <h3 className="text-sm font-bold text-text-primary">Extend Customer Trial Period</h3>
+            <h3 className="text-sm font-semibold text-text-primary">Extend customer trial period</h3>
             <div className="space-y-3 text-xs">
               <div>
                 <label className="font-semibold text-text-secondary block mb-1">Days to Add</label>
@@ -1037,7 +1030,7 @@ export const TenantDetail: React.FC = () => {
                       type="button"
                       onClick={() => setTrialDaysToAdd(d)}
                       className={`py-1.5 rounded border text-center font-mono cursor-pointer ${
-                        trialDaysToAdd === d ? 'border-violet bg-violet-soft/30 text-violet font-bold' : 'border-border'
+                        trialDaysToAdd === d ? 'border-accent bg-surface-neutral text-text-secondary font-semibold' : 'border-border'
                       }`}
                     >
                       +{d} Days
@@ -1052,7 +1045,7 @@ export const TenantDetail: React.FC = () => {
                   type="text"
                   value={trialReason}
                   onChange={(e) => setTrialReason(e.target.value)}
-                  className="w-full h-8 px-2.5 bg-surface border border-border rounded text-xs"
+                  className="w-full h-8 px-2.5 bg-surface border border-border rounded-md text-xs"
                 />
               </div>
             </div>
@@ -1061,14 +1054,14 @@ export const TenantDetail: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setShowExtendTrialModal(false)}
-                className="h-8 px-3 rounded border border-border hover:bg-surface-neutral text-xs cursor-pointer"
+                className="h-8 px-3 rounded-md border border-border hover:bg-surface-neutral text-xs cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleConfirmExtendTrial}
-                className="h-8 px-4 rounded bg-violet text-white hover:opacity-90 text-xs font-semibold cursor-pointer"
+                className="h-8 px-4 rounded-md bg-accent text-white hover:bg-accent-hover text-[13px] font-medium cursor-pointer"
               >
                 Confirm Extension
               </button>
@@ -1079,18 +1072,18 @@ export const TenantDetail: React.FC = () => {
 
       {/* Apply Coupon Modal */}
       {showCouponModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="w-full max-w-md bg-surface border border-border rounded-lg shadow-xl p-5 space-y-4">
-            <h3 className="text-sm font-bold text-text-primary">Apply Promotional Coupon</h3>
+            <h3 className="text-sm font-semibold text-text-primary">Apply promotional coupon</h3>
             <div className="space-y-3 text-xs">
               <div>
-                <label className="font-semibold text-text-secondary block mb-1">Coupon Code</label>
+                <label className="font-semibold text-text-secondary block mb-1">Coupon code</label>
                 <input
                   type="text"
                   value={couponCodeInput}
                   onChange={(e) => setCouponCodeInput(e.target.value.toUpperCase())}
                   placeholder="e.g. PARTNER20 or LAUNCH50"
-                  className="w-full h-8 px-2.5 font-mono bg-surface border border-border rounded text-xs uppercase"
+                  className="w-full h-8 px-2.5 font-mono bg-surface border border-border rounded-md text-xs"
                 />
               </div>
             </div>
@@ -1099,14 +1092,14 @@ export const TenantDetail: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setShowCouponModal(false)}
-                className="h-8 px-3 rounded border border-border hover:bg-surface-neutral text-xs cursor-pointer"
+                className="h-8 px-3 rounded-md border border-border hover:bg-surface-neutral text-xs cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleConfirmApplyCoupon}
-                className="h-8 px-4 rounded bg-violet text-white hover:opacity-90 text-xs font-semibold cursor-pointer"
+                className="h-8 px-4 rounded-md bg-accent text-white hover:bg-accent-hover text-[13px] font-medium cursor-pointer"
               >
                 Apply Discount
               </button>
@@ -1117,11 +1110,11 @@ export const TenantDetail: React.FC = () => {
 
       {/* Refund Request Dual-Approval Modal */}
       {showRefundModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="w-full max-w-md bg-surface border border-border rounded-lg shadow-xl p-5 space-y-4">
             <div className="flex items-center gap-2 text-warning">
               <ShieldAlert className="w-5 h-5 shrink-0" />
-              <h3 className="text-sm font-bold text-text-primary">Request Stripe Refund (Dual-Approval)</h3>
+              <h3 className="text-sm font-semibold text-text-primary">Request Stripe Refund (Dual-Approval)</h3>
             </div>
             <p className="text-xs text-text-muted">
               Refunds require two-person verification (Finance or Owner sign-off).
@@ -1134,17 +1127,17 @@ export const TenantDetail: React.FC = () => {
                   type="number"
                   value={(refundAmountMinor / 100).toFixed(2)}
                   onChange={(e) => setRefundAmountMinor(Math.round(parseFloat(e.target.value || '0') * 100))}
-                  className="w-full h-8 px-2.5 font-mono bg-surface border border-border rounded text-xs"
+                  className="w-full h-8 px-2.5 font-mono bg-surface border border-border rounded-md text-xs"
                 />
               </div>
 
               <div>
-                <label className="font-semibold text-text-secondary block mb-1">Commercial Justification</label>
+                <label className="font-semibold text-text-secondary block mb-1">Commercial justification</label>
                 <input
                   type="text"
                   value={refundReason}
                   onChange={(e) => setRefundReason(e.target.value)}
-                  className="w-full h-8 px-2.5 bg-surface border border-border rounded text-xs"
+                  className="w-full h-8 px-2.5 bg-surface border border-border rounded-md text-xs"
                 />
               </div>
             </div>
@@ -1153,14 +1146,14 @@ export const TenantDetail: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setShowRefundModal(false)}
-                className="h-8 px-3 rounded border border-border hover:bg-surface-neutral text-xs cursor-pointer"
+                className="h-8 px-3 rounded-md border border-border hover:bg-surface-neutral text-xs cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleInitiateRefund}
-                className="h-8 px-4 rounded bg-danger text-white hover:opacity-90 text-xs font-semibold cursor-pointer"
+                className="h-8 px-4 rounded-md bg-danger text-white hover:opacity-90 text-[13px] font-medium cursor-pointer"
               >
                 Submit for 2-Person Approval
               </button>

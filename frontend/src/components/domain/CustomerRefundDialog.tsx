@@ -11,7 +11,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { RotateCcw, Building } from 'lucide-react';
+
 import { toast } from 'sonner';
 
 interface CustomerRefundDialogProps {
@@ -102,12 +102,9 @@ export const CustomerRefundDialog: React.FC<CustomerRefundDialogProps> = ({
       <DialogContent className="max-w-md p-6 bg-surface border border-border shadow-xl rounded-lg">
         <DialogHeader className="pb-3 border-b border-border">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-md bg-accent-soft text-accent flex items-center justify-center font-bold">
-              <RotateCcw className="w-4 h-4" />
-            </div>
             <div>
-              <DialogTitle className="text-base font-bold text-text-primary">
-                Issue Customer Refund
+              <DialogTitle className="text-base font-semibold text-text-primary">
+                Refund customer
               </DialogTitle>
               <DialogDescription className="text-xs text-text-muted mt-0.5">
                 Disburse cash back to client (Dr Accounts Receivable 1200, Cr Bank 1010)
@@ -123,15 +120,15 @@ export const CustomerRefundDialog: React.FC<CustomerRefundDialogProps> = ({
               <p className="text-[11px] text-text-muted font-mono">{invoice.number || 'INV'} • Ref: {invoice.reference}</p>
             </div>
             <div className="text-right">
-              <span className="text-[10px] uppercase font-bold text-text-muted block">Invoice Amount</span>
-              <span className="font-mono font-bold text-accent text-sm">{formatMoney(Math.abs(invoice.total), invoice.currency)}</span>
+              <span className="text-xs font-medium text-text-muted block">Invoice amount</span>
+              <span className="font-mono font-semibold text-accent text-sm">{formatMoney(Math.abs(invoice.total), invoice.currency)}</span>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1">
               <label className="text-xs font-medium text-text-secondary flex items-center">
-                Disbursing Bank Account
+                Paid from bank account
                 <FieldHelp help="Treasury account sending funds." example="Premier Bank USD (1010)" />
               </label>
               <select
@@ -149,7 +146,7 @@ export const CustomerRefundDialog: React.FC<CustomerRefundDialogProps> = ({
 
             <div className="flex flex-col gap-1">
               <label className="text-xs font-medium text-text-secondary flex items-center">
-                Refund Amount ($)
+                Refund amount ($)
                 <FieldHelp help="Sum to disburse back to customer." example="1050.00" />
               </label>
               <input
@@ -165,7 +162,7 @@ export const CustomerRefundDialog: React.FC<CustomerRefundDialogProps> = ({
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1">
               <label className="text-xs font-medium text-text-secondary flex items-center">
-                Refund Date
+                Refund date
                 <FieldHelp help="Date funds were sent back to customer." example="2026-10-28" />
               </label>
               <input
@@ -192,7 +189,7 @@ export const CustomerRefundDialog: React.FC<CustomerRefundDialogProps> = ({
 
           <div className="flex flex-col gap-1">
             <label className="text-xs font-medium text-text-secondary flex items-center">
-              Refund Memo
+              Refund memo
               <FieldHelp help="Commercial justification for issuing refund." example="Customer overpayment refund" />
             </label>
             <input
@@ -203,9 +200,9 @@ export const CustomerRefundDialog: React.FC<CustomerRefundDialogProps> = ({
             />
           </div>
 
-          <div className="p-3 bg-accent-soft/30 border border-accent/20 rounded-md">
-            <span className="text-[10px] uppercase font-bold text-accent block mb-1">
-              General Ledger Impact
+          <div className="p-3 bg-surface-neutral border border-border rounded-md">
+            <span className="text-xs font-medium text-text-muted block mb-1">
+              General ledger impact
             </span>
             <p className="text-[11px] text-text-secondary leading-relaxed">
               This will debit Accounts Receivable (1200) for{' '}
@@ -229,7 +226,7 @@ export const CustomerRefundDialog: React.FC<CustomerRefundDialogProps> = ({
             type="button"
             onClick={handleExecuteRefund}
             disabled={isSubmitting}
-            className="h-8 px-4 rounded-sm bg-accent hover:bg-accent-hover text-white text-xs font-semibold shadow-xs transition"
+            className="h-8 px-3 rounded-md bg-accent hover:bg-accent-hover text-white text-[13px] font-medium transition"
           >
             {isSubmitting ? 'Processing...' : 'Disburse Refund'}
           </button>

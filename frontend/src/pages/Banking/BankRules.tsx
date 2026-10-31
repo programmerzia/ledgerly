@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
-import { ArrowDown, ArrowUp, Copy, Pencil, Plus, Trash2, Wand2 } from 'lucide-react';
+import { ArrowDown, ArrowUp, Copy, Pencil, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useLedgerStore } from '@/mock/store';
 import { formatMoney } from '@/lib/format';
@@ -119,11 +119,10 @@ export const BankRules: React.FC = () => {
     <div className="flex flex-col gap-4">
       <PageHeader
         breadcrumb={[{ label: 'Bank & cash', to: `/${currentCompany.slug}/banking` }, { label: 'Rules' }]}
-        icon={<Wand2 />}
         title="Bank rules"
-        subtitle="Teach Ledgerly how to code repeat bank lines. Rules only suggest, you still accept each one. The first matching rule wins."
+        subtitle="Rules code repeat bank lines. They only suggest; you accept each one. The first matching rule wins."
         actions={
-          <button type="button" onClick={() => open()} className="flex h-9 items-center gap-1.5 rounded-lg bg-accent px-3.5 text-[13px] font-semibold text-white transition hover:bg-accent-hover">
+          <button type="button" onClick={() => open()} className="flex h-8 items-center gap-1.5 rounded-md bg-accent px-3 text-[13px] font-medium text-white transition hover:bg-accent-hover">
             <Plus className="size-4" /> New rule
           </button>
         }
@@ -131,7 +130,6 @@ export const BankRules: React.FC = () => {
 
       {rules.length === 0 ? (
         <EmptyState
-          icon={Wand2}
           title="No bank rules yet"
           description="When you code a bank line, tick 'Create a rule for lines like this' and the next one is suggested for you. Or add one now."
           actionLabel="New rule"
@@ -168,7 +166,7 @@ export const BankRules: React.FC = () => {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2">
-            <button type="button" onClick={() => setToDelete(null)} className="h-9 rounded-lg border border-border px-3 text-[13px] font-medium text-text-secondary hover:bg-surface-neutral">
+            <button type="button" onClick={() => setToDelete(null)} className="h-8 rounded-md border border-border px-3 text-[13px] font-medium text-text-secondary hover:bg-surface-neutral">
               Keep rule
             </button>
             <button

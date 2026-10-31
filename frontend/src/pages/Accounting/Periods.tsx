@@ -9,19 +9,7 @@ import { PeriodTimeline } from './periods/PeriodTimeline';
 import { CloseChecklistCard } from './periods/CloseChecklistCard';
 import { SignDialog } from '@/components/domain/SignDialog';
 import { toast } from 'sonner';
-import {
-  Calendar,
-  Lock,
-  Unlock,
-  ShieldCheck,
-  CheckCircle2,
-  AlertCircle,
-  FileCheck2,
-  X,
-  UserCheck,
-  ArrowRight,
-  ExternalLink,
-} from 'lucide-react';
+import { Lock, Unlock, ShieldCheck, CheckCircle2, AlertCircle, FileCheck2, UserCheck, ArrowRight } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -220,7 +208,7 @@ export const Periods: React.FC = () => {
   return (
     <div className="flex flex-col gap-6">
       {returnTo && (
-        <div className="flex items-center justify-between rounded-xl border border-accent/30 bg-accent-soft px-4 py-3 text-[13px] text-text-primary">
+        <div className="flex items-center justify-between rounded-lg border border-accent/30 bg-accent-soft px-4 py-3 text-[13px] text-text-primary">
           <div className="flex items-center gap-2">
             <Unlock className="size-4 shrink-0 text-accent" />
             <span>
@@ -230,7 +218,7 @@ export const Periods: React.FC = () => {
           <button
             type="button"
             onClick={() => navigate(returnTo)}
-            className="flex h-8 items-center gap-1.5 rounded-lg bg-accent px-3 text-xs font-semibold text-white transition hover:bg-accent-hover"
+            className="flex h-8 items-center gap-1.5 rounded-md bg-accent px-3 text-[13px] font-medium text-white transition hover:bg-accent-hover"
           >
             Back to journal
             <ArrowRight className="size-3.5" />
@@ -239,7 +227,6 @@ export const Periods: React.FC = () => {
       )}
 
       <PageHeader
-        icon={<Calendar />}
         title="Periods and close"
         subtitle="Close each month once everything is checked. Closed months cannot be changed without two approvals."
         actions={
@@ -247,7 +234,7 @@ export const Periods: React.FC = () => {
             <button
               type="button"
               onClick={() => navigate(`/${coSlug}/periods/close-pack`)}
-              className="flex h-9 items-center gap-1.5 rounded-lg border border-border bg-surface px-3 text-[13px] font-medium text-text-secondary transition hover:bg-surface-neutral hover:text-text-primary"
+              className="flex h-9 items-center gap-1.5 rounded-md border border-border bg-surface px-3 text-[13px] font-medium text-text-secondary transition hover:bg-surface-neutral hover:text-text-primary"
             >
               <FileCheck2 className="size-4 text-accent" />
               Close pack
@@ -255,7 +242,7 @@ export const Periods: React.FC = () => {
             <button
               type="button"
               onClick={() => setIsYearEndModalOpen(true)}
-              className="flex h-9 items-center gap-1.5 rounded-lg border border-border bg-surface px-3 text-[13px] font-medium text-text-secondary transition hover:bg-surface-neutral hover:text-text-primary"
+              className="flex h-9 items-center gap-1.5 rounded-md border border-border bg-surface px-3 text-[13px] font-medium text-text-secondary transition hover:bg-surface-neutral hover:text-text-primary"
             >
               <Lock className="size-4 text-accent" />
               Year-end close
@@ -265,7 +252,7 @@ export const Periods: React.FC = () => {
       />
 
       {actionError && (
-        <div className="flex items-center gap-2 rounded-xl border border-danger/30 bg-danger-soft px-4 py-3 text-[13px] font-medium text-danger">
+        <div className="flex items-center gap-2 rounded-lg border border-danger/30 bg-danger-soft px-4 py-3 text-[13px] font-medium text-danger">
           <AlertCircle className="size-4 shrink-0" />
           <span>{actionError}</span>
         </div>
@@ -276,7 +263,7 @@ export const Periods: React.FC = () => {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="flex flex-col gap-5">
           {activeReopenReq && (
-            <div className="flex flex-col gap-3 rounded-xl border border-warning/40 bg-warning-soft p-5 text-[13px]">
+            <div className="flex flex-col gap-3 rounded-lg border border-warning/40 bg-warning-soft p-5 text-[13px]">
               <div className="flex items-center gap-2 font-semibold text-warning">
                 <ShieldCheck className="size-4" />
                 Reopening is waiting for a second approval
@@ -305,7 +292,7 @@ export const Periods: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setSigningType('second')}
-                    className="flex h-9 items-center gap-1.5 rounded-lg bg-success px-4 text-[13px] font-semibold text-white transition hover:opacity-90"
+                    className="flex h-8 items-center gap-1.5 rounded-md bg-success px-4 text-[13px] font-medium text-white transition hover:opacity-90"
                   >
                     <UserCheck className="size-4" />
                     Approve reopening
@@ -326,9 +313,9 @@ export const Periods: React.FC = () => {
         </div>
 
         <aside className="flex flex-col gap-4 lg:sticky lg:top-4 lg:self-start">
-          <section className="flex flex-col gap-4 rounded-xl border border-border bg-surface p-5 shadow-card">
+          <section className="flex flex-col gap-4 rounded-lg border border-border bg-surface p-5">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold tracking-tight text-text-primary">{selectedPeriod.name}</h2>
+              <h2 className="text-sm font-semibold text-text-primary">{selectedPeriod.name}</h2>
               <StatusPill status={selectedPeriod.status} />
             </div>
             <div className="text-xs text-text-muted">
@@ -339,7 +326,7 @@ export const Periods: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsReopenModalOpen(true)}
-                className="flex h-9 items-center justify-center gap-1.5 rounded-lg bg-accent px-4 text-[13px] font-semibold text-white transition hover:bg-accent-hover"
+                className="flex h-8 items-center justify-center gap-1.5 rounded-md bg-accent px-4 text-[13px] font-medium text-white transition hover:bg-accent-hover"
               >
                 <Unlock className="size-4" />
                 Ask to reopen
@@ -352,7 +339,7 @@ export const Periods: React.FC = () => {
                       type="button"
                       disabled={isCloseDisabled}
                       onClick={() => setIsCloseModalOpen(true)}
-                      className="flex h-9 w-full items-center justify-center gap-1.5 rounded-lg bg-text-primary px-4 text-[13px] font-semibold text-surface transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="flex h-8 w-full items-center justify-center gap-1.5 rounded-md bg-text-primary px-3 text-[13px] font-medium text-surface transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <Lock className="size-4" />
                       Close {selectedPeriod.name}
@@ -371,7 +358,7 @@ export const Periods: React.FC = () => {
 
       {/* Request Reopen Modal (Step 1) */}
       <Dialog open={isReopenModalOpen} onOpenChange={setIsReopenModalOpen}>
-        <DialogContent className="max-w-[480px] p-6 rounded-xl">
+        <DialogContent className="max-w-[480px] p-6 rounded-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-sm font-semibold">
               <Unlock className="w-4 h-4 text-accent" />
@@ -404,7 +391,7 @@ export const Periods: React.FC = () => {
             <button
               type="button"
               onClick={() => setIsReopenModalOpen(false)}
-              className="px-3.5 py-1.5 rounded-lg border border-border hover:bg-surface-neutral text-xs font-medium text-text-secondary cursor-pointer"
+              className="h-8 px-3 rounded-md border border-border hover:bg-surface-neutral text-[13px] font-medium text-text-secondary cursor-pointer"
             >
               Cancel
             </button>
@@ -412,7 +399,7 @@ export const Periods: React.FC = () => {
               type="button"
               onClick={handleOpenFirstSign}
               disabled={actionLoading || !reopenReason.trim()}
-              className="px-4 py-1.5 rounded-lg bg-accent hover:bg-accent-hover text-white text-xs font-semibold shadow-xs disabled:opacity-50 cursor-pointer"
+              className="h-8 px-3 rounded-md bg-accent hover:bg-accent-hover text-white text-[13px] font-medium disabled:opacity-50 cursor-pointer"
             >
               Sign and send request
             </button>
@@ -422,7 +409,7 @@ export const Periods: React.FC = () => {
 
       {/* Close Period Modal */}
       <Dialog open={isCloseModalOpen} onOpenChange={setIsCloseModalOpen}>
-        <DialogContent className="max-w-[480px] p-6 rounded-xl">
+        <DialogContent className="max-w-[480px] p-6 rounded-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-sm font-semibold">
               <Lock className="w-4 h-4 text-text-primary" />
@@ -452,7 +439,7 @@ export const Periods: React.FC = () => {
             <button
               type="button"
               onClick={() => setIsCloseModalOpen(false)}
-              className="px-3.5 py-1.5 rounded-lg border border-border hover:bg-surface-neutral text-xs font-medium text-text-secondary cursor-pointer"
+              className="h-8 px-3 rounded-md border border-border hover:bg-surface-neutral text-[13px] font-medium text-text-secondary cursor-pointer"
             >
               Cancel
             </button>
@@ -460,7 +447,7 @@ export const Periods: React.FC = () => {
               type="button"
               disabled={isCloseDisabled || actionLoading}
               onClick={handleClosePeriod}
-              className="px-4 py-1.5 rounded-lg bg-text-primary hover:bg-black text-surface text-xs font-semibold shadow-xs disabled:opacity-50 cursor-pointer"
+              className="h-8 px-3 rounded-md bg-text-primary hover:opacity-90 text-surface text-[13px] font-medium disabled:opacity-50 cursor-pointer"
             >
               Close month
             </button>
@@ -556,7 +543,7 @@ export const Periods: React.FC = () => {
             <button
               type="button"
               onClick={() => setIsYearEndModalOpen(false)}
-              className="px-3.5 py-1.5 rounded-lg border border-border hover:bg-surface-neutral text-xs font-medium text-text-secondary cursor-pointer"
+              className="h-8 px-3 rounded-md border border-border hover:bg-surface-neutral text-[13px] font-medium text-text-secondary cursor-pointer"
             >
               Cancel
             </button>
@@ -564,7 +551,7 @@ export const Periods: React.FC = () => {
               type="button"
               disabled={actionLoading}
               onClick={handleConfirmYearEndClose}
-              className="px-4 py-1.5 rounded-lg bg-accent hover:bg-accent-hover text-white text-xs font-semibold shadow-xs disabled:opacity-50 cursor-pointer"
+              className="h-8 px-3 rounded-md bg-accent hover:bg-accent-hover text-white text-[13px] font-medium disabled:opacity-50 cursor-pointer"
             >
               {actionLoading ? 'Posting...' : 'Post year-end entry'}
             </button>

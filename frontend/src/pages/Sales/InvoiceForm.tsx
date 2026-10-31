@@ -10,6 +10,7 @@ import { paymentStatus, amountDue } from '@/lib/docStatus';
 import { ContactPicker } from '@/components/domain/ContactPicker';
 import { Kbd } from '@/components/ui/kbd';
 import { ArrowLeft, Save, Send, AlertTriangle, ShieldCheck, History } from 'lucide-react';
+
 import { toast } from 'sonner';
 
 export const InvoiceForm: React.FC = () => {
@@ -380,7 +381,7 @@ export const InvoiceForm: React.FC = () => {
             type="button"
             onClick={handleOpenSubmitConsequence}
             disabled={isSubmitting}
-            className="flex items-center gap-1.5 h-8 px-4 bg-accent hover:bg-accent-hover text-white rounded-sm text-xs font-semibold shadow-xs transition"
+            className="flex items-center gap-1.5 h-8 px-3 bg-accent hover:bg-accent-hover text-white rounded-md text-[13px] font-medium transition"
           >
             <Send className="w-3.5 h-3.5" />
             <span>Submit for approval</span>
@@ -391,7 +392,7 @@ export const InvoiceForm: React.FC = () => {
 
       {/* Inline Validation Error Banner */}
       {errorMessage && (
-        <div className="p-3 bg-danger-soft/20 text-danger border border-danger/30 rounded-md text-xs font-medium flex items-center justify-between animate-in fade-in">
+        <div className="p-3 bg-danger-soft/20 text-danger border border-danger/30 rounded-md text-xs font-medium flex items-center justify-between">
           <div className="flex items-center gap-2">
             <AlertTriangle className="w-4 h-4 shrink-0 text-danger" />
             <span>{errorMessage}</span>
@@ -416,7 +417,7 @@ export const InvoiceForm: React.FC = () => {
       )}
 
       {/* Header Fields: Customer, Dates, Reference */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-5 bg-surface border border-border rounded-md shadow-2xs">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-5 bg-surface border border-border rounded-md">
         <div className="flex flex-col gap-1 md:col-span-2">
           <label className="text-xs font-medium text-text-secondary flex items-center">
             Customer <span className="text-text-muted ml-0.5">*</span>
@@ -563,7 +564,7 @@ export const InvoiceForm: React.FC = () => {
             </div>
             <div className="flex justify-between items-baseline border-t border-border pt-2 mt-0.5">
               <dt className="font-semibold text-text-primary text-sm">Total</dt>
-              <dd className="font-mono text-num font-bold text-text-primary text-base">{formatMoney(total, 'USD')}</dd>
+              <dd className="font-mono text-num font-semibold text-text-primary text-base">{formatMoney(total, 'USD')}</dd>
             </div>
           </dl>
         </div>

@@ -14,7 +14,7 @@ export interface PageHeaderProps {
   breadcrumb?: PageHeaderCrumb[];
   title: React.ReactNode;
   subtitle?: React.ReactNode;
-  /** Lucide icon element, rendered inside a tinted rounded square. */
+  /** Accepted for older callers and not rendered: page titles stand on their own. */
   icon?: React.ReactNode;
   /** Right-aligned buttons / menus. */
   actions?: React.ReactNode;
@@ -27,7 +27,6 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   breadcrumb,
   title,
   subtitle,
-  icon,
   actions,
   meta,
   className,
@@ -52,15 +51,10 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
       </nav>
     )}
     <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
-      <div className="flex items-center gap-3 min-w-0">
-        {icon && (
-          <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent [&>svg]:size-5">
-            {icon}
-          </span>
-        )}
+      <div className="min-w-0">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-            <h1 className="text-2xl font-semibold tracking-tight text-text-primary leading-tight truncate">{title}</h1>
+            <h1 className="text-xl font-semibold text-text-primary leading-tight truncate">{title}</h1>
             {meta && <div className="flex flex-wrap items-center gap-1.5">{meta}</div>}
           </div>
           {subtitle && <p className="text-[13px] text-text-muted mt-0.5">{subtitle}</p>}

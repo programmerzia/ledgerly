@@ -10,18 +10,7 @@ import { NameAvatar } from '@/components/domain/NameAvatar';
 import { ContactKpiStrip } from '@/pages/Sales/ContactKpiStrip';
 import { BUSINESS_TODAY, amountDue } from '@/lib/docStatus';
 import { ColumnDef } from '@tanstack/react-table';
-import {
-  Building,
-  Plus,
-  Mail,
-  Phone,
-  CreditCard,
-  FileText,
-  ExternalLink,
-  Users,
-  AlertTriangle,
-  Wallet,
-} from 'lucide-react';
+import { Building, Plus, Mail, Phone, CreditCard, ExternalLink } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -165,7 +154,7 @@ export const SuppliersList: React.FC = () => {
       cell: ({ row }) => {
         const o = supplierStats.get(row.original.id)?.overdue ?? 0;
         return o > 0 ? (
-          <span className="inline-flex items-center gap-1 rounded-full bg-danger-soft px-2 py-0.5 text-xs font-medium text-danger tabular-nums">
+          <span className="inline-flex items-center gap-1 rounded-[3px] bg-danger-soft px-2 py-0.5 text-xs font-medium text-danger tabular-nums">
             <span className="size-1.5 rounded-full bg-danger" />
             {formatMoney(o, row.original.default_currency)}
           </span>
@@ -205,7 +194,7 @@ export const SuppliersList: React.FC = () => {
           <button
             type="button"
             onClick={handleOpenAddModal}
-            className="inline-flex items-center gap-1.5 h-9 px-4 bg-accent hover:bg-accent-hover text-white rounded-lg text-[13px] font-semibold shadow-xs transition cursor-pointer"
+            className="inline-flex items-center gap-1.5 h-8 px-3 bg-accent hover:bg-accent-hover text-white rounded-md text-[13px] font-medium transition cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>New supplier</span>
@@ -216,9 +205,9 @@ export const SuppliersList: React.FC = () => {
 
       <ContactKpiStrip
         items={[
-          { label: 'Total you owe', value: formatMoney(kpis.owed, currentCompany.base_currency), sub: `across ${suppliers.length} suppliers`, icon: <Wallet />, tone: 'accent' },
-          { label: 'Overdue', value: formatMoney(kpis.overdue, currentCompany.base_currency), sub: kpis.overdueCount > 0 ? `${kpis.overdueCount} ${kpis.overdueCount === 1 ? 'supplier' : 'suppliers'} waiting` : 'Nothing overdue', icon: <AlertTriangle />, tone: kpis.overdue > 0 ? 'danger' : 'success' },
-          { label: 'Active suppliers', value: kpis.active, sub: 'with an open account', icon: <Users />, tone: 'success' },
+          { label: 'Total you owe', value: formatMoney(kpis.owed, currentCompany.base_currency), sub: `across ${suppliers.length} suppliers`, tone: 'accent' },
+          { label: 'Overdue', value: formatMoney(kpis.overdue, currentCompany.base_currency), sub: kpis.overdueCount > 0 ? `${kpis.overdueCount} ${kpis.overdueCount === 1 ? 'supplier' : 'suppliers'} waiting` : 'Nothing overdue', tone: kpis.overdue > 0 ? 'danger' : 'success' },
+          { label: 'Active suppliers', value: kpis.active, sub: 'with an open account', tone: 'success' },
         ]}
       />
 
@@ -229,12 +218,11 @@ export const SuppliersList: React.FC = () => {
         onClose={() => setSelectedSupplierId(null)}
         title={selectedSupplier?.name || 'Supplier Preview'}
         subtitle={selectedSupplier ? `Code: ${selectedSupplier.code} • ${selectedSupplier.default_currency} Base` : undefined}
-        icon={<Building className="w-4 h-4" />}
         onOpenFull={() => selectedSupplier && handleOpenSupplierCard(selectedSupplier)}
         openFullLabel="Open Card"
         badge={
           selectedSupplier ? (
-            <span className="font-mono text-[10px] bg-accent-soft text-accent px-1.5 py-0.5 rounded font-bold border border-accent/20">
+            <span className="font-mono text-[10px] bg-surface-neutral text-text-secondary px-1.5 py-0.5 rounded-[3px] font-semibold">
               {selectedSupplier.code}
             </span>
           ) : undefined
@@ -244,15 +232,15 @@ export const SuppliersList: React.FC = () => {
             <div className="flex flex-col gap-4 text-xs">
               {/* Financial KPI */}
               <div className="p-3 bg-surface border border-border rounded-md">
-                <span className="text-[10px] text-text-muted uppercase tracking-wider block">Total Open Payable</span>
-                <span className="font-mono font-bold text-text-primary text-base mt-0.5 block">
+                <span className="text-xs text-text-muted block">Total open payable</span>
+                <span className="font-mono font-semibold text-text-primary text-base mt-0.5 block">
                   {formatMoney(contactBalance(selectedSupplier.id), selectedSupplier.default_currency)}
                 </span>
               </div>
 
               {/* Contact info */}
               <div className="p-3 bg-surface border border-border rounded-md flex flex-col gap-2">
-                <span className="text-[10px] uppercase font-bold text-text-muted tracking-wider">
+                <span className="text-xs font-medium text-text-muted">
                   Contact & Terms
                 </span>
                 <div className="flex flex-col gap-1 text-[11px]">
@@ -279,10 +267,10 @@ export const SuppliersList: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => handleOpenSupplierCard(selectedSupplier)}
-                  className="w-full h-8 bg-accent hover:bg-accent-hover text-white rounded-sm font-semibold transition flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
+                  className="w-full h-8 bg-accent hover:bg-accent-hover text-white rounded-md font-medium transition flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
-                  <span>Open Supplier Card (Enter)</span>
+                  <span>Open supplier card (Enter)</span>
                 </button>
                 <div className="grid grid-cols-2 gap-2">
                   <button
@@ -291,7 +279,7 @@ export const SuppliersList: React.FC = () => {
                     className="h-8 border border-border bg-surface hover:bg-surface-neutral text-text-primary rounded-sm font-medium transition flex items-center justify-center gap-1 cursor-pointer"
                   >
                     <Plus className="w-3.5 h-3.5" />
-                    <span>Record Bill</span>
+                    <span>Record bill</span>
                   </button>
                   <button
                     type="button"
@@ -306,8 +294,8 @@ export const SuppliersList: React.FC = () => {
 
               {/* Bills List */}
               <div className="flex flex-col gap-2 mt-2">
-                <span className="text-[11px] font-semibold text-text-muted uppercase tracking-wider">
-                  Recent Bills ({supplierBills.length})
+                <span className="text-xs font-semibold text-text-muted">
+                  Recent bills ({supplierBills.length})
                 </span>
                 <div className="border border-border rounded-md overflow-hidden bg-surface max-h-48 overflow-y-auto">
                   {supplierBills.length === 0 ? (
@@ -324,7 +312,7 @@ export const SuppliersList: React.FC = () => {
                             <span className="font-mono text-accent font-semibold">{b.number || b.reference}</span>
                             <span className="text-[10px] text-text-muted ml-2">{formatDate(b.issue_date)}</span>
                           </div>
-                          <span className="font-mono font-bold text-text-primary">
+                          <span className="font-mono font-semibold text-text-primary">
                             {formatMoney(b.total, b.currency)}
                           </span>
                         </div>
@@ -355,9 +343,9 @@ export const SuppliersList: React.FC = () => {
       <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
         <DialogContent className="max-w-lg p-6 bg-surface border border-border rounded-lg shadow-xl">
           <DialogHeader>
-            <DialogTitle className="text-base font-bold text-text-primary flex items-center gap-2">
+            <DialogTitle className="text-base font-semibold text-text-primary flex items-center gap-2">
               <Building className="w-5 h-5 text-accent" />
-              <span>Create Supplier Account</span>
+              <span>Create supplier</span>
             </DialogTitle>
           </DialogHeader>
 
@@ -408,7 +396,7 @@ export const SuppliersList: React.FC = () => {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-[11px] font-semibold text-text-primary mb-1">Email Address</label>
+                <label className="block text-[11px] font-semibold text-text-primary mb-1">Email address</label>
                 <input
                   type="email"
                   placeholder="accounts@supplier.com"
@@ -440,9 +428,9 @@ export const SuppliersList: React.FC = () => {
               </button>
               <button
                 type="submit"
-                className="h-8 px-4 rounded-sm bg-accent hover:bg-accent-hover text-white text-xs font-semibold shadow-xs cursor-pointer"
+                className="h-8 px-3 rounded-md bg-accent hover:bg-accent-hover text-white text-[13px] font-medium cursor-pointer"
               >
-                Save Supplier
+                Save supplier
               </button>
             </DialogFooter>
           </form>

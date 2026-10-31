@@ -2,7 +2,6 @@ import React from 'react';
 import type { Journal, Account, Company } from '@/types';
 import { formatMoney, formatDate } from '@/lib/format';
 import { cn } from '@/lib/utils';
-import { Check } from 'lucide-react';
 
 interface Props {
   journal: Journal;
@@ -19,12 +18,12 @@ export const JournalPaper: React.FC<Props> = ({ journal, accounts, company }) =>
   return (
     <article
       aria-label={`Journal ${journal.number ?? 'draft'}`}
-      className="relative overflow-hidden rounded-xl border border-border bg-surface px-6 py-8 shadow-card sm:px-12 sm:py-12"
+      className="relative overflow-hidden rounded-lg border border-border bg-surface px-6 py-8 sm:px-12 sm:py-12"
     >
       {reversed && (
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute left-12 top-80 -rotate-[14deg] select-none rounded-lg border-[3px] border-violet px-5 py-1 text-4xl font-bold tracking-[0.2em] text-violet opacity-[0.14]"
+          className="pointer-events-none absolute left-12 top-80 -rotate-[14deg] select-none rounded-[3px] border-[3px] border-violet px-5 py-1 text-4xl font-semibold tracking-[0.2em] text-violet opacity-[0.14]"
         >
           REVERSED
         </div>
@@ -32,37 +31,34 @@ export const JournalPaper: React.FC<Props> = ({ journal, accounts, company }) =>
 
       <div className="flex flex-wrap items-start justify-between gap-6">
         <div className="flex items-center gap-3">
-          <span className="flex size-11 items-center justify-center rounded-xl bg-brand text-lg font-bold text-white shadow-xs">
-            {company.name.charAt(0).toUpperCase()}
-          </span>
           <div className="leading-tight">
-            <div className="text-[15px] font-semibold text-text-primary">{company.name}</div>
+            <div className="text-sm font-semibold text-text-primary">{company.name}</div>
             <div className="text-xs text-text-muted">{company.legal_name}</div>
           </div>
         </div>
         <div className="text-right">
-          <h2 className="text-3xl font-semibold tracking-tight text-text-primary">Journal entry</h2>
+          <h2 className="text-xl font-semibold text-text-primary">Journal entry</h2>
           <div className="mt-1 text-sm font-medium tabular-nums text-text-secondary">{journal.number ?? 'Draft'}</div>
         </div>
       </div>
 
       <dl className="mt-10 grid gap-x-8 gap-y-4 sm:grid-cols-3">
         <div>
-          <dt className="text-[11px] font-semibold uppercase tracking-wide text-text-muted">Date</dt>
+          <dt className="text-[11px] font-semibold text-text-muted">Date</dt>
           <dd className="mt-1 text-[13px] text-text-primary">{formatDate(journal.journal_date)}</dd>
         </div>
         <div>
-          <dt className="text-[11px] font-semibold uppercase tracking-wide text-text-muted">Reference</dt>
+          <dt className="text-[11px] font-semibold text-text-muted">Reference</dt>
           <dd className="mt-1 text-[13px] text-text-primary">{journal.reference || 'None'}</dd>
         </div>
         <div>
-          <dt className="text-[11px] font-semibold uppercase tracking-wide text-text-muted">Period</dt>
+          <dt className="text-[11px] font-semibold text-text-muted">Period</dt>
           <dd className="mt-1 text-[13px] text-text-primary">Oct 2026</dd>
         </div>
       </dl>
 
       <div className="mt-6">
-        <div className="text-[11px] font-semibold uppercase tracking-wide text-text-muted">What this is for</div>
+        <div className="text-[11px] font-semibold text-text-muted">What this is for</div>
         <p className="mt-1 text-sm font-medium text-text-primary">{journal.memo}</p>
       </div>
 
@@ -88,7 +84,7 @@ export const JournalPaper: React.FC<Props> = ({ journal, accounts, company }) =>
                     <div className="flex items-center gap-1.5 text-xs text-text-muted">
                       {acc?.code}
                       {l.dimensions?.branch && (
-                        <span className="rounded bg-accent-soft px-1.5 text-[11px] font-medium text-accent">{l.dimensions.branch}</span>
+                        <span className="rounded-[3px] bg-surface-neutral px-1.5 text-[11px] font-medium text-text-secondary">{l.dimensions.branch}</span>
                       )}
                     </div>
                   </td>
@@ -100,15 +96,14 @@ export const JournalPaper: React.FC<Props> = ({ journal, accounts, company }) =>
             })}
           </tbody>
           <tfoot>
-            <tr className="border-t-2 border-border-strong text-sm font-semibold text-text-primary">
+            <tr className="border-t border-text-primary text-sm font-semibold text-text-primary">
               <td colSpan={3} className="pt-3 text-right pr-4">
                 <span className={cn('inline-flex items-center gap-1 text-xs font-medium', balanced ? 'text-success' : 'text-danger')}>
-                  {balanced && <Check className="size-3.5" />}
                   {balanced ? 'Debits equal credits' : 'Out of balance'}
                 </span>
               </td>
-              <td className="pt-3 text-right tabular-nums">{formatMoney(journal.total_debit, cur)}</td>
-              <td className="pt-3 text-right tabular-nums">{formatMoney(journal.total_credit, cur)}</td>
+              <td className="pt-3 pb-1 text-right tabular-nums border-b-[3px] border-double border-text-primary">{formatMoney(journal.total_debit, cur)}</td>
+              <td className="pt-3 pb-1 text-right tabular-nums border-b-[3px] border-double border-text-primary">{formatMoney(journal.total_credit, cur)}</td>
             </tr>
           </tfoot>
         </table>

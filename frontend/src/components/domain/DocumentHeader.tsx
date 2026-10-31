@@ -2,7 +2,7 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 import { StatusPill } from './StatusPill';
 import { formatDate, formatMoney } from '@/lib/format';
-import { ArrowLeft, MoreHorizontal, Printer, Copy, RotateCcw, FileText } from 'lucide-react';
+import { ArrowLeft, RotateCcw } from 'lucide-react';
 
 interface DocumentHeaderProps {
   documentType: string;
@@ -51,7 +51,7 @@ export const DocumentHeader: React.FC<DocumentHeaderProps> = ({
               <ArrowLeft className="w-4 h-4" />
             </button>
           )}
-          <span className="text-xs uppercase font-semibold tracking-wider text-ink-500">
+          <span className="text-xs text-text-muted">
             {documentType}
           </span>
         </div>
@@ -61,10 +61,10 @@ export const DocumentHeader: React.FC<DocumentHeaderProps> = ({
             <button
               type="button"
               onClick={onReverse}
-              className="flex items-center gap-1.5 h-8 px-3 rounded-sm border border-ink-200 hover:border-reversed hover:text-reversed bg-surface text-xs font-medium text-ink-700 transition-colors"
+              className="flex items-center gap-1.5 h-8 px-3 rounded-md border border-ink-200 hover:border-reversed hover:text-reversed bg-surface text-[13px] font-medium text-ink-700 transition-colors"
             >
               <RotateCcw className="w-3.5 h-3.5" />
-              <span>Reverse Journal</span>
+              <span>Reverse journal</span>
             </button>
           )}
 
@@ -76,7 +76,7 @@ export const DocumentHeader: React.FC<DocumentHeaderProps> = ({
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center gap-3">
-            <h1 className="text-h1 font-bold text-ink-900 font-mono tracking-tight">
+            <h1 className="text-xl font-semibold text-ink-900 tabular-nums">
               {number || 'DRAFT'}
             </h1>
             <StatusPill status={status} size="md" />
@@ -108,10 +108,10 @@ export const DocumentHeader: React.FC<DocumentHeaderProps> = ({
 
         {amount !== undefined && (
           <div className="flex flex-col items-end">
-            <span className="text-[11px] uppercase tracking-wider text-ink-500 font-medium">
-              Total Amount
+            <span className="text-xs text-ink-500">
+              Total amount
             </span>
-            <span className="text-2xl font-bold font-mono text-num text-ink-900">
+            <span className="text-[22px] leading-7 font-medium tabular-nums text-ink-900">
               {formatMoney(amount, currency)}
             </span>
           </div>

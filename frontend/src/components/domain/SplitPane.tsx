@@ -1,15 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Panel, Group, Separator, Layout } from 'react-resizable-panels';
-import {
-  X,
-  Columns2,
-  PanelRightClose,
-  ExternalLink,
-  ChevronRight,
-  Maximize2,
-  Minimize2,
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { X, Columns2, PanelRightClose, ExternalLink } from 'lucide-react';
 
 export interface SplitPaneProps {
   storageKey?: string;
@@ -21,6 +12,7 @@ export interface SplitPaneProps {
   title?: string;
   subtitle?: string;
   badge?: React.ReactNode;
+  /** Accepted for older callers and not rendered. */
   icon?: React.ReactNode;
   headerActions?: React.ReactNode;
   onOpenFull?: () => void;
@@ -37,10 +29,9 @@ export const SplitPane: React.FC<SplitPaneProps> = ({
   title,
   subtitle,
   badge,
-  icon,
   headerActions,
   onOpenFull,
-  openFullLabel = 'Open Full',
+  openFullLabel = 'Open full',
   children,
   detailContent,
   defaultMode = 'drawer',
@@ -174,17 +165,12 @@ export const SplitPane: React.FC<SplitPaneProps> = ({
 
   // Shared Header Content
   const renderHeader = () => (
-    <div className="h-12 px-4 border-b border-border flex items-center justify-between shrink-0 bg-surface-neutral/60 backdrop-blur-xs select-none">
+    <div className="h-12 px-4 border-b border-border flex items-center justify-between shrink-0 bg-surface-neutral select-none">
       <div className="flex items-center gap-2.5 truncate min-w-0">
-        {icon && (
-          <div className="w-7 h-7 rounded-md bg-accent-soft text-accent flex items-center justify-center shrink-0">
-            {icon}
-          </div>
-        )}
         <div className="flex flex-col truncate min-w-0">
           <div className="flex items-center gap-2 truncate">
-            <span className="text-xs font-bold text-text-primary truncate">
-              {title || 'Record Details'}
+            <span className="text-sm font-semibold text-text-primary truncate">
+              {title || 'Record details'}
             </span>
             {badge}
           </div>
@@ -206,7 +192,7 @@ export const SplitPane: React.FC<SplitPaneProps> = ({
             className="flex items-center gap-1 h-7 px-2 rounded-sm text-text-secondary hover:text-text-primary hover:bg-surface-neutral transition text-[11px] font-medium cursor-pointer"
             title={`${openFullLabel} (Enter)`}
           >
-            <ExternalLink className="w-3.5 h-3.5 text-accent" />
+            <ExternalLink className="w-3.5 h-3.5 text-text-muted" />
             <span className="hidden sm:inline">{openFullLabel}</span>
           </button>
         )}
@@ -216,7 +202,7 @@ export const SplitPane: React.FC<SplitPaneProps> = ({
             type="button"
             onClick={toggleViewMode}
             className="p-1.5 rounded-sm text-text-muted hover:text-text-primary hover:bg-surface-neutral transition cursor-pointer"
-            title={effectiveMode === 'drawer' ? 'Dock side-by-side (Split View)' : 'Float as Slide-Over Drawer'}
+            title={effectiveMode === 'drawer' ? 'Dock side by side' : 'Float as drawer'}
           >
             {effectiveMode === 'drawer' ? (
               <Columns2 className="w-4 h-4" />
@@ -261,7 +247,7 @@ export const SplitPane: React.FC<SplitPaneProps> = ({
 
         {/* Backdrop for focused slide-over */}
         <div
-          className="fixed inset-0 z-40 bg-black/30 backdrop-blur-[1px] transition-opacity duration-200"
+          className="fixed inset-0 z-40 bg-black/30"
           onClick={onClose}
           aria-hidden="true"
         />
@@ -270,8 +256,8 @@ export const SplitPane: React.FC<SplitPaneProps> = ({
         <aside
           role="dialog"
           aria-modal="true"
-          aria-label={title || 'Record Details'}
-          className="fixed inset-y-0 right-0 z-50 bg-surface border-l border-border shadow-2xl flex flex-col animate-in slide-in-from-right duration-200 outline-none"
+          aria-label={title || 'Record details'}
+          className="fixed inset-y-0 right-0 z-50 bg-surface border-l border-border shadow-lg flex flex-col outline-none"
           style={{
             width: isMobile ? '100%' : `${drawerWidth}px`,
             maxWidth: '100vw',
@@ -341,7 +327,7 @@ export const SplitPane: React.FC<SplitPaneProps> = ({
         defaultSize={`${splitSize}%`}
         minSize="360px"
         maxSize="65%"
-        className="bg-surface-elevated border-l border-border flex flex-col overflow-y-auto z-10 animate-in slide-in-from-right-4 duration-150"
+        className="bg-surface-elevated border-l border-border flex flex-col overflow-y-auto z-10"
       >
         {renderHeader()}
 

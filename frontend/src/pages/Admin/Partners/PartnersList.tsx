@@ -7,17 +7,7 @@ import React, { useState } from 'react';
 import { useAdminStore } from '@/mock/store/adminStore';
 import { Partner } from '@/types/admin';
 import { toast } from 'sonner';
-import {
-  Briefcase,
-  Users,
-  Building2,
-  DollarSign,
-  Percent,
-  CheckCircle2,
-  ExternalLink,
-  Plus,
-  Search,
-} from 'lucide-react';
+import { Plus, Search } from 'lucide-react';
 
 export const PartnersList: React.FC = () => {
   const { partners } = useAdminStore();
@@ -35,9 +25,9 @@ export const PartnersList: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-border">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-lg font-bold tracking-tight">Accounting Firm Partners & Resellers</h1>
-            <span className="px-2 py-0.5 rounded-full bg-violet-soft text-violet text-[10px] font-mono font-semibold">
-              {partners.length} Certified Firms
+            <h1 className="text-xl font-semibold">Partners and resellers</h1>
+            <span className="px-2 py-0.5 rounded-[3px] bg-surface-neutral text-text-secondary text-[11px] font-medium">
+              {partners.length} certified firms
             </span>
           </div>
           <p className="text-xs text-text-muted mt-0.5">
@@ -52,18 +42,18 @@ export const PartnersList: React.FC = () => {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search partner firms..."
-              className="h-8 pl-8 pr-3 w-52 text-xs bg-surface border border-border rounded-sm text-text-primary focus:outline-none focus:ring-1 focus:ring-accent"
+              placeholder="Search partner firms"
+              className="h-8 pl-8 pr-3 w-52 text-xs bg-surface border border-border rounded-md text-text-primary focus:outline-none focus:ring-1 focus:ring-accent"
             />
           </div>
 
           <button
             type="button"
             onClick={() => toast.info('Partner invitation email generated')}
-            className="h-8 px-3 rounded-sm bg-violet text-white hover:opacity-90 text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer shadow-xs"
+            className="h-8 px-3 rounded-md bg-accent text-white hover:bg-accent-hover text-[13px] font-medium flex items-center gap-1.5 transition cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>Invite Accounting Firm</span>
+            <span>Invite accounting firm</span>
           </button>
         </div>
       </div>
@@ -76,49 +66,42 @@ export const PartnersList: React.FC = () => {
               <div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded bg-violet-soft text-violet flex items-center justify-center font-bold text-xs">
+                    <div className="w-8 h-8 rounded-md bg-surface-neutral text-text-secondary flex items-center justify-center font-semibold text-xs">
                       {partner.name.slice(0, 2).toUpperCase()}
                     </div>
                     <div>
-                      <h3 className="font-bold text-sm text-text-primary">{partner.name}</h3>
-                      <span className="text-[10px] font-mono text-text-muted">{partner.contactEmail}</span>
+                      <h3 className="font-semibold text-sm text-text-primary">{partner.name}</h3>
+                      <span className="text-[11px] font-mono text-text-muted">{partner.contactEmail}</span>
                     </div>
                   </div>
-                  <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-success-soft text-success">
+                  <span className="px-2 py-0.5 rounded-[3px] text-[11px] font-mono font-semibold bg-success-soft text-success">
                     {partner.revenueSharePct}% Rev Share
                   </span>
                 </div>
 
                 <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
-                  <div className="p-2 rounded bg-surface-neutral/50 border border-border">
-                    <span className="text-[10px] text-text-muted uppercase">Linked Tenants</span>
-                    <div className="text-base font-mono font-bold text-text-primary mt-0.5">
+                  <div className="p-2 rounded-md bg-surface-neutral/50 border border-border">
+                    <span className="text-[11px] text-text-muted">Linked tenants</span>
+                    <div className="text-base font-mono font-semibold text-text-primary mt-0.5">
                       {partner.linkedTenantsCount} Organizations
                     </div>
                   </div>
-                  <div className="p-2 rounded bg-surface-neutral/50 border border-border">
-                    <span className="text-[10px] text-text-muted uppercase">Managed MRR</span>
-                    <div className="text-base font-mono font-bold text-violet mt-0.5">
+                  <div className="p-2 rounded-md bg-surface-neutral/50 border border-border">
+                    <span className="text-[11px] text-text-muted">Managed MRR</span>
+                    <div className="text-base font-mono font-semibold text-text-secondary mt-0.5">
                       ${(partner.totalMrrContributed / 100).toLocaleString()}
                     </div>
                   </div>
                 </div>
 
                 <div className="mt-2 text-[11px] text-text-muted flex items-center justify-between">
-                  <span>Partner Tier: <strong className="text-text-primary uppercase font-mono">{partner.tier}</strong></span>
-                  <span className="font-mono text-success">Active Agreement</span>
+                  <span>Partner tier: <strong className="text-text-primary font-mono">{partner.tier}</strong></span>
+                  <span className="font-mono text-success">Active agreement</span>
                 </div>
               </div>
 
               <div className="pt-2 border-t border-border flex items-center justify-between text-xs">
                 <span className="text-text-muted font-mono text-[11px]">ID: {partner.id}</span>
-                <button
-                  type="button"
-                  onClick={() => toast.info(`Viewing ${partner.name} tenant portfolio`)}
-                  className="text-violet hover:underline flex items-center gap-1 font-medium cursor-pointer"
-                >
-                  Portfolio Tenants →
-                </button>
               </div>
             </div>
           );

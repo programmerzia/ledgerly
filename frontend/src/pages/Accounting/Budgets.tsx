@@ -6,18 +6,7 @@ import { DataTable } from '@/components/domain/DataTable';
 import { formatMoney } from '@/lib/format';
 import { PageHeader } from '@/components/domain/PageHeader';
 import { toast } from 'sonner';
-import {
-  BarChart3,
-  Calendar,
-  Layers,
-  Download,
-  Upload,
-  ArrowRight,
-  TrendingUp,
-  TrendingDown,
-  CheckCircle2,
-  FileSpreadsheet,
-} from 'lucide-react';
+import { Layers, Download, Upload, ArrowRight } from 'lucide-react';
 
 export const Budgets: React.FC = () => {
   const navigate = useNavigate();
@@ -58,7 +47,7 @@ export const Budgets: React.FC = () => {
     const y = (v: number) => h - 3 - ((v - min) / (max - min || 1)) * (h - 6);
     const idx = Math.max(0, periods.findIndex((p) => p.id === selectedPeriodId));
     return (
-      <svg width={w} height={h} aria-hidden className="text-accent">
+      <svg width={w} height={h} aria-hidden className="text-text-secondary">
         <polyline fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" points={vals.map((v, i) => `${x(i)},${y(v)}`).join(' ')} />
         <circle cx={x(idx)} cy={y(vals[idx] ?? 0)} r="2.5" fill="currentColor" />
       </svg>
@@ -79,7 +68,7 @@ export const Budgets: React.FC = () => {
     {
       accessorKey: 'budgetAmount',
       header: () => <div className="text-right">Budget</div>,
-      cell: ({ row }) => <div className="text-right font-mono tabular-nums text-text-muted">{formatMoney(row.original.budgetAmount)}</div>,
+      cell: ({ row }) => <div className="text-right tabular-nums text-text-muted">{formatMoney(row.original.budgetAmount)}</div>,
     },
     {
       accessorKey: 'actualAmount',
@@ -105,7 +94,7 @@ export const Budgets: React.FC = () => {
     {
       accessorKey: 'variancePct',
       header: () => <div className="text-right">%</div>,
-      cell: ({ row }) => <div className="text-right font-mono tabular-nums text-text-muted">{row.original.variancePct.toFixed(1)}%</div>,
+      cell: ({ row }) => <div className="text-right tabular-nums text-text-muted">{row.original.variancePct.toFixed(1)}%</div>,
     },
     {
       id: 'trend',
@@ -124,7 +113,7 @@ export const Budgets: React.FC = () => {
             ? ['bg-success-soft text-success', 'bg-success', isIncome ? 'Ahead of plan' : 'Within budget']
             : ['bg-warning-soft text-warning', 'bg-warning', isIncome ? 'Behind plan' : 'Over budget'];
         return (
-          <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium ${cls}`}>
+          <span className={`inline-flex items-center gap-1.5 rounded-[3px] px-2 py-0.5 text-xs font-medium ${cls}`}>
             <span className={`size-1.5 rounded-full ${dot}`} />
             {label}
           </span>
@@ -154,40 +143,36 @@ export const Budgets: React.FC = () => {
     }
   };
 
-  const sel = 'h-9 rounded-lg border border-border bg-surface px-3 text-[13px] text-text-primary focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20';
+  const sel = 'h-8 rounded-md border border-border bg-surface px-3 text-[13px] text-text-primary focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20';
   const tabBtn = (id: 'editor' | 'variance', label: string) => (
     <button
       type="button"
       onClick={() => setActiveTab(id)}
-      className={`rounded-md px-3 py-1.5 text-[13px] font-medium transition cursor-pointer ${
-        activeTab === id ? 'bg-surface text-text-primary font-semibold shadow-card' : 'text-text-muted hover:text-text-primary'
+      className={`rounded-[4px] px-3 py-1 text-[13px] font-medium transition cursor-pointer ${
+        activeTab === id ? 'bg-surface text-text-primary' : 'text-text-muted hover:text-text-primary'
       }`}
     >
       {label}
     </button>
   );
-  const kpi = (label: string, hint: string, value: React.ReactNode, tone: string, icon: React.ReactNode) => (
-    <div className="flex items-start gap-3 rounded-xl border border-border bg-surface p-4 shadow-card">
-      <span className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${tone}`}>{icon}</span>
-      <div className="min-w-0">
-        <div className="text-xs text-text-muted">{label}</div>
-        <div className="text-2xl font-semibold tabular-nums tracking-tight">{value}</div>
-        <div className="text-xs text-text-muted">{hint}</div>
-      </div>
+  const kpi = (label: string, hint: string, value: React.ReactNode) => (
+    <div className="min-w-0 px-5 py-3">
+      <div className="text-xs text-text-muted">{label}</div>
+      <div className="mt-1 text-[22px] leading-7 font-medium tabular-nums">{value}</div>
+      <div className="mt-1 text-xs text-text-muted">{hint}</div>
     </div>
   );
 
   return (
     <div className="flex flex-col gap-5">
       <PageHeader
-        icon={<BarChart3 />}
         title="Budgets"
         subtitle="Plan what you expect to earn and spend, and see how you are doing against it"
         actions={
           <button
             type="button"
             onClick={() => window.print()}
-            className="flex h-9 items-center gap-1.5 rounded-lg border border-border bg-surface px-3 text-[13px] font-medium text-text-primary transition hover:bg-surface-neutral cursor-pointer"
+            className="flex h-8 items-center gap-1.5 rounded-md border border-border bg-surface px-3 text-[13px] font-medium text-text-primary transition hover:bg-surface-neutral cursor-pointer"
           >
             <Download className="size-4 text-text-muted" />
             <span>Export report</span>
@@ -196,7 +181,7 @@ export const Budgets: React.FC = () => {
       />
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex w-fit items-center gap-1 rounded-lg border border-border bg-surface-neutral p-1">
+        <div className="flex w-fit items-center gap-1 rounded-md bg-surface-neutral p-0.5">
           {tabBtn('variance', 'Plan vs actual')}
           {tabBtn('editor', 'Edit budget')}
         </div>
@@ -217,26 +202,24 @@ export const Budgets: React.FC = () => {
       </div>
 
       {activeTab === 'variance' && (
-        <div className="ui-rise-in flex flex-col gap-5">
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-            {kpi('Planned profit', 'Budgeted income less budgeted spending', <span className="text-text-primary">{formatMoney(summary.totBudget)}</span>, 'bg-accent-soft text-accent', <FileSpreadsheet className="size-4" />)}
-            {kpi('Actual profit', 'From your recorded transactions', <span className="text-text-primary">{formatMoney(summary.totActual)}</span>, 'bg-violet-soft text-violet', <BarChart3 className="size-4" />)}
+        <div className="flex flex-col gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-border rounded-lg border border-border bg-surface">
+            {kpi('Planned profit', 'Budgeted income less budgeted spending', <span className="text-text-primary">{formatMoney(summary.totBudget)}</span>)}
+            {kpi('Actual profit', 'From your recorded transactions', <span className="text-text-primary">{formatMoney(summary.totActual)}</span>)}
             {kpi(
               'Difference',
               summary.totVariance >= 0 ? 'Ahead of plan' : 'Behind plan',
               <span className={summary.totVariance >= 0 ? 'text-success' : 'text-danger'}>
                 {summary.totVariance >= 0 ? '+' : ''}
                 {formatMoney(summary.totVariance)}
-              </span>,
-              summary.totVariance >= 0 ? 'bg-success-soft text-success' : 'bg-danger-soft text-danger',
-              summary.totVariance >= 0 ? <TrendingUp className="size-4" /> : <TrendingDown className="size-4" />
+              </span>
             )}
           </div>
 
           <DataTable
             columns={varianceColumns}
             data={varianceRows}
-            searchPlaceholder="Filter accounts..."
+            searchPlaceholder="Filter accounts"
             rowDensity={uiDensity}
             rowActions={(r: any) => [
               { label: 'Open account ledger', icon: ArrowRight, onClick: () => navigate(`/${coSlug}/reports/general-ledger?account=${r.accountCode}`) },
@@ -249,23 +232,23 @@ export const Budgets: React.FC = () => {
       )}
 
       {activeTab === 'editor' && (
-        <div className="ui-rise-in flex flex-col gap-3 rounded-xl border border-border bg-surface p-5 shadow-card">
+        <div className="flex flex-col gap-3 rounded-lg border border-border bg-surface p-5">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <h2 className="text-[15px] font-semibold tracking-tight text-text-primary">Budget by month</h2>
+              <h2 className="text-sm font-semibold text-text-primary">Budget by month</h2>
               <p className="text-[13px] text-text-muted">Click any amount to change it. Changes save when you leave the cell.</p>
             </div>
             <button
               type="button"
               onClick={() => navigate(`/${coSlug}/import`)}
-              className="flex h-9 items-center gap-1.5 rounded-lg border border-border bg-surface px-3 text-[13px] font-medium text-text-primary transition hover:bg-surface-neutral cursor-pointer"
+              className="flex h-8 items-center gap-1.5 rounded-md border border-border bg-surface px-3 text-[13px] font-medium text-text-primary transition hover:bg-surface-neutral cursor-pointer"
             >
               <Upload className="size-4 text-text-muted" />
               <span>Import from CSV</span>
             </button>
           </div>
 
-          <div className="overflow-x-auto rounded-lg border border-border">
+          <div className="overflow-x-auto rounded-md border border-border">
             <table className="w-full min-w-[900px] border-collapse text-left text-[13px]">
               <thead>
                 <tr className="h-9 border-b border-border bg-surface-neutral/60 text-[11px] font-semibold uppercase tracking-wide text-text-muted">
@@ -277,9 +260,9 @@ export const Budgets: React.FC = () => {
               </thead>
               <tbody className="divide-y divide-border">
                 {pnlAccounts.map((acc) => (
-                  <tr key={acc.id} className="h-10 transition hover:bg-accent-soft/40">
+                  <tr key={acc.id} className="h-10 transition hover:bg-canvas">
                     <td className="sticky left-0 z-10 max-w-[220px] truncate border-r border-border bg-surface px-3 font-medium text-text-primary">
-                      <span className="mr-1.5 font-mono text-accent">{acc.code}</span>
+                      <span className="mr-1.5 font-code text-text-muted">{acc.code}</span>
                       {acc.name}
                     </td>
                     {periods.map((p) => {
@@ -291,7 +274,7 @@ export const Budgets: React.FC = () => {
                             type="number"
                             defaultValue={val}
                             onBlur={(e) => handleCellBlur(acc.id, p.id, e.target.value)}
-                            className="h-8 w-full rounded-md bg-transparent px-1.5 text-right font-mono tabular-nums text-text-primary hover:bg-surface-neutral focus:bg-surface focus:outline-none focus:ring-2 focus:ring-accent/40"
+                            className="h-8 w-full rounded-md bg-transparent px-1.5 text-right tabular-nums text-text-primary hover:bg-surface-neutral focus:bg-surface focus:outline-none focus:ring-2 focus:ring-accent/40"
                           />
                         </td>
                       );

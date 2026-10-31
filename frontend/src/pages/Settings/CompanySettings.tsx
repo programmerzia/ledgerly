@@ -6,25 +6,7 @@ import { FieldHelp } from '@/components/domain/FieldHelp';
 import { PageHeader } from '@/components/domain/PageHeader';
 import { Avatar } from '@/components/ui/avatar';
 import { Switch } from '@/components/ui/switch';
-import {
-  Settings,
-  Palette,
-  CreditCard,
-  Tags,
-  KeyRound,
-  Undo2,
-  Info,
-  Sparkles,
-  Building,
-  Layers,
-  Hash,
-  CheckSquare,
-  Users,
-  Percent,
-  ShieldCheck,
-  Save,
-  Coins,
-} from 'lucide-react';
+import { Palette, CreditCard, Tags, Undo2, Info, Building, Layers, Hash, Users, Percent, ShieldCheck, Save } from 'lucide-react';
 import { toast } from 'sonner';
 import { SettingsCard, Field, FieldGrid, inputCls } from './settings-ui';
 
@@ -157,14 +139,13 @@ export const CompanySettings: React.FC = () => {
       <div className="shrink-0 border-b border-border bg-surface px-6 py-4">
         <PageHeader
           breadcrumb={[{ label: 'Settings' }, { label: active.label }]}
-          icon={<Settings />}
           title="Company settings"
           subtitle={`${currentCompany.name} · how your books are set up and protected`}
           actions={
             <button
               type="button"
               onClick={() => navigate(`/${currentCompany.slug}/import`)}
-              className="h-9 rounded-lg border border-border bg-surface px-3 text-[13px] font-medium text-text-primary transition hover:bg-surface-neutral"
+              className="h-8 rounded-md border border-border bg-surface px-3 text-[13px] font-medium text-text-primary transition hover:bg-surface-neutral"
             >
               Import data
             </button>
@@ -184,12 +165,11 @@ export const CompanySettings: React.FC = () => {
                   type="button"
                   onClick={() => setActiveTab(item.id)}
                   aria-current={isActive ? 'page' : undefined}
-                  className={`group relative flex shrink-0 items-center gap-2.5 rounded-lg px-3 py-2 text-left text-[13px] font-medium transition ${
-                    isActive ? 'bg-accent-soft text-accent' : 'text-text-secondary hover:bg-surface-neutral hover:text-text-primary'
+                  className={`group relative flex shrink-0 items-center gap-2.5 rounded-md px-3 py-2 text-left text-[13px] font-medium transition-colors ${
+                    isActive ? 'bg-surface-neutral text-text-primary' : 'text-text-secondary hover:bg-surface-neutral hover:text-text-primary'
                   }`}
                 >
-                  {isActive && <span className="absolute inset-y-1.5 left-0 hidden w-0.5 rounded-full bg-accent md:block" />}
-                  <Icon className="size-4 shrink-0" />
+                                    <Icon className="size-4 shrink-0 text-text-muted" />
                   <span className="whitespace-nowrap">{item.label}</span>
                 </button>
               );
@@ -199,15 +179,15 @@ export const CompanySettings: React.FC = () => {
 
         <main className="flex flex-1 flex-col overflow-hidden">
           <div className="flex-1 overflow-y-auto p-6">
-            <div key={activeTab} className="ui-rise-in mx-auto flex max-w-3xl flex-col gap-5">
+            <div key={activeTab} className="mx-auto flex max-w-3xl flex-col gap-5">
               <div>
-                <h2 className="text-lg font-semibold tracking-tight text-text-primary">{active.label}</h2>
+                <h2 className="text-base font-semibold text-text-primary">{active.label}</h2>
                 <p className="text-[13px] text-text-muted">{active.hint}</p>
               </div>
 
               {activeTab === 'general' && (
                 <>
-                  <SettingsCard icon={<Building />} title="Company details" description="Shown on invoices and reports.">
+                  <SettingsCard title="Company details" description="Shown on invoices and reports.">
                     <FieldGrid>
                       <Field label="Legal name">
                         <input type="text" value={legalName} onChange={(e) => setLegalName(e.target.value)} className={inputCls} />
@@ -217,7 +197,7 @@ export const CompanySettings: React.FC = () => {
                       </Field>
                     </FieldGrid>
                   </SettingsCard>
-                  <SettingsCard icon={<Coins />} title="Currency and country" description="Set when the company was created.">
+                  <SettingsCard title="Currency and country" description="Set when the company was created.">
                     <FieldGrid>
                       <Field label="Main currency" hint="All reports are shown in this currency.">
                         <div className={`${inputCls} flex items-center bg-surface-neutral font-mono`}>{currentCompany.base_currency}</div>
@@ -231,19 +211,12 @@ export const CompanySettings: React.FC = () => {
               )}
 
               {activeTab === 'branding' && (
-                <SettingsCard icon={<Palette />} title="Logo and document look" description="How your company appears to customers.">
+                <SettingsCard title="Logo and document look" description="How your company appears to customers.">
                   <div className="flex flex-col gap-5">
                     <div className="flex items-center gap-4">
                       <Avatar name={currentCompany.name} size="lg" square className="size-14 text-lg" />
                       <div className="flex flex-col gap-1.5">
                         <span className="text-[13px] font-medium text-text-primary">{currentCompany.name}</span>
-                        <button
-                          type="button"
-                          onClick={() => toast.info('Logo upload is available on paid plans.')}
-                          className="h-8 w-fit rounded-lg border border-border bg-surface px-3 text-[13px] font-medium text-text-primary transition hover:bg-surface-neutral"
-                        >
-                          Upload logo
-                        </button>
                       </div>
                     </div>
                     <div className="flex items-center justify-between gap-4 border-t border-border pt-4">
@@ -258,7 +231,7 @@ export const CompanySettings: React.FC = () => {
               )}
 
               {activeTab === 'numbering' && (
-                <SettingsCard icon={<Hash />} title="Document numbers" description="Numbers run in order with no gaps, so every document can be traced.">
+                <SettingsCard title="Document numbers" description="Numbers run in order with no gaps, so every document can be traced.">
                   <FieldGrid>
                     {prefixFields.map((f) => (
                       <Field key={f.key} label={f.label} help={f.help} example={f.example}>
@@ -281,7 +254,7 @@ export const CompanySettings: React.FC = () => {
 
               {activeTab === 'tax' && (
                 <>
-                  <SettingsCard icon={<Percent />} title="Tax rounding" description="Choose how tax is rounded on invoices and bills.">
+                  <SettingsCard title="Tax rounding" description="Choose how tax is rounded on invoices and bills.">
                     <div className="max-w-md">
                       <Field
                         label="Rounding method"
@@ -304,10 +277,10 @@ export const CompanySettings: React.FC = () => {
                       </Field>
                     </div>
                   </SettingsCard>
-                  <section className="overflow-hidden rounded-xl border border-border bg-surface shadow-card">
+                  <section className="overflow-hidden rounded-lg border border-border bg-surface">
                     <table className="w-full border-collapse text-left text-[13px]">
                       <thead>
-                        <tr className="h-9 border-b border-border bg-surface-neutral/60">
+                        <tr className="h-9 border-b border-border bg-surface-neutral">
                           <th className={th()}>Code</th>
                           <th className={th()}>Name</th>
                           <th className={th('text-right')}>Rate</th>
@@ -317,13 +290,13 @@ export const CompanySettings: React.FC = () => {
                       </thead>
                       <tbody className="divide-y divide-border">
                         {taxCodes.map((tc) => (
-                          <tr key={tc.id} className="h-11 transition hover:bg-accent-soft/40">
-                            <td className="px-4 font-mono font-semibold text-accent">{tc.code}</td>
+                          <tr key={tc.id} className="h-11 transition hover:bg-canvas">
+                            <td className="px-4 font-mono font-medium text-text-primary">{tc.code}</td>
                             <td className="px-4 font-medium text-text-primary">{tc.name}</td>
                             <td className="px-4 text-right font-mono tabular-nums text-text-primary">{(tc.rate * 100).toFixed(1)}%</td>
                             <td className="px-4 text-text-muted">1 Jan 2026</td>
                             <td className="px-4">
-                              <span className="inline-flex items-center gap-1.5 rounded-full bg-success-soft px-2 py-0.5 text-xs font-medium text-success">
+                              <span className="inline-flex items-center gap-1.5 rounded-[3px] bg-success-soft px-2 py-0.5 text-xs font-medium text-success">
                                 <span className="size-1.5 rounded-full bg-success" />Active
                               </span>
                             </td>
@@ -336,9 +309,7 @@ export const CompanySettings: React.FC = () => {
               )}
 
               {activeTab === 'posting' && (
-                <SettingsCard
-                  icon={<Layers />}
-                  title="Automatic posting accounts"
+                <SettingsCard title="Automatic posting accounts"
                   description="Ledgerly uses these accounts when it records invoices, bills and payments for you."
                 >
                   <FieldGrid>
@@ -362,11 +333,8 @@ export const CompanySettings: React.FC = () => {
               )}
 
               {activeTab === 'dimensions' && (
-                <SettingsCard icon={<Tags />} title="Tracking categories" description="Tag transactions by department, project or location to see profit for each.">
+                <SettingsCard title="Tracking categories" description="Tag transactions by department, project or location to see profit for each.">
                   <div className="flex flex-col items-center gap-3 py-4 text-center">
-                    <span className="flex size-12 items-center justify-center rounded-full bg-violet-soft text-violet">
-                      <Tags className="size-5" />
-                    </span>
                     <div>
                       <div className="text-[13px] font-medium text-text-primary">Tags are added while you enter a transaction</div>
                       <p className="mx-auto mt-1 max-w-sm text-xs text-text-muted">
@@ -378,10 +346,10 @@ export const CompanySettings: React.FC = () => {
               )}
 
               {activeTab === 'users' && (
-                <section className="overflow-hidden rounded-xl border border-border bg-surface shadow-card">
+                <section className="overflow-hidden rounded-lg border border-border bg-surface">
                   <table className="w-full border-collapse text-left text-[13px]">
                     <thead>
-                      <tr className="h-9 border-b border-border bg-surface-neutral/60">
+                      <tr className="h-9 border-b border-border bg-surface-neutral">
                         <th className={th()}>Person</th>
                         <th className={th()}>Role</th>
                         <th className={th()}>Signing PIN</th>
@@ -390,7 +358,7 @@ export const CompanySettings: React.FC = () => {
                     </thead>
                     <tbody className="divide-y divide-border">
                       {users.map((u) => (
-                        <tr key={u.id} className="h-14 transition hover:bg-accent-soft/40">
+                        <tr key={u.id} className="h-14 transition hover:bg-canvas">
                           <td className="px-4">
                             <div className="flex items-center gap-3">
                               <Avatar name={u.name} />
@@ -403,7 +371,7 @@ export const CompanySettings: React.FC = () => {
                           <td className="px-4 text-text-primary">{u.roleTitle}</td>
                           <td className="px-4 font-mono text-text-muted">{'••••••'}</td>
                           <td className="px-4 text-center">
-                            <span className="inline-flex items-center gap-1.5 rounded-full bg-success-soft px-2 py-0.5 text-xs font-medium text-success">
+                            <span className="inline-flex items-center gap-1.5 rounded-[3px] bg-success-soft px-2 py-0.5 text-xs font-medium text-success">
                               <span className="size-1.5 rounded-full bg-success" />On
                             </span>
                           </td>
@@ -416,7 +384,7 @@ export const CompanySettings: React.FC = () => {
 
               {activeTab === 'security' && (
                 <>
-                  <SettingsCard icon={<KeyRound />} title="Signing PIN rules" description="Approvals are signed with a personal PIN. These rules protect it.">
+                  <SettingsCard title="Signing PIN rules" description="Approvals are signed with a personal PIN. These rules protect it.">
                     <FieldGrid>
                       <Field label="Wrong PIN attempts allowed" help="Number of failed PIN entries before signing is paused." example="3" hint="Signing pauses after this many mistakes.">
                         <input type="number" value={pinLockoutAttempts} onChange={(e) => setPinLockoutAttempts(parseInt(e.target.value, 10) || 3)} className={`${inputCls} font-mono`} />
@@ -429,9 +397,7 @@ export const CompanySettings: React.FC = () => {
                       </Field>
                     </FieldGrid>
                   </SettingsCard>
-                  <SettingsCard
-                    icon={<CheckSquare />}
-                    title="Approval limits"
+                  <SettingsCard title="Approval limits"
                     description="The person who creates a document can never approve it. Set when a second person must review."
                   >
                     <FieldGrid>
@@ -454,24 +420,14 @@ export const CompanySettings: React.FC = () => {
               )}
 
               {activeTab === 'billing' && (
-                <SettingsCard icon={<CreditCard />} title="Your plan" description="Billing is managed by the account owner.">
+                <SettingsCard title="Your plan" description="Billing is managed by the account owner.">
                   <div className="flex flex-wrap items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
-                      <span className="flex size-10 items-center justify-center rounded-xl bg-brand text-white">
-                        <Sparkles className="size-5" />
-                      </span>
                       <div>
                         <div className="text-[13px] font-semibold text-text-primary">Business plan</div>
                         <div className="text-xs text-text-muted">All features included · {users.length} seats in use</div>
                       </div>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => toast.info('Invoices and payment methods open here.')}
-                      className="h-9 rounded-lg border border-border bg-surface px-3 text-[13px] font-medium text-text-primary transition hover:bg-surface-neutral"
-                    >
-                      View invoices
-                    </button>
                   </div>
                 </SettingsCard>
               )}
@@ -479,7 +435,7 @@ export const CompanySettings: React.FC = () => {
           </div>
 
           {dirty && (
-            <div role="region" aria-label="Unsaved changes" className="ui-rise-in shrink-0 border-t border-border bg-surface/95 px-6 py-3 shadow-popover backdrop-blur">
+            <div role="region" aria-label="Unsaved changes" className="shrink-0 border-t border-border bg-surface px-6 py-3">
               <div className="mx-auto flex max-w-3xl items-center justify-between gap-3">
                 <span className="flex items-center gap-2 text-[13px] text-text-secondary">
                   <Info className="size-4 text-warning" />
@@ -489,14 +445,14 @@ export const CompanySettings: React.FC = () => {
                   <button
                     type="button"
                     onClick={handleDiscard}
-                    className="flex h-9 items-center gap-1.5 rounded-lg border border-border bg-surface px-3 text-[13px] font-medium text-text-primary transition hover:bg-surface-neutral"
+                    className="flex h-8 items-center gap-1.5 rounded-md border border-border bg-surface px-3 text-[13px] font-medium text-text-primary transition hover:bg-surface-neutral"
                   >
                     <Undo2 className="size-3.5" />Discard
                   </button>
                   <button
                     type="button"
                     onClick={handleSave}
-                    className="flex h-9 items-center gap-1.5 rounded-lg bg-accent px-4 text-[13px] font-semibold text-white shadow-sm transition hover:bg-accent-hover"
+                    className="flex h-8 items-center gap-1.5 rounded-md bg-accent px-3 text-[13px] font-medium text-white transition hover:bg-accent-hover"
                   >
                     <Save className="size-3.5" />Save changes
                   </button>

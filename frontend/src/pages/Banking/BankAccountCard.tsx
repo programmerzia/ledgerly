@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { ArrowRight, CheckCircle2, AlertCircle, Wand2 } from 'lucide-react';
+import { ArrowRight, CheckCircle2, AlertCircle } from 'lucide-react';
 import { BankAccount } from '@/types';
 import { formatMoney } from '@/lib/format';
 import { Avatar } from '@/components/ui/avatar';
@@ -68,7 +68,7 @@ export const BankAccountCard: React.FC<Props> = ({ bank, bookBalance, toReconcil
           onOpen();
         }
       }}
-      className="group flex cursor-pointer flex-col gap-5 rounded-xl border border-border bg-surface p-5 shadow-card transition duration-200 hover:-translate-y-0.5 hover:border-border-strong hover:shadow-card-hover focus-visible:outline-2 focus-visible:outline-accent"
+      className="group flex cursor-pointer flex-col gap-5 rounded-lg border border-border bg-surface p-5 transition-colors hover:border-border-strong focus-visible:outline-2 focus-visible:outline-accent"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
@@ -81,7 +81,7 @@ export const BankAccountCard: React.FC<Props> = ({ bank, bookBalance, toReconcil
             </div>
           </div>
         </div>
-        <span className="rounded-full border border-border bg-surface-neutral px-2 py-0.5 text-[11px] font-semibold text-text-secondary">
+        <span className="rounded-[3px] border border-border bg-surface-neutral px-2 py-0.5 text-[11px] font-semibold text-text-secondary">
           {bank.currency}
         </span>
       </div>
@@ -89,7 +89,7 @@ export const BankAccountCard: React.FC<Props> = ({ bank, bookBalance, toReconcil
       <div className="flex items-end justify-between gap-3">
         <div>
           <div className="text-xs text-text-muted">Balance in your books</div>
-          <div className="mt-0.5 text-3xl font-semibold tabular-nums tracking-tight text-text-primary">
+          <div className="mt-0.5 text-[22px] leading-7 font-medium tabular-nums text-text-primary">
             {formatMoney(bookBalance, bank.currency)}
           </div>
         </div>
@@ -115,8 +115,8 @@ export const BankAccountCard: React.FC<Props> = ({ bank, bookBalance, toReconcil
           <span className="flex items-center gap-2 text-xs font-medium text-warning">
             {toReconcile} to reconcile
             {suggested > 0 && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-violet-soft px-2 py-0.5 text-[11px] font-medium text-violet">
-                <Wand2 className="size-3" /> {suggested} suggested
+              <span className="inline-flex items-center rounded-[3px] bg-surface-neutral px-1.5 py-0.5 text-[11px] font-medium text-text-secondary">
+                {suggested} suggested
               </span>
             )}
           </span>
