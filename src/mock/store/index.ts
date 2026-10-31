@@ -15,6 +15,7 @@ import { SettingsSlice, createSettingsSlice } from './settings';
 import { AuditSlice, createAuditSlice } from './audit';
 import { OfflineSlice, createOfflineSlice } from './offline';
 import { TabsSlice, createTabsSlice } from './tabs';
+import { AutomationSlice, createAutomationSlice } from './automation';
 
 export type RootStore = SessionSlice &
   LedgerSlice &
@@ -26,7 +27,8 @@ export type RootStore = SessionSlice &
   SettingsSlice &
   AuditSlice &
   OfflineSlice &
-  TabsSlice;
+  TabsSlice &
+  AutomationSlice;
 
 export const useLedgerStore = create<RootStore>()((...a) => ({
   ...createSessionSlice(...a),
@@ -40,6 +42,7 @@ export const useLedgerStore = create<RootStore>()((...a) => ({
   ...createAuditSlice(...a),
   ...createOfflineSlice(...a),
   ...createTabsSlice(...a),
+  ...createAutomationSlice(...a),
 }));
 
 export const useLedgerlyStore = useLedgerStore;

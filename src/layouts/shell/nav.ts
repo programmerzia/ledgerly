@@ -2,6 +2,8 @@ import type React from 'react';
 import {
   LayoutDashboard, FileSpreadsheet, CreditCard, BookMarked, BarChart3, CheckSquare, Settings,
   Building, ShieldCheck, Package, Layers, Coins, FileText, Calendar, History, RefreshCw, Upload, Sparkles,
+  Repeat,
+  Wand2,
 } from 'lucide-react';
 
 export type NavIcon = React.ComponentType<{ className?: string }>;
@@ -20,6 +22,7 @@ export const buildNavSections = (coSlug: string, pendingApprovalsCount: number):
     id: 'sales', title: 'Sales',
     items: [
       { label: 'Invoices', to: `/${coSlug}/invoices`, icon: FileSpreadsheet },
+      { label: 'Recurring invoices', to: `/${coSlug}/invoices/recurring`, icon: Repeat },
       { label: 'Customers', to: `/${coSlug}/customers`, icon: Building },
       { label: 'Products & services', to: `/${coSlug}/items`, icon: Package },
     ],
@@ -33,7 +36,10 @@ export const buildNavSections = (coSlug: string, pendingApprovalsCount: number):
       { label: 'WHT certificates', to: `/${coSlug}/wht-certificates`, icon: ShieldCheck },
     ],
   },
-  { id: 'banking', title: 'Banking', items: [{ label: 'Bank accounts', to: `/${coSlug}/banking`, icon: CreditCard }] },
+  { id: 'banking', title: 'Banking', items: [
+    { label: 'Bank accounts', to: `/${coSlug}/banking`, icon: CreditCard },
+    { label: 'Bank rules', to: `/${coSlug}/banking/rules`, icon: Wand2 },
+  ] },
   {
     id: 'reports', title: 'Reports',
     items: [

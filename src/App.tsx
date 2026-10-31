@@ -44,6 +44,8 @@ import { AuditLog } from './pages/Accounting/AuditLog';
 // Banking
 import { BankAccountsList } from './pages/Banking/BankAccountsList';
 import { BankReconcile } from './pages/Banking/BankReconcile';
+import { BankRules } from './pages/Banking/BankRules';
+import { RecurringInvoices } from './pages/Sales/RecurringInvoices';
 
 // Reports
 import { TrialBalance } from './pages/Reports/TrialBalance';
@@ -150,6 +152,7 @@ export default function App() {
           {/* Sales */}
           <Route path="invoices" element={<InvoicesList />} />
           <Route path="invoices/new" element={<InvoiceForm />} />
+          <Route path="invoices/recurring" element={<RecurringInvoices />} />
           <Route path="invoices/:id" element={<InvoiceView />} />
           <Route path="customers" element={<CustomersList />} />
           <Route path="customers/:id" element={<CustomerCard />} />
@@ -185,6 +188,7 @@ export default function App() {
 
           {/* Banking */}
           <Route path="banking" element={<BankAccountsList />} />
+          <Route path="banking/rules" element={<BankRules />} />
           <Route path="banking/:id/reconcile" element={<BankReconcile />} />
 
           {/* Reports */}

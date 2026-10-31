@@ -153,6 +153,10 @@ export interface Contact {
   payment_terms_days: number;
   credit_limit?: number;
   wht_code_id?: string;
+  /** Pre-fill for new documents (E3): coding account, tax code and branch. */
+  default_account_id?: string;
+  default_tax_code_id?: string;
+  default_branch?: string;
   is_active: boolean;
 }
 
@@ -458,6 +462,8 @@ export interface BankStatementLine {
   matched_doc_type?: string;
   confidence?: number;
   suggested_match_title?: string;
+  /** Bank transaction created from this line that is waiting for approval (E1). */
+  pending_journal_id?: string;
 }
 
 export interface ExchangeRate {
@@ -579,3 +585,91 @@ export interface DocumentTab {
 }
 
 export type UIRowDensity = 'compact' | 'default' | 'comfortable';
+
+// ---------------------------------------------------------------------------------------------
+// Efficiency round (docs/14_Efficiency_Round.md)
+// ---------------------------------------------------------------------------------------------
+
+export interface Item {
+  id: string;
+  sku: string;
+  name: string;
+  type: 'service' | 'inventory' | 'non_inventory';
+  /** Minor units, excluding tax. */
+  sales_price: number;
+  /** Account codes (not ids), as shown to users. */
+  income_account: string;
+  income_account_name: string;
+  purchase_price: number;
+  expense_account: string;
+  /** Tax code `code` (e.g. 'VAT5'). */
+  tax_code: string;
+  is_active: boolean;
+  total_sold_qty: number;
+}
+
+export type BankTransactionKind = 'spend' | 'receive' | 'transfer';
+
+export interface BankRule {
+  id: string;
+  name: string;
+  /** Lower runs first; the first matching rule wins. */
+  priority: number;
+  is_active: boolean;
+  direction: 'in' | 'out' | 'any';
+  /** Case-insensitive; matches description, counterparty or reference. */
+  contains: string;
+  min_amount?: number;
+  max_amount?: number;
+  account_id: string;
+  tax_code_id?: string;
+  contact_id?: string;
+  dimensions?: Record<string, string>;
+  memo?: string;
+  times_applied: number;
+}
+
+export interface BankTransactionInput {
+  lineId: string;
+  kind: BankTransactionKind;
+  /** Coding account for spend/receive. */
+  accountId?: string;
+  /** Destination bank account (bank_accounts.id) for transfers. */
+  toBankAccountId?: string;
+  taxCodeId?: string;
+  contactId?: string;
+  dimensions?: Record<string, string>;
+  memo?: string;
+  ruleId?: string;
+}
+
+export interface BankTransactionResult {
+  journal: Journal;
+  /** 'posted' and matched, or 'pending_approval' (above the journal threshold). */
+  outcome: 'posted' | 'pending_approval';
+}
+
+export type RecurringFrequency = 'monthly' | 'quarterly';
+
+export interface RecurringSchedule {
+  id: string;
+  name: string;
+  template_invoice_id: string;
+  contact_id: string;
+  frequency: RecurringFrequency;
+  next_date: string;
+  end_date?: string;
+  owner_id: string;
+  is_active: boolean;
+  generated_invoice_ids: string[];
+  created_at: string;
+}
+
+export type BulkApprovalTarget = { type: 'invoice' | 'bill' | 'journal'; id: string };
+
+export interface BulkApprovalResult {
+  target: BulkApprovalTarget;
+  ok: boolean;
+  number?: string | null;
+  reason?: string;
+}

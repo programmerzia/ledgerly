@@ -29,6 +29,9 @@ import {
   ExchangeRate,
   Budget,
   WhtCertificate,
+  Item,
+  BankRule,
+  RecurringSchedule,
 } from '@/types';
 
 export const mockUsers: User[] = [
@@ -562,6 +565,34 @@ export const mockAccounts: Account[] = [
     is_active: true,
   },
   {
+    id: 'acc-6300',
+    tenant_id: 'ten-acme',
+    company_id: 'co-1',
+    code: '6300',
+    name: 'Bank Charges & Fees',
+    account_type: 'expense',
+    account_subtype: 'Operating Expense',
+    normal_balance: 'debit',
+    control_type: 'none',
+    currency_policy: 'base_only',
+    is_postable: true,
+    is_active: true,
+  },
+  {
+    id: 'acc-6400',
+    tenant_id: 'ten-acme',
+    company_id: 'co-1',
+    code: '6400',
+    name: 'Office Supplies & Stationery',
+    account_type: 'expense',
+    account_subtype: 'Operating Expense',
+    normal_balance: 'debit',
+    control_type: 'none',
+    currency_policy: 'base_only',
+    is_postable: true,
+    is_active: true,
+  },
+  {
     id: 'acc-6800',
     tenant_id: 'ten-acme',
     company_id: 'co-1',
@@ -620,6 +651,9 @@ export const mockContacts: Contact[] = [
     default_currency: 'USD',
     payment_terms_days: 30,
     credit_limit: 5000000,
+    default_account_id: 'acc-4000',
+    default_tax_code_id: 'tax-vat5',
+    default_branch: 'MG',
     is_active: true,
   },
   {
@@ -636,6 +670,9 @@ export const mockContacts: Contact[] = [
     default_currency: 'USD',
     payment_terms_days: 15,
     credit_limit: 8000000,
+    default_account_id: 'acc-4000',
+    default_tax_code_id: 'tax-vat5',
+    default_branch: 'MG',
     is_active: true,
   },
   {
@@ -652,6 +689,9 @@ export const mockContacts: Contact[] = [
     default_currency: 'USD',
     payment_terms_days: 30,
     credit_limit: 4000000,
+    default_account_id: 'acc-4000',
+    default_tax_code_id: 'tax-vat5',
+    default_branch: 'MG',
     is_active: true,
   },
   {
@@ -668,6 +708,9 @@ export const mockContacts: Contact[] = [
     default_currency: 'USD',
     payment_terms_days: 30,
     credit_limit: 10000000,
+    default_account_id: 'acc-4000',
+    default_tax_code_id: 'tax-vat5',
+    default_branch: 'MG',
     is_active: true,
   },
   {
@@ -684,6 +727,9 @@ export const mockContacts: Contact[] = [
     default_currency: 'USD',
     payment_terms_days: 45,
     credit_limit: 3000000,
+    default_account_id: 'acc-4000',
+    default_tax_code_id: 'tax-vat5',
+    default_branch: 'MG',
     is_active: true,
   },
   // Suppliers
@@ -699,6 +745,9 @@ export const mockContacts: Contact[] = [
     default_currency: 'USD',
     payment_terms_days: 30,
     wht_code_id: 'tax-wht10',
+    default_account_id: 'acc-6400',
+    default_tax_code_id: 'tax-vat0',
+    default_branch: 'MG',
     is_active: true,
   },
   {
@@ -712,6 +761,9 @@ export const mockContacts: Contact[] = [
     email: 'billings@kplc.co.ke',
     default_currency: 'USD',
     payment_terms_days: 15,
+    default_account_id: 'acc-6200',
+    default_tax_code_id: 'tax-vat0',
+    default_branch: 'MG',
     is_active: true,
   },
   {
@@ -725,6 +777,9 @@ export const mockContacts: Contact[] = [
     email: 'support@golis.so',
     default_currency: 'USD',
     payment_terms_days: 30,
+    default_account_id: 'acc-6200',
+    default_tax_code_id: 'tax-vat0',
+    default_branch: 'MG',
     is_active: true,
   },
   {
@@ -738,6 +793,9 @@ export const mockContacts: Contact[] = [
     email: 'cargo@jubbaairways.com',
     default_currency: 'USD',
     payment_terms_days: 30,
+    default_account_id: 'acc-6200',
+    default_tax_code_id: 'tax-vat0',
+    default_branch: 'MG',
     is_active: true,
   },
   {
@@ -751,6 +809,9 @@ export const mockContacts: Contact[] = [
     email: 'supply@eafuel.com',
     default_currency: 'USD',
     payment_terms_days: 7,
+    default_account_id: 'acc-6200',
+    default_tax_code_id: 'tax-vat0',
+    default_branch: 'MG',
     is_active: true,
   },
 ];
@@ -1781,5 +1842,116 @@ export const mockAuditEvents: AuditEvent[] = [
     detail: 'Submitted sales invoice DRAFT-0043 for approval to Fatima Hassan ($4,200.00)',
     prev_hash: '2222222222222222222222222222222222222222222222222222222222222222',
     hash: '3333333333333333333333333333333333333333333333333333333333333333',
+  },
+];
+
+/** Products and services catalogue (E3): pick an item to pre-fill invoice lines. */
+export const mockItems: Item[] = [
+  {
+    id: 'itm-1',
+    sku: 'FIBER-1G-BIZ',
+    name: 'Dedicated Business Fiber 1Gbps / Mo',
+    type: 'service',
+    sales_price: 105000, // $1,050.00
+    income_account: '4000',
+    income_account_name: 'Sales Revenue',
+    purchase_price: 45000,
+    expense_account: '5000',
+    tax_code: 'VAT5',
+    is_active: true,
+    total_sold_qty: 14,
+  },
+  {
+    id: 'itm-2',
+    sku: 'VOIP-TRUNK-32',
+    name: 'SIP VoIP Voice Trunk (32 Channels)',
+    type: 'service',
+    sales_price: 48000, // $480.00
+    income_account: '4100',
+    income_account_name: 'Service Revenue',
+    purchase_price: 18000,
+    expense_account: '5000',
+    tax_code: 'VAT5',
+    is_active: true,
+    total_sold_qty: 28,
+  },
+  {
+    id: 'itm-3',
+    sku: 'CLOUD-VM-PRO',
+    name: 'Managed Cloud Virtual Machine (8 vCPU / 32GB RAM)',
+    type: 'service',
+    sales_price: 25000, // $250.00
+    income_account: '4100',
+    income_account_name: 'Service Revenue',
+    purchase_price: 9000,
+    expense_account: '5000',
+    tax_code: 'VAT5',
+    is_active: true,
+    total_sold_qty: 45,
+  },
+  {
+    id: 'itm-4',
+    sku: 'NET-CONSULT-HR',
+    name: 'Senior Network Architecture Consulting (Per Hour)',
+    type: 'service',
+    sales_price: 15000, // $150.00
+    income_account: '4100',
+    income_account_name: 'Service Revenue',
+    purchase_price: 7500,
+    expense_account: '6000',
+    tax_code: 'VAT0',
+    is_active: true,
+    total_sold_qty: 82,
+  },
+  {
+    id: 'itm-5',
+    sku: 'HW-ROUTER-ENT',
+    name: 'Carrier Edge Router 10GE SFP+ (Enterprise)',
+    type: 'inventory',
+    sales_price: 320000, // $3,200.00
+    income_account: '4000',
+    income_account_name: 'Sales Revenue',
+    purchase_price: 210000,
+    expense_account: '5000',
+    tax_code: 'VAT5',
+    is_active: true,
+    total_sold_qty: 6,
+  },
+  {
+    id: 'itm-6',
+    sku: 'SATELLITE-BKP',
+    name: 'Emergency VSAT Satellite Backup Link (Monthly)',
+    type: 'service',
+    sales_price: 75000, // $750.00
+    income_account: '4000',
+    income_account_name: 'Sales Revenue',
+    purchase_price: 38000,
+    expense_account: '5000',
+    tax_code: 'VAT5',
+    is_active: true,
+    total_sold_qty: 11,
+  },
+];
+
+/** Bank rules (E1): suggestions only — a person confirms each one. */
+export const mockBankRules: BankRule[] = [
+  { id: 'rule-1', name: 'Bank maintenance fees', priority: 10, is_active: true, direction: 'out', contains: 'MAINTENANCE FEE', account_id: 'acc-6300', tax_code_id: 'tax-exempt', memo: 'Monthly bank fee', dimensions: { branch: 'MG', cost_centre: 'FIN' }, times_applied: 9 },
+  { id: 'rule-2', name: 'Generator fuel', priority: 20, is_active: true, direction: 'out', contains: 'FUEL', account_id: 'acc-6200', tax_code_id: 'tax-vat0', contact_id: 'cnt-sup-5', memo: 'Generator fuel', dimensions: { branch: 'MG', cost_centre: 'OPS' }, times_applied: 6 },
+  { id: 'rule-3', name: 'Office supplies', priority: 30, is_active: true, direction: 'out', contains: 'OFFICE SUPPLIES', account_id: 'acc-6400', tax_code_id: 'tax-vat0', contact_id: 'cnt-sup-1', memo: 'Office supplies', dimensions: { branch: 'MG', cost_centre: 'ADMIN' }, times_applied: 4 },
+];
+
+/** Recurring invoices (E2): runs create drafts submitted for approval; nothing posts by itself. */
+export const mockRecurringSchedules: RecurringSchedule[] = [
+  {
+    id: 'rec-1',
+    name: 'Hormuud Telecom · monthly switching support',
+    template_invoice_id: 'inv-hormuud-38',
+    contact_id: 'cnt-1',
+    frequency: 'monthly',
+    next_date: '2026-11-05',
+    owner_id: 'usr-1',
+    is_active: true,
+    generated_invoice_ids: [],
+    created_at: '2026-10-05T09:00:00Z',
   },
 ];
