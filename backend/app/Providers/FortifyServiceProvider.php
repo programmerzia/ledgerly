@@ -38,6 +38,8 @@ final class FortifyServiceProvider extends ServiceProvider
             Limit::perMinute(5)->by(mb_strtolower((string) $request->input(Fortify::username())).'|'.$request->ip()),
             Limit::perMinute(30)->by($request->ip()),
         ]);
+        // PIN guesses: the lockout is the real defence; this keeps a scripted attacker slow.
+        RateLimiter::for('signing', fn (Request $request) => Limit::perMinute(10)->by((string) ($request->user()?->getAuthIdentifier() ?? $request->ip())));
         RateLimiter::for('invitations', fn (Request $request) => Limit::perMinute(20)->by((string) $request->ip()));
         RateLimiter::for('register', fn (Request $request) => Limit::perHour(10)->by((string) $request->ip()));
         RateLimiter::for('two-factor', fn (Request $request) => Limit::perMinute(5)->by((string) $request->session()->get('login.id')));

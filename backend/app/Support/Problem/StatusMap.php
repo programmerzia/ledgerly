@@ -19,6 +19,8 @@ final class StatusMap
         'signature_required' => 403,
         'two_factor_required' => 403,
         'signing_locked' => 423,
+        'signing_failed' => 403,
+        'signing_pin_not_set' => 409,
         'tenant_read_only' => 423,
         'unauthenticated' => 401,
         'tenant_required' => 409,

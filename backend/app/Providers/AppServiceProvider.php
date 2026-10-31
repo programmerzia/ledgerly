@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Actions\Signing\SetSigningPin;
+use App\Actions\Signing\VerifySigningPin;
 use App\Contracts\Clock;
 use App\Contracts\CompanyAccess;
 use App\Contracts\IdGenerator;
@@ -15,6 +17,7 @@ use App\Models\Platform\PersonalAccessToken;
 use App\Policies\Ledger\JournalPolicy;
 use App\Policies\Organisation\CompanyPolicy;
 use App\Policies\Organisation\InvitationPolicy;
+use App\Policies\SigningPolicy;
 use App\Services\Ledger\SequenceAllocator;
 use App\Services\SystemClock;
 use App\Services\Tenancy\SpatieCompanyAccess;
@@ -28,9 +31,11 @@ use App\Support\UnitOfWork\AuditWriter;
 use App\Support\UnitOfWork\OutboxWriter;
 use App\Support\UnitOfWork\UnitOfWork;
 use Illuminate\Console\Events\CommandStarting;
+use Illuminate\Contracts\Hashing\Hasher;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Events\ConnectionEstablished;
+use Illuminate\Hashing\HashManager;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
@@ -63,6 +68,11 @@ class AppServiceProvider extends ServiceProvider
             return new TenantContext($app->make(DatabaseManager::class), $connections);
         });
 
+        // The signing PIN is hashed with argon2id (ADR-0004), whatever the password hasher is.
+        $this->app->when([SetSigningPin::class, VerifySigningPin::class])
+            ->needs(Hasher::class)
+            ->give(fn ($app) => $app->make(HashManager::class)->driver('argon2id'));
+
         $this->app->scoped(UnitOfWork::class, fn ($app) => new UnitOfWork(
             $app->make(DatabaseManager::class),
             $app->make(TenantContext::class),
@@ -84,6 +94,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Company::class, CompanyPolicy::class);
         Gate::policy(Invitation::class, InvitationPolicy::class);
         Gate::policy(Journal::class, JournalPolicy::class);
+        Gate::define('sign', [SigningPolicy::class, 'sign']);
 
         Event::listen(ConnectionEstablished::class, function (ConnectionEstablished $event): void {
             if ($this->app->resolved(TenantContext::class)) {

@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\SessionController;
 use App\Http\Controllers\Organisation\CompanyController;
 use App\Http\Controllers\Organisation\InvitationController;
 use App\Http\Controllers\Organisation\InvitationTokenController;
+use App\Http\Controllers\Signing\SigningController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Http\Controllers\RegisteredUserController;
 
@@ -33,6 +34,11 @@ Route::middleware(['auth:sanctum', 'tenant', 'tenant.writable', 'idempotent'])->
     Route::get('invitations', [InvitationController::class, 'index'])->name('invitations.index');
     Route::post('invitations', [InvitationController::class, 'store'])->name('invitations.store');
     Route::delete('invitations/{invitation}', [InvitationController::class, 'destroy'])->whereUuid('invitation')->name('invitations.destroy');
+
+    // Signing PIN (ADR-0004): grants are per user and session, so these need the SPA session.
+    Route::put('signing/pin', [SigningController::class, 'setPin'])->name('signing.pin');
+    Route::post('signing/verify', [SigningController::class, 'verify'])->name('signing.verify');
+    Route::delete('signing/grant', [SigningController::class, 'revoke'])->name('signing.revoke');
 });
 
 // Tenant routes (2.8+) use: auth:sanctum, tenant, tenant.writable, idempotent [, company].

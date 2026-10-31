@@ -10,6 +10,7 @@ use App\Models\Platform\User;
 use App\Support\Actor;
 use App\Support\ActorType;
 use App\Support\Idempotency\IdempotencyScope;
+use App\Support\Signing\SigningGrants;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Http\Request;
 
@@ -24,9 +25,12 @@ final class RequestActor
         }
 
         $idempotency = $request->attributes->get(RequireIdempotencyKey::ATTRIBUTE);
+        // A signing grant is bound to the user and this session (ADR-0004); bearer tokens have none.
+        $signed = $request->hasSession() && app(SigningGrants::class)->has($user->id, $request->session()->getId());
 
         return new Actor(
             ActorType::User, $user->id, app(TenantContext::class)->require(), $companyId,
+            hasSigningGrant: $signed,
             ip: $request->ip(), userAgent: $request->userAgent(),
             requestId: $request->header('X-Request-Id'),
             idempotencyKey: $idempotency instanceof IdempotencyScope ? $idempotency->key : null,
