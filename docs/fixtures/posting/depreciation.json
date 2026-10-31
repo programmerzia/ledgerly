@@ -1,0 +1,226 @@
+[
+  {
+    "name": "depreciation_run_three_assets",
+    "input": {
+      "settings": {
+        "posting_accounts": {
+          "ar_control": "acc-1200",
+          "ap_control": "acc-2000",
+          "tax_output": "acc-2100",
+          "tax_input": "acc-2110",
+          "fx_realised": "acc-4900",
+          "fx_unrealised": "acc-4800",
+          "rounding": "acc-9999",
+          "wht_payable": "acc-2120"
+        }
+      },
+      "depreciation": {
+        "id": "depreciation_run_three_assets",
+        "company_id": "co-1",
+        "as_of": "2026-10-31",
+        "lines": [
+          {
+            "asset_id": "fa-1",
+            "asset_number": "FA-1",
+            "asset_name": "Delivery van",
+            "amount": 83333
+          },
+          {
+            "asset_id": "fa-2",
+            "asset_number": "FA-2",
+            "asset_name": "Laptop",
+            "amount": 20833
+          },
+          {
+            "asset_id": "fa-3",
+            "asset_number": "FA-3",
+            "asset_name": "Office furniture",
+            "amount": 4167
+          }
+        ]
+      },
+      "depreciation_expense_account": "acc-6500",
+      "accumulated_depreciation_account": "acc-1590"
+    },
+    "expected": {
+      "journal": {
+        "journal_type": "depreciation",
+        "journal_date": "2026-10-31",
+        "reference": "DEPR-2026-10-31",
+        "memo": "Monthly Fixed Asset Depreciation Run as of 2026-10-31",
+        "source_type": "depreciation_run",
+        "source_id": "depreciation_run_three_assets"
+      },
+      "lines": [
+        {
+          "account_ref": "acc-6500",
+          "debit": 83333,
+          "credit": 0,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": 83333,
+          "dimensions": {
+            "branch": "MG",
+            "cost_centre": "ADMIN"
+          },
+          "description": "Depreciation: FA-1 - Delivery van"
+        },
+        {
+          "account_ref": "acc-1590",
+          "debit": 0,
+          "credit": 83333,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": -83333,
+          "dimensions": {
+            "branch": "MG",
+            "cost_centre": "ADMIN"
+          },
+          "description": "Accum. Depr: FA-1 - Delivery van"
+        },
+        {
+          "account_ref": "acc-6500",
+          "debit": 20833,
+          "credit": 0,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": 20833,
+          "dimensions": {
+            "branch": "MG",
+            "cost_centre": "ADMIN"
+          },
+          "description": "Depreciation: FA-2 - Laptop"
+        },
+        {
+          "account_ref": "acc-1590",
+          "debit": 0,
+          "credit": 20833,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": -20833,
+          "dimensions": {
+            "branch": "MG",
+            "cost_centre": "ADMIN"
+          },
+          "description": "Accum. Depr: FA-2 - Laptop"
+        },
+        {
+          "account_ref": "acc-6500",
+          "debit": 4167,
+          "credit": 0,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": 4167,
+          "dimensions": {
+            "branch": "MG",
+            "cost_centre": "ADMIN"
+          },
+          "description": "Depreciation: FA-3 - Office furniture"
+        },
+        {
+          "account_ref": "acc-1590",
+          "debit": 0,
+          "credit": 4167,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": -4167,
+          "dimensions": {
+            "branch": "MG",
+            "cost_centre": "ADMIN"
+          },
+          "description": "Accum. Depr: FA-3 - Office furniture"
+        }
+      ],
+      "totals": {
+        "debit": 108333,
+        "credit": 108333
+      }
+    }
+  },
+  {
+    "name": "depreciation_run_skips_zero_and_negative",
+    "input": {
+      "settings": {
+        "posting_accounts": {
+          "ar_control": "acc-1200",
+          "ap_control": "acc-2000",
+          "tax_output": "acc-2100",
+          "tax_input": "acc-2110",
+          "fx_realised": "acc-4900",
+          "fx_unrealised": "acc-4800",
+          "rounding": "acc-9999",
+          "wht_payable": "acc-2120"
+        }
+      },
+      "depreciation": {
+        "id": "depreciation_run_skips_zero_and_negative",
+        "company_id": "co-1",
+        "as_of": "2026-10-31",
+        "lines": [
+          {
+            "asset_id": "fa-1",
+            "asset_number": "FA-1",
+            "asset_name": "Fully depreciated server",
+            "amount": 0
+          },
+          {
+            "asset_id": "fa-2",
+            "asset_number": "FA-2",
+            "asset_name": "Printer",
+            "amount": 2500
+          },
+          {
+            "asset_id": "fa-3",
+            "asset_number": "FA-3",
+            "asset_name": "Bad row",
+            "amount": -100
+          }
+        ]
+      },
+      "depreciation_expense_account": "acc-6500",
+      "accumulated_depreciation_account": "acc-1590"
+    },
+    "expected": {
+      "journal": {
+        "journal_type": "depreciation",
+        "journal_date": "2026-10-31",
+        "reference": "DEPR-2026-10-31",
+        "memo": "Monthly Fixed Asset Depreciation Run as of 2026-10-31",
+        "source_type": "depreciation_run",
+        "source_id": "depreciation_run_skips_zero_and_negative"
+      },
+      "lines": [
+        {
+          "account_ref": "acc-6500",
+          "debit": 2500,
+          "credit": 0,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": 2500,
+          "dimensions": {
+            "branch": "MG",
+            "cost_centre": "ADMIN"
+          },
+          "description": "Depreciation: FA-2 - Printer"
+        },
+        {
+          "account_ref": "acc-1590",
+          "debit": 0,
+          "credit": 2500,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": -2500,
+          "dimensions": {
+            "branch": "MG",
+            "cost_centre": "ADMIN"
+          },
+          "description": "Accum. Depr: FA-2 - Printer"
+        }
+      ],
+      "totals": {
+        "debit": 2500,
+        "credit": 2500
+      }
+    }
+  }
+]

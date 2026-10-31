@@ -1,0 +1,861 @@
+[
+  {
+    "name": "receipt_full_no_fx",
+    "input": {
+      "settings": {
+        "posting_accounts": {
+          "ar_control": "acc-1200",
+          "ap_control": "acc-2000",
+          "tax_output": "acc-2100",
+          "tax_input": "acc-2110",
+          "fx_realised": "acc-4900",
+          "fx_unrealised": "acc-4800",
+          "rounding": "acc-9999",
+          "wht_payable": "acc-2120"
+        }
+      },
+      "bank_account_id": "acc-1010",
+      "settlement": {
+        "id": "receipt_full_no_fx",
+        "kind": "receipt",
+        "number": "RCT-receipt_full_no_fx",
+        "contact_id": "con-1",
+        "settlement_date": "2026-10-20",
+        "currency": "USD",
+        "fx_rate": 1,
+        "amount_fc": 115000,
+        "amount": 115000,
+        "reference": "BANK-receipt_full_no_fx",
+        "memo": "",
+        "allocations": [
+          {
+            "id": "a",
+            "invoice_id": "inv-a",
+            "invoice_number": "INV-1",
+            "allocated_amount_fc": 115000,
+            "allocated_amount_base": 115000,
+            "fx_gain_loss": 0
+          }
+        ]
+      }
+    },
+    "expected": {
+      "journal": {
+        "journal_type": "receipt",
+        "journal_date": "2026-10-20",
+        "reference": "RCT-receipt_full_no_fx",
+        "memo": "Customer Receipt RCT-receipt_full_no_fx",
+        "source_type": "settlement",
+        "source_id": "receipt_full_no_fx"
+      },
+      "lines": [
+        {
+          "account_ref": "acc-1010",
+          "debit": 115000,
+          "credit": 0,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": 115000,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "Receipt RCT-receipt_full_no_fx - Ref: BANK-receipt_full_no_fx",
+          "contact_ref": "con-1"
+        },
+        {
+          "account_ref": "acc-1200",
+          "debit": 0,
+          "credit": 115000,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": -115000,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "Settlement for INV-1",
+          "contact_ref": "con-1"
+        }
+      ],
+      "totals": {
+        "debit": 115000,
+        "credit": 115000
+      }
+    }
+  },
+  {
+    "name": "receipt_partial_payment",
+    "input": {
+      "settings": {
+        "posting_accounts": {
+          "ar_control": "acc-1200",
+          "ap_control": "acc-2000",
+          "tax_output": "acc-2100",
+          "tax_input": "acc-2110",
+          "fx_realised": "acc-4900",
+          "fx_unrealised": "acc-4800",
+          "rounding": "acc-9999",
+          "wht_payable": "acc-2120"
+        }
+      },
+      "bank_account_id": "acc-1010",
+      "settlement": {
+        "id": "receipt_partial_payment",
+        "kind": "receipt",
+        "number": "RCT-receipt_partial_payment",
+        "contact_id": "con-1",
+        "settlement_date": "2026-10-20",
+        "currency": "USD",
+        "fx_rate": 1,
+        "amount_fc": 40000,
+        "amount": 40000,
+        "reference": "BANK-receipt_partial_payment",
+        "memo": "Part payment",
+        "allocations": [
+          {
+            "id": "a",
+            "invoice_id": "inv-a",
+            "invoice_number": "INV-2",
+            "allocated_amount_fc": 40000,
+            "allocated_amount_base": 40000,
+            "fx_gain_loss": 0
+          }
+        ]
+      }
+    },
+    "expected": {
+      "journal": {
+        "journal_type": "receipt",
+        "journal_date": "2026-10-20",
+        "reference": "RCT-receipt_partial_payment",
+        "memo": "Part payment",
+        "source_type": "settlement",
+        "source_id": "receipt_partial_payment"
+      },
+      "lines": [
+        {
+          "account_ref": "acc-1010",
+          "debit": 40000,
+          "credit": 0,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": 40000,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "Receipt RCT-receipt_partial_payment - Ref: BANK-receipt_partial_payment",
+          "contact_ref": "con-1"
+        },
+        {
+          "account_ref": "acc-1200",
+          "debit": 0,
+          "credit": 40000,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": -40000,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "Settlement for INV-2",
+          "contact_ref": "con-1"
+        }
+      ],
+      "totals": {
+        "debit": 40000,
+        "credit": 40000
+      }
+    }
+  },
+  {
+    "name": "receipt_fx_gain",
+    "input": {
+      "settings": {
+        "posting_accounts": {
+          "ar_control": "acc-1200",
+          "ap_control": "acc-2000",
+          "tax_output": "acc-2100",
+          "tax_input": "acc-2110",
+          "fx_realised": "acc-4900",
+          "fx_unrealised": "acc-4800",
+          "rounding": "acc-9999",
+          "wht_payable": "acc-2120"
+        }
+      },
+      "bank_account_id": "acc-1010",
+      "settlement": {
+        "id": "receipt_fx_gain",
+        "kind": "receipt",
+        "number": "RCT-receipt_fx_gain",
+        "contact_id": "con-1",
+        "settlement_date": "2026-10-20",
+        "currency": "EUR",
+        "fx_rate": 1.1,
+        "amount_fc": 100000,
+        "amount": 110000,
+        "reference": "BANK-receipt_fx_gain",
+        "memo": "",
+        "allocations": [
+          {
+            "id": "a",
+            "invoice_id": "inv-a",
+            "invoice_number": "INV-3",
+            "allocated_amount_fc": 100000,
+            "allocated_amount_base": 108000,
+            "fx_gain_loss": 2000
+          }
+        ]
+      }
+    },
+    "expected": {
+      "journal": {
+        "journal_type": "receipt",
+        "journal_date": "2026-10-20",
+        "reference": "RCT-receipt_fx_gain",
+        "memo": "Customer Receipt RCT-receipt_fx_gain",
+        "source_type": "settlement",
+        "source_id": "receipt_fx_gain"
+      },
+      "lines": [
+        {
+          "account_ref": "acc-1010",
+          "debit": 110000,
+          "credit": 0,
+          "currency": "EUR",
+          "fx_rate": 1.1,
+          "amount_fc": 100000,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "Receipt RCT-receipt_fx_gain - Ref: BANK-receipt_fx_gain",
+          "contact_ref": "con-1"
+        },
+        {
+          "account_ref": "acc-1200",
+          "debit": 0,
+          "credit": 108000,
+          "currency": "EUR",
+          "fx_rate": 1.1,
+          "amount_fc": -100000,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "Settlement for INV-3",
+          "contact_ref": "con-1"
+        },
+        {
+          "account_ref": "acc-4900",
+          "debit": 0,
+          "credit": 2000,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": 2000,
+          "dimensions": {
+            "branch": "MG",
+            "cost_centre": "FIN"
+          },
+          "description": "Realised FX Gain on INV-3"
+        }
+      ],
+      "totals": {
+        "debit": 110000,
+        "credit": 110000
+      }
+    }
+  },
+  {
+    "name": "receipt_fx_loss",
+    "input": {
+      "settings": {
+        "posting_accounts": {
+          "ar_control": "acc-1200",
+          "ap_control": "acc-2000",
+          "tax_output": "acc-2100",
+          "tax_input": "acc-2110",
+          "fx_realised": "acc-4900",
+          "fx_unrealised": "acc-4800",
+          "rounding": "acc-9999",
+          "wht_payable": "acc-2120"
+        }
+      },
+      "bank_account_id": "acc-1010",
+      "settlement": {
+        "id": "receipt_fx_loss",
+        "kind": "receipt",
+        "number": "RCT-receipt_fx_loss",
+        "contact_id": "con-1",
+        "settlement_date": "2026-10-20",
+        "currency": "EUR",
+        "fx_rate": 1.05,
+        "amount_fc": 100000,
+        "amount": 105000,
+        "reference": "BANK-receipt_fx_loss",
+        "memo": "",
+        "allocations": [
+          {
+            "id": "a",
+            "invoice_id": "inv-a",
+            "invoice_number": "INV-3",
+            "allocated_amount_fc": 100000,
+            "allocated_amount_base": 108000,
+            "fx_gain_loss": -3000
+          }
+        ]
+      }
+    },
+    "expected": {
+      "journal": {
+        "journal_type": "receipt",
+        "journal_date": "2026-10-20",
+        "reference": "RCT-receipt_fx_loss",
+        "memo": "Customer Receipt RCT-receipt_fx_loss",
+        "source_type": "settlement",
+        "source_id": "receipt_fx_loss"
+      },
+      "lines": [
+        {
+          "account_ref": "acc-1010",
+          "debit": 105000,
+          "credit": 0,
+          "currency": "EUR",
+          "fx_rate": 1.05,
+          "amount_fc": 100000,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "Receipt RCT-receipt_fx_loss - Ref: BANK-receipt_fx_loss",
+          "contact_ref": "con-1"
+        },
+        {
+          "account_ref": "acc-1200",
+          "debit": 0,
+          "credit": 108000,
+          "currency": "EUR",
+          "fx_rate": 1.05,
+          "amount_fc": -100000,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "Settlement for INV-3",
+          "contact_ref": "con-1"
+        },
+        {
+          "account_ref": "acc-4900",
+          "debit": 3000,
+          "credit": 0,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": -3000,
+          "dimensions": {
+            "branch": "MG",
+            "cost_centre": "FIN"
+          },
+          "description": "Realised FX Loss on INV-3"
+        }
+      ],
+      "totals": {
+        "debit": 108000,
+        "credit": 108000
+      }
+    }
+  },
+  {
+    "name": "receipt_multi_allocation_mixed_fx",
+    "input": {
+      "settings": {
+        "posting_accounts": {
+          "ar_control": "acc-1200",
+          "ap_control": "acc-2000",
+          "tax_output": "acc-2100",
+          "tax_input": "acc-2110",
+          "fx_realised": "acc-4900",
+          "fx_unrealised": "acc-4800",
+          "rounding": "acc-9999",
+          "wht_payable": "acc-2120"
+        }
+      },
+      "bank_account_id": "acc-1010",
+      "settlement": {
+        "id": "receipt_multi_allocation_mixed_fx",
+        "kind": "receipt",
+        "number": "RCT-receipt_multi_allocation_mixed_fx",
+        "contact_id": "con-1",
+        "settlement_date": "2026-10-20",
+        "currency": "EUR",
+        "fx_rate": 1.1,
+        "amount_fc": 150000,
+        "amount": 165000,
+        "reference": "BANK-receipt_multi_allocation_mixed_fx",
+        "memo": "",
+        "allocations": [
+          {
+            "id": "a",
+            "invoice_id": "inv-a",
+            "invoice_number": "INV-4",
+            "allocated_amount_fc": 100000,
+            "allocated_amount_base": 108000,
+            "fx_gain_loss": 2000
+          },
+          {
+            "id": "b",
+            "invoice_id": "inv-b",
+            "invoice_number": "INV-5",
+            "allocated_amount_fc": 50000,
+            "allocated_amount_base": 52500,
+            "fx_gain_loss": 2500
+          }
+        ]
+      }
+    },
+    "expected": {
+      "journal": {
+        "journal_type": "receipt",
+        "journal_date": "2026-10-20",
+        "reference": "RCT-receipt_multi_allocation_mixed_fx",
+        "memo": "Customer Receipt RCT-receipt_multi_allocation_mixed_fx",
+        "source_type": "settlement",
+        "source_id": "receipt_multi_allocation_mixed_fx"
+      },
+      "lines": [
+        {
+          "account_ref": "acc-1010",
+          "debit": 165000,
+          "credit": 0,
+          "currency": "EUR",
+          "fx_rate": 1.1,
+          "amount_fc": 150000,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "Receipt RCT-receipt_multi_allocation_mixed_fx - Ref: BANK-receipt_multi_allocation_mixed_fx",
+          "contact_ref": "con-1"
+        },
+        {
+          "account_ref": "acc-1200",
+          "debit": 0,
+          "credit": 108000,
+          "currency": "EUR",
+          "fx_rate": 1.1,
+          "amount_fc": -100000,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "Settlement for INV-4",
+          "contact_ref": "con-1"
+        },
+        {
+          "account_ref": "acc-4900",
+          "debit": 0,
+          "credit": 2000,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": 2000,
+          "dimensions": {
+            "branch": "MG",
+            "cost_centre": "FIN"
+          },
+          "description": "Realised FX Gain on INV-4"
+        },
+        {
+          "account_ref": "acc-1200",
+          "debit": 0,
+          "credit": 52500,
+          "currency": "EUR",
+          "fx_rate": 1.1,
+          "amount_fc": -50000,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "Settlement for INV-5",
+          "contact_ref": "con-1"
+        },
+        {
+          "account_ref": "acc-4900",
+          "debit": 0,
+          "credit": 2500,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": 2500,
+          "dimensions": {
+            "branch": "MG",
+            "cost_centre": "FIN"
+          },
+          "description": "Realised FX Gain on INV-5"
+        }
+      ],
+      "totals": {
+        "debit": 165000,
+        "credit": 165000
+      }
+    }
+  },
+  {
+    "name": "payment_full_no_fx",
+    "input": {
+      "settings": {
+        "posting_accounts": {
+          "ar_control": "acc-1200",
+          "ap_control": "acc-2000",
+          "tax_output": "acc-2100",
+          "tax_input": "acc-2110",
+          "fx_realised": "acc-4900",
+          "fx_unrealised": "acc-4800",
+          "rounding": "acc-9999",
+          "wht_payable": "acc-2120"
+        }
+      },
+      "bank_account_id": "acc-1010",
+      "settlement": {
+        "id": "payment_full_no_fx",
+        "kind": "payment",
+        "number": "PAY-payment_full_no_fx",
+        "contact_id": "con-1",
+        "settlement_date": "2026-10-20",
+        "currency": "USD",
+        "fx_rate": 1,
+        "amount_fc": 60000,
+        "amount": 60000,
+        "reference": "BANK-payment_full_no_fx",
+        "memo": "",
+        "allocations": [
+          {
+            "id": "a",
+            "invoice_id": "inv-a",
+            "invoice_number": "BILL-1",
+            "allocated_amount_fc": 60000,
+            "allocated_amount_base": 60000,
+            "fx_gain_loss": 0
+          }
+        ]
+      }
+    },
+    "expected": {
+      "journal": {
+        "journal_type": "payment",
+        "journal_date": "2026-10-20",
+        "reference": "PAY-payment_full_no_fx",
+        "memo": "Supplier Payment PAY-payment_full_no_fx",
+        "source_type": "settlement",
+        "source_id": "payment_full_no_fx"
+      },
+      "lines": [
+        {
+          "account_ref": "acc-1010",
+          "debit": 0,
+          "credit": 60000,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": -60000,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "Payment PAY-payment_full_no_fx - Ref: BANK-payment_full_no_fx",
+          "contact_ref": "con-1"
+        },
+        {
+          "account_ref": "acc-2000",
+          "debit": 60000,
+          "credit": 0,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": 60000,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "Settlement for BILL-1",
+          "contact_ref": "con-1"
+        }
+      ],
+      "totals": {
+        "debit": 60000,
+        "credit": 60000
+      }
+    }
+  },
+  {
+    "name": "payment_fx_gain",
+    "input": {
+      "settings": {
+        "posting_accounts": {
+          "ar_control": "acc-1200",
+          "ap_control": "acc-2000",
+          "tax_output": "acc-2100",
+          "tax_input": "acc-2110",
+          "fx_realised": "acc-4900",
+          "fx_unrealised": "acc-4800",
+          "rounding": "acc-9999",
+          "wht_payable": "acc-2120"
+        }
+      },
+      "bank_account_id": "acc-1010",
+      "settlement": {
+        "id": "payment_fx_gain",
+        "kind": "payment",
+        "number": "PAY-payment_fx_gain",
+        "contact_id": "con-1",
+        "settlement_date": "2026-10-20",
+        "currency": "EUR",
+        "fx_rate": 1.05,
+        "amount_fc": 100000,
+        "amount": 105000,
+        "reference": "BANK-payment_fx_gain",
+        "memo": "",
+        "allocations": [
+          {
+            "id": "a",
+            "invoice_id": "inv-a",
+            "invoice_number": "BILL-2",
+            "allocated_amount_fc": 100000,
+            "allocated_amount_base": 108000,
+            "fx_gain_loss": 3000
+          }
+        ]
+      }
+    },
+    "expected": {
+      "journal": {
+        "journal_type": "payment",
+        "journal_date": "2026-10-20",
+        "reference": "PAY-payment_fx_gain",
+        "memo": "Supplier Payment PAY-payment_fx_gain",
+        "source_type": "settlement",
+        "source_id": "payment_fx_gain"
+      },
+      "lines": [
+        {
+          "account_ref": "acc-1010",
+          "debit": 0,
+          "credit": 105000,
+          "currency": "EUR",
+          "fx_rate": 1.05,
+          "amount_fc": -100000,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "Payment PAY-payment_fx_gain - Ref: BANK-payment_fx_gain",
+          "contact_ref": "con-1"
+        },
+        {
+          "account_ref": "acc-2000",
+          "debit": 108000,
+          "credit": 0,
+          "currency": "EUR",
+          "fx_rate": 1.05,
+          "amount_fc": 100000,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "Settlement for BILL-2",
+          "contact_ref": "con-1"
+        },
+        {
+          "account_ref": "acc-4900",
+          "debit": 0,
+          "credit": 3000,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": 3000,
+          "dimensions": {
+            "branch": "MG",
+            "cost_centre": "FIN"
+          },
+          "description": "Realised FX Gain on BILL-2"
+        }
+      ],
+      "totals": {
+        "debit": 108000,
+        "credit": 108000
+      }
+    }
+  },
+  {
+    "name": "payment_fx_loss",
+    "input": {
+      "settings": {
+        "posting_accounts": {
+          "ar_control": "acc-1200",
+          "ap_control": "acc-2000",
+          "tax_output": "acc-2100",
+          "tax_input": "acc-2110",
+          "fx_realised": "acc-4900",
+          "fx_unrealised": "acc-4800",
+          "rounding": "acc-9999",
+          "wht_payable": "acc-2120"
+        }
+      },
+      "bank_account_id": "acc-1010",
+      "settlement": {
+        "id": "payment_fx_loss",
+        "kind": "payment",
+        "number": "PAY-payment_fx_loss",
+        "contact_id": "con-1",
+        "settlement_date": "2026-10-20",
+        "currency": "EUR",
+        "fx_rate": 1.1,
+        "amount_fc": 100000,
+        "amount": 110000,
+        "reference": "BANK-payment_fx_loss",
+        "memo": "",
+        "allocations": [
+          {
+            "id": "a",
+            "invoice_id": "inv-a",
+            "invoice_number": "BILL-2",
+            "allocated_amount_fc": 100000,
+            "allocated_amount_base": 108000,
+            "fx_gain_loss": -2000
+          }
+        ]
+      }
+    },
+    "expected": {
+      "journal": {
+        "journal_type": "payment",
+        "journal_date": "2026-10-20",
+        "reference": "PAY-payment_fx_loss",
+        "memo": "Supplier Payment PAY-payment_fx_loss",
+        "source_type": "settlement",
+        "source_id": "payment_fx_loss"
+      },
+      "lines": [
+        {
+          "account_ref": "acc-1010",
+          "debit": 0,
+          "credit": 110000,
+          "currency": "EUR",
+          "fx_rate": 1.1,
+          "amount_fc": -100000,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "Payment PAY-payment_fx_loss - Ref: BANK-payment_fx_loss",
+          "contact_ref": "con-1"
+        },
+        {
+          "account_ref": "acc-2000",
+          "debit": 108000,
+          "credit": 0,
+          "currency": "EUR",
+          "fx_rate": 1.1,
+          "amount_fc": 100000,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "Settlement for BILL-2",
+          "contact_ref": "con-1"
+        },
+        {
+          "account_ref": "acc-4900",
+          "debit": 2000,
+          "credit": 0,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": -2000,
+          "dimensions": {
+            "branch": "MG",
+            "cost_centre": "FIN"
+          },
+          "description": "Realised FX Loss on BILL-2"
+        }
+      ],
+      "totals": {
+        "debit": 110000,
+        "credit": 110000
+      }
+    }
+  },
+  {
+    "name": "receipt_overpayment_unallocated",
+    "note": "FLAGGED: the mock does not post the unallocated remainder as an on-account balance; the 20000 difference lands on the rounding account.",
+    "input": {
+      "settings": {
+        "posting_accounts": {
+          "ar_control": "acc-1200",
+          "ap_control": "acc-2000",
+          "tax_output": "acc-2100",
+          "tax_input": "acc-2110",
+          "fx_realised": "acc-4900",
+          "fx_unrealised": "acc-4800",
+          "rounding": "acc-9999",
+          "wht_payable": "acc-2120"
+        }
+      },
+      "bank_account_id": "acc-1010",
+      "settlement": {
+        "id": "receipt_overpayment_unallocated",
+        "kind": "receipt",
+        "number": "RCT-receipt_overpayment_unallocated",
+        "contact_id": "con-1",
+        "settlement_date": "2026-10-20",
+        "currency": "USD",
+        "fx_rate": 1,
+        "amount_fc": 120000,
+        "amount": 120000,
+        "reference": "BANK-receipt_overpayment_unallocated",
+        "memo": "",
+        "allocations": [
+          {
+            "id": "a",
+            "invoice_id": "inv-a",
+            "invoice_number": "INV-6",
+            "allocated_amount_fc": 100000,
+            "allocated_amount_base": 100000,
+            "fx_gain_loss": 0
+          }
+        ]
+      }
+    },
+    "expected": {
+      "journal": {
+        "journal_type": "receipt",
+        "journal_date": "2026-10-20",
+        "reference": "RCT-receipt_overpayment_unallocated",
+        "memo": "Customer Receipt RCT-receipt_overpayment_unallocated",
+        "source_type": "settlement",
+        "source_id": "receipt_overpayment_unallocated"
+      },
+      "lines": [
+        {
+          "account_ref": "acc-1010",
+          "debit": 120000,
+          "credit": 0,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": 120000,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "Receipt RCT-receipt_overpayment_unallocated - Ref: BANK-receipt_overpayment_unallocated",
+          "contact_ref": "con-1"
+        },
+        {
+          "account_ref": "acc-1200",
+          "debit": 0,
+          "credit": 100000,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": -100000,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "Settlement for INV-6",
+          "contact_ref": "con-1"
+        },
+        {
+          "account_ref": "acc-9999",
+          "debit": 0,
+          "credit": 20000,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": 0,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "Settlement rounding adjustment"
+        }
+      ],
+      "totals": {
+        "debit": 120000,
+        "credit": 120000
+      }
+    }
+  }
+]

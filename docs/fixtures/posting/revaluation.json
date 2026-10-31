@@ -1,0 +1,282 @@
+[
+  {
+    "name": "revaluation_gain",
+    "input": {
+      "settings": {
+        "posting_accounts": {
+          "ar_control": "acc-1200",
+          "ap_control": "acc-2000",
+          "tax_output": "acc-2100",
+          "tax_input": "acc-2110",
+          "fx_realised": "acc-4900",
+          "fx_unrealised": "acc-4800",
+          "rounding": "acc-9999",
+          "wht_payable": "acc-2120"
+        }
+      },
+      "revaluation": {
+        "id": "revaluation_gain",
+        "company_id": "co-1",
+        "as_of": "2026-10-31",
+        "items": [
+          {
+            "account_id": "acc-1200",
+            "account_code": "1200",
+            "account_name": "Accounts Receivable",
+            "currency": "EUR",
+            "amount_fc": 100000,
+            "book_rate": 1,
+            "book_amount_base": 0,
+            "current_rate": 1.12,
+            "revalued_amount_base": 0,
+            "unrealised_gain_loss": 4000
+          }
+        ]
+      }
+    },
+    "expected": {
+      "journal": {
+        "journal_type": "fx",
+        "journal_date": "2026-10-31",
+        "reference": "REVAL-2026-10-31",
+        "memo": "Month-end FX Revaluation as of 2026-10-31",
+        "source_type": "fx_revaluation",
+        "source_id": "revaluation_gain"
+      },
+      "lines": [
+        {
+          "account_ref": "acc-1200",
+          "debit": 4000,
+          "credit": 0,
+          "currency": "EUR",
+          "fx_rate": 1.12,
+          "amount_fc": 100000,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "FX Revaluation as of 2026-10-31 (Accounts Receivable)"
+        },
+        {
+          "account_ref": "acc-4800",
+          "debit": 0,
+          "credit": 4000,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": 4000,
+          "dimensions": {
+            "branch": "MG",
+            "cost_centre": "FIN"
+          },
+          "description": "Unrealised FX Gain on 1200"
+        }
+      ],
+      "totals": {
+        "debit": 4000,
+        "credit": 4000
+      }
+    }
+  },
+  {
+    "name": "revaluation_loss",
+    "input": {
+      "settings": {
+        "posting_accounts": {
+          "ar_control": "acc-1200",
+          "ap_control": "acc-2000",
+          "tax_output": "acc-2100",
+          "tax_input": "acc-2110",
+          "fx_realised": "acc-4900",
+          "fx_unrealised": "acc-4800",
+          "rounding": "acc-9999",
+          "wht_payable": "acc-2120"
+        }
+      },
+      "revaluation": {
+        "id": "revaluation_loss",
+        "company_id": "co-1",
+        "as_of": "2026-10-31",
+        "items": [
+          {
+            "account_id": "acc-2000",
+            "account_code": "2000",
+            "account_name": "Accounts Payable",
+            "currency": "EUR",
+            "amount_fc": -80000,
+            "book_rate": 1,
+            "book_amount_base": 0,
+            "current_rate": 1.12,
+            "revalued_amount_base": 0,
+            "unrealised_gain_loss": -3200
+          }
+        ]
+      }
+    },
+    "expected": {
+      "journal": {
+        "journal_type": "fx",
+        "journal_date": "2026-10-31",
+        "reference": "REVAL-2026-10-31",
+        "memo": "Month-end FX Revaluation as of 2026-10-31",
+        "source_type": "fx_revaluation",
+        "source_id": "revaluation_loss"
+      },
+      "lines": [
+        {
+          "account_ref": "acc-2000",
+          "debit": 0,
+          "credit": 3200,
+          "currency": "EUR",
+          "fx_rate": 1.12,
+          "amount_fc": -80000,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "FX Revaluation as of 2026-10-31 (Accounts Payable)"
+        },
+        {
+          "account_ref": "acc-4800",
+          "debit": 3200,
+          "credit": 0,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": -3200,
+          "dimensions": {
+            "branch": "MG",
+            "cost_centre": "FIN"
+          },
+          "description": "Unrealised FX Loss on 2000"
+        }
+      ],
+      "totals": {
+        "debit": 3200,
+        "credit": 3200
+      }
+    }
+  },
+  {
+    "name": "revaluation_mixed_with_zero_skipped",
+    "input": {
+      "settings": {
+        "posting_accounts": {
+          "ar_control": "acc-1200",
+          "ap_control": "acc-2000",
+          "tax_output": "acc-2100",
+          "tax_input": "acc-2110",
+          "fx_realised": "acc-4900",
+          "fx_unrealised": "acc-4800",
+          "rounding": "acc-9999",
+          "wht_payable": "acc-2120"
+        }
+      },
+      "revaluation": {
+        "id": "revaluation_mixed_with_zero_skipped",
+        "company_id": "co-1",
+        "as_of": "2026-10-31",
+        "items": [
+          {
+            "account_id": "acc-1200",
+            "account_code": "1200",
+            "account_name": "Accounts Receivable",
+            "currency": "EUR",
+            "amount_fc": 100000,
+            "book_rate": 1,
+            "book_amount_base": 0,
+            "current_rate": 1.12,
+            "revalued_amount_base": 0,
+            "unrealised_gain_loss": 4000
+          },
+          {
+            "account_id": "acc-1020",
+            "account_code": "1020",
+            "account_name": "EUR Bank",
+            "currency": "EUR",
+            "amount_fc": 5000,
+            "book_rate": 1,
+            "book_amount_base": 0,
+            "current_rate": 1.1,
+            "revalued_amount_base": 0,
+            "unrealised_gain_loss": 0
+          },
+          {
+            "account_id": "acc-1030",
+            "account_code": "1030",
+            "account_name": "GBP Bank",
+            "currency": "GBP",
+            "amount_fc": 70000,
+            "book_rate": 1,
+            "book_amount_base": 0,
+            "current_rate": 1.27,
+            "revalued_amount_base": 0,
+            "unrealised_gain_loss": -1250
+          }
+        ]
+      }
+    },
+    "expected": {
+      "journal": {
+        "journal_type": "fx",
+        "journal_date": "2026-10-31",
+        "reference": "REVAL-2026-10-31",
+        "memo": "Month-end FX Revaluation as of 2026-10-31",
+        "source_type": "fx_revaluation",
+        "source_id": "revaluation_mixed_with_zero_skipped"
+      },
+      "lines": [
+        {
+          "account_ref": "acc-1200",
+          "debit": 4000,
+          "credit": 0,
+          "currency": "EUR",
+          "fx_rate": 1.12,
+          "amount_fc": 100000,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "FX Revaluation as of 2026-10-31 (Accounts Receivable)"
+        },
+        {
+          "account_ref": "acc-4800",
+          "debit": 0,
+          "credit": 4000,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": 4000,
+          "dimensions": {
+            "branch": "MG",
+            "cost_centre": "FIN"
+          },
+          "description": "Unrealised FX Gain on 1200"
+        },
+        {
+          "account_ref": "acc-1030",
+          "debit": 0,
+          "credit": 1250,
+          "currency": "GBP",
+          "fx_rate": 1.27,
+          "amount_fc": 70000,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "FX Revaluation as of 2026-10-31 (GBP Bank)"
+        },
+        {
+          "account_ref": "acc-4800",
+          "debit": 1250,
+          "credit": 0,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": -1250,
+          "dimensions": {
+            "branch": "MG",
+            "cost_centre": "FIN"
+          },
+          "description": "Unrealised FX Loss on 1030"
+        }
+      ],
+      "totals": {
+        "debit": 5250,
+        "credit": 5250
+      }
+    }
+  }
+]

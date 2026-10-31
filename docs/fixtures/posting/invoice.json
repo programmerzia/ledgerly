@@ -1,0 +1,1189 @@
+[
+  {
+    "name": "plain_sale_usd",
+    "input": {
+      "settings": {
+        "posting_accounts": {
+          "ar_control": "acc-1200",
+          "ap_control": "acc-2000",
+          "tax_output": "acc-2100",
+          "tax_input": "acc-2110",
+          "fx_realised": "acc-4900",
+          "fx_unrealised": "acc-4800",
+          "rounding": "acc-9999",
+          "wht_payable": "acc-2120"
+        }
+      },
+      "invoice": {
+        "id": "plain_sale_usd",
+        "number": "DOC-plain_sale_usd",
+        "reference": "REF-plain_sale_usd",
+        "memo": "",
+        "contact_id": "con-1",
+        "issue_date": "2026-10-15",
+        "currency": "USD",
+        "fx_rate": 1,
+        "lines": [
+          {
+            "id": "l1",
+            "account_id": "acc-4000",
+            "description": "Consulting",
+            "line_total_fc": 100000,
+            "tax_code_id": "tax-15",
+            "dimensions": {
+              "branch": "MG"
+            }
+          }
+        ],
+        "tax_total_fc": 15000,
+        "tax_total": 0,
+        "total_fc": 115000
+      }
+    },
+    "expected": {
+      "journal": {
+        "journal_type": "sales",
+        "journal_date": "2026-10-15",
+        "reference": "DOC-plain_sale_usd",
+        "memo": "Sales invoice DOC-plain_sale_usd: ",
+        "source_type": "sales_invoice",
+        "source_id": "plain_sale_usd"
+      },
+      "lines": [
+        {
+          "account_ref": "acc-1200",
+          "debit": 115000,
+          "credit": 0,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": 115000,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "AR Control: DOC-plain_sale_usd - Contact Ref #REF-plain_sale_usd",
+          "contact_ref": "con-1"
+        },
+        {
+          "account_ref": "acc-4000",
+          "debit": 0,
+          "credit": 100000,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": -100000,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "Consulting",
+          "contact_ref": "con-1",
+          "tax_code_ref": "tax-15"
+        },
+        {
+          "account_ref": "acc-2100",
+          "debit": 0,
+          "credit": 15000,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": -15000,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "Sales Tax Output: DOC-plain_sale_usd",
+          "contact_ref": "con-1"
+        }
+      ],
+      "totals": {
+        "debit": 115000,
+        "credit": 115000
+      }
+    }
+  },
+  {
+    "name": "plain_sale_no_tax_no_number",
+    "input": {
+      "settings": {
+        "posting_accounts": {
+          "ar_control": "acc-1200",
+          "ap_control": "acc-2000",
+          "tax_output": "acc-2100",
+          "tax_input": "acc-2110",
+          "fx_realised": "acc-4900",
+          "fx_unrealised": "acc-4800",
+          "rounding": "acc-9999",
+          "wht_payable": "acc-2120"
+        }
+      },
+      "invoice": {
+        "id": "plain_sale_no_tax_no_number",
+        "number": null,
+        "reference": "REF-plain_sale_no_tax_no_number",
+        "memo": "Draft sale",
+        "contact_id": "con-1",
+        "issue_date": "2026-10-15",
+        "currency": "USD",
+        "fx_rate": 1,
+        "lines": [
+          {
+            "id": "l1",
+            "account_id": "acc-4000",
+            "description": "",
+            "line_total_fc": 25050,
+            "dimensions": {
+              "branch": "MG"
+            }
+          }
+        ],
+        "tax_total_fc": 0,
+        "tax_total": 0,
+        "total_fc": 25050
+      }
+    },
+    "expected": {
+      "journal": {
+        "journal_type": "sales",
+        "journal_date": "2026-10-15",
+        "reference": "REF-plain_sale_no_tax_no_number",
+        "memo": "Sales invoice Draft: Draft sale",
+        "source_type": "sales_invoice",
+        "source_id": "plain_sale_no_tax_no_number"
+      },
+      "lines": [
+        {
+          "account_ref": "acc-1200",
+          "debit": 25050,
+          "credit": 0,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": 25050,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "AR Control: Invoice - Contact Ref #REF-plain_sale_no_tax_no_number",
+          "contact_ref": "con-1"
+        },
+        {
+          "account_ref": "acc-4000",
+          "debit": 0,
+          "credit": 25050,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": -25050,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "Revenue: Invoice",
+          "contact_ref": "con-1"
+        }
+      ],
+      "totals": {
+        "debit": 25050,
+        "credit": 25050
+      }
+    }
+  },
+  {
+    "name": "multi_line_two_tax_codes",
+    "input": {
+      "settings": {
+        "posting_accounts": {
+          "ar_control": "acc-1200",
+          "ap_control": "acc-2000",
+          "tax_output": "acc-2100",
+          "tax_input": "acc-2110",
+          "fx_realised": "acc-4900",
+          "fx_unrealised": "acc-4800",
+          "rounding": "acc-9999",
+          "wht_payable": "acc-2120"
+        }
+      },
+      "invoice": {
+        "id": "multi_line_two_tax_codes",
+        "number": "DOC-multi_line_two_tax_codes",
+        "reference": "REF-multi_line_two_tax_codes",
+        "memo": "",
+        "contact_id": "con-1",
+        "issue_date": "2026-10-15",
+        "currency": "USD",
+        "fx_rate": 1,
+        "lines": [
+          {
+            "id": "l1",
+            "account_id": "acc-4000",
+            "description": "Goods",
+            "line_total_fc": 123456,
+            "tax_code_id": "tax-15",
+            "dimensions": {
+              "branch": "MG"
+            }
+          },
+          {
+            "id": "l2",
+            "account_id": "acc-4010",
+            "description": "Service",
+            "line_total_fc": 98765,
+            "tax_code_id": "tax-5",
+            "dimensions": {
+              "branch": "MG"
+            }
+          },
+          {
+            "id": "l3",
+            "account_id": "acc-4020",
+            "description": "Exempt",
+            "line_total_fc": 5000,
+            "dimensions": {
+              "branch": "MG"
+            }
+          },
+          {
+            "id": "l4",
+            "account_id": "acc-4000",
+            "description": "More goods",
+            "line_total_fc": 7777,
+            "tax_code_id": "tax-15",
+            "dimensions": {
+              "branch": "MG",
+              "cost_centre": "SALES"
+            }
+          }
+        ],
+        "tax_total_fc": 24623,
+        "tax_total": 0,
+        "total_fc": 259621
+      }
+    },
+    "expected": {
+      "journal": {
+        "journal_type": "sales",
+        "journal_date": "2026-10-15",
+        "reference": "DOC-multi_line_two_tax_codes",
+        "memo": "Sales invoice DOC-multi_line_two_tax_codes: ",
+        "source_type": "sales_invoice",
+        "source_id": "multi_line_two_tax_codes"
+      },
+      "lines": [
+        {
+          "account_ref": "acc-1200",
+          "debit": 259621,
+          "credit": 0,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": 259621,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "AR Control: DOC-multi_line_two_tax_codes - Contact Ref #REF-multi_line_two_tax_codes",
+          "contact_ref": "con-1"
+        },
+        {
+          "account_ref": "acc-4000",
+          "debit": 0,
+          "credit": 123456,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": -123456,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "Goods",
+          "contact_ref": "con-1",
+          "tax_code_ref": "tax-15"
+        },
+        {
+          "account_ref": "acc-4010",
+          "debit": 0,
+          "credit": 98765,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": -98765,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "Service",
+          "contact_ref": "con-1",
+          "tax_code_ref": "tax-5"
+        },
+        {
+          "account_ref": "acc-4020",
+          "debit": 0,
+          "credit": 5000,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": -5000,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "Exempt",
+          "contact_ref": "con-1"
+        },
+        {
+          "account_ref": "acc-4000",
+          "debit": 0,
+          "credit": 7777,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": -7777,
+          "dimensions": {
+            "branch": "MG",
+            "cost_centre": "SALES"
+          },
+          "description": "More goods",
+          "contact_ref": "con-1",
+          "tax_code_ref": "tax-15"
+        },
+        {
+          "account_ref": "acc-2100",
+          "debit": 0,
+          "credit": 24623,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": -24623,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "Sales Tax Output: DOC-multi_line_two_tax_codes",
+          "contact_ref": "con-1"
+        }
+      ],
+      "totals": {
+        "debit": 259621,
+        "credit": 259621
+      }
+    }
+  },
+  {
+    "name": "rounding_edge_tax_per_code",
+    "input": {
+      "settings": {
+        "posting_accounts": {
+          "ar_control": "acc-1200",
+          "ap_control": "acc-2000",
+          "tax_output": "acc-2100",
+          "tax_input": "acc-2110",
+          "fx_realised": "acc-4900",
+          "fx_unrealised": "acc-4800",
+          "rounding": "acc-9999",
+          "wht_payable": "acc-2120"
+        }
+      },
+      "invoice": {
+        "id": "rounding_edge_tax_per_code",
+        "number": "DOC-rounding_edge_tax_per_code",
+        "reference": "REF-rounding_edge_tax_per_code",
+        "memo": "",
+        "contact_id": "con-1",
+        "issue_date": "2026-10-15",
+        "currency": "USD",
+        "fx_rate": 1,
+        "lines": [
+          {
+            "id": "l1",
+            "account_id": "acc-4000",
+            "description": "",
+            "line_total_fc": 333,
+            "tax_code_id": "tax-15",
+            "dimensions": {
+              "branch": "MG"
+            }
+          },
+          {
+            "id": "l2",
+            "account_id": "acc-4000",
+            "description": "",
+            "line_total_fc": 333,
+            "tax_code_id": "tax-15",
+            "dimensions": {
+              "branch": "MG"
+            }
+          },
+          {
+            "id": "l3",
+            "account_id": "acc-4000",
+            "description": "",
+            "line_total_fc": 333,
+            "tax_code_id": "tax-15",
+            "dimensions": {
+              "branch": "MG"
+            }
+          }
+        ],
+        "tax_total_fc": 150,
+        "tax_total": 0,
+        "total_fc": 1149
+      }
+    },
+    "expected": {
+      "journal": {
+        "journal_type": "sales",
+        "journal_date": "2026-10-15",
+        "reference": "DOC-rounding_edge_tax_per_code",
+        "memo": "Sales invoice DOC-rounding_edge_tax_per_code: ",
+        "source_type": "sales_invoice",
+        "source_id": "rounding_edge_tax_per_code"
+      },
+      "lines": [
+        {
+          "account_ref": "acc-1200",
+          "debit": 1149,
+          "credit": 0,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": 1149,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "AR Control: DOC-rounding_edge_tax_per_code - Contact Ref #REF-rounding_edge_tax_per_code",
+          "contact_ref": "con-1"
+        },
+        {
+          "account_ref": "acc-4000",
+          "debit": 0,
+          "credit": 333,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": -333,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "Revenue: DOC-rounding_edge_tax_per_code",
+          "contact_ref": "con-1",
+          "tax_code_ref": "tax-15"
+        },
+        {
+          "account_ref": "acc-4000",
+          "debit": 0,
+          "credit": 333,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": -333,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "Revenue: DOC-rounding_edge_tax_per_code",
+          "contact_ref": "con-1",
+          "tax_code_ref": "tax-15"
+        },
+        {
+          "account_ref": "acc-4000",
+          "debit": 0,
+          "credit": 333,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": -333,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "Revenue: DOC-rounding_edge_tax_per_code",
+          "contact_ref": "con-1",
+          "tax_code_ref": "tax-15"
+        },
+        {
+          "account_ref": "acc-2100",
+          "debit": 0,
+          "credit": 150,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": -150,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "Sales Tax Output: DOC-rounding_edge_tax_per_code",
+          "contact_ref": "con-1"
+        }
+      ],
+      "totals": {
+        "debit": 1149,
+        "credit": 1149
+      }
+    }
+  },
+  {
+    "name": "rounding_edge_tax_per_line_mode",
+    "input": {
+      "settings": {
+        "posting_accounts": {
+          "ar_control": "acc-1200",
+          "ap_control": "acc-2000",
+          "tax_output": "acc-2100",
+          "tax_input": "acc-2110",
+          "fx_realised": "acc-4900",
+          "fx_unrealised": "acc-4800",
+          "rounding": "acc-9999",
+          "wht_payable": "acc-2120"
+        }
+      },
+      "invoice": {
+        "id": "rounding_edge_tax_per_line_mode",
+        "number": "DOC-rounding_edge_tax_per_line_mode",
+        "reference": "REF-rounding_edge_tax_per_line_mode",
+        "memo": "",
+        "contact_id": "con-1",
+        "issue_date": "2026-10-15",
+        "currency": "USD",
+        "fx_rate": 1,
+        "lines": [
+          {
+            "id": "l1",
+            "account_id": "acc-4000",
+            "description": "",
+            "line_total_fc": 333,
+            "tax_code_id": "tax-15",
+            "dimensions": {
+              "branch": "MG"
+            }
+          },
+          {
+            "id": "l2",
+            "account_id": "acc-4000",
+            "description": "",
+            "line_total_fc": 333,
+            "tax_code_id": "tax-15",
+            "dimensions": {
+              "branch": "MG"
+            }
+          },
+          {
+            "id": "l3",
+            "account_id": "acc-4000",
+            "description": "",
+            "line_total_fc": 333,
+            "tax_code_id": "tax-15",
+            "dimensions": {
+              "branch": "MG"
+            }
+          }
+        ],
+        "tax_total_fc": 150,
+        "tax_total": 0,
+        "total_fc": 1149
+      }
+    },
+    "expected": {
+      "journal": {
+        "journal_type": "sales",
+        "journal_date": "2026-10-15",
+        "reference": "DOC-rounding_edge_tax_per_line_mode",
+        "memo": "Sales invoice DOC-rounding_edge_tax_per_line_mode: ",
+        "source_type": "sales_invoice",
+        "source_id": "rounding_edge_tax_per_line_mode"
+      },
+      "lines": [
+        {
+          "account_ref": "acc-1200",
+          "debit": 1149,
+          "credit": 0,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": 1149,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "AR Control: DOC-rounding_edge_tax_per_line_mode - Contact Ref #REF-rounding_edge_tax_per_line_mode",
+          "contact_ref": "con-1"
+        },
+        {
+          "account_ref": "acc-4000",
+          "debit": 0,
+          "credit": 333,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": -333,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "Revenue: DOC-rounding_edge_tax_per_line_mode",
+          "contact_ref": "con-1",
+          "tax_code_ref": "tax-15"
+        },
+        {
+          "account_ref": "acc-4000",
+          "debit": 0,
+          "credit": 333,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": -333,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "Revenue: DOC-rounding_edge_tax_per_line_mode",
+          "contact_ref": "con-1",
+          "tax_code_ref": "tax-15"
+        },
+        {
+          "account_ref": "acc-4000",
+          "debit": 0,
+          "credit": 333,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": -333,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "Revenue: DOC-rounding_edge_tax_per_line_mode",
+          "contact_ref": "con-1",
+          "tax_code_ref": "tax-15"
+        },
+        {
+          "account_ref": "acc-2100",
+          "debit": 0,
+          "credit": 150,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": -150,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "Sales Tax Output: DOC-rounding_edge_tax_per_line_mode",
+          "contact_ref": "con-1"
+        }
+      ],
+      "totals": {
+        "debit": 1149,
+        "credit": 1149
+      }
+    }
+  },
+  {
+    "name": "discount_applied_line_total",
+    "input": {
+      "settings": {
+        "posting_accounts": {
+          "ar_control": "acc-1200",
+          "ap_control": "acc-2000",
+          "tax_output": "acc-2100",
+          "tax_input": "acc-2110",
+          "fx_realised": "acc-4900",
+          "fx_unrealised": "acc-4800",
+          "rounding": "acc-9999",
+          "wht_payable": "acc-2120"
+        }
+      },
+      "invoice": {
+        "id": "discount_applied_line_total",
+        "number": "DOC-discount_applied_line_total",
+        "reference": "REF-discount_applied_line_total",
+        "memo": "",
+        "contact_id": "con-1",
+        "issue_date": "2026-10-15",
+        "currency": "USD",
+        "fx_rate": 1,
+        "lines": [
+          {
+            "id": "l1",
+            "account_id": "acc-4000",
+            "description": "3 x 33.33 less 12.5% discount (line_total precomputed)",
+            "line_total_fc": 8749,
+            "tax_code_id": "tax-15",
+            "dimensions": {
+              "branch": "MG"
+            }
+          }
+        ],
+        "tax_total_fc": 1312,
+        "tax_total": 0,
+        "total_fc": 10061
+      }
+    },
+    "expected": {
+      "journal": {
+        "journal_type": "sales",
+        "journal_date": "2026-10-15",
+        "reference": "DOC-discount_applied_line_total",
+        "memo": "Sales invoice DOC-discount_applied_line_total: ",
+        "source_type": "sales_invoice",
+        "source_id": "discount_applied_line_total"
+      },
+      "lines": [
+        {
+          "account_ref": "acc-1200",
+          "debit": 10061,
+          "credit": 0,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": 10061,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "AR Control: DOC-discount_applied_line_total - Contact Ref #REF-discount_applied_line_total",
+          "contact_ref": "con-1"
+        },
+        {
+          "account_ref": "acc-4000",
+          "debit": 0,
+          "credit": 8749,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": -8749,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "3 x 33.33 less 12.5% discount (line_total precomputed)",
+          "contact_ref": "con-1",
+          "tax_code_ref": "tax-15"
+        },
+        {
+          "account_ref": "acc-2100",
+          "debit": 0,
+          "credit": 1312,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": -1312,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "Sales Tax Output: DOC-discount_applied_line_total",
+          "contact_ref": "con-1"
+        }
+      ],
+      "totals": {
+        "debit": 10061,
+        "credit": 10061
+      }
+    }
+  },
+  {
+    "name": "foreign_currency_eur",
+    "input": {
+      "settings": {
+        "posting_accounts": {
+          "ar_control": "acc-1200",
+          "ap_control": "acc-2000",
+          "tax_output": "acc-2100",
+          "tax_input": "acc-2110",
+          "fx_realised": "acc-4900",
+          "fx_unrealised": "acc-4800",
+          "rounding": "acc-9999",
+          "wht_payable": "acc-2120"
+        }
+      },
+      "invoice": {
+        "id": "foreign_currency_eur",
+        "number": "DOC-foreign_currency_eur",
+        "reference": "REF-foreign_currency_eur",
+        "memo": "",
+        "contact_id": "con-1",
+        "issue_date": "2026-10-15",
+        "currency": "EUR",
+        "fx_rate": 1.0825,
+        "lines": [
+          {
+            "id": "l1",
+            "account_id": "acc-4000",
+            "description": "",
+            "line_total_fc": 100000,
+            "tax_code_id": "tax-15",
+            "dimensions": {
+              "branch": "MG"
+            }
+          }
+        ],
+        "tax_total_fc": 15000,
+        "tax_total": 0,
+        "total_fc": 115000
+      }
+    },
+    "expected": {
+      "journal": {
+        "journal_type": "sales",
+        "journal_date": "2026-10-15",
+        "reference": "DOC-foreign_currency_eur",
+        "memo": "Sales invoice DOC-foreign_currency_eur: ",
+        "source_type": "sales_invoice",
+        "source_id": "foreign_currency_eur"
+      },
+      "lines": [
+        {
+          "account_ref": "acc-1200",
+          "debit": 124488,
+          "credit": 0,
+          "currency": "EUR",
+          "fx_rate": 1.0825,
+          "amount_fc": 115000,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "AR Control: DOC-foreign_currency_eur - Contact Ref #REF-foreign_currency_eur",
+          "contact_ref": "con-1"
+        },
+        {
+          "account_ref": "acc-4000",
+          "debit": 0,
+          "credit": 108250,
+          "currency": "EUR",
+          "fx_rate": 1.0825,
+          "amount_fc": -100000,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "Revenue: DOC-foreign_currency_eur",
+          "contact_ref": "con-1",
+          "tax_code_ref": "tax-15"
+        },
+        {
+          "account_ref": "acc-2100",
+          "debit": 0,
+          "credit": 16238,
+          "currency": "EUR",
+          "fx_rate": 1.0825,
+          "amount_fc": -15000,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "Sales Tax Output: DOC-foreign_currency_eur",
+          "contact_ref": "con-1"
+        }
+      ],
+      "totals": {
+        "debit": 124488,
+        "credit": 124488
+      }
+    }
+  },
+  {
+    "name": "foreign_currency_rounding_residue_to_rounding_account",
+    "input": {
+      "settings": {
+        "posting_accounts": {
+          "ar_control": "acc-1200",
+          "ap_control": "acc-2000",
+          "tax_output": "acc-2100",
+          "tax_input": "acc-2110",
+          "fx_realised": "acc-4900",
+          "fx_unrealised": "acc-4800",
+          "rounding": "acc-9999",
+          "wht_payable": "acc-2120"
+        }
+      },
+      "invoice": {
+        "id": "foreign_currency_rounding_residue_to_rounding_account",
+        "number": "DOC-foreign_currency_rounding_residue_to_rounding_account",
+        "reference": "REF-foreign_currency_rounding_residue_to_rounding_account",
+        "memo": "",
+        "contact_id": "con-1",
+        "issue_date": "2026-10-15",
+        "currency": "EUR",
+        "fx_rate": 1.0725,
+        "lines": [
+          {
+            "id": "l1",
+            "account_id": "acc-4000",
+            "description": "",
+            "line_total_fc": 1001,
+            "tax_code_id": "tax-5",
+            "dimensions": {
+              "branch": "MG"
+            }
+          },
+          {
+            "id": "l2",
+            "account_id": "acc-4010",
+            "description": "",
+            "line_total_fc": 1001,
+            "dimensions": {
+              "branch": "MG"
+            }
+          },
+          {
+            "id": "l3",
+            "account_id": "acc-4020",
+            "description": "",
+            "line_total_fc": 1003,
+            "tax_code_id": "tax-15",
+            "dimensions": {
+              "branch": "MG"
+            }
+          }
+        ],
+        "tax_total_fc": 200,
+        "tax_total": 0,
+        "total_fc": 3205
+      }
+    },
+    "expected": {
+      "journal": {
+        "journal_type": "sales",
+        "journal_date": "2026-10-15",
+        "reference": "DOC-foreign_currency_rounding_residue_to_rounding_account",
+        "memo": "Sales invoice DOC-foreign_currency_rounding_residue_to_rounding_account: ",
+        "source_type": "sales_invoice",
+        "source_id": "foreign_currency_rounding_residue_to_rounding_account"
+      },
+      "lines": [
+        {
+          "account_ref": "acc-1200",
+          "debit": 3437,
+          "credit": 0,
+          "currency": "EUR",
+          "fx_rate": 1.0725,
+          "amount_fc": 3205,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "AR Control: DOC-foreign_currency_rounding_residue_to_rounding_account - Contact Ref #REF-foreign_currency_rounding_residue_to_rounding_account",
+          "contact_ref": "con-1"
+        },
+        {
+          "account_ref": "acc-4000",
+          "debit": 0,
+          "credit": 1074,
+          "currency": "EUR",
+          "fx_rate": 1.0725,
+          "amount_fc": -1001,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "Revenue: DOC-foreign_currency_rounding_residue_to_rounding_account",
+          "contact_ref": "con-1",
+          "tax_code_ref": "tax-5"
+        },
+        {
+          "account_ref": "acc-4010",
+          "debit": 0,
+          "credit": 1074,
+          "currency": "EUR",
+          "fx_rate": 1.0725,
+          "amount_fc": -1001,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "Revenue: DOC-foreign_currency_rounding_residue_to_rounding_account",
+          "contact_ref": "con-1"
+        },
+        {
+          "account_ref": "acc-4020",
+          "debit": 0,
+          "credit": 1076,
+          "currency": "EUR",
+          "fx_rate": 1.0725,
+          "amount_fc": -1003,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "Revenue: DOC-foreign_currency_rounding_residue_to_rounding_account",
+          "contact_ref": "con-1",
+          "tax_code_ref": "tax-15"
+        },
+        {
+          "account_ref": "acc-2100",
+          "debit": 0,
+          "credit": 215,
+          "currency": "EUR",
+          "fx_rate": 1.0725,
+          "amount_fc": -200,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "Sales Tax Output: DOC-foreign_currency_rounding_residue_to_rounding_account",
+          "contact_ref": "con-1"
+        },
+        {
+          "account_ref": "acc-9999",
+          "debit": 2,
+          "credit": 0,
+          "currency": "EUR",
+          "fx_rate": 1.0725,
+          "amount_fc": 0,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "FX Rounding adjustment: DOC-foreign_currency_rounding_residue_to_rounding_account"
+        }
+      ],
+      "totals": {
+        "debit": 3439,
+        "credit": 3439
+      }
+    }
+  },
+  {
+    "name": "half_up_tie_on_base_conversion",
+    "input": {
+      "settings": {
+        "posting_accounts": {
+          "ar_control": "acc-1200",
+          "ap_control": "acc-2000",
+          "tax_output": "acc-2100",
+          "tax_input": "acc-2110",
+          "fx_realised": "acc-4900",
+          "fx_unrealised": "acc-4800",
+          "rounding": "acc-9999",
+          "wht_payable": "acc-2120"
+        }
+      },
+      "invoice": {
+        "id": "half_up_tie_on_base_conversion",
+        "number": "DOC-half_up_tie_on_base_conversion",
+        "reference": "REF-half_up_tie_on_base_conversion",
+        "memo": "",
+        "contact_id": "con-1",
+        "issue_date": "2026-10-15",
+        "currency": "EUR",
+        "fx_rate": 1.5,
+        "lines": [
+          {
+            "id": "l1",
+            "account_id": "acc-4000",
+            "description": "",
+            "line_total_fc": 101,
+            "dimensions": {
+              "branch": "MG"
+            }
+          }
+        ],
+        "tax_total_fc": 0,
+        "tax_total": 0,
+        "total_fc": 101
+      }
+    },
+    "expected": {
+      "journal": {
+        "journal_type": "sales",
+        "journal_date": "2026-10-15",
+        "reference": "DOC-half_up_tie_on_base_conversion",
+        "memo": "Sales invoice DOC-half_up_tie_on_base_conversion: ",
+        "source_type": "sales_invoice",
+        "source_id": "half_up_tie_on_base_conversion"
+      },
+      "lines": [
+        {
+          "account_ref": "acc-1200",
+          "debit": 152,
+          "credit": 0,
+          "currency": "EUR",
+          "fx_rate": 1.5,
+          "amount_fc": 101,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "AR Control: DOC-half_up_tie_on_base_conversion - Contact Ref #REF-half_up_tie_on_base_conversion",
+          "contact_ref": "con-1"
+        },
+        {
+          "account_ref": "acc-4000",
+          "debit": 0,
+          "credit": 152,
+          "currency": "EUR",
+          "fx_rate": 1.5,
+          "amount_fc": -101,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "Revenue: DOC-half_up_tie_on_base_conversion",
+          "contact_ref": "con-1"
+        }
+      ],
+      "totals": {
+        "debit": 152,
+        "credit": 152
+      }
+    }
+  },
+  {
+    "name": "tax_total_fc_zero_falls_back_to_base_tax_total",
+    "note": "FLAGGED: the builder falls back to the base-currency tax_total when tax_total_fc is 0 and treats it as foreign currency. Journal need not balance on its own terms; residue goes to rounding.",
+    "input": {
+      "settings": {
+        "posting_accounts": {
+          "ar_control": "acc-1200",
+          "ap_control": "acc-2000",
+          "tax_output": "acc-2100",
+          "tax_input": "acc-2110",
+          "fx_realised": "acc-4900",
+          "fx_unrealised": "acc-4800",
+          "rounding": "acc-9999",
+          "wht_payable": "acc-2120"
+        }
+      },
+      "invoice": {
+        "id": "tax_total_fc_zero_falls_back_to_base_tax_total",
+        "number": "DOC-tax_total_fc_zero_falls_back_to_base_tax_total",
+        "reference": "REF-tax_total_fc_zero_falls_back_to_base_tax_total",
+        "memo": "",
+        "contact_id": "con-1",
+        "issue_date": "2026-10-15",
+        "currency": "EUR",
+        "fx_rate": 2,
+        "lines": [
+          {
+            "id": "l1",
+            "account_id": "acc-4000",
+            "description": "",
+            "line_total_fc": 10000,
+            "dimensions": {
+              "branch": "MG"
+            }
+          }
+        ],
+        "tax_total_fc": 0,
+        "tax_total": 1500,
+        "total_fc": 10000
+      }
+    },
+    "expected": {
+      "journal": {
+        "journal_type": "sales",
+        "journal_date": "2026-10-15",
+        "reference": "DOC-tax_total_fc_zero_falls_back_to_base_tax_total",
+        "memo": "Sales invoice DOC-tax_total_fc_zero_falls_back_to_base_tax_total: ",
+        "source_type": "sales_invoice",
+        "source_id": "tax_total_fc_zero_falls_back_to_base_tax_total"
+      },
+      "lines": [
+        {
+          "account_ref": "acc-1200",
+          "debit": 20000,
+          "credit": 0,
+          "currency": "EUR",
+          "fx_rate": 2,
+          "amount_fc": 10000,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "AR Control: DOC-tax_total_fc_zero_falls_back_to_base_tax_total - Contact Ref #REF-tax_total_fc_zero_falls_back_to_base_tax_total",
+          "contact_ref": "con-1"
+        },
+        {
+          "account_ref": "acc-4000",
+          "debit": 0,
+          "credit": 20000,
+          "currency": "EUR",
+          "fx_rate": 2,
+          "amount_fc": -10000,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "Revenue: DOC-tax_total_fc_zero_falls_back_to_base_tax_total",
+          "contact_ref": "con-1"
+        },
+        {
+          "account_ref": "acc-2100",
+          "debit": 0,
+          "credit": 3000,
+          "currency": "EUR",
+          "fx_rate": 2,
+          "amount_fc": -1500,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "Sales Tax Output: DOC-tax_total_fc_zero_falls_back_to_base_tax_total",
+          "contact_ref": "con-1"
+        },
+        {
+          "account_ref": "acc-9999",
+          "debit": 3000,
+          "credit": 0,
+          "currency": "EUR",
+          "fx_rate": 2,
+          "amount_fc": 0,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "FX Rounding adjustment: DOC-tax_total_fc_zero_falls_back_to_base_tax_total"
+        }
+      ],
+      "totals": {
+        "debit": 23000,
+        "credit": 23000
+      }
+    }
+  }
+]
