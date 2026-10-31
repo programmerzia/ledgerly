@@ -4,10 +4,13 @@
  * Invariant: Four-Eyes Principle: Maker can never approve or sign their own document.
  */
 
+import { seedJournalIdByDocument } from '@/mock/seedLedger';
 import { StateCreator } from 'zustand';
 import {
   Invoice,
+  InvoiceLine,
   Bill,
+  Journal,
   Settlement,
   PaymentRun,
   WhtCertificate,
@@ -31,7 +34,15 @@ import {
   executePostJournal,
   PostingError,
 } from '@/mock/PostingRules';
+import { roundHalfUp } from '@/lib/format';
 import { generateSignatureHash } from '@/lib/hash';
+
+
+/** Link seeded documents to the journal that backs them (see mock/seedLedger.ts). */
+function withSeedJournal<T extends { id: string; journal_id?: string }>(doc: T): T {
+  const journalId = seedJournalIdByDocument[doc.id];
+  return journalId && !doc.journal_id ? { ...doc, journal_id: journalId } : { ...doc };
+}
 
 export interface DocumentsSlice {
   invoices: Invoice[];
@@ -47,12 +58,18 @@ export interface DocumentsSlice {
   approveInvoice: (invoiceId: string, approver: User, pin: string, settings: CompanySettings) => Invoice;
   returnInvoice: (invoiceId: string, reason: string, approver: User) => Invoice;
   voidInvoice: (invoiceId: string, reason: string, actor: User) => Invoice;
+  reverseInvoice: (invoiceId: string, reason: string, actor: User, settings: CompanySettings, pin?: string) => { original: Invoice; reversal: Invoice };
+  duplicateInvoice: (invoiceId: string, actor: User) => Invoice;
+  createCreditNoteFromInvoice: (invoiceId: string, actor: User) => Invoice;
 
   // Bill Actions
   saveBillDraft: (bill: Partial<Bill>, actor: User) => Bill;
   submitBillForApproval: (billId: string, actor: User) => Bill;
   approveBill: (billId: string, approver: User, pin: string, settings: CompanySettings) => Bill;
   returnBill: (billId: string, reason: string, approver: User) => Bill;
+  reverseBill: (billId: string, reason: string, actor: User, settings: CompanySettings, pin?: string) => { original: Bill; reversal: Bill };
+  duplicateBill: (billId: string, actor: User) => Bill;
+  createDebitNoteFromBill: (billId: string, actor: User) => Bill;
 
   // Settlement Actions
   recordReceipt: (settlement: Partial<Settlement>, actor: User, settings: CompanySettings) => Settlement;
@@ -68,9 +85,9 @@ export interface DocumentsSlice {
 }
 
 export const createDocumentsSlice: StateCreator<any, [], [], DocumentsSlice> = (set, get) => ({
-  invoices: [...mockInvoices],
-  bills: [...mockBills],
-  settlements: [...mockSettlements],
+  invoices: mockInvoices.map((d) => withSeedJournal(d)),
+  bills: mockBills.map((d) => withSeedJournal(d)),
+  settlements: mockSettlements.map((d) => withSeedJournal(d)),
   paymentRuns: [...mockPaymentRuns],
   whtCertificates: [...mockWhtCertificates],
   contacts: [...mockContacts],
@@ -78,8 +95,26 @@ export const createDocumentsSlice: StateCreator<any, [], [], DocumentsSlice> = (
   saveInvoiceDraft: (data, actor) => {
     const state = get();
     const id = data.id || `inv-${Date.now()}`;
-    const prefix = state.currentCompany?.settings?.numbering.invoice_prefix || 'INV-';
-    const num = data.number || `DRAFT-${String(state.sequences.invoice || 44).padStart(4, '0')}`;
+    const existing = state.invoices.find((i: Invoice) => i.id === id);
+
+    // 0.11 Optimistic locking
+    if (
+      existing &&
+      data.version !== undefined &&
+      existing.version !== undefined &&
+      data.version < existing.version
+    ) {
+      throw new PostingError(
+        'Version conflict: invoice draft was modified in another tab.',
+        'version_conflict',
+        409,
+        [{ code: 'version_conflict', message: 'Version conflict: invoice draft was modified in another tab.' }]
+      );
+    }
+
+    const nextVersion = (existing?.version || 0) + 1;
+    // 0.10: Drafts have no number
+    const num = data.status === 'draft' || !data.number ? null : data.number;
 
     const newInv: Invoice = {
       id,
@@ -104,8 +139,9 @@ export const createDocumentsSlice: StateCreator<any, [], [], DocumentsSlice> = (
       total: data.total || 0,
       settled_fc: 0,
       settled: 0,
-      created_by: actor.id,
-      created_at: new Date().toISOString(),
+      created_by: existing?.created_by || actor.id,
+      version: nextVersion,
+      created_at: existing?.created_at || new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
 
@@ -158,10 +194,10 @@ export const createDocumentsSlice: StateCreator<any, [], [], DocumentsSlice> = (
     }
     state.resetFailedPin(approver.id);
 
-    // Assign final gapless number
-    const seq = state.sequences.invoice || 44;
-    const padding = settings.numbering.padding || 4;
-    const finalNumber = `INV-2026-${String(seq).padStart(padding, '0')}`;
+    // Assign final gapless number (0.10: INV-FY2026-00001)
+    const seq = state.sequences.invoice || 1;
+    const padding = settings.numbering?.padding || 5;
+    const finalNumber = `INV-FY2026-${String(seq).padStart(padding, '0')}`;
 
     const now = new Date().toISOString();
     const prevAuditHash = state.auditEvents?.[0]?.hash || '0000000000000000000000000000000000000000000000000000000000000000';
@@ -176,6 +212,7 @@ export const createDocumentsSlice: StateCreator<any, [], [], DocumentsSlice> = (
       signed_at: now,
       signature_hash: sigHash,
       posted_at: now,
+      version: (inv.version || 0) + 1,
       updated_at: now,
     };
 
@@ -235,16 +272,232 @@ export const createDocumentsSlice: StateCreator<any, [], [], DocumentsSlice> = (
     return updated;
   },
 
+  reverseInvoice: (invoiceId, reason, actorOrPin, maybeSettings, maybePin) => {
+    const state = get();
+    const inv = state.invoices.find((i: Invoice) => i.id === invoiceId);
+    if (!inv) throw new PostingError('Invoice not found');
+    if (inv.status !== 'posted') throw new PostingError(`Cannot reverse invoice in status '${inv.status}'`);
+    if (inv.reversed_by_id) throw new PostingError('Invoice has already been reversed');
+
+    const actor =
+      actorOrPin && typeof actorOrPin === 'object' && 'signingPin' in actorOrPin
+        ? actorOrPin
+        : state.currentUser;
+    const settings =
+      maybeSettings && typeof maybeSettings === 'object' && 'numbering' in maybeSettings
+        ? maybeSettings
+        : state.companySettings;
+    const pin = typeof actorOrPin === 'string' ? actorOrPin : maybePin;
+
+    if (pin && actor.signingPin && actor.signingPin !== pin) {
+      throw new PostingError('Invalid signing PIN', 'INVALID_PIN');
+    }
+
+    // Reverse associated journal in general ledger to restore Trial Balance
+    let targetJournal = inv.journal_id ? state.journals.find((j: Journal) => j.id === inv.journal_id) : null;
+    if (!targetJournal) {
+      targetJournal = state.journals.find(
+        (j: Journal) =>
+          (j.reference?.includes(inv.number || '') || j.memo?.includes(inv.number || '')) &&
+          j.status === 'posted' &&
+          !j.reversed_by_id
+      );
+    }
+
+    if (targetJournal && targetJournal.status === 'posted' && !targetJournal.reversed_by_id) {
+      state.reverseJournal(targetJournal.id, reason, actor, settings, state.auditEvents?.[0]);
+    } else {
+      const revLines = [
+        {
+          id: `jl-rev-ar-${Date.now()}`,
+          line_no: 1,
+          account_id: 'acc-1200',
+          description: `Reversal of ${inv.number}`,
+          debit: 0,
+          credit: inv.total,
+        },
+        {
+          id: `jl-rev-rev-${Date.now()}`,
+          line_no: 2,
+          account_id: 'acc-4000',
+          description: `Reversal of ${inv.number}`,
+          debit: inv.subtotal,
+          credit: 0,
+        },
+        ...(inv.tax_total > 0
+          ? [
+              {
+                id: `jl-rev-vat-${Date.now()}`,
+                line_no: 3,
+                account_id: 'acc-2100',
+                description: `Reversal of ${inv.number}`,
+                debit: inv.tax_total,
+                credit: 0,
+              },
+            ]
+          : []),
+      ];
+      const jDraft = {
+        journal_date: new Date().toISOString().split('T')[0],
+        fiscal_period_id: state.currentPeriod?.id || 'per-2026-10',
+        source_type: 'sales_invoice',
+        reference: `REV-${inv.number}`,
+        memo: `Reversal of ${inv.number}: ${reason}`,
+        lines: revLines,
+      };
+      state.postJournalDirect(jDraft, actor, settings, state.auditEvents?.[0]);
+    }
+
+    const seq = state.sequences.invoice || 44;
+    const padding = settings.numbering?.padding || 4;
+    const revNumber = `REV-INV-2026-${String(seq).padStart(padding, '0')}`;
+    const now = new Date().toISOString();
+
+    const revInvoice: Invoice = {
+      ...inv,
+      id: `inv-rev-${Date.now()}`,
+      number: revNumber,
+      status: 'posted',
+      reversal_of_id: inv.id,
+      reference: `Reversal of ${inv.number}: ${reason}`,
+      memo: `Reversal of ${inv.number}. Reason: ${reason}`,
+      created_by: actor.id,
+      approved_by: actor.id,
+      created_at: now,
+      updated_at: now,
+      total: -inv.total,
+      total_fc: -inv.total_fc,
+      subtotal: -inv.subtotal,
+      subtotal_fc: -inv.subtotal_fc,
+      tax_total: -inv.tax_total,
+      tax_total_fc: -inv.tax_total_fc,
+      lines: inv.lines.map((l: InvoiceLine) => ({
+        ...l,
+        id: `line-rev-${Date.now()}-${l.line_no}`,
+        line_total_fc: -l.line_total_fc,
+        tax_amount_fc: -l.tax_amount_fc,
+        quantity: -l.quantity,
+      })),
+    };
+
+    const updatedTarget: Invoice = {
+      ...inv,
+      status: 'reversed',
+      reversed_by_id: revInvoice.id,
+      updated_at: now,
+    };
+
+    set((s: any) => ({
+      invoices: [revInvoice, ...s.invoices.map((i: Invoice) => (i.id === inv.id ? updatedTarget : i))],
+      sequences: { ...s.sequences, invoice: seq + 1 },
+      linesVersion: (s.linesVersion || 1) + 1,
+    }));
+
+    return { original: updatedTarget, reversal: revInvoice };
+  },
+
+  duplicateInvoice: (invoiceId, actor) => {
+    const state = get();
+    const inv = state.invoices.find((i: Invoice) => i.id === invoiceId);
+    if (!inv) throw new PostingError('Invoice not found');
+    const seq = state.sequences.invoice || 44;
+    const newInv: Invoice = {
+      ...inv,
+      id: `inv-dup-${Date.now()}`,
+      number: `DRAFT-${String(seq).padStart(4, '0')}`,
+      status: 'draft',
+      issue_date: new Date().toISOString().split('T')[0],
+      due_date: new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0],
+      reference: `Copy of ${inv.number || 'Draft'}`,
+      created_by: actor.id,
+      submitted_by: undefined,
+      approved_by: undefined,
+      signed_by: undefined,
+      signed_at: undefined,
+      signature_hash: undefined,
+      posted_at: undefined,
+      reversed_by_id: undefined,
+      reversal_of_id: undefined,
+      journal_id: undefined,
+      settled: 0,
+      settled_fc: 0,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    set((s: any) => ({
+      invoices: [newInv, ...s.invoices],
+      sequences: { ...s.sequences, invoice: seq + 1 },
+    }));
+    return newInv;
+  },
+
+  createCreditNoteFromInvoice: (invoiceId, actor) => {
+    const state = get();
+    const inv = state.invoices.find((i: Invoice) => i.id === invoiceId);
+    if (!inv) throw new PostingError('Invoice not found');
+    const seq = state.sequences.invoice || 44;
+    const cn: Invoice = {
+      ...inv,
+      id: `cn-${Date.now()}`,
+      kind: 'credit_note',
+      number: `CN-DRAFT-${String(seq).padStart(4, '0')}`,
+      status: 'draft',
+      related_invoice_id: inv.id,
+      issue_date: new Date().toISOString().split('T')[0],
+      due_date: new Date().toISOString().split('T')[0],
+      reference: `Credit Note against ${inv.number || 'Invoice'}`,
+      memo: `Credit Note referencing ${inv.number || 'Invoice'}`,
+      created_by: actor.id,
+      submitted_by: undefined,
+      approved_by: undefined,
+      signed_by: undefined,
+      signed_at: undefined,
+      signature_hash: undefined,
+      posted_at: undefined,
+      reversed_by_id: undefined,
+      reversal_of_id: undefined,
+      journal_id: undefined,
+      settled: 0,
+      settled_fc: 0,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    set((s: any) => ({
+      invoices: [cn, ...s.invoices],
+      sequences: { ...s.sequences, invoice: seq + 1 },
+    }));
+    return cn;
+  },
+
   saveBillDraft: (data, actor) => {
     const state = get();
     const id = data.id || `bill-${Date.now()}`;
-    const num = data.number || `DRAFT-BILL-${String(state.sequences.bill || 16).padStart(4, '0')}`;
+    const existing = state.bills.find((b: Bill) => b.id === id);
+
+    // 0.11 Optimistic locking
+    if (
+      existing &&
+      data.version !== undefined &&
+      existing.version !== undefined &&
+      data.version < existing.version
+    ) {
+      throw new PostingError(
+        'Version conflict: bill draft was modified in another tab.',
+        'version_conflict',
+        409,
+        [{ code: 'version_conflict', message: 'Version conflict: bill draft was modified in another tab.' }]
+      );
+    }
+
+    const nextVersion = (existing?.version || 0) + 1;
+    // 0.10: Drafts have no number
+    const num = data.status === 'draft' || !data.number ? null : data.number;
 
     const newBill: Bill = {
       id,
       tenant_id: 'ten-acme',
       company_id: state.currentCompany?.id || 'co-1',
-      kind: 'purchase_bill',
+      kind: data.kind || 'purchase_bill',
       number: num,
       status: data.status || 'draft',
       contact_id: data.contact_id || '',
@@ -265,8 +518,9 @@ export const createDocumentsSlice: StateCreator<any, [], [], DocumentsSlice> = (
       settled: 0,
       wht_code_id: data.wht_code_id,
       wht_amount_fc: data.wht_amount_fc || 0,
-      created_by: actor.id,
-      created_at: new Date().toISOString(),
+      created_by: existing?.created_by || actor.id,
+      version: nextVersion,
+      created_at: existing?.created_at || new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
 
@@ -317,9 +571,10 @@ export const createDocumentsSlice: StateCreator<any, [], [], DocumentsSlice> = (
     }
     state.resetFailedPin(approver.id);
 
-    const seq = state.sequences.bill || 16;
-    const padding = settings.numbering.padding || 4;
-    const finalNumber = `BILL-2026-${String(seq).padStart(padding, '0')}`;
+    // Assign final gapless number (0.10: BILL-FY2026-00001)
+    const seq = state.sequences.bill || 1;
+    const padding = settings.numbering?.padding || 5;
+    const finalNumber = `BILL-FY2026-${String(seq).padStart(padding, '0')}`;
 
     const now = new Date().toISOString();
     const prevAuditHash = state.auditEvents?.[0]?.hash || '0000000000000000000000000000000000000000000000000000000000000000';
@@ -334,6 +589,7 @@ export const createDocumentsSlice: StateCreator<any, [], [], DocumentsSlice> = (
       signed_at: now,
       signature_hash: sigHash,
       posted_at: now,
+      version: (bill.version || 0) + 1,
       updated_at: now,
     };
 
@@ -369,11 +625,249 @@ export const createDocumentsSlice: StateCreator<any, [], [], DocumentsSlice> = (
     return updated;
   },
 
+  reverseBill: (billId, reason, actorOrPin, maybeSettings, maybePin) => {
+    const state = get();
+    const bill = state.bills.find((b: Bill) => b.id === billId);
+    if (!bill) throw new PostingError('Bill not found');
+    if (bill.status !== 'posted') throw new PostingError(`Cannot reverse bill in status '${bill.status}'`);
+    if (bill.reversed_by_id) throw new PostingError('Bill has already been reversed');
+
+    const actor =
+      actorOrPin && typeof actorOrPin === 'object' && 'signingPin' in actorOrPin
+        ? actorOrPin
+        : state.currentUser;
+    const settings =
+      maybeSettings && typeof maybeSettings === 'object' && 'numbering' in maybeSettings
+        ? maybeSettings
+        : state.companySettings;
+    const pin = typeof actorOrPin === 'string' ? actorOrPin : maybePin;
+
+    if (pin && actor.signingPin && actor.signingPin !== pin) {
+      throw new PostingError('Invalid signing PIN', 'INVALID_PIN');
+    }
+
+    let targetJournal = bill.journal_id ? state.journals.find((j: Journal) => j.id === bill.journal_id) : null;
+    if (!targetJournal) {
+      targetJournal = state.journals.find(
+        (j: Journal) =>
+          (j.reference?.includes(bill.number || '') || j.memo?.includes(bill.number || '')) &&
+          j.status === 'posted' &&
+          !j.reversed_by_id
+      );
+    }
+
+    if (targetJournal && targetJournal.status === 'posted' && !targetJournal.reversed_by_id) {
+      state.reverseJournal(targetJournal.id, reason, actor, settings, state.auditEvents?.[0]);
+    } else {
+      const revLines = [
+        {
+          id: `jl-rev-ap-${Date.now()}`,
+          line_no: 1,
+          account_id: 'acc-2000',
+          description: `Reversal of ${bill.number}`,
+          debit: bill.total,
+          credit: 0,
+        },
+        {
+          id: `jl-rev-exp-${Date.now()}`,
+          line_no: 2,
+          account_id: 'acc-5000',
+          description: `Reversal of ${bill.number}`,
+          debit: 0,
+          credit: bill.subtotal,
+        },
+        ...(bill.tax_total > 0
+          ? [
+              {
+                id: `jl-rev-vat-in-${Date.now()}`,
+                line_no: 3,
+                account_id: 'acc-1300',
+                description: `Reversal of ${bill.number}`,
+                debit: 0,
+                credit: bill.tax_total,
+              },
+            ]
+          : []),
+      ];
+      const jDraft = {
+        journal_date: new Date().toISOString().split('T')[0],
+        fiscal_period_id: state.currentPeriod?.id || 'per-2026-10',
+        source_type: 'purchase_bill',
+        reference: `REV-${bill.number}`,
+        memo: `Reversal of ${bill.number}: ${reason}`,
+        lines: revLines,
+      };
+      state.postJournalDirect(jDraft, actor, settings, state.auditEvents?.[0]);
+    }
+
+    const seq = state.sequences.bill || 16;
+    const padding = settings.numbering?.padding || 4;
+    const revNumber = `REV-BILL-2026-${String(seq).padStart(padding, '0')}`;
+    const now = new Date().toISOString();
+
+    const revBill: Bill = {
+      ...bill,
+      id: `bill-rev-${Date.now()}`,
+      number: revNumber,
+      status: 'posted',
+      reversal_of_id: bill.id,
+      reference: `Reversal of ${bill.number}: ${reason}`,
+      memo: `Reversal of ${bill.number}. Reason: ${reason}`,
+      created_by: actor.id,
+      approved_by: actor.id,
+      created_at: now,
+      updated_at: now,
+      total: -bill.total,
+      total_fc: -bill.total_fc,
+      subtotal: -bill.subtotal,
+      subtotal_fc: -bill.subtotal_fc,
+      tax_total: -bill.tax_total,
+      tax_total_fc: -bill.tax_total_fc,
+      lines: bill.lines.map((l: InvoiceLine) => ({
+        ...l,
+        id: `line-rev-${Date.now()}-${l.line_no}`,
+        line_total_fc: -l.line_total_fc,
+        tax_amount_fc: -l.tax_amount_fc,
+        quantity: -l.quantity,
+      })),
+    };
+
+    const updatedTarget: Bill = {
+      ...bill,
+      status: 'reversed',
+      reversed_by_id: revBill.id,
+      updated_at: now,
+    };
+
+    set((s: any) => ({
+      bills: [revBill, ...s.bills.map((b: Bill) => (b.id === bill.id ? updatedTarget : b))],
+      sequences: { ...s.sequences, bill: seq + 1 },
+      linesVersion: (s.linesVersion || 1) + 1,
+    }));
+
+    return { original: updatedTarget, reversal: revBill };
+  },
+
+  duplicateBill: (billId, actor) => {
+    const state = get();
+    const bill = state.bills.find((b: Bill) => b.id === billId);
+    if (!bill) throw new PostingError('Bill not found');
+    const seq = state.sequences.bill || 16;
+    const newBill: Bill = {
+      ...bill,
+      id: `bill-dup-${Date.now()}`,
+      number: `DRAFT-BILL-${String(seq).padStart(4, '0')}`,
+      status: 'draft',
+      issue_date: new Date().toISOString().split('T')[0],
+      due_date: new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0],
+      reference: `Copy of ${bill.number || 'Draft'}`,
+      created_by: actor.id,
+      submitted_by: undefined,
+      approved_by: undefined,
+      signed_by: undefined,
+      signed_at: undefined,
+      signature_hash: undefined,
+      posted_at: undefined,
+      reversed_by_id: undefined,
+      reversal_of_id: undefined,
+      journal_id: undefined,
+      settled: 0,
+      settled_fc: 0,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    set((s: any) => ({
+      bills: [newBill, ...s.bills],
+      sequences: { ...s.sequences, bill: seq + 1 },
+    }));
+    return newBill;
+  },
+
+  createDebitNoteFromBill: (billId, actor) => {
+    const state = get();
+    const bill = state.bills.find((b: Bill) => b.id === billId);
+    if (!bill) throw new PostingError('Bill not found');
+    const seq = state.sequences.bill || 16;
+    const dn: Bill = {
+      ...bill,
+      id: `dn-${Date.now()}`,
+      kind: 'debit_note',
+      number: `DN-DRAFT-${String(seq).padStart(4, '0')}`,
+      status: 'draft',
+      related_invoice_id: bill.id,
+      issue_date: new Date().toISOString().split('T')[0],
+      due_date: new Date().toISOString().split('T')[0],
+      reference: `Debit Note against ${bill.number || 'Bill'}`,
+      memo: `Debit Note referencing ${bill.number || 'Bill'}`,
+      created_by: actor.id,
+      submitted_by: undefined,
+      approved_by: undefined,
+      signed_by: undefined,
+      signed_at: undefined,
+      signature_hash: undefined,
+      posted_at: undefined,
+      reversed_by_id: undefined,
+      reversal_of_id: undefined,
+      journal_id: undefined,
+      settled: 0,
+      settled_fc: 0,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    set((s: any) => ({
+      bills: [dn, ...s.bills],
+      sequences: { ...s.sequences, bill: seq + 1 },
+    }));
+    return dn;
+  },
+
   recordReceipt: (data, actor, settings) => {
     const state = get();
-    const seq = state.sequences.receipt || 17;
-    const padding = settings.numbering.padding || 4;
-    const num = `RCT-2026-${String(seq).padStart(padding, '0')}`;
+    const seq = state.sequences.receipt || 1;
+    const padding = settings.numbering?.padding || 5;
+    const num = `RCT-FY2026-${String(seq).padStart(padding, '0')}`;
+
+    // 0.8 Currency check: Receipt currency must equal invoice currency
+    for (const alloc of data.allocations || []) {
+      const inv = state.invoices.find((i: Invoice) => i.id === alloc.invoice_id);
+      if (inv && data.currency && inv.currency && data.currency !== inv.currency) {
+        throw new PostingError(
+          `Allocation currency mismatch: receipt is in ${data.currency} but invoice ${inv.number} is in ${inv.currency}.`,
+          'allocation_currency_mismatch',
+          422,
+          [
+            {
+              code: 'allocation_currency_mismatch',
+              message: `Allocation currency mismatch: receipt is in ${data.currency} but invoice ${inv.number} is in ${inv.currency}.`,
+            },
+          ]
+        );
+      }
+    }
+
+    // Process allocations with Realised FX (0.8, D4)
+    const processedAllocations = (data.allocations || []).map((alloc) => {
+      const inv = state.invoices.find((i: Invoice) => i.id === alloc.invoice_id);
+      const invoiceRate = inv?.fx_rate || 1.0;
+      const settlementRate = data.fx_rate || 1.0;
+      const allocFc = alloc.allocated_amount_fc || 0;
+
+      // Settlement gain/loss = round(alloc_fc * settlement_rate) - round(alloc_fc * invoice_rate)
+      const fxGainLoss =
+        roundHalfUp(allocFc * settlementRate) - roundHalfUp(allocFc * invoiceRate);
+
+      // Final allocation that fully settles uses remaining base
+      let allocBase = roundHalfUp(allocFc * invoiceRate);
+      if (inv && inv.settled_fc + allocFc >= inv.total_fc) {
+        allocBase = inv.total - inv.settled;
+      }
+
+      return {
+        ...alloc,
+        allocated_amount_base: allocBase,
+        fx_gain_loss: fxGainLoss,
+      };
+    });
 
     const settlement: Settlement = {
       id: `rct-${Date.now()}`,
@@ -392,7 +886,7 @@ export const createDocumentsSlice: StateCreator<any, [], [], DocumentsSlice> = (
       unallocated_fc: data.unallocated_fc || 0,
       reference: data.reference || '',
       memo: data.memo || '',
-      allocations: data.allocations || [],
+      allocations: processedAllocations,
       created_by: actor.id,
       posted_at: new Date().toISOString(),
       created_at: new Date().toISOString(),
@@ -412,7 +906,13 @@ export const createDocumentsSlice: StateCreator<any, [], [], DocumentsSlice> = (
     const bnk = state.bankAccounts.find((b: any) => b.id === settlement.bank_account_id);
     const bankGlAccountId = bnk?.account_id || settings.posting_accounts.bank_clearing;
 
-    const jDraft = buildJournalFromSettlement(settlement, bankGlAccountId, settings, state.currentPeriod?.id || 'per-2026-10', actor);
+    const jDraft = buildJournalFromSettlement(
+      settlement,
+      bankGlAccountId,
+      settings,
+      state.currentPeriod?.id || 'per-2026-10',
+      actor
+    );
     const { journal } = state.postJournalDirect(jDraft, actor, settings, state.auditEvents?.[0]);
     settlement.journal_id = journal.id;
 
@@ -427,9 +927,51 @@ export const createDocumentsSlice: StateCreator<any, [], [], DocumentsSlice> = (
 
   recordPayment: (data, actor, settings) => {
     const state = get();
-    const seq = state.sequences.payment || 11;
-    const padding = settings.numbering.padding || 4;
-    const num = `PMT-2026-${String(seq).padStart(padding, '0')}`;
+    const seq = state.sequences.payment || 1;
+    const padding = settings.numbering?.padding || 5;
+    const num = `PMT-FY2026-${String(seq).padStart(padding, '0')}`;
+
+    // 0.8 Currency check: Payment currency must equal bill currency
+    for (const alloc of data.allocations || []) {
+      const bill = state.bills.find((b: Bill) => b.id === alloc.invoice_id);
+      if (bill && data.currency && bill.currency && data.currency !== bill.currency) {
+        throw new PostingError(
+          `Allocation currency mismatch: payment is in ${data.currency} but bill ${bill.number} is in ${bill.currency}.`,
+          'allocation_currency_mismatch',
+          422,
+          [
+            {
+              code: 'allocation_currency_mismatch',
+              message: `Allocation currency mismatch: payment is in ${data.currency} but bill ${bill.number} is in ${bill.currency}.`,
+            },
+          ]
+        );
+      }
+    }
+
+    // Process allocations with Realised FX (0.8, D4)
+    const processedAllocations = (data.allocations || []).map((alloc) => {
+      const bill = state.bills.find((b: Bill) => b.id === alloc.invoice_id);
+      const billRate = bill?.fx_rate || 1.0;
+      const settlementRate = data.fx_rate || 1.0;
+      const allocFc = alloc.allocated_amount_fc || 0;
+
+      // Settlement gain/loss = round(alloc_fc * settlement_rate) - round(alloc_fc * invoice_rate)
+      const fxGainLoss =
+        roundHalfUp(allocFc * settlementRate) - roundHalfUp(allocFc * billRate);
+
+      // Final allocation that fully settles uses remaining base
+      let allocBase = roundHalfUp(allocFc * billRate);
+      if (bill && bill.settled_fc + allocFc >= bill.total_fc) {
+        allocBase = bill.total - bill.settled;
+      }
+
+      return {
+        ...alloc,
+        allocated_amount_base: allocBase,
+        fx_gain_loss: fxGainLoss,
+      };
+    });
 
     const settlement: Settlement = {
       id: `pmt-${Date.now()}`,
@@ -448,7 +990,7 @@ export const createDocumentsSlice: StateCreator<any, [], [], DocumentsSlice> = (
       unallocated_fc: data.unallocated_fc || 0,
       reference: data.reference || '',
       memo: data.memo || '',
-      allocations: data.allocations || [],
+      allocations: processedAllocations,
       created_by: actor.id,
       posted_at: new Date().toISOString(),
       created_at: new Date().toISOString(),
@@ -468,7 +1010,13 @@ export const createDocumentsSlice: StateCreator<any, [], [], DocumentsSlice> = (
     const bnk = state.bankAccounts.find((b: any) => b.id === settlement.bank_account_id);
     const bankGlAccountId = bnk?.account_id || settings.posting_accounts.bank_clearing;
 
-    const jDraft = buildJournalFromSettlement(settlement, bankGlAccountId, settings, state.currentPeriod?.id || 'per-2026-10', actor);
+    const jDraft = buildJournalFromSettlement(
+      settlement,
+      bankGlAccountId,
+      settings,
+      state.currentPeriod?.id || 'per-2026-10',
+      actor
+    );
     const { journal } = state.postJournalDirect(jDraft, actor, settings, state.auditEvents?.[0]);
     settlement.journal_id = journal.id;
 

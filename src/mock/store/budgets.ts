@@ -21,7 +21,8 @@ export interface BudgetsSlice {
   budgets: Budget[];
 
   updateBudgetAmount: (budgetId: string, accountId: string, periodId: string, amount: number) => void;
-  getBudgetVsActual: (budgetId: string, periodId?: string) => BudgetVsActualRow[];
+  /** month: the period's movement vs its budget line; ytd: balance to period end vs budget summed from FY start. */
+  getBudgetVsActual: (budgetId: string, periodId?: string, basis?: 'month' | 'ytd') => BudgetVsActualRow[];
 }
 
 export const createBudgetsSlice: StateCreator<any, [], [], BudgetsSlice> = (set, get) => ({
@@ -40,7 +41,7 @@ export const createBudgetsSlice: StateCreator<any, [], [], BudgetsSlice> = (set,
     }));
   },
 
-  getBudgetVsActual: (budgetId, periodId) => {
+  getBudgetVsActual: (budgetId, periodId, basis = 'month') => {
     const state = get();
     const budget = state.budgets.find((b: Budget) => b.id === budgetId);
     if (!budget) return [];
@@ -48,6 +49,13 @@ export const createBudgetsSlice: StateCreator<any, [], [], BudgetsSlice> = (set,
     const targetPeriodId = periodId || state.currentPeriod?.id || 'per-2026-10';
     const period = state.periods.find((p: any) => p.id === targetPeriodId);
     const dateTo = period ? period.ends_on : undefined;
+    // Start of the comparison window: previous regular period's end (month) or nothing (ytd).
+    const prevPeriod = period
+      ? state.periods
+          .filter((p: any) => p.kind !== 'adjustment' && p.ends_on < period.starts_on)
+          .sort((a: any, b: any) => b.ends_on.localeCompare(a.ends_on))[0]
+      : undefined;
+    const dateFrom = basis === 'month' && prevPeriod ? prevPeriod.ends_on : undefined;
 
     const rows: BudgetVsActualRow[] = [];
     const accounts = state.accounts.filter(
@@ -55,11 +63,14 @@ export const createBudgetsSlice: StateCreator<any, [], [], BudgetsSlice> = (set,
     );
 
     for (const acc of accounts) {
-      const budgetLine = budget.lines.find(
-        (l: any) => l.account_id === acc.id && l.period_id === targetPeriodId
-      );
-      const budgetAmount = budgetLine?.amount || 0;
-      const actualAmount = state.balanceOf(acc.id, dateTo);
+      const budgetAmount = budget.lines
+        .filter((l: any) =>
+          l.account_id === acc.id &&
+          (basis === 'month' ? l.period_id === targetPeriodId : l.period_id <= targetPeriodId)
+        )
+        .reduce((t: number, l: any) => t + (l.amount || 0), 0);
+      const actualAmount =
+        state.balanceOf(acc.id, dateTo) - (dateFrom ? state.balanceOf(acc.id, dateFrom) : 0);
       const variance = actualAmount - budgetAmount;
       const variancePct = budgetAmount !== 0 ? (variance / budgetAmount) * 100 : 0;
 

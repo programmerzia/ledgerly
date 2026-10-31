@@ -4,6 +4,7 @@
  * reduce over posted journal lines dynamically with a linesVersion memoisation counter.
  */
 
+import { seedJournals } from '@/mock/seedLedger';
 import { StateCreator } from 'zustand';
 import {
   Account,
@@ -25,7 +26,6 @@ import {
   mockTaxCodes,
   mockFiscalYear2026,
   mockCloseChecks,
-  mockJournals,
 } from '@/mock/data';
 import { executePostJournal, PostingError, PostingContext } from '@/mock/PostingRules';
 
@@ -74,7 +74,7 @@ export interface LedgerSlice {
 
   // Actions
   postJournalDirect: (
-    draft: Omit<Journal, 'id' | 'number' | 'status' | 'posted_at' | 'posted_by'> & { id?: string },
+    draft: any,
     actor: User,
     settings: CompanySettings,
     lastAuditEvent?: AuditEvent
@@ -85,8 +85,12 @@ export interface LedgerSlice {
     reason: string,
     actor: User,
     settings: CompanySettings,
-    lastAuditEvent?: AuditEvent
+    lastAuditEvent?: AuditEvent,
+    overrideDate?: string
   ) => { reversalJournal: Journal; auditEvent: AuditEvent };
+
+  saveJournalDraft: (data: Partial<Journal>, actor: User) => Journal;
+  duplicateJournal: (journalId: string) => Journal;
 
   closePeriod: (periodId: string, actor: User, settings: CompanySettings, lastAuditEvent?: AuditEvent) => AuditEvent;
   requestReopenPeriod: (periodId: string, reason: string, actor: User) => PeriodReopenRequest;
@@ -102,8 +106,8 @@ export const createLedgerSlice: StateCreator<any, [], [], LedgerSlice> = (set, g
   fiscalYears: [{ ...mockFiscalYear2026 }],
   fiscalYear: { ...mockFiscalYear2026 },
   periods: [...mockFiscalYear2026.periods],
-  journals: [...mockJournals],
-  sequences: { journal: 103, invoice: 43, bill: 16, receipt: 17, payment: 11 },
+  journals: [...seedJournals],
+  sequences: { journal: 1, invoice: 1, bill: 1, receipt: 1, payment: 1 },
   linesVersion: 1,
   closeChecks: [...mockCloseChecks],
   reopenRequests: [],
@@ -347,12 +351,91 @@ export const createLedgerSlice: StateCreator<any, [], [], LedgerSlice> = (set, g
     return { journal, auditEvent };
   },
 
-  reverseJournal: (journalId, reason, actor, settings, lastAuditEvent) => {
+  reverseJournal: (
+    journalId: string,
+    reasonOrActor: any,
+    actorOrSettings?: any,
+    settingsOrDate?: any,
+    lastAuditEvent?: any,
+    overrideDate?: any
+  ) => {
+    let reason = 'Accounting correction / reversal';
+    let actor: User;
+    let settings: CompanySettings;
+    let effectiveOverrideDate: string | undefined;
+
+    if (typeof reasonOrActor === 'string') {
+      reason = reasonOrActor;
+      actor = actorOrSettings;
+      settings = settingsOrDate;
+      effectiveOverrideDate = overrideDate;
+    } else {
+      actor = reasonOrActor;
+      settings = actorOrSettings;
+      effectiveOverrideDate = typeof settingsOrDate === 'string' ? settingsOrDate : overrideDate;
+    }
+
     const state = get();
     const target = state.journals.find((j: Journal) => j.id === journalId);
-    if (!target) throw new PostingError(`Journal '${journalId}' not found.`);
-    if (target.status !== 'posted') throw new PostingError(`Cannot reverse journal in status '${target.status}'.`);
-    if (target.reversed_by_id) throw new PostingError(`Journal has already been reversed.`);
+    if (!target) throw new PostingError(`Journal '${journalId}' not found.`, 'JOURNAL_NOT_FOUND', 404);
+    if (target.status !== 'posted') throw new PostingError(`Cannot reverse journal in status '${target.status}'.`, 'INVALID_STATUS', 422);
+    if (target.reversed_by_id) throw new PostingError(`Journal has already been reversed.`, 'ALREADY_REVERSED', 422);
+
+    // Rule 0.7 (D3): Reversal date & period resolution
+    const targetPeriod = state.periods.find((p: FiscalPeriod) => p.id === target.fiscal_period_id);
+    const canPostTargetPeriod =
+      targetPeriod &&
+      (targetPeriod.status === 'open' ||
+        (targetPeriod.status === 'soft_closed' &&
+          (actor?.role === 'owner' ||
+            actor?.role === 'finance_manager' ||
+            actor?.permissions?.includes('periods.post_soft_closed'))));
+
+    let defaultReversalDate: string;
+    let targetPeriodId: string;
+
+    if (target.journal_type === 'closing' || target.journal_type === 'adjustment') {
+      // Reversing a closing/adjustment journal stays in the adjustment period (0.9, D7)
+      const adjPeriod =
+        state.periods.find((p: FiscalPeriod) => p.kind === 'adjustment') ||
+        state.periods.find((p: FiscalPeriod) => p.id === 'per-2026-adj');
+      defaultReversalDate = target.journal_date;
+      targetPeriodId = adjPeriod?.id || target.fiscal_period_id;
+    } else if (canPostTargetPeriod) {
+      defaultReversalDate = target.journal_date;
+      targetPeriodId = target.fiscal_period_id;
+    } else {
+      // First day of next open period
+      const nextOpen = state.periods.find((p: FiscalPeriod) => {
+        if (p.id === target.fiscal_period_id || p.kind === 'adjustment') return false;
+        const isOpen =
+          p.status === 'open' ||
+          (p.status === 'soft_closed' &&
+            (actor?.role === 'owner' ||
+              actor?.role === 'finance_manager' ||
+              actor?.permissions?.includes('periods.post_soft_closed')));
+        return isOpen && p.starts_on >= target.journal_date;
+      });
+      defaultReversalDate = nextOpen ? nextOpen.starts_on : target.journal_date;
+      targetPeriodId = nextOpen ? nextOpen.id : target.fiscal_period_id;
+    }
+
+    const reversalDate = effectiveOverrideDate || defaultReversalDate;
+
+    // Check 0.7: Reversal dated before original rejected
+    if (reversalDate < target.journal_date) {
+      throw new PostingError(
+        `Reversal date (${reversalDate}) cannot be earlier than original journal date (${target.journal_date}).`,
+        'reversal_before_original',
+        422,
+        [
+          {
+            code: 'reversal_before_original',
+            message: `Reversal date (${reversalDate}) cannot be earlier than original journal date (${target.journal_date}).`,
+          },
+        ]
+      );
+    }
 
     // Invert lines: debits become credits, credits become debits
     const invertedLines: JournalLine[] = target.lines.map((l: JournalLine, idx: number) => ({
@@ -364,12 +447,17 @@ export const createLedgerSlice: StateCreator<any, [], [], LedgerSlice> = (set, g
       description: `Reversal: ${l.description} (${reason})`,
     }));
 
+    const revType =
+      target.journal_type === 'closing' || target.journal_type === 'adjustment'
+        ? target.journal_type
+        : 'reversal';
+
     const reversalDraft: Omit<Journal, 'id' | 'number' | 'status' | 'posted_at' | 'posted_by'> = {
       tenant_id: target.tenant_id,
       company_id: target.company_id,
-      fiscal_period_id: state.currentPeriod?.id || target.fiscal_period_id,
-      journal_type: 'reversal',
-      journal_date: new Date().toISOString().split('T')[0],
+      fiscal_period_id: targetPeriodId,
+      journal_type: revType,
+      journal_date: reversalDate,
       reference: `REV-${target.number}`,
       memo: `Reversal of ${target.number}: ${reason}`,
       source_type: 'reversal',
@@ -393,6 +481,7 @@ export const createLedgerSlice: StateCreator<any, [], [], LedgerSlice> = (set, g
     });
 
     revJournal.reversal_of_id = target.id;
+    (revJournal as any).reverses_id = target.id;
 
     // Update target journal to link reversal
     set((s: any) => ({
@@ -408,7 +497,88 @@ export const createLedgerSlice: StateCreator<any, [], [], LedgerSlice> = (set, g
       auditEvents: [auditEvent, ...(s.auditEvents || [])],
     }));
 
-    return { reversalJournal: revJournal, auditEvent };
+    return Object.assign(revJournal, { reversalJournal: revJournal, auditEvent }) as any;
+  },
+
+  saveJournalDraft: (data, actor) => {
+    const state = get();
+    const id = data.id || `jnl-${Date.now()}`;
+    const existing = state.journals.find((j: Journal) => j.id === id);
+
+    // 0.11 Optimistic locking
+    if (
+      existing &&
+      data.version !== undefined &&
+      existing.version !== undefined &&
+      data.version < existing.version
+    ) {
+      throw new PostingError(
+        'Version conflict: journal draft was modified in another tab.',
+        'version_conflict',
+        409,
+        [{ code: 'version_conflict', message: 'Version conflict: journal draft was modified in another tab.' }]
+      );
+    }
+
+    const nextVersion = (existing?.version || 0) + 1;
+    const now = new Date().toISOString();
+
+    const draft: Journal = {
+      id,
+      tenant_id: data.tenant_id || 'ten-acme',
+      company_id: data.company_id || 'co-1',
+      fiscal_period_id: data.fiscal_period_id || (data as any).period_id || 'per-2026-10',
+      journal_type: data.journal_type || 'manual',
+      number: null, // 0.10: Drafts have no number
+      status: 'draft',
+      journal_date: data.journal_date || now.split('T')[0],
+      reference: data.reference || '',
+      memo: data.memo || '',
+      lines: data.lines || [],
+      total_debit: data.total_debit || 0,
+      total_credit: data.total_credit || 0,
+      created_by: existing?.created_by || actor?.id || state.currentUser?.id || 'usr-1',
+      version: nextVersion,
+      created_at: existing?.created_at || now,
+      updated_at: now,
+    };
+
+    set((s: any) => ({
+      journals: existing
+        ? s.journals.map((j: Journal) => (j.id === id ? draft : j))
+        : [draft, ...s.journals],
+    }));
+
+    return draft;
+  },
+
+  duplicateJournal: (journalId: string) => {
+    const state = get();
+    const target = state.journals.find((j: Journal) => j.id === journalId);
+    if (!target) throw new PostingError(`Journal '${journalId}' not found.`);
+    const newDraft: Journal = {
+      ...target,
+      id: `jnl-${Date.now()}`,
+      number: null,
+      status: 'draft',
+      posted_at: undefined,
+      posted_by: undefined,
+      reversed_by_id: undefined,
+      reversal_of_id: undefined,
+      reference: `${target.reference || 'JNL'}-COPY`,
+      memo: `Copy of ${target.memo}`,
+      created_by: state.currentUser?.id || target.created_by,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      lines: target.lines.map((l: JournalLine, idx: number) => ({
+        ...l,
+        id: `jl-dup-${Date.now()}-${idx}`,
+      })),
+    };
+    set((s: any) => ({
+      journals: [newDraft, ...s.journals],
+    }));
+    return newDraft;
   },
 
   closePeriod: (periodId, actor, settings, lastAuditEvent) => {
@@ -417,6 +587,14 @@ export const createLedgerSlice: StateCreator<any, [], [], LedgerSlice> = (set, g
     if (!period) throw new PostingError(`Period '${periodId}' not found.`);
     if (period.status === 'closed' || period.status === 'locked') {
       throw new PostingError(`Period '${period.name}' is already closed.`);
+    }
+
+    const failingChecks = state.closeChecks.filter((c: any) => c.status === 'fail');
+    if (failingChecks.length > 0) {
+      throw new PostingError(
+        `Cannot close period: ${failingChecks.length} checklist items failing (${failingChecks.map((c: any) => c.title).join(', ')})`,
+        'CHECKS_FAILED'
+      );
     }
 
     const now = new Date().toISOString();
@@ -447,6 +625,10 @@ export const createLedgerSlice: StateCreator<any, [], [], LedgerSlice> = (set, g
 
     set((s: any) => ({
       periods: s.periods.map((p: FiscalPeriod) => (p.id === periodId ? updatedPeriod : p)),
+      fiscalYear: {
+        ...s.fiscalYear,
+        periods: s.fiscalYear.periods.map((p: FiscalPeriod) => (p.id === periodId ? updatedPeriod : p)),
+      },
       auditEvents: [auditEvent, ...(s.auditEvents || [])],
     }));
 
@@ -465,11 +647,27 @@ export const createLedgerSlice: StateCreator<any, [], [], LedgerSlice> = (set, g
       requested_at: new Date().toISOString(),
       reason,
       status: 'pending',
-      first_approver_id: actor.role === 'finance_manager' ? actor.id : undefined,
+      first_approver_id: actor.id,
+    };
+
+    const now = new Date().toISOString();
+    const auditEvent: AuditEvent = {
+      id: `aud-${Date.now()}`,
+      occurred_at: now,
+      actor_id: actor.id,
+      actor_name: actor.name,
+      action: 'period.reopen_requested',
+      subject_type: 'fiscal_period',
+      subject_id: period.id,
+      subject_number: period.name,
+      detail: `Reopen requested by ${actor.name}. Reason: ${reason}`,
+      prev_hash: state.auditEvents?.[0]?.hash || '0000000000000000000000000000000000000000000000000000000000000000',
+      hash: `hash-${Date.now()}`,
     };
 
     set((s: any) => ({
       reopenRequests: [req, ...s.reopenRequests],
+      auditEvents: [auditEvent, ...(s.auditEvents || [])],
     }));
 
     return req;
@@ -480,7 +678,7 @@ export const createLedgerSlice: StateCreator<any, [], [], LedgerSlice> = (set, g
     const req = state.reopenRequests.find((r: PeriodReopenRequest) => r.id === requestId);
     if (!req) return { approved: false, message: 'Request not found' };
 
-    // Strict two-approver rule
+    // Strict two-approver rule: first approver was recorded when request was submitted
     if (!req.first_approver_id) {
       req.first_approver_id = approver.id;
       set((s: any) => ({
@@ -495,7 +693,7 @@ export const createLedgerSlice: StateCreator<any, [], [], LedgerSlice> = (set, g
     if (req.first_approver_id === approver.id) {
       return {
         approved: false,
-        message: 'Two distinct approvers required. The second approver cannot be the first.',
+        message: 'Two distinct approvers required. The second approver cannot be the same user.',
       };
     }
 
@@ -510,11 +708,32 @@ export const createLedgerSlice: StateCreator<any, [], [], LedgerSlice> = (set, g
       const reopenedPeriod: FiscalPeriod = {
         ...period,
         status: 'open',
-        reopened_count: period.reopened_count + 1,
+        reopened_count: (period.reopened_count || 0) + 1,
       };
+
+      const now = new Date().toISOString();
+      const auditEvent: AuditEvent = {
+        id: `aud-${Date.now()}`,
+        occurred_at: now,
+        actor_id: approver.id,
+        actor_name: approver.name,
+        action: 'period.reopened',
+        subject_type: 'fiscal_period',
+        subject_id: period.id,
+        subject_number: period.name,
+        detail: `Fiscal period ${period.name} unlocked with dual approval (Approver 1: ${req.first_approver_id}, Approver 2: ${approver.id})`,
+        prev_hash: state.auditEvents?.[0]?.hash || '0000000000000000000000000000000000000000000000000000000000000000',
+        hash: `hash-${Date.now()}`,
+      };
+
       set((s: any) => ({
         periods: s.periods.map((p: FiscalPeriod) => (p.id === req.period_id ? reopenedPeriod : p)),
+        fiscalYear: {
+          ...s.fiscalYear,
+          periods: s.fiscalYear.periods.map((p: FiscalPeriod) => (p.id === req.period_id ? reopenedPeriod : p)),
+        },
         reopenRequests: s.reopenRequests.map((r: PeriodReopenRequest) => (r.id === requestId ? { ...req } : r)),
+        auditEvents: [auditEvent, ...(s.auditEvents || [])],
       }));
     }
 

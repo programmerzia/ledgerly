@@ -159,9 +159,16 @@ export async function getDashboardStats() {
 export async function approveReopenPeriod(requestId: string) {
   return simulatedCall(() => {
     const state = useLedgerStore.getState();
-    return state.approveReopenPeriod(requestId, state.currentUser);
+    const res = state.approveReopenPeriod(requestId, state.currentUser);
+    if (!res.approved) {
+      throw new Error(res.message);
+    }
+    return res;
   });
 }
 
 export const approvePeriodReopen = approveReopenPeriod;
 
+export async function duplicateJournal(journalId: string) {
+  return simulatedCall(() => useLedgerStore.getState().duplicateJournal(journalId));
+}

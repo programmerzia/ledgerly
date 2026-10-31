@@ -175,3 +175,15 @@ export function formatRelativeTime(dateString: string): string {
     return dateString;
   }
 }
+
+/**
+ * Commercial rounding: ROUND_HALF_UP (away from zero, so -0.5 -> -1, 0.5 -> 1).
+ * Standard for base-currency conversions and ledgers (D1).
+ * Avoids JS Math.round error on negative numbers (Math.round(-0.5) is -0).
+ */
+export function roundHalfUp(val: number): number {
+  const sign = val < 0 ? -1 : 1;
+  const abs = Math.abs(val);
+  const eps = Number.EPSILON * 100;
+  return sign * Math.round(abs + eps);
+}

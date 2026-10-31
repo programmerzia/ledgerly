@@ -55,6 +55,27 @@ export async function voidInvoice(id: string, reason: string): Promise<Invoice> 
   });
 }
 
+export async function reverseInvoice(id: string, reason: string, pin?: string): Promise<{ original: Invoice; reversal: Invoice }> {
+  return simulatedCall(() => {
+    const state = useLedgerStore.getState();
+    return state.reverseInvoice(id, reason, state.currentUser, state.companySettings, pin);
+  });
+}
+
+export async function duplicateInvoice(id: string): Promise<Invoice> {
+  return simulatedCall(() => {
+    const state = useLedgerStore.getState();
+    return state.duplicateInvoice(id, state.currentUser);
+  });
+}
+
+export async function createCreditNote(id: string): Promise<Invoice> {
+  return simulatedCall(() => {
+    const state = useLedgerStore.getState();
+    return state.createCreditNoteFromInvoice(id, state.currentUser);
+  });
+}
+
 export async function getBills(filters?: { status?: string }): Promise<Bill[]> {
   return simulatedCall(() => {
     const list = useLedgerStore.getState().bills;
@@ -98,6 +119,27 @@ export async function returnBill(id: string, reason: string): Promise<Bill> {
   return simulatedCall(() => {
     const state = useLedgerStore.getState();
     return state.returnBill(id, reason, state.currentUser);
+  });
+}
+
+export async function reverseBill(id: string, reason: string, pin?: string): Promise<{ original: Bill; reversal: Bill }> {
+  return simulatedCall(() => {
+    const state = useLedgerStore.getState();
+    return state.reverseBill(id, reason, state.currentUser, state.companySettings, pin);
+  });
+}
+
+export async function duplicateBill(id: string): Promise<Bill> {
+  return simulatedCall(() => {
+    const state = useLedgerStore.getState();
+    return state.duplicateBill(id, state.currentUser);
+  });
+}
+
+export async function createDebitNote(id: string): Promise<Bill> {
+  return simulatedCall(() => {
+    const state = useLedgerStore.getState();
+    return state.createDebitNoteFromBill(id, state.currentUser);
   });
 }
 

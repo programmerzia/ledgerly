@@ -4,6 +4,7 @@
 
 import { StateCreator } from 'zustand';
 import { DocumentTab } from '@/types';
+import { db } from '@/mock/db';
 
 export interface TabsSlice {
   tabs: DocumentTab[];
@@ -20,21 +21,55 @@ const defaultTabs: DocumentTab[] = [
   { id: 'tab-dashboard', title: 'Dashboard', url: '/acme/dashboard', type: 'dashboard', pinned: true },
 ];
 
+const getInitialTabs = (): { tabs: DocumentTab[]; activeTabId: string } => {
+  if (typeof window !== 'undefined') {
+    try {
+      const saved = localStorage.getItem('ledgerly_open_tabs');
+      const active = localStorage.getItem('ledgerly_active_tab_id');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return { tabs: parsed, activeTabId: active || parsed[0].id };
+        }
+      }
+    } catch {}
+  }
+  return { tabs: defaultTabs, activeTabId: 'tab-dashboard' };
+};
+
+const saveTabs = (tabs: DocumentTab[], activeTabId: string) => {
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem('ledgerly_open_tabs', JSON.stringify(tabs));
+      localStorage.setItem('ledgerly_active_tab_id', activeTabId);
+    } catch {}
+  }
+  try {
+    db.session?.put({ key: 'openTabs', value: tabs }).catch(() => {});
+    db.session?.put({ key: 'activeTabId', value: activeTabId }).catch(() => {});
+  } catch {}
+};
+
+const initTabs = getInitialTabs();
+
 export const createTabsSlice: StateCreator<any, [], [], TabsSlice> = (set, get) => ({
-  tabs: defaultTabs,
-  activeTabId: 'tab-dashboard',
+  tabs: initTabs.tabs,
+  activeTabId: initTabs.activeTabId,
 
   openTab: (tab) => {
     const { tabs } = get();
     const existing = tabs.find((t: DocumentTab) => t.id === tab.id || t.url === tab.url);
     if (existing) {
       set({ activeTabId: existing.id });
+      saveTabs(tabs, existing.id);
       return;
     }
+    const newTabs = [...tabs, tab];
     set({
-      tabs: [...tabs, tab],
+      tabs: newTabs,
       activeTabId: tab.id,
     });
+    saveTabs(newTabs, tab.id);
   },
 
   closeTab: (tabId) => {
@@ -52,10 +87,12 @@ export const createTabsSlice: StateCreator<any, [], [], TabsSlice> = (set, get) 
     }
 
     set({ tabs: remaining, activeTabId: nextActive });
+    saveTabs(remaining, nextActive);
   },
 
   setActiveTab: (tabId) => {
     set({ activeTabId: tabId });
+    saveTabs(get().tabs, tabId);
   },
 
   nextTab: () => {

@@ -18,6 +18,6 @@ export async function updateBudgetAmount(
   });
 }
 
-export async function getBudgetVsActual(budgetId: string, periodId?: string): Promise<BudgetVsActualRow[]> {
-  return simulatedCall(() => useLedgerStore.getState().getBudgetVsActual(budgetId, periodId));
+export async function getBudgetVsActual(budgetId: string, periodId?: string, basis: 'month' | 'ytd' = 'month'): Promise<BudgetVsActualRow[]> {
+  return simulatedCall(() => useLedgerStore.getState().getBudgetVsActual(budgetId, periodId, basis));
 }

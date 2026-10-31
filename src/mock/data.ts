@@ -80,10 +80,23 @@ export const mockUsers: User[] = [
     signingPin: '998877',
     failedPinAttempts: 0,
   },
+  {
+    id: 'usr-5',
+    name: 'Amina Ali',
+    email: 'amina@acmegroup.so',
+    role: 'sales_assistant',
+    roleTitle: 'Sales Assistant',
+    avatar: 'AA',
+    theme: 'light',
+    twoFactorEnabled: false,
+    signingPin: '123456',
+    failedPinAttempts: 0,
+  },
 ];
 
 export const mockCompanySettings: CompanySettings = {
   company_id: 'co-1',
+  tax_rounding: 'document_per_code',
   posting_accounts: {
     ar_control: 'acc-1200',
     ap_control: 'acc-2000',
@@ -100,10 +113,10 @@ export const mockCompanySettings: CompanySettings = {
   numbering: {
     invoice_prefix: 'INV-',
     bill_prefix: 'BILL-',
-    journal_prefix: 'JRN-',
+    journal_prefix: 'JV-',
     receipt_prefix: 'RCT-',
     payment_prefix: 'PMT-',
-    padding: 4,
+    padding: 5,
   },
   approval_workflows: {
     invoice_threshold: 500000, // $5,000.00
@@ -279,6 +292,20 @@ export const mockAccounts: Account[] = [
     control_type: 'bank',
     currency_policy: 'fixed',
     fixed_currency: 'SOS',
+    is_postable: true,
+    is_active: true,
+  },
+  {
+    id: 'acc-1090',
+    tenant_id: 'ten-acme',
+    company_id: 'co-1',
+    code: '1090',
+    name: 'Cash-in-Transit (Clearing)',
+    account_type: 'asset',
+    account_subtype: 'Cash & Equivalents',
+    normal_balance: 'debit',
+    control_type: 'cash',
+    currency_policy: 'any',
     is_postable: true,
     is_active: true,
   },
@@ -736,18 +763,19 @@ export const mockFiscalYear2026: FiscalYear = {
   ends_on: '2026-12-31',
   status: 'open',
   periods: [
-    { id: 'per-2026-01', company_id: 'co-1', fiscal_year_id: 'fy-2026', number: 1, name: 'Jan 2026', starts_on: '2026-01-01', ends_on: '2026-01-31', status: 'closed', closed_at: '2026-02-05T10:00:00Z', closed_by: 'usr-2', reopened_count: 0 },
-    { id: 'per-2026-02', company_id: 'co-1', fiscal_year_id: 'fy-2026', number: 2, name: 'Feb 2026', starts_on: '2026-02-01', ends_on: '2026-02-28', status: 'closed', closed_at: '2026-03-05T10:00:00Z', closed_by: 'usr-2', reopened_count: 0 },
-    { id: 'per-2026-03', company_id: 'co-1', fiscal_year_id: 'fy-2026', number: 3, name: 'Mar 2026', starts_on: '2026-03-01', ends_on: '2026-03-31', status: 'closed', closed_at: '2026-04-05T10:00:00Z', closed_by: 'usr-2', reopened_count: 0 },
-    { id: 'per-2026-04', company_id: 'co-1', fiscal_year_id: 'fy-2026', number: 4, name: 'Apr 2026', starts_on: '2026-04-01', ends_on: '2026-04-30', status: 'closed', closed_at: '2026-05-05T10:00:00Z', closed_by: 'usr-2', reopened_count: 0 },
-    { id: 'per-2026-05', company_id: 'co-1', fiscal_year_id: 'fy-2026', number: 5, name: 'May 2026', starts_on: '2026-05-01', ends_on: '2026-05-31', status: 'closed', closed_at: '2026-06-05T10:00:00Z', closed_by: 'usr-2', reopened_count: 0 },
-    { id: 'per-2026-06', company_id: 'co-1', fiscal_year_id: 'fy-2026', number: 6, name: 'Jun 2026', starts_on: '2026-06-01', ends_on: '2026-06-30', status: 'closed', closed_at: '2026-07-05T10:00:00Z', closed_by: 'usr-2', reopened_count: 0 },
-    { id: 'per-2026-07', company_id: 'co-1', fiscal_year_id: 'fy-2026', number: 7, name: 'Jul 2026', starts_on: '2026-07-01', ends_on: '2026-07-31', status: 'closed', closed_at: '2026-08-05T10:00:00Z', closed_by: 'usr-2', reopened_count: 0 },
-    { id: 'per-2026-08', company_id: 'co-1', fiscal_year_id: 'fy-2026', number: 8, name: 'Aug 2026', starts_on: '2026-08-01', ends_on: '2026-08-31', status: 'closed', closed_at: '2026-09-05T10:00:00Z', closed_by: 'usr-2', reopened_count: 0 },
-    { id: 'per-2026-09', company_id: 'co-1', fiscal_year_id: 'fy-2026', number: 9, name: 'Sep 2026', starts_on: '2026-09-01', ends_on: '2026-09-30', status: 'closed', closed_at: '2026-10-05T11:20:00Z', closed_by: 'usr-2', reopened_count: 0 },
-    { id: 'per-2026-10', company_id: 'co-1', fiscal_year_id: 'fy-2026', number: 10, name: 'Oct 2026', starts_on: '2026-10-01', ends_on: '2026-10-31', status: 'open', reopened_count: 0 },
-    { id: 'per-2026-11', company_id: 'co-1', fiscal_year_id: 'fy-2026', number: 11, name: 'Nov 2026', starts_on: '2026-11-01', ends_on: '2026-11-30', status: 'open', reopened_count: 0 },
-    { id: 'per-2026-12', company_id: 'co-1', fiscal_year_id: 'fy-2026', number: 12, name: 'Dec 2026', starts_on: '2026-12-01', ends_on: '2026-12-31', status: 'open', reopened_count: 0 },
+    { id: 'per-2026-01', company_id: 'co-1', fiscal_year_id: 'fy-2026', number: 1, name: 'Jan 2026', kind: 'regular', starts_on: '2026-01-01', ends_on: '2026-01-31', status: 'closed', closed_at: '2026-02-05T10:00:00Z', closed_by: 'usr-2', reopened_count: 0 },
+    { id: 'per-2026-02', company_id: 'co-1', fiscal_year_id: 'fy-2026', number: 2, name: 'Feb 2026', kind: 'regular', starts_on: '2026-02-01', ends_on: '2026-02-28', status: 'closed', closed_at: '2026-03-05T10:00:00Z', closed_by: 'usr-2', reopened_count: 0 },
+    { id: 'per-2026-03', company_id: 'co-1', fiscal_year_id: 'fy-2026', number: 3, name: 'Mar 2026', kind: 'regular', starts_on: '2026-03-01', ends_on: '2026-03-31', status: 'closed', closed_at: '2026-04-05T10:00:00Z', closed_by: 'usr-2', reopened_count: 0 },
+    { id: 'per-2026-04', company_id: 'co-1', fiscal_year_id: 'fy-2026', number: 4, name: 'Apr 2026', kind: 'regular', starts_on: '2026-04-01', ends_on: '2026-04-30', status: 'closed', closed_at: '2026-05-05T10:00:00Z', closed_by: 'usr-2', reopened_count: 0 },
+    { id: 'per-2026-05', company_id: 'co-1', fiscal_year_id: 'fy-2026', number: 5, name: 'May 2026', kind: 'regular', starts_on: '2026-05-01', ends_on: '2026-05-31', status: 'closed', closed_at: '2026-06-05T10:00:00Z', closed_by: 'usr-2', reopened_count: 0 },
+    { id: 'per-2026-06', company_id: 'co-1', fiscal_year_id: 'fy-2026', number: 6, name: 'Jun 2026', kind: 'regular', starts_on: '2026-06-01', ends_on: '2026-06-30', status: 'closed', closed_at: '2026-07-05T10:00:00Z', closed_by: 'usr-2', reopened_count: 0 },
+    { id: 'per-2026-07', company_id: 'co-1', fiscal_year_id: 'fy-2026', number: 7, name: 'Jul 2026', kind: 'regular', starts_on: '2026-07-01', ends_on: '2026-07-31', status: 'closed', closed_at: '2026-08-05T10:00:00Z', closed_by: 'usr-2', reopened_count: 0 },
+    { id: 'per-2026-08', company_id: 'co-1', fiscal_year_id: 'fy-2026', number: 8, name: 'Aug 2026', kind: 'regular', starts_on: '2026-08-01', ends_on: '2026-08-31', status: 'closed', closed_at: '2026-09-05T10:00:00Z', closed_by: 'usr-2', reopened_count: 0 },
+    { id: 'per-2026-09', company_id: 'co-1', fiscal_year_id: 'fy-2026', number: 9, name: 'Sep 2026', kind: 'regular', starts_on: '2026-09-01', ends_on: '2026-09-30', status: 'closed', closed_at: '2026-10-05T11:20:00Z', closed_by: 'usr-2', reopened_count: 0 },
+    { id: 'per-2026-10', company_id: 'co-1', fiscal_year_id: 'fy-2026', number: 10, name: 'Oct 2026', kind: 'regular', starts_on: '2026-10-01', ends_on: '2026-10-31', status: 'open', reopened_count: 0 },
+    { id: 'per-2026-11', company_id: 'co-1', fiscal_year_id: 'fy-2026', number: 11, name: 'Nov 2026', kind: 'regular', starts_on: '2026-11-01', ends_on: '2026-11-30', status: 'open', reopened_count: 0 },
+    { id: 'per-2026-12', company_id: 'co-1', fiscal_year_id: 'fy-2026', number: 12, name: 'Dec 2026', kind: 'regular', starts_on: '2026-12-01', ends_on: '2026-12-31', status: 'open', reopened_count: 0 },
+    { id: 'per-2026-adj', company_id: 'co-1', fiscal_year_id: 'fy-2026', number: 13, name: 'FY2026 Adj', kind: 'adjustment', starts_on: '2026-12-01', ends_on: '2026-12-31', status: 'open', reopened_count: 0 },
   ],
 };
 
@@ -894,6 +922,24 @@ export const mockBankStatementLines: BankStatementLine[] = [
 ];
 
 // Invoices: up to INV-2026-0042, with 6 overdue, 1 pending approval, etc.
+/**
+ * Seed invoice dates: INV-2026-0001..0031 spread through Jan–Jul (about 4–5 a month), and
+ * INV-2026-0039/0040 in October between the Hormuud invoices 0038 (Oct 5) and 0041 (Oct 20),
+ * so numbers rise with dates. Terms are Net 30.
+ */
+function seedInvoiceDates(i: number): { issue: string; due: string } {
+  let issue: Date;
+  if (i < 31) {
+    const month = Math.floor((i * 7) / 31); // 0..6 → Jan..Jul
+    const first = Math.ceil((month * 31) / 7);
+    issue = new Date(Date.UTC(2026, month, 3 + (i - first) * 6));
+  } else {
+    issue = new Date(Date.UTC(2026, 9, i === 31 ? 9 : 14));
+  }
+  const due = new Date(issue.getTime() + 30 * 86_400_000);
+  return { issue: issue.toISOString().slice(0, 10), due: due.toISOString().slice(0, 10) };
+}
+
 export const mockInvoices: Invoice[] = [
   // The pending invoice submitted by Rahim (maker) awaiting Fatima's approval (Step 1 requirement)
   {
@@ -1029,7 +1075,7 @@ export const mockInvoices: Invoice[] = [
     tenant_id: 'ten-acme',
     company_id: 'co-1',
     kind: 'sales_invoice' as const,
-    number: `INV-2026-${String(20 + i).padStart(4, '0')}`,
+    number: `INV-2026-${String(32 + i).padStart(4, '0')}`,
     status: 'posted' as const,
     contact_id: i % 2 === 0 ? 'cnt-3' : 'cnt-5',
     issue_date: '2026-08-15',
@@ -1049,16 +1095,16 @@ export const mockInvoices: Invoice[] = [
         discount_pct: 0,
         tax_code_id: 'tax-vat5',
         line_total_fc: 150000 + i * 20000,
-        tax_amount_fc: (150000 + i * 20000) * 0.05,
+        tax_amount_fc: Math.round((150000 + i * 20000) * 0.05),
         dimensions: { branch: 'MG', cost_centre: 'SALES' },
       },
     ],
     subtotal_fc: 150000 + i * 20000,
-    tax_total_fc: (150000 + i * 20000) * 0.05,
-    total_fc: (150000 + i * 20000) * 1.05,
+    tax_total_fc: Math.round((150000 + i * 20000) * 0.05),
+    total_fc: Math.round((150000 + i * 20000) * 1.05),
     subtotal: 150000 + i * 20000,
-    tax_total: (150000 + i * 20000) * 0.05,
-    total: (150000 + i * 20000) * 1.05,
+    tax_total: Math.round((150000 + i * 20000) * 0.05),
+    total: Math.round((150000 + i * 20000) * 1.05),
     settled_fc: 0,
     settled: 0,
     created_by: 'usr-1',
@@ -1067,16 +1113,18 @@ export const mockInvoices: Invoice[] = [
     updated_at: '2026-08-15T15:00:00Z',
   })),
   // Additional Posted Invoices to reach total volume
-  ...Array.from({ length: 33 }).map((_, i) => ({
+  ...Array.from({ length: 33 }).map((_, i) => {
+    const d = seedInvoiceDates(i);
+    return {
     id: `inv-seed-${i + 1}`,
     tenant_id: 'ten-acme',
     company_id: 'co-1',
     kind: 'sales_invoice' as const,
-    number: `INV-2026-${String(i + 1).padStart(4, '0')}`,
+    number: `INV-2026-${String(i < 31 ? i + 1 : i + 8).padStart(4, '0')}`,
     status: 'posted' as const,
     contact_id: `cnt-${(i % 5) + 1}`,
-    issue_date: `2026-09-${String((i % 28) + 1).padStart(2, '0')}`,
-    due_date: `2026-10-${String((i % 28) + 1).padStart(2, '0')}`,
+    issue_date: d.issue,
+    due_date: d.due,
     currency: 'USD',
     fx_rate: 1.0,
     reference: `PO-ACME-${5000 + i}`,
@@ -1092,23 +1140,24 @@ export const mockInvoices: Invoice[] = [
         discount_pct: 0,
         tax_code_id: 'tax-vat5',
         line_total_fc: 120000 + (i * 15000),
-        tax_amount_fc: (120000 + (i * 15000)) * 0.05,
+        tax_amount_fc: Math.round((120000 + i * 15000) * 0.05),
         dimensions: { branch: i % 2 === 0 ? 'MG' : 'NB', cost_centre: 'SALES' },
       },
     ],
     subtotal_fc: 120000 + (i * 15000),
-    tax_total_fc: (120000 + (i * 15000)) * 0.05,
-    total_fc: (120000 + (i * 15000)) * 1.05,
+    tax_total_fc: Math.round((120000 + i * 15000) * 0.05),
+    total_fc: Math.round((120000 + i * 15000) * 1.05),
     subtotal: 120000 + (i * 15000),
-    tax_total: (120000 + (i * 15000)) * 0.05,
-    total: (120000 + (i * 15000)) * 1.05,
-    settled_fc: (120000 + (i * 15000)) * 1.05, // Fully settled
-    settled: (120000 + (i * 15000)) * 1.05,
+    tax_total: Math.round((120000 + i * 15000) * 0.05),
+    total: Math.round((120000 + i * 15000) * 1.05),
+    settled_fc: Math.round((120000 + i * 15000) * 1.05), // Fully settled
+    settled: Math.round((120000 + i * 15000) * 1.05),
     created_by: 'usr-1',
-    posted_at: `2026-09-10T14:00:00Z`,
-    created_at: `2026-09-10T09:00:00Z`,
-    updated_at: `2026-09-10T14:00:00Z`,
-  })),
+    posted_at: `${d.issue}T14:00:00Z`,
+    created_at: `${d.issue}T09:00:00Z`,
+    updated_at: `${d.issue}T14:00:00Z`,
+  };
+  }),
 ];
 
 export const mockBills: Bill[] = [
@@ -1446,7 +1495,7 @@ export const mockJournals: Journal[] = [
     journal_date: '2026-10-15',
     posted_at: '2026-10-15T15:00:00Z',
     reference: 'ERR-UTILITY-OCT',
-    memo: 'Wrong cost centre utility allocation to be reversed in demo Step 8',
+    memo: 'Utility bill booked to the Sales cost centre by mistake',
     total_debit: 85000,
     total_credit: 85000,
     lines: [
@@ -1491,25 +1540,25 @@ export const mockSettlements: Settlement[] = [
     kind: 'receipt',
     number: 'RCT-2026-0015',
     status: 'posted',
-    contact_id: 'cnt-2', // Salaam Bank
+    contact_id: 'cnt-3', // inv-seed-33 customer (cnt-((32 % 5) + 1))
     bank_account_id: 'bnk-1',
     settlement_date: '2026-10-18',
     currency: 'USD',
     fx_rate: 1.0,
-    amount_fc: 180000,
-    amount: 180000,
+    amount_fc: 630000,
+    amount: 630000,
     unallocated_fc: 0,
     reference: 'WIRE-SAL-9821',
-    memo: 'Full payment of INV-2026-0028',
+    memo: 'Full payment of INV-2026-0040',
     allocations: [
       {
         id: 'alloc-1',
-        invoice_id: 'inv-ov-6',
-        invoice_number: 'INV-2026-0028',
-        invoice_total_fc: 180000,
-        invoice_open_fc: 180000,
-        allocated_amount_fc: 180000,
-        allocated_amount_base: 180000,
+        invoice_id: 'inv-seed-33',
+        invoice_number: 'INV-2026-0040',
+        invoice_total_fc: 630000,
+        invoice_open_fc: 630000,
+        allocated_amount_fc: 630000,
+        allocated_amount_base: 630000,
         fx_gain_loss: 0,
       },
     ],
@@ -1612,6 +1661,23 @@ export const mockExchangeRates: ExchangeRate[] = [
   { id: 'fx-2', company_id: 'co-1', from_currency: 'USD', to_currency: 'KES', rate_date: '2026-10-28', rate: 129.50, source: 'provider' },
   { id: 'fx-3', company_id: 'co-1', from_currency: 'EUR', to_currency: 'USD', rate_date: '2026-10-28', rate: 1.0850, source: 'provider' },
   { id: 'fx-4', company_id: 'co-1', from_currency: 'GBP', to_currency: 'USD', rate_date: '2026-10-28', rate: 1.2950, source: 'provider' },
+  // Month-end history Jan–Sep (latest rates stay first: lookups take the first match per pair).
+  ...([
+    ['USD', 'SOS', [25480, 25520, 25610, 25590, 25700, 25760, 25840, 25900, 25950], 0],
+    ['USD', 'KES', [131.2, 130.8, 130.1, 129.6, 129.9, 129.2, 128.8, 129.1, 129.4], 2],
+    ['EUR', 'USD', [1.0612, 1.0655, 1.0701, 1.0688, 1.0742, 1.0795, 1.0768, 1.0812, 1.0836], 4],
+    ['GBP', 'USD', [1.2655, 1.2702, 1.2748, 1.2731, 1.2810, 1.2864, 1.2839, 1.2902, 1.2921], 4],
+  ] as const).flatMap(([from, to, rates]) =>
+    rates.map((rate, m) => ({
+      id: `fx-hist-${from}${to}-${m + 1}`,
+      company_id: 'co-1',
+      from_currency: from,
+      to_currency: to,
+      rate_date: new Date(Date.UTC(2026, m + 1, 0)).toISOString().slice(0, 10),
+      rate,
+      source: 'provider' as const,
+    })),
+  ),
 ];
 
 export const mockBudgets: Budget[] = [

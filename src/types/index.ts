@@ -4,13 +4,13 @@
  * Rule: Account balances are derived exclusively by summing posted journal lines.
  */
 
-export type Role = 'accountant' | 'finance_manager' | 'cfo' | 'auditor';
+export type Role = 'accountant' | 'finance_manager' | 'cfo' | 'auditor' | 'owner' | 'sales_assistant';
 
 export interface User {
   id: string;
   name: string;
   email: string;
-  role: Role;
+  role: Role | string;
   roleTitle: string;
   avatar?: string;
   theme: 'light' | 'dark' | 'system';
@@ -18,6 +18,7 @@ export interface User {
   signingPin: string; // 6-digit PIN separate from password (e.g. Fatima: '246810')
   signingLockoutUntil?: string;
   failedPinAttempts: number;
+  permissions?: string[];
 }
 
 export interface PostingAccounts {
@@ -36,6 +37,7 @@ export interface PostingAccounts {
 
 export interface CompanySettings {
   company_id: string;
+  tax_rounding?: 'document_per_code' | 'line';
   posting_accounts: PostingAccounts;
   numbering: {
     invoice_prefix: string;
@@ -96,6 +98,7 @@ export interface Account {
   fixed_currency?: string;
   is_postable: boolean;
   is_active: boolean;
+  allow_manual_journals?: boolean;
   description?: string;
 }
 
@@ -161,6 +164,7 @@ export interface FiscalPeriod {
   fiscal_year_id: string;
   number: number;
   name: string;
+  kind?: 'regular' | 'adjustment';
   starts_on: string;
   ends_on: string;
   status: PeriodStatus;
@@ -253,13 +257,16 @@ export interface Invoice {
   settled: number;
   related_invoice_id?: string;
   journal_id?: string;
+  reversed_by_id?: string;
+  reversal_of_id?: string;
   created_by: string;
   submitted_by?: string;
   approved_by?: string;
-  signed_by?: string;
+    signed_by?: string;
   signed_at?: string;
   signature_hash?: string;
   posted_at?: string;
+  version?: number;
   created_at: string;
   updated_at: string;
 }
@@ -282,7 +289,8 @@ export type JournalType =
   | 'depreciation'
   | 'closing'
   | 'reversal'
-  | 'opening';
+  | 'opening'
+  | 'adjustment';
 
 export interface JournalLine {
   id: string;
@@ -330,6 +338,7 @@ export interface Journal {
   signed_at?: string;
   signature_hash?: string;
   posted_by?: string;
+  version?: number;
   created_at: string;
   updated_at: string;
 }
@@ -368,6 +377,7 @@ export interface Settlement {
   approved_by?: string;
   signed_by?: string;
   posted_at?: string;
+  version?: number;
   created_at: string;
 }
 

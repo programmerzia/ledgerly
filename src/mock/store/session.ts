@@ -30,6 +30,8 @@ export interface SessionSlice {
   } | null;
 
   isAuthenticated: boolean;
+  tableSelection: { count: number; sum: number; currency: string } | null;
+  focusedElementShortcuts: string[] | null;
 
   // Actions
   loginUser: (userOrId?: User | string) => void;
@@ -47,13 +49,47 @@ export interface SessionSlice {
   setPendingConflict: (conflict: SessionSlice['pendingConflict']) => void;
   recordFailedPin: (userId: string) => void;
   resetFailedPin: (userId: string) => void;
+  setTableSelection: (selection: { count: number; sum: number; currency: string } | null) => void;
+  setFocusedElementShortcuts: (shortcuts: string[] | null) => void;
 }
+
+import { db } from '@/mock/db';
 
 const getInitialAuth = (): boolean => {
   if (typeof window !== 'undefined') {
     return localStorage.getItem('ledgerly_tenant_auth') === 'true';
   }
   return false;
+};
+
+const getInitialUser = (): User => {
+  if (typeof window !== 'undefined') {
+    const savedId = localStorage.getItem('ledgerly_current_user_id');
+    if (savedId) {
+      const u = mockUsers.find((user) => user.id === savedId);
+      if (u) return u;
+    }
+  }
+  return mockUsers[0]; // Default: Rahim Ahmed (Maker)
+};
+
+const getInitialCompany = (): Company => {
+  if (typeof window !== 'undefined') {
+    const savedId = localStorage.getItem('ledgerly_current_company_id');
+    if (savedId) {
+      const c = mockCompanies.find((comp) => comp.id === savedId);
+      if (c) return c;
+    }
+  }
+  return mockCompanies[0];
+};
+
+const getInitialDensity = (): UIRowDensity => {
+  if (typeof window !== 'undefined') {
+    const saved = localStorage.getItem('ledgerly_density') as UIRowDensity;
+    if (saved === 'compact' || saved === 'default' || saved === 'comfortable') return saved;
+  }
+  return 'default';
 };
 
 const getInitialTheme = (): 'light' | 'dark' => {
@@ -68,25 +104,36 @@ const getInitialTheme = (): 'light' | 'dark' => {
 };
 
 export const createSessionSlice: StateCreator<SessionSlice, [], [], SessionSlice> = (set, get) => ({
-  currentUser: mockUsers[0], // Default: Rahim Ahmed (Maker)
+  currentUser: getInitialUser(),
   users: [...mockUsers],
-  currentCompany: mockCompanies[0], // Default: Acme Trading Ltd (USD)
+  currentCompany: getInitialCompany(),
   currentPeriod: mockFiscalYear2026.periods[9], // Oct 2026 (Open period)
-  uiDensity: 'default',
+  uiDensity: getInitialDensity(),
   isOffline: false,
   theme: getInitialTheme(),
   activeSignature: null,
   pendingConflict: null,
   isAuthenticated: getInitialAuth(),
+  tableSelection: null,
+  focusedElementShortcuts: null,
 
   loginUser: (userOrId) => {
+    let targetUser: User | undefined;
     if (userOrId) {
       if (typeof userOrId === 'string') {
-        const u = mockUsers.find((user) => user.id === userOrId);
-        if (u) set({ currentUser: u, activeSignature: null });
+        targetUser = mockUsers.find((user) => user.id === userOrId);
       } else {
-        set({ currentUser: userOrId, activeSignature: null });
+        targetUser = userOrId;
       }
+    }
+    if (targetUser) {
+      set({ currentUser: targetUser, activeSignature: null });
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('ledgerly_current_user_id', targetUser.id);
+      }
+      try {
+        db.session?.put({ key: 'currentUser', value: targetUser }).catch(() => {});
+      } catch {}
     }
     set({ isAuthenticated: true });
     if (typeof window !== 'undefined') {
@@ -105,15 +152,25 @@ export const createSessionSlice: StateCreator<SessionSlice, [], [], SessionSlice
     const user = mockUsers.find((u) => u.id === userId);
     if (user) {
       set({ currentUser: user, activeSignature: null });
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('ledgerly_current_user_id', user.id);
+      }
+      try {
+        db.session?.put({ key: 'currentUser', value: user }).catch(() => {});
+      } catch {}
     }
   },
 
   setCurrentUser: (userOrId) => {
-    if (typeof userOrId === 'string') {
-      const u = mockUsers.find((user) => user.id === userOrId);
-      if (u) set({ currentUser: u, activeSignature: null });
-    } else {
-      set({ currentUser: userOrId, activeSignature: null });
+    const u = typeof userOrId === 'string' ? mockUsers.find((user) => user.id === userOrId) : userOrId;
+    if (u) {
+      set({ currentUser: u, activeSignature: null });
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('ledgerly_current_user_id', u.id);
+      }
+      try {
+        db.session?.put({ key: 'currentUser', value: u }).catch(() => {});
+      } catch {}
     }
   },
 
@@ -138,6 +195,12 @@ export const createSessionSlice: StateCreator<SessionSlice, [], [], SessionSlice
     const company = mockCompanies.find((c) => c.id === companyId);
     if (company) {
       set({ currentCompany: company });
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('ledgerly_current_company_id', company.id);
+      }
+      try {
+        db.session?.put({ key: 'currentCompany', value: company }).catch(() => {});
+      } catch {}
     }
   },
 
@@ -150,7 +213,12 @@ export const createSessionSlice: StateCreator<SessionSlice, [], [], SessionSlice
 
   setUiDensity: (density) => {
     set({ uiDensity: density });
-    localStorage.setItem('ledgerly_density', density);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('ledgerly_density', density);
+    }
+    try {
+      db.session?.put({ key: 'uiDensity', value: density }).catch(() => {});
+    } catch {}
   },
 
   toggleOffline: (force) => {
@@ -188,5 +256,13 @@ export const createSessionSlice: StateCreator<SessionSlice, [], [], SessionSlice
       user.signingLockoutUntil = undefined;
       set({ currentUser: { ...user } });
     }
+  },
+
+  setTableSelection: (selection) => {
+    set({ tableSelection: selection });
+  },
+
+  setFocusedElementShortcuts: (shortcuts) => {
+    set({ focusedElementShortcuts: shortcuts });
   },
 });

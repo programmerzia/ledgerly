@@ -30,10 +30,11 @@ export class LedgerlyDatabase extends Dexie {
   periods!: Table<FiscalPeriod, string>;
   assets!: Table<FixedAsset, string>;
   fxRates!: Table<ExchangeRate, string>;
+  session!: Table<{ key: string; value: any }, string>;
 
   constructor() {
     super('LedgerlyLocalDB');
-    this.version(1).stores({
+    this.version(2).stores({
       invoices: 'id, company_id, number, status, contact_id, issue_date',
       bills: 'id, company_id, number, status, contact_id, issue_date',
       journals: 'id, company_id, number, status, fiscal_period_id, journal_date',
@@ -45,6 +46,7 @@ export class LedgerlyDatabase extends Dexie {
       periods: 'id, company_id, status',
       assets: 'id, company_id, number, status',
       fxRates: 'id, company_id, from_currency, to_currency, rate_date',
+      session: 'key',
     });
   }
 }
