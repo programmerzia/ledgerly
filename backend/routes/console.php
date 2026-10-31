@@ -1,8 +1,10 @@
 <?php
 
-use Illuminate\Foundation\Inspiring;
-use Illuminate\Support\Facades\Artisan;
+declare(strict_types=1);
 
-Artisan::command('inspire', function () {
-    $this->comment(Inspiring::quote());
-})->purpose('Display an inspiring quote');
+use Illuminate\Support\Facades\Schedule;
+
+// 13 §15 scheduler. Per-tenant work fans out through sysops.tenants_due_for, never a tenant loop.
+Schedule::command('outbox:sweep')->everyTenSeconds()->withoutOverlapping()->onOneServer();
+Schedule::command('idempotency:purge')->hourly()->onOneServer();
+Schedule::command('audit:seal')->dailyAt('01:30')->timezone('UTC')->onOneServer();

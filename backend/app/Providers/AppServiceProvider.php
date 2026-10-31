@@ -21,6 +21,7 @@ use App\Services\Tenancy\SpatieCompanyAccess;
 use App\Services\Tenancy\SpatiePermissionChecker;
 use App\Services\Tenancy\TenantAwarePermissionRegistrar;
 use App\Services\UuidV7Generator;
+use App\Support\Idempotency\IdempotencyStore;
 use App\Support\Tenancy\CompanyContext;
 use App\Support\Tenancy\TenantContext;
 use App\Support\UnitOfWork\AuditWriter;
@@ -68,6 +69,7 @@ class AppServiceProvider extends ServiceProvider
             $app->make(SequenceAllocator::class),
             $app->make(AuditWriter::class),
             $app->make(OutboxWriter::class),
+            $app->make(IdempotencyStore::class),
             (bool) $app['config']->get('tenancy.strict_lock_order'),
         ));
     }

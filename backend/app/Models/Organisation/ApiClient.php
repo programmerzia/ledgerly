@@ -9,7 +9,9 @@ use App\Models\Casts\PgUuidArray;
 use Carbon\CarbonImmutable;
 use DateTimeInterface;
 use Illuminate\Auth\Authenticatable;
+use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
+use Illuminate\Foundation\Auth\Access\Authorizable;
 use Laravel\Sanctum\HasApiTokens;
 use Laravel\Sanctum\NewAccessToken;
 
@@ -22,9 +24,13 @@ use Laravel\Sanctum\NewAccessToken;
  * @property list<string> $company_ids
  * @property CarbonImmutable|null $revoked_at
  */
-class ApiClient extends BaseModel implements AuthenticatableContract
+class ApiClient extends BaseModel implements AuthenticatableContract, AuthorizableContract
 {
     use Authenticatable;
+
+    // Gate callbacks (spatie's included) expect an Authorizable principal; policies type-hint User,
+    // so a client token is denied by policy rather than crashing the gate.
+    use Authorizable;
     use HasApiTokens {
         createToken as private createSanctumToken;
     }

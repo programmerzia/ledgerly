@@ -27,7 +27,7 @@ Route::middleware('auth:sanctum')->group(function (): void {
 });
 
 // Organisation-level routes: a signed-in user inside a resolved tenant, no company yet.
-Route::middleware(['auth:sanctum', 'tenant', 'tenant.writable'])->group(function (): void {
+Route::middleware(['auth:sanctum', 'tenant', 'tenant.writable', 'idempotent'])->group(function (): void {
     Route::get('companies', [CompanyController::class, 'index'])->name('companies.index');
     Route::post('companies', [CompanyController::class, 'store'])->name('companies.store');
     Route::get('invitations', [InvitationController::class, 'index'])->name('invitations.index');
@@ -35,4 +35,4 @@ Route::middleware(['auth:sanctum', 'tenant', 'tenant.writable'])->group(function
     Route::delete('invitations/{invitation}', [InvitationController::class, 'destroy'])->whereUuid('invitation')->name('invitations.destroy');
 });
 
-// Tenant routes (2.8+) use: auth:sanctum, tenant, tenant.writable [, company].
+// Tenant routes (2.8+) use: auth:sanctum, tenant, tenant.writable, idempotent [, company].

@@ -1,7 +1,7 @@
 -- Narrow cross-tenant functions (13 §6). Created as ledgerly_sysops (BYPASSRLS, cannot log in) in
 -- the sysops schema, so they run with its rights. Each has a fixed search_path, takes explicit
 -- arguments, returns only the columns its caller needs, and is executable by ledgerly_app only.
--- purge_idempotency_keys() lands with the idempotency_keys table (plan 1.9).
+-- purge_idempotency_keys() lives in sysops_idempotency.sql, created with its table.
 
 -- Tenants a scheduled per-tenant job should run for, in id order, keyset-paginated: pass the last
 -- id of the previous page as after_id. Only live tenants; job-specific filters are added here as
@@ -22,7 +22,8 @@ $$;
 
 -- Outbox sweep (13 §15): claims undispatched messages that nobody claimed in the last 60 s,
 -- oldest first, skipping rows another relay holds. Returns ids and tenants only; the relay reads
--- each message under its tenant context.
+-- each message under its tenant context. After 20 attempts a message is left for operators
+-- (visible as dispatched_at IS NULL AND attempts >= 20) instead of being retried forever.
 CREATE OR REPLACE FUNCTION sysops.claim_outbox_batch(batch integer)
 RETURNS TABLE (message_id uuid, tenant_id uuid)
 LANGUAGE sql VOLATILE SECURITY DEFINER
@@ -32,6 +33,7 @@ AS $$
     SELECT m.id
     FROM public.outbox_messages m
     WHERE m.dispatched_at IS NULL
+      AND m.attempts < 20
       AND (m.claimed_at IS NULL OR m.claimed_at < now() - interval '60 seconds')
     ORDER BY m.occurred_at, m.id
     LIMIT LEAST(GREATEST(batch, 1), 1000)

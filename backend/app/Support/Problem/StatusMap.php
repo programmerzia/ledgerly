@@ -10,6 +10,9 @@ final class StatusMap
     private const array MAP = [
         'version_conflict' => 409,
         'idempotency_in_progress' => 409,
+        'idempotency_key_reuse' => 422,
+        'idempotency_key_required' => 428,
+        'idempotency_key_invalid' => 400,
         'forbidden' => 403,
         'not_found' => 404,
         'self_approval_forbidden' => 403,

@@ -2,6 +2,10 @@
 
 declare(strict_types=1);
 
+use App\Http\Middleware\RequireIdempotencyKey;
+use App\Http\Middleware\ResolveCompany;
+use App\Http\Middleware\ResolveTenant;
+use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Routing\Route;
 use Illuminate\Support\Facades\Route as Router;
 
@@ -61,4 +65,22 @@ it('constrains every id in an authorized route to a UUID, so bad ids are 404s an
         ->values()->all();
 
     expect($loose)->toBe([]);
+});
+
+it('resolves tenant, company and the idempotency claim before route-model binding and policies', function (): void {
+    Router::middleware(['api', 'auth:sanctum', 'tenant', 'tenant.writable', 'idempotent', 'company'])
+        ->post('api/v1/_order/companies/{company}/things/{thing}', fn () => null)->name('test.order')
+        ->can('update', 'thing');
+    Router::getRoutes()->refreshNameLookups();
+    $route = Router::getRoutes()->getByName('test.order');
+    $stack = array_map(
+        fn (string $m) => explode(':', $m, 2)[0],
+        app('router')->gatherRouteMiddleware($route),
+    );
+    $at = fn (string $class) => array_search($class, $stack, true);
+
+    expect($at(ResolveTenant::class))->toBeLessThan($at(ResolveCompany::class))
+        ->and($at(ResolveCompany::class))->toBeLessThan($at(RequireIdempotencyKey::class))
+        ->and($at(RequireIdempotencyKey::class))->toBeLessThan($at(SubstituteBindings::class))
+        ->and($at(SubstituteBindings::class))->toBeLessThan($at(Illuminate\Auth\Middleware\Authorize::class));
 });

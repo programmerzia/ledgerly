@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace App\Support\UnitOfWork;
 
+use App\Jobs\Outbox\RelayOutboxMessages;
 use App\Services\Ledger\SequenceAllocator;
 use App\Support\Actor;
+use App\Support\Idempotency\IdempotencyScope;
+use App\Support\Idempotency\IdempotencyStore;
 use App\Support\Tenancy\TenantContext;
 use Closure;
 use Illuminate\Database\Connection;
 use Illuminate\Database\DatabaseManager;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\QueryException;
 use LogicException;
 use PDOException;
@@ -34,12 +38,16 @@ final class UnitOfWork
     /** @var list<Closure(): void> */
     private array $afterCommit = [];
 
+    /** Outbox messages written by the current top-level transaction, for the after-commit kick. */
+    private ?OutboxKick $kick = null;
+
     public function __construct(
         private readonly DatabaseManager $db,
         private readonly TenantContext $tenant,
         private readonly SequenceAllocator $sequences,
         private readonly AuditWriter $auditWriter,
         private readonly OutboxWriter $outboxWriter,
+        private readonly IdempotencyStore $idempotency,
         private readonly bool $strictLockOrder = true,
         private readonly int $maxAttempts = 3,
     ) {}
@@ -86,6 +94,7 @@ final class UnitOfWork
                 continue;
             }
 
+            $this->kickRelay();
             $this->runAfterCommit();
 
             return $result;
@@ -124,14 +133,18 @@ final class UnitOfWork
             return $connection->transaction(function () use ($connection, $tenantId, $actor, $work, $locks, $audit, $outbox) {
                 $result = $work($locks, $audit, $outbox);
 
-                // Pre-commit, in lock order: outbox rows, then the audit head (last lock).
-                $this->outboxWriter->write($connection, $tenantId, $outbox);
+                // Pre-commit, in order (13 §8 step 2): outbox rows, the idempotency key, then the
+                // audit head, which is the last lock.
+                $messageIds = $this->outboxWriter->write($connection, $tenantId, $outbox);
+                $this->kick = $messageIds === [] ? null : new OutboxKick($tenantId, $messageIds);
+                $this->commitIdempotencyKey($connection, $actor, $result);
                 $this->auditWriter->flush($connection, $locks, $tenantId, $actor, $audit);
 
                 return $result;
             }, 1);
         } catch (Throwable $e) {
             $this->afterCommit = [];
+            $this->kick = null;
 
             throw $e;
         } finally {
@@ -139,6 +152,38 @@ final class UnitOfWork
             $this->locks = null;
             $this->audit = null;
             $this->outbox = null;
+        }
+    }
+
+    /**
+     * Ties the request's idempotency key to this transaction (13 §11): committed together with the
+     * business change, so a crash after commit can never let a retry apply it twice.
+     */
+    private function commitIdempotencyKey(Connection $connection, Actor $actor, mixed $result): void
+    {
+        if ($actor->idempotencyKey === null || $actor->id === null) {
+            return;
+        }
+        $scope = new IdempotencyScope($actor->tenantId, $actor->type->value, $actor->id, $actor->idempotencyKey);
+        $subject = $result instanceof Model ? $result : null;
+        $this->idempotency->commit(
+            $connection, $scope,
+            $subject?->getTable(), $subject === null ? null : (string) $subject->getKey(),
+        );
+    }
+
+    /** Delivers this transaction's outbox messages now; the sweep covers anything this misses. */
+    private function kickRelay(): void
+    {
+        $kick = $this->kick;
+        $this->kick = null;
+        if ($kick === null) {
+            return;
+        }
+        try {
+            RelayOutboxMessages::dispatch($kick->tenantId, $kick->messageIds);
+        } catch (Throwable $e) {
+            report($e);
         }
     }
 
