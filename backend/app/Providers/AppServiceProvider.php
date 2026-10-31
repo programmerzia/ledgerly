@@ -10,6 +10,7 @@ use App\Contracts\Clock;
 use App\Contracts\CompanyAccess;
 use App\Contracts\IdGenerator;
 use App\Contracts\PermissionChecker;
+use App\Contracts\RoleChecker;
 use App\Models\Ledger\Journal;
 use App\Models\Organisation\Company;
 use App\Models\Organisation\Invitation;
@@ -22,6 +23,7 @@ use App\Services\Ledger\SequenceAllocator;
 use App\Services\SystemClock;
 use App\Services\Tenancy\SpatieCompanyAccess;
 use App\Services\Tenancy\SpatiePermissionChecker;
+use App\Services\Tenancy\SpatieRoleChecker;
 use App\Services\Tenancy\TenantAwarePermissionRegistrar;
 use App\Services\UuidV7Generator;
 use App\Support\Idempotency\IdempotencyStore;
@@ -56,6 +58,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(Clock::class, SystemClock::class);
         $this->app->singleton(IdGenerator::class, UuidV7Generator::class);
         $this->app->singleton(PermissionChecker::class, SpatiePermissionChecker::class);
+        $this->app->singleton(RoleChecker::class, SpatieRoleChecker::class);
         // extend() so the swap holds whatever the provider order is relative to spatie's own singleton.
         $this->app->extend(PermissionRegistrar::class, fn ($registrar, $app) => new TenantAwarePermissionRegistrar($app->make('cache')));
         $this->app->singleton(CompanyAccess::class, SpatieCompanyAccess::class);

@@ -59,12 +59,13 @@ return new class extends Migration
             $table->string('role', 64);
             $table->enum('status', ['pending', 'approved', 'returned', 'cancelled'])->default('pending');
             $table->uuid('requested_by')->nullable();
-            $table->timestampTz('requested_at');
+            $table->timestampTz('requested_at', 6);
             $table->uuid('decided_by')->nullable();
-            $table->timestampTz('decided_at')->nullable();
+            $table->timestampTz('decided_at', 6)->nullable();
             $table->text('comment')->nullable();
             $table->uuid('signed_by')->nullable();
-            $table->timestampTz('signed_at')->nullable();
+            // Microseconds: the signature hashes signed_at, so the stored value must reproduce it.
+            $table->timestampTz('signed_at', 6)->nullable();
             $table->char('signature_hash', 64)->nullable();
             $table->index(['company_id', 'status', 'requested_at']);
             $table->index(['document_type', 'document_id']);

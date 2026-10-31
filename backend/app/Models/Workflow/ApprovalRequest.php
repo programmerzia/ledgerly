@@ -31,6 +31,9 @@ use Carbon\CarbonImmutable;
  */
 class ApprovalRequest extends BaseModel
 {
+    /** requested_at / decided_at / signed_at are the meaningful times; no Laravel timestamps. */
+    public $timestamps = false;
+
     /** @return array<string, string> */
     protected function casts(): array
     {
