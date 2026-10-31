@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useLedgerStore, DocumentTab } from '@/mock/store';
 import { LayoutDashboard, FileText, X, Pin, Copy, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -19,6 +19,7 @@ import {
 
 export const DocumentTabStrip: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { tabs, activeTabId, closeTab, setActiveTab } = useLedgerStore();
 
   const handleTabClick = (tab: DocumentTab) => {
@@ -34,11 +35,16 @@ export const DocumentTabStrip: React.FC = () => {
     }
   };
 
+  // Hide the strip until a document tab is open beyond the pinned Dashboard
+  if (tabs.every((t) => t.pinned)) return null;
+
   return (
-    <div className="h-8 bg-surface-subtle border-b border-border flex items-center px-1 overflow-x-auto no-scrollbar select-none z-10 shrink-0">
-      <div className="flex items-center gap-0.5">
+    <div className="h-10 bg-canvas border-b border-border flex items-center px-3 overflow-x-auto no-scrollbar select-none z-10 shrink-0">
+      <div className="flex items-center gap-1">
         {tabs.map((tab) => {
-          const isActive = tab.id === activeTabId;
+          const isActive = tab.pinned
+            ? /\/dashboard\/?$/.test(location.pathname)
+            : tab.id === activeTabId;
           return (
             <ContextMenu key={tab.id}>
               <ContextMenuTrigger asChild>
@@ -46,15 +52,15 @@ export const DocumentTabStrip: React.FC = () => {
                   onClick={() => handleTabClick(tab)}
                   onAuxClick={(e) => handleAuxClick(e, tab.id)}
                   className={cn(
-                    'group flex items-center gap-1.5 px-3 py-1 text-xs rounded-t-sm border-t border-x cursor-pointer transition-colors max-w-[200px] h-7',
+                    'group flex items-center gap-1.5 pl-3 pr-1.5 text-[13px] rounded-full border cursor-pointer transition-all duration-150 max-w-[220px] h-8',
                     isActive
-                      ? 'bg-surface-elevated border-border text-text-primary font-medium shadow-2xs'
-                      : 'bg-transparent border-transparent text-text-muted hover:text-text-primary hover:bg-surface-neutral/60'
+                      ? 'bg-surface-elevated border-border text-text-primary font-medium shadow-md'
+                      : 'bg-transparent border-transparent text-text-muted hover:text-text-primary hover:bg-surface-neutral'
                   )}
                   title={`${tab.title} (${tab.url})`}
                 >
                   {tab.pinned ? (
-                    <LayoutDashboard className="w-3.5 h-3.5 text-accent shrink-0" />
+                    <LayoutDashboard className="size-3.5 text-accent shrink-0" />
                   ) : (
                     <FileText className="w-3.5 h-3.5 text-text-muted shrink-0" />
                   )}
@@ -74,10 +80,10 @@ export const DocumentTabStrip: React.FC = () => {
                         e.stopPropagation();
                         closeTab(tab.id);
                       }}
-                      className="p-0.5 rounded-xs hover:bg-surface-neutral text-text-muted hover:text-text-primary opacity-60 group-hover:opacity-100 transition shrink-0 ml-1"
+                      className="size-5 grid place-items-center rounded-full hover:bg-border text-text-muted hover:text-text-primary opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition shrink-0"
                       title="Close tab (Ctrl+W)"
                     >
-                      <X className="w-3 h-3" />
+                      <X className="size-3" />
                     </button>
                   )}
                 </div>

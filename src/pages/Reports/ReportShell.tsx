@@ -1,19 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import { BarChart3, Download, Printer } from 'lucide-react';
+import { toast } from 'sonner';
 import { useLedgerStore } from '@/mock/store';
-import {
-  BarChart3,
-  Calendar,
-  Filter,
-  Download,
-  Printer,
-  RefreshCw,
-  SlidersHorizontal,
-  Bookmark,
-  Share2,
-  Clock,
-  Layers,
-  ChevronDown,
-} from 'lucide-react';
+import { BUSINESS_TODAY } from '@/lib/docStatus';
+import { PageHeader } from '@/components/domain/PageHeader';
+import { CheckToggle, SelectBox, longDate } from './ReportParts';
 
 export interface ReportParameters {
   periodFrom: string;
@@ -25,13 +16,32 @@ export interface ReportParameters {
   levelOfDetail: 'summary' | 'detailed';
 }
 
+export const defaultReportParameters = (periodTo = 'per-2026-10', detail: 'summary' | 'detailed' = 'summary'): ReportParameters => ({
+  periodFrom: 'per-2026-01',
+  periodTo,
+  comparison: 'none',
+  pivotDimension: 'none',
+  hideZeroRows: false,
+  presentationCurrency: 'USD',
+  levelOfDetail: detail,
+});
+
 interface ReportShellProps {
   title: string;
-  subtitle: string;
-  asOfMode?: boolean; // If true, single as-of date rather than period range
+  /** Text after "Company ·". Defaults to the selected period / as-of date. */
+  subtitle?: string;
+  /** Single as-of date instead of a period. */
+  asOfMode?: boolean;
   parameters: ReportParameters;
   onParametersChange: (params: ReportParameters) => void;
+  /** Extra controls (toggles, tabs) shown in the parameter bar before Print/Export. */
+  toolbar?: React.ReactNode;
+  /** Hide the standard period picker (reports with their own range). */
+  hidePeriod?: boolean;
+  /** Show the "Hide empty rows" toggle. */
+  showHideEmpty?: boolean;
   onRun?: () => void;
+  /** Kept for API compatibility; no longer shown. */
   computedMs?: number;
   totalLinesScanned?: number;
   children: React.ReactNode;
@@ -43,225 +53,73 @@ export const ReportShell: React.FC<ReportShellProps> = ({
   asOfMode = false,
   parameters,
   onParametersChange,
-  onRun,
-  computedMs = 118,
-  totalLinesScanned = 184,
+  toolbar,
+  hidePeriod,
+  showHideEmpty = true,
   children,
 }) => {
   const { currentCompany, periods } = useLedgerStore();
-  const [isRunning, setIsRunning] = useState(false);
-  const [paramsExpanded, setParamsExpanded] = useState(false);
-
-  const handleRun = () => {
-    setIsRunning(true);
-    if (onRun) onRun();
-    setTimeout(() => {
-      setIsRunning(false);
-    }, 250);
-  };
-
-  // Keyboard shortcut: F5 runs report
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'F5') {
-        e.preventDefault();
-        handleRun();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
-
-  const updateParam = <K extends keyof ReportParameters>(key: K, value: ReportParameters[K]) => {
-    onParametersChange({
-      ...parameters,
-      [key]: value,
-    });
-  };
-
-  const exportCsv = () => {
-    alert('Report downloaded in CSV format.');
-  };
+  const selectable = periods.filter((p) => p.kind !== 'adjustment' && p.starts_on <= BUSINESS_TODAY);
+  const period = selectable.find((p) => p.id === parameters.periodTo) ?? selectable[selectable.length - 1];
+  const descriptor = subtitle ?? (period ? (asOfMode ? `As of ${longDate(period.ends_on)}` : period.name) : '');
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-hidden bg-canvas">
-      {/* 1. Header Toolbar */}
-      <div className="min-h-10 py-1.5 border-b border-border px-3 sm:px-4 flex flex-wrap items-center justify-between gap-2 shrink-0 bg-surface">
-        <div className="flex items-center gap-2.5">
-          <BarChart3 className="w-4 h-4 text-accent shrink-0" />
-          <div className="flex flex-wrap items-baseline gap-1.5">
-            <h1 className="text-sm font-semibold text-text-primary leading-tight">{title}</h1>
-            <span className="hidden sm:inline text-[11px] text-text-muted leading-tight">{subtitle}</span>
-          </div>
-        </div>
-
-        {/* Toolbar buttons */}
-        <div className="flex items-center gap-1.5 sm:gap-2">
-          <button
-            type="button"
-            onClick={() => setParamsExpanded(!paramsExpanded)}
-            className={`flex items-center gap-1.5 h-7 px-2.5 rounded-sm border text-xs font-medium transition cursor-pointer ${
-              paramsExpanded
-                ? 'border-accent bg-accent-soft text-accent'
-                : 'border-border bg-surface hover:bg-surface-neutral text-text-primary'
-            }`}
+    <div className="flex flex-col gap-5">
+      <PageHeader
+        icon={<BarChart3 />}
+        title={title}
+        subtitle={descriptor ? `${currentCompany.name} · ${descriptor}` : currentCompany.name}
+      />
+      <div className="flex flex-wrap items-center gap-3 print:hidden">
+        {!hidePeriod && (
+          <SelectBox
+            aria-label={asOfMode ? 'As of' : 'Period'}
+            value={period?.id ?? ''}
+            onChange={(e) => onParametersChange({ ...parameters, periodTo: e.target.value })}
           >
-            <SlidersHorizontal className="w-3.5 h-3.5" />
-            <span>Parameters</span>
-            <ChevronDown className={`w-3 h-3 transition ${paramsExpanded ? 'rotate-180' : ''}`} />
-          </button>
-
-          <button
-            type="button"
-            onClick={handleRun}
-            disabled={isRunning}
-            className="flex items-center gap-1.5 h-7 px-3 rounded-sm bg-accent hover:bg-accent-hover text-white text-xs font-semibold shadow-xs transition cursor-pointer"
-            title="Recompute Report (F5)"
+            {selectable.map((p) => (
+              <option key={p.id} value={p.id}>
+                {asOfMode ? `As of ${longDate(p.ends_on)}` : p.name}
+              </option>
+            ))}
+          </SelectBox>
+        )}
+        {toolbar}
+        {showHideEmpty && (
+          <CheckToggle
+            checked={parameters.hideZeroRows}
+            onChange={(v) => onParametersChange({ ...parameters, hideZeroRows: v })}
           >
-            <RefreshCw className={`w-3 h-3 ${isRunning ? 'animate-spin' : ''}`} />
-            <span>Run</span>
-            <span className="hidden sm:inline">(F5)</span>
-          </button>
-
-          <span className="text-border hidden sm:inline">|</span>
-
-          <button
-            type="button"
-            onClick={exportCsv}
-            className="flex items-center gap-1.5 h-7 px-2.5 rounded-sm border border-border bg-surface hover:bg-surface-neutral text-text-primary text-xs font-medium transition cursor-pointer"
-          >
-            <Download className="w-3 h-3 text-text-muted" />
-            <span className="hidden sm:inline">Export</span>
-          </button>
-
+            Hide empty rows
+          </CheckToggle>
+        )}
+        <div className="ml-auto flex items-center gap-2">
           <button
             type="button"
             onClick={() => window.print()}
-            className="flex items-center gap-1.5 h-7 px-2.5 rounded-sm border border-border bg-surface hover:bg-surface-neutral text-text-primary text-xs font-medium transition cursor-pointer"
+            className="flex items-center gap-1.5 h-8 px-3 rounded-lg border border-border hover:bg-surface-neutral bg-surface text-text-primary text-xs font-medium transition-colors cursor-pointer"
           >
-            <Printer className="w-3 h-3 text-text-muted" />
-            <span className="hidden sm:inline">Print</span>
+            <Printer className="size-3.5" />
+            <span>Print</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => toast.success(`${title} exported`)}
+            className="flex items-center gap-1.5 h-8 px-3 bg-accent hover:bg-accent-hover text-white rounded-lg text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+          >
+            <Download className="size-3.5" />
+            <span>Export</span>
           </button>
         </div>
       </div>
-
-      {/* 2. Workspace Body: Left 280px Parameter Pane (Collapsible) + Full Width Report */}
-      <div className="flex-1 flex overflow-hidden relative">
-        {/* Left 280px Parameter Panel */}
-        {paramsExpanded && (
-          <>
-            {/* Mobile backdrop */}
-            <div
-              className="fixed inset-0 bg-black/40 z-30 md:hidden"
-              onClick={() => setParamsExpanded(false)}
-            />
-            <aside className="fixed inset-y-0 left-0 z-40 w-72 md:static md:w-[280px] shrink-0 border-r border-border bg-surface p-4 flex flex-col gap-4 text-xs overflow-y-auto shadow-xl md:shadow-none animate-in slide-in-from-left duration-150">
-              <div className="flex items-center justify-between border-b border-border pb-2">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">
-                  Report Parameters
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setParamsExpanded(false)}
-                  className="text-text-muted hover:text-text-primary text-[11px] cursor-pointer"
-                >
-                  Collapse ✕
-                </button>
-              </div>
-
-            {/* Period or As-Of */}
-            <div className="flex flex-col gap-1">
-              <label className="text-[11px] font-semibold text-text-secondary flex items-center gap-1">
-                <Calendar className="w-3 h-3 text-accent" />
-                <span>{asOfMode ? 'As Of Period' : 'Fiscal Period'}</span>
-              </label>
-              <select
-                value={parameters.periodTo}
-                onChange={(e) => updateParam('periodTo', e.target.value)}
-                className="h-8 px-2 rounded-sm border border-border bg-surface font-mono text-xs text-text-primary focus:outline-none focus:ring-1 focus:ring-accent"
-              >
-                {periods.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Pivot by Dimension */}
-            <div className="flex flex-col gap-1">
-              <label className="text-[11px] font-semibold text-text-secondary flex items-center gap-1">
-                <Layers className="w-3 h-3 text-accent" />
-                <span>Pivot by Dimension</span>
-              </label>
-              <select
-                value={parameters.pivotDimension}
-                onChange={(e) => updateParam('pivotDimension', e.target.value as any)}
-                className="h-8 px-2 rounded-sm border border-border bg-surface font-medium text-xs text-text-primary focus:outline-none focus:ring-1 focus:ring-accent"
-              >
-                <option value="none">None (Consolidated)</option>
-                <option value="branch">Branch (Mogadishu / Hargeisa)</option>
-                <option value="cost_centre">Cost Centre (OPS / IT / ADMIN)</option>
-              </select>
-            </div>
-
-            {/* Comparison */}
-            <div className="flex flex-col gap-1">
-              <label className="text-[11px] font-semibold text-text-secondary">Comparison</label>
-              <select
-                value={parameters.comparison}
-                onChange={(e) => updateParam('comparison', e.target.value as any)}
-                className="h-8 px-2 rounded-sm border border-border bg-surface font-medium text-xs text-text-primary focus:outline-none focus:ring-1 focus:ring-accent"
-              >
-                <option value="none">None</option>
-                <option value="previous_period">Previous Month</option>
-                <option value="previous_year">Prior Year (FY 2025)</option>
-                <option value="budget">Board Approved Budget</option>
-              </select>
-            </div>
-
-            {/* Currency */}
-            <div className="flex flex-col gap-1">
-              <label className="text-[11px] font-semibold text-text-secondary">
-                Presentation Currency
-              </label>
-              <div className="h-8 px-2 flex items-center rounded-sm border border-border bg-surface-neutral font-mono font-medium text-xs text-text-primary">
-                {currentCompany.base_currency} (USD)
-              </div>
-            </div>
-
-            {/* Zero Rows Toggle */}
-            <div className="pt-2 border-t border-border">
-              <label className="flex items-center gap-2 cursor-pointer text-xs font-medium text-text-primary select-none">
-                <input
-                  type="checkbox"
-                  checked={parameters.hideZeroRows}
-                  onChange={(e) => updateParam('hideZeroRows', e.target.checked)}
-                  className="rounded border-border text-accent focus:ring-accent"
-                />
-                <span>Hide Zero Movement Rows</span>
-              </label>
-            </div>
-          </aside>
-        </>
-      )}
-
-      {/* 3. Report Results Workspace (Full Width) */}
-      <main className="flex-1 overflow-y-auto p-3 sm:p-5 flex flex-col gap-4">
-        {children}
-      </main>
-    </div>
-
-    {/* 4. Controls-grade Audit Footer */}
-    <div className="h-6 px-3 sm:px-4 border-t border-border bg-surface-neutral flex items-center justify-between shrink-0 text-[10px] sm:text-[11px] text-text-muted font-mono select-none overflow-hidden">
-      <div className="flex items-center gap-1.5 sm:gap-2 truncate">
-        <Clock className="w-3 h-3 text-accent shrink-0" />
-        <span className="truncate">Computed in {computedMs} ms ({totalLinesScanned} lines)</span>
-      </div>
-      <div className="hidden sm:block shrink-0">
-        <span>Presentation: {currentCompany.base_currency} • Double-entry reduction</span>
-      </div>
-    </div>
+      {children}
     </div>
   );
 };
+
+/** Resolves the period picked in the parameter bar (falls back to the latest started period). */
+export function useSelectedPeriod(periodTo: string) {
+  const periods = useLedgerStore((s) => s.periods);
+  const selectable = periods.filter((p) => p.kind !== 'adjustment' && p.starts_on <= BUSINESS_TODAY);
+  return selectable.find((p) => p.id === periodTo) ?? selectable[selectable.length - 1];
+}

@@ -12,7 +12,7 @@ const Command = React.forwardRef<
   <CommandPrimitive
     ref={ref}
     className={cn(
-      'flex h-full w-full flex-col overflow-hidden rounded-md bg-surface-elevated text-text-primary',
+      'flex h-full w-full flex-col overflow-hidden rounded-xl bg-transparent text-text-primary',
       className
     )}
     {...props}
@@ -28,10 +28,10 @@ const CommandDialog = ({ children, onClose, ...props }: CommandDialogProps) => {
   return (
     <Dialog {...props}>
       <DialogContent
-        className="overflow-hidden p-0 shadow-lg z-[70] max-w-xl border-border bg-surface-elevated"
+        className="overflow-hidden p-0 z-[70] max-w-xl border-border bg-surface-elevated"
         hideClose={false}
       >
-        <Command className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:text-[11px] [&_[cmdk-group-heading]]:text-text-muted [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-group]]:px-2 [&_[cmdk-input-wrapper]_svg]:h-4 [&_[cmdk-input-wrapper]_svg]:w-4 [&_[cmdk-input]]:h-11 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-2 [&_[cmdk-item]]:text-xs [&_[cmdk-item]_svg]:h-4 [&_[cmdk-item]_svg]:w-4">
+        <Command className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:text-[11px] [&_[cmdk-group-heading]]:text-text-muted [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-group]]:px-2 [&_[cmdk-input-wrapper]_svg]:h-4 [&_[cmdk-input-wrapper]_svg]:w-4 [&_[cmdk-input]]:h-11 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-2 [&_[cmdk-item]]:text-[13px] [&_[cmdk-item]_svg]:h-4 [&_[cmdk-item]_svg]:w-4">
           {children}
         </Command>
       </DialogContent>
@@ -48,7 +48,7 @@ const CommandInput = React.forwardRef<
     <CommandPrimitive.Input
       ref={ref}
       className={cn(
-        'flex h-10 w-full rounded-md bg-transparent py-2 text-xs outline-none placeholder:text-text-muted disabled:cursor-not-allowed disabled:opacity-50 text-text-primary',
+        'flex h-11 w-full rounded-md bg-transparent py-2 text-sm outline-none placeholder:text-text-muted disabled:cursor-not-allowed disabled:opacity-50 text-text-primary',
         className
       )}
       {...props}
@@ -88,7 +88,7 @@ const CommandGroup = React.forwardRef<
   <CommandPrimitive.Group
     ref={ref}
     className={cn(
-      'overflow-hidden p-1 text-text-primary [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-[11px] [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:text-text-muted [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider',
+      'overflow-hidden p-1 text-text-primary [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-[11px] [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:text-text-muted [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wide',
       className
     )}
     {...props}
@@ -115,7 +115,7 @@ const CommandItem = React.forwardRef<
   <CommandPrimitive.Item
     ref={ref}
     className={cn(
-      'relative flex cursor-pointer select-none items-center rounded-sm px-2.5 py-1.5 text-xs outline-none data-[disabled=true]:pointer-events-none data-[selected=true]:bg-surface-neutral data-[selected=true]:text-text-primary data-[disabled=true]:opacity-50 text-text-secondary transition-colors',
+      'relative flex h-8 cursor-pointer select-none items-center gap-2 rounded-md px-2.5 text-[13px] outline-none transition-colors text-text-secondary data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-45 data-[selected=true]:bg-surface-neutral data-[selected=true]:text-text-primary [&_svg]:size-4 [&_svg]:shrink-0 [&_svg]:text-text-muted',
       className
     )}
     {...props}
@@ -130,7 +130,7 @@ const CommandShortcut = ({
   return (
     <span
       className={cn(
-        'ml-auto font-mono text-[10px] tracking-widest text-text-muted',
+        'ml-auto inline-flex items-center rounded border border-border bg-surface-neutral px-1.5 text-[11px] font-medium text-text-muted',
         className
       )}
       {...props}

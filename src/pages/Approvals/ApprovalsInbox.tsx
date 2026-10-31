@@ -8,16 +8,17 @@ import {
   CheckSquare,
   Clock,
   CheckCircle,
+  CheckCircle2,
   RotateCcw,
   ExternalLink,
-  ShieldAlert,
-  AlertTriangle,
-  X,
-  Building,
   FileSpreadsheet,
   FileText,
   BookMarked,
 } from 'lucide-react';
+import { PageHeader } from '@/components/domain/PageHeader';
+import { Avatar } from '@/components/ui/avatar';
+import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 import {
   Dialog,
   DialogContent,
@@ -114,7 +115,7 @@ export const ApprovalsInbox: React.FC = () => {
 
   const handleStartApprove = (item: any) => {
     if (item.maker_id === currentUser.id) {
-      alert('Segregation of Duties: As the creator of this document, you cannot approve it. Switch user to Fatima Hassan (Approver) to approve.');
+      toast.error('You created this document, so someone else has to approve it. Switch to the approver account to continue.');
       return;
     }
     setSelectedItem(item);
@@ -134,7 +135,7 @@ export const ApprovalsInbox: React.FC = () => {
       setSignDialogOpen(false);
       setSelectedItem(null);
     } catch (err: any) {
-      alert(err.message || 'Approval failed');
+      toast.error(err.message || 'Approval failed');
     } finally {
       setLoading(false);
     }
@@ -160,182 +161,166 @@ export const ApprovalsInbox: React.FC = () => {
     }
   };
 
+  const GROUPS = [
+    { type: 'sales_invoice', label: 'Sales invoices', icon: FileSpreadsheet },
+    { type: 'purchase_bill', label: 'Supplier bills', icon: FileText },
+    { type: 'manual_journal', label: 'Manual journals', icon: BookMarked },
+  ] as const;
+
+  const ageLabel = (iso: string) => {
+    const days = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000));
+    return days === 0 ? 'waiting since today' : days === 1 ? 'waiting 1 day' : `waiting ${days} days`;
+  };
+
+  const tabs = [
+    { key: 'waiting', label: 'Waiting for me', count: waitingForMe.length },
+    { key: 'submitted', label: 'Sent by me', count: submittedByMe.length },
+    { key: 'all', label: 'Everything pending', count: pendingItems.length },
+  ] as const;
+
   return (
     <div className="flex flex-col gap-6">
-      {/* Header */}
-      <div className="flex items-center justify-between pb-4 border-b border-ink-200">
-        <div>
-          <h1 className="text-h1 font-bold text-ink-900 flex items-center gap-2">
-            <CheckSquare className="w-6 h-6 text-brand-600" />
-            Approvals Inbox
-          </h1>
-          <p className="text-xs text-ink-500 mt-0.5">
-            Segregation of duties & maker-checker dual authorization queue
-          </p>
-        </div>
+      <PageHeader
+        icon={<CheckSquare />}
+        title="Approvals"
+        subtitle="Documents are posted only after a second person approves them."
+        meta={
+          <span className="rounded-full border border-border bg-surface-neutral px-2.5 py-0.5 text-xs text-text-secondary">
+            Signed in as <span className="font-medium text-text-primary">{currentUser.name}</span>
+          </span>
+        }
+      />
 
-        <div className="text-xs font-medium text-ink-500 bg-ink-100 px-3 py-1.5 rounded-sm border border-ink-200">
-          Current Reviewer: <span className="text-ink-900 font-semibold">{currentUser.name}</span> ({currentUser.roleTitle})
-        </div>
+      <div className="flex items-center gap-1 border-b border-border" role="tablist">
+        {tabs.map((t) => (
+          <button
+            key={t.key}
+            type="button"
+            role="tab"
+            aria-selected={activeTab === t.key}
+            onClick={() => setActiveTab(t.key)}
+            className={cn(
+              'flex items-center gap-2 border-b-2 px-4 py-2.5 text-[13px] font-medium transition-colors -mb-px',
+              activeTab === t.key ? 'border-accent text-accent' : 'border-transparent text-text-muted hover:text-text-primary'
+            )}
+          >
+            {t.label}
+            <span
+              className={cn(
+                'rounded-full px-1.5 text-[11px] font-semibold tabular-nums',
+                t.key === 'waiting' && t.count > 0 ? 'bg-warning-soft text-warning' : 'bg-surface-neutral text-text-secondary'
+              )}
+            >
+              {t.count}
+            </span>
+          </button>
+        ))}
       </div>
 
-      {/* Tabs */}
-      <div className="flex items-center gap-2 border-b border-ink-200">
-        <button
-          type="button"
-          onClick={() => setActiveTab('waiting')}
-          className={`flex items-center gap-2 px-4 py-2 border-b-2 text-xs font-medium transition-colors ${
-            activeTab === 'waiting'
-              ? 'border-brand-600 text-brand-700 font-semibold'
-              : 'border-transparent text-ink-500 hover:text-ink-900'
-          }`}
-        >
-          <span>Waiting for My Review</span>
-          <span className="text-[10px] font-mono bg-warning-bg text-warning px-1.5 py-0.2 rounded-full font-bold">
-            {waitingForMe.length}
+      {displayList.length === 0 ? (
+        <div className="ui-rise-in flex flex-col items-center rounded-xl border border-border bg-surface px-6 py-16 text-center shadow-card">
+          <span className="flex size-14 items-center justify-center rounded-full bg-success-soft text-success">
+            <CheckCircle2 className="size-7" />
           </span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab('submitted')}
-          className={`flex items-center gap-2 px-4 py-2 border-b-2 text-xs font-medium transition-colors ${
-            activeTab === 'submitted'
-              ? 'border-brand-600 text-brand-700 font-semibold'
-              : 'border-transparent text-ink-500 hover:text-ink-900'
-          }`}
-        >
-          <span>Submitted by Me</span>
-          <span className="text-[10px] font-mono bg-ink-100 text-ink-700 px-1.5 py-0.2 rounded-full">
-            {submittedByMe.length}
-          </span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab('all')}
-          className={`flex items-center gap-2 px-4 py-2 border-b-2 text-xs font-medium transition-colors ${
-            activeTab === 'all'
-              ? 'border-brand-600 text-brand-700 font-semibold'
-              : 'border-transparent text-ink-500 hover:text-ink-900'
-          }`}
-        >
-          <span>All Pending Requests</span>
-          <span className="text-[10px] font-mono bg-ink-100 text-ink-700 px-1.5 py-0.2 rounded-full">
-            {pendingItems.length}
-          </span>
-        </button>
-      </div>
-
-      {/* List */}
-      <div className="flex flex-col gap-3">
-        {displayList.length === 0 ? (
-          <div className="p-12 text-center bg-surface border border-ink-200 rounded-lg">
-            <div className="w-12 h-12 rounded-full bg-success-bg text-success mx-auto flex items-center justify-center mb-3">
-              <CheckCircle className="w-6 h-6" />
-            </div>
-            <h3 className="text-h3 font-semibold text-ink-900">All clear!</h3>
-            <p className="text-xs text-ink-500 mt-1 max-w-sm mx-auto">
-              No approval requests are currently waiting in this view. Controls-grade dual approval is satisfied.
-            </p>
-          </div>
-        ) : (
-          displayList.map((item) => {
-            const isMaker = item.maker_id === currentUser.id;
-
-            return (
-              <div
-                key={item.id}
-                className="p-4 bg-surface border border-ink-200 rounded-lg shadow-sm hover:border-brand-500/60 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4"
-              >
-                <div className="flex items-start gap-3">
-                  <div className="p-2 rounded bg-brand-50 text-brand-600 mt-0.5">
-                    {item.document_type === 'sales_invoice' ? (
-                      <FileSpreadsheet className="w-5 h-5" />
-                    ) : item.document_type === 'purchase_bill' ? (
-                      <FileText className="w-5 h-5" />
-                    ) : (
-                      <BookMarked className="w-5 h-5" />
-                    )}
-                  </div>
-
-                  <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold text-xs text-ink-900">{item.title}</span>
-                      <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-ink-100 text-ink-700">
-                        {item.document_number}
-                      </span>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-3 text-xs text-ink-500">
-                      <span>Counterparty: <strong className="text-ink-700">{item.contact_name}</strong></span>
-                      <span>•</span>
-                      <span>Maker: <strong className="text-ink-700">{item.maker_name}</strong></span>
-                      <span>•</span>
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        {formatDateTime(item.submitted_at)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between md:justify-end gap-5 pt-3 md:pt-0 border-t md:border-t-0 border-ink-100">
-                  <div className="text-right font-mono">
-                    <div className="text-sm font-bold text-ink-900">
-                      {formatMoney(item.amount, item.currency)}
-                    </div>
-                    <div className="text-[10px] text-ink-500">Period: {item.period_name}</div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => handleOpenDoc(item)}
-                      className="flex items-center gap-1.5 h-8 px-3 rounded-sm border border-ink-200 hover:border-brand-500 bg-surface text-ink-700 text-xs font-medium transition-colors"
-                    >
-                      <ExternalLink className="w-3.5 h-3.5 text-brand-600" />
-                      <span>Open</span>
-                    </button>
-
-                    {isMaker ? (
-                      <span
-                        className="text-[11px] font-medium text-ink-500 bg-ink-100 px-2.5 py-1.5 rounded-sm border border-ink-200 cursor-not-allowed"
-                        title="Controls Rule: Maker cannot approve own document"
-                      >
-                        Own Document (Maker)
-                      </span>
-                    ) : (
-                      <>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSelectedItem(item);
-                            setModalType('return');
-                          }}
-                          className="flex items-center gap-1 h-8 px-2.5 rounded-sm border border-ink-200 hover:border-danger hover:text-danger bg-surface text-ink-700 text-xs font-medium transition-colors"
-                        >
-                          <RotateCcw className="w-3.5 h-3.5" />
-                          <span>Return</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => handleStartApprove(item)}
-                          className="flex items-center gap-1 h-8 px-3.5 rounded-sm bg-success hover:opacity-90 text-white text-xs font-semibold shadow-sm transition-colors"
-                        >
-                          <CheckCircle className="w-3.5 h-3.5" />
-                          <span>Approve</span>
-                        </button>
-                      </>
-                    )}
-                  </div>
-                </div>
+          <h3 className="mt-4 text-base font-semibold text-text-primary">You are all caught up</h3>
+          <p className="mt-1 max-w-sm text-[13px] text-text-muted">Nothing is waiting for approval in this view. New requests will show up here.</p>
+        </div>
+      ) : (
+        GROUPS.map((g) => {
+          const items = displayList.filter((i) => i.document_type === g.type);
+          if (items.length === 0) return null;
+          const Icon = g.icon;
+          return (
+            <section key={g.type} className="flex flex-col gap-2.5">
+              <div className="flex items-center gap-2">
+                <span className="flex size-7 items-center justify-center rounded-lg bg-accent-soft text-accent">
+                  <Icon className="size-4" />
+                </span>
+                <h2 className="text-sm font-semibold text-text-primary">{g.label}</h2>
+                <span className="text-xs text-text-muted">{items.length}</span>
               </div>
-            );
-          })
-        )}
-      </div>
+              <div className="flex flex-col gap-2.5">
+                {items.map((item) => {
+                  const isMaker = item.maker_id === currentUser.id;
+                  return (
+                    <div
+                      key={item.id}
+                      data-testid="approval-card"
+                      className="flex flex-col justify-between gap-4 rounded-xl border border-border bg-surface p-4 shadow-card transition duration-200 hover:border-border-strong hover:shadow-card-hover md:flex-row md:items-center"
+                    >
+                      <div className="flex min-w-0 items-center gap-3">
+                        <Avatar name={item.maker_name} size="lg" />
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="truncate text-[13.5px] font-semibold text-text-primary">{item.title}</span>
+                            <span className="shrink-0 rounded bg-surface-neutral px-1.5 py-0.5 text-[11px] text-text-secondary">{item.document_number}</span>
+                          </div>
+                          <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-text-muted">
+                            <span>
+                              Sent by <span className="font-medium text-text-secondary">{item.maker_name}</span>
+                            </span>
+                            <span aria-hidden>·</span>
+                            <span className="flex items-center gap-1" title={formatDateTime(item.submitted_at)}>
+                              <Clock className="size-3" />
+                              {ageLabel(item.submitted_at)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between gap-5 md:justify-end">
+                        <div className="text-right text-lg font-semibold tabular-nums tracking-tight text-text-primary">
+                          {formatMoney(item.amount, item.currency)}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => handleOpenDoc(item)}
+                            className="flex h-8 items-center gap-1.5 rounded-lg border border-border bg-surface px-3 text-xs font-medium text-text-secondary transition hover:bg-surface-neutral hover:text-text-primary"
+                          >
+                            <ExternalLink className="size-3.5" />
+                            Open
+                          </button>
+                          {isMaker ? (
+                            <span
+                              className="cursor-not-allowed rounded-lg bg-surface-neutral px-2.5 py-1.5 text-xs font-medium text-text-muted"
+                              title="You created this document, so someone else has to approve it."
+                            >
+                              Waiting for another approver
+                            </span>
+                          ) : (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSelectedItem(item);
+                                  setModalType('return');
+                                }}
+                                className="flex h-8 items-center gap-1.5 rounded-lg border border-border bg-surface px-3 text-xs font-medium text-text-secondary transition hover:border-danger/50 hover:bg-danger-soft hover:text-danger"
+                              >
+                                <RotateCcw className="size-3.5" />
+                                Return
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleStartApprove(item)}
+                                className="flex h-8 items-center gap-1.5 rounded-lg bg-success px-3.5 text-xs font-semibold text-white transition hover:opacity-90"
+                              >
+                                <CheckCircle className="size-3.5" />
+                                Approve
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          );
+        })
+      )}
 
       {/* Return Dialog */}
       <Dialog open={modalType === 'return' && !!selectedItem} onOpenChange={(open) => !open && setModalType(null)}>
@@ -343,7 +328,7 @@ export const ApprovalsInbox: React.FC = () => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-sm font-semibold">
               <RotateCcw className="w-4 h-4 text-warning" />
-              <span>Return Document to Maker</span>
+              <span>Send back for changes</span>
             </DialogTitle>
           </DialogHeader>
 
@@ -351,14 +336,14 @@ export const ApprovalsInbox: React.FC = () => {
             <div className="text-xs text-text-secondary flex flex-col gap-2">
               <p>Return <strong className="text-text-primary">{selectedItem.document_number}</strong> to <strong className="text-text-primary">{selectedItem.maker_name}</strong> for correction.</p>
               <label className="font-semibold text-text-primary mt-2">
-                Reason for Return (Mandatory Audit Requirement)
+                Why are you sending it back?
               </label>
               <textarea
                 rows={3}
                 value={returnComment}
                 onChange={(e) => setReturnComment(e.target.value)}
                 placeholder="e.g. Please update unit price per revised commercial agreement"
-                className="w-full p-2 bg-surface border border-border rounded-sm text-xs text-text-primary focus:outline-none focus:ring-1 focus:ring-accent"
+                className="w-full p-2 bg-surface border border-border rounded-lg text-xs text-text-primary focus:outline-none focus:ring-1 focus:ring-accent"
               />
             </div>
           )}
@@ -367,7 +352,7 @@ export const ApprovalsInbox: React.FC = () => {
             <button
               type="button"
               onClick={() => setModalType(null)}
-              className="h-8 px-3 rounded-sm border border-border text-xs font-medium text-text-secondary hover:bg-surface-neutral"
+              className="h-8 px-3 rounded-lg border border-border text-xs font-medium text-text-secondary hover:bg-surface-neutral"
             >
               Cancel
             </button>
@@ -375,9 +360,9 @@ export const ApprovalsInbox: React.FC = () => {
               type="button"
               onClick={handleConfirmReturn}
               disabled={loading || !returnComment.trim()}
-              className="h-8 px-4 rounded-sm bg-warning hover:opacity-90 text-white text-xs font-semibold shadow-xs transition-colors disabled:opacity-50"
+              className="h-8 px-4 rounded-lg bg-warning hover:opacity-90 text-white text-xs font-semibold shadow-xs transition-colors disabled:opacity-50"
             >
-              Return to Maker
+              Send back
             </button>
           </DialogFooter>
         </DialogContent>
@@ -398,8 +383,8 @@ export const ApprovalsInbox: React.FC = () => {
           currency={selectedItem.currency}
           periodName={selectedItem.period_name}
           makerName={selectedItem.maker_name}
-          actionTitle="Authorize & Post Document"
-          consequenceText={`Approving will verify maker-checker controls, allocate a gapless sequence number, update ledger lines, and stamp your cryptographic signature hash.`}
+          actionTitle="Approve and post"
+          consequenceText={`Approving posts this document to your books with the next document number. It cannot be edited afterwards; mistakes are fixed with a reversal.`}
         />
       )}
     </div>

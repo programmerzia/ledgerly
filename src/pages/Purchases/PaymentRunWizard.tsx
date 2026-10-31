@@ -2,8 +2,11 @@ import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLedgerStore } from '@/mock/store';
 import { Bill } from '@/types';
-import { formatMoney } from '@/lib/format';
+import { formatMoney, formatDate } from '@/lib/format';
 import { SignDialog } from '@/components/domain/SignDialog';
+import { PageHeader } from '@/components/domain/PageHeader';
+import { cn } from '@/lib/utils';
+import { Check } from 'lucide-react';
 import {
   Coins,
   CheckCircle2,
@@ -26,7 +29,7 @@ export const PaymentRunWizard: React.FC = () => {
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
   const [selectedBankId, setSelectedBankId] = useState('bnk-1'); // Premier Bank USD
   const [paymentDate, setPaymentDate] = useState('2026-10-28');
-  const [selectedBillIds, setSelectedBillIds] = useState<Set<string>>(new Set(['bil-1']));
+  const [selectedBillIds, setSelectedBillIds] = useState<Set<string>>(new Set());
   const [signDialogOpen, setSignDialogOpen] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
   const [csvDownloaded, setCsvDownloaded] = useState(false);
@@ -151,367 +154,259 @@ export const PaymentRunWizard: React.FC = () => {
     setCsvDownloaded(true);
   };
 
-  return (
-    <div className="flex-1 flex flex-col h-full overflow-y-auto bg-canvas">
-      <div className="w-full flex flex-col gap-6">
-        {/* Wizard Header & Stepper */}
-        <div className="flex flex-col gap-4 pb-4 border-b border-border">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => navigate(`/${coSlug}/bills`)}
-                className="p-1.5 rounded-sm text-text-muted hover:text-text-primary hover:bg-surface-neutral transition"
-              >
-                <ArrowLeft className="w-4 h-4" />
-              </button>
-              <div>
-                <h1 className="text-xl font-semibold text-text-primary">
-                  Supplier Payment Run Wizard
-                </h1>
-                <p className="text-xs text-text-muted">
-                  Batch disburse supplier payables with automated withholding tax (WHT)
-                </p>
-              </div>
-            </div>
+  const STEPS = ['Choose bills', 'Review withholding', 'Done'];
+  const CARD = 'rounded-xl border border-border bg-surface shadow-card';
+  const FIELD =
+    'h-9 px-3 rounded-lg border border-border bg-surface text-[13px] text-text-primary focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition';
+  const LABEL = 'flex items-center gap-1.5 text-xs font-medium text-text-secondary';
+  const BTN1 =
+    'inline-flex items-center gap-1.5 h-9 px-4 rounded-lg bg-accent hover:bg-accent-hover text-white text-[13px] font-semibold shadow-xs transition-colors disabled:opacity-50 cursor-pointer';
+  const BTN2 =
+    'inline-flex items-center gap-1.5 h-9 px-3.5 rounded-lg border border-border hover:border-border-strong bg-surface hover:bg-surface-neutral text-text-primary text-[13px] font-medium transition-colors cursor-pointer';
+  const TH = 'px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-text-muted';
 
-            {/* Step Indicators */}
-            <div className="flex items-center gap-2 text-xs">
-              <span
-                className={`px-2.5 py-1 rounded font-semibold transition ${
-                  currentStep === 1
-                    ? 'bg-brand-teal text-white'
-                    : 'bg-surface-neutral text-ink-muted'
-                }`}
-              >
-                1. Select Bills
+  return (
+    <div className="flex flex-col gap-6 pb-12">
+      <PageHeader
+        breadcrumb={[{ label: 'Bills', to: `/${coSlug}/bills` }, { label: 'Payment run' }]}
+        title="Pay several suppliers at once"
+        subtitle="Pick the bills to pay. Withholding tax is worked out for you."
+        icon={<Coins />}
+      />
+
+      {/* Stepper */}
+      <ol className={cn(CARD, 'flex items-center gap-2 px-5 py-4')} aria-label="Progress">
+        {STEPS.map((label, i) => {
+          const n = i + 1;
+          const done = currentStep > n;
+          const active = currentStep === n;
+          return (
+            <React.Fragment key={label}>
+              <li className="flex items-center gap-2.5" aria-current={active ? 'step' : undefined}>
+                <span
+                  className={cn(
+                    'flex size-7 items-center justify-center rounded-full text-xs font-semibold transition-colors',
+                    done && 'bg-success text-white',
+                    active && 'bg-accent text-white ring-4 ring-accent/15',
+                    !done && !active && 'bg-surface-neutral text-text-muted'
+                  )}
+                >
+                  {done ? <Check className="size-4" /> : n}
+                </span>
+                <span className={cn('text-[13px] font-medium', active ? 'text-text-primary' : 'text-text-muted')}>{label}</span>
+              </li>
+              {i < STEPS.length - 1 && (
+                <span className={cn('mx-2 h-px flex-1 transition-colors', done ? 'bg-success' : 'bg-border')} />
+              )}
+            </React.Fragment>
+          );
+        })}
+      </ol>
+
+      {currentStep === 1 && (
+        <div className="flex flex-col gap-5 ui-rise-in">
+          <div className={cn(CARD, 'p-5 grid grid-cols-1 md:grid-cols-2 gap-4')}>
+            <div className="flex flex-col gap-1.5">
+              <label className={LABEL}>
+                <CreditCard className="size-3.5 text-text-muted" /> Pay from
+              </label>
+              <select value={selectedBankId} onChange={(e) => setSelectedBankId(e.target.value)} className={FIELD}>
+                {bankAccounts.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.bank_name} - {b.name} ({b.currency})
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className={LABEL}>
+                <Calendar className="size-3.5 text-text-muted" /> Payment date
+              </label>
+              <input type="date" value={paymentDate} onChange={(e) => setPaymentDate(e.target.value)} className={cn(FIELD, 'tabular-nums')} />
+            </div>
+          </div>
+
+          <div className={cn(CARD, 'overflow-hidden')}>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+              <h2 className="text-sm font-semibold text-text-primary">Bills ready to pay ({payableBills.length})</h2>
+              <button type="button" onClick={handleToggleSelectAll} className="text-[13px] text-accent hover:underline font-medium">
+                {selectedBillIds.size === payableBills.length ? 'Clear selection' : 'Select all'}
+              </button>
+            </div>
+            <table className="w-full text-left text-[13px]">
+              <thead>
+                <tr className="bg-surface-neutral/60 border-b border-border">
+                  <th className="px-4 w-10">
+                    <input
+                      type="checkbox"
+                      aria-label="Select all bills"
+                      checked={payableBills.length > 0 && selectedBillIds.size === payableBills.length}
+                      onChange={handleToggleSelectAll}
+                      className="rounded border-border accent-[var(--color-accent)]"
+                    />
+                  </th>
+                  <th className={TH}>Bill</th>
+                  <th className={TH}>Supplier</th>
+                  <th className={TH}>Due</th>
+                  <th className={cn(TH, 'text-right')}>Total</th>
+                  <th className={cn(TH, 'text-right')}>Left to pay</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {payableBills.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="py-10 text-center text-text-muted">
+                      No bills are waiting to be paid.
+                    </td>
+                  </tr>
+                ) : (
+                  payableBills.map((b) => {
+                    const isChecked = selectedBillIds.has(b.id);
+                    const supplier = suppliersMap.get(b.contact_id);
+                    const open = b.total - b.settled;
+                    return (
+                      <tr
+                        key={b.id}
+                        onClick={() => handleToggleBill(b.id)}
+                        className={cn('h-11 cursor-pointer transition-colors select-none', isChecked ? 'bg-accent-soft/50' : 'hover:bg-accent-soft/30')}
+                      >
+                        <td className="px-4">
+                          <input
+                            type="checkbox"
+                            aria-label={`Select ${b.number || 'draft bill'}`}
+                            checked={isChecked}
+                            onChange={() => handleToggleBill(b.id)}
+                            onClick={(e) => e.stopPropagation()}
+                            className="rounded border-border accent-[var(--color-accent)]"
+                          />
+                        </td>
+                        <td className="px-3 font-mono font-medium text-text-primary">{b.number || 'Draft'}</td>
+                        <td className="px-3 text-text-primary">{supplier?.name || b.contact_id}</td>
+                        <td className="px-3 text-text-muted tabular-nums">{formatDate(b.due_date)}</td>
+                        <td className="px-3 text-right font-mono text-num text-text-muted">{formatMoney(b.total)}</td>
+                        <td className="px-3 text-right font-mono text-num font-semibold text-text-primary">{formatMoney(open)}</td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+            <div className="flex items-center justify-between px-5 py-4 border-t border-border bg-surface-neutral/40">
+              <span className="text-[13px] text-text-muted">
+                <span className="font-semibold text-text-primary">{selectedBillIds.size}</span> selected, {formatMoney(totals.gross)}
               </span>
-              <span className="text-line-border">→</span>
-              <span
-                className={`px-2.5 py-1 rounded font-semibold transition ${
-                  currentStep === 2
-                    ? 'bg-brand-teal text-white'
-                    : 'bg-surface-neutral text-ink-muted'
-                }`}
-              >
-                2. WHT & Review
-              </span>
-              <span className="text-line-border">→</span>
-              <span
-                className={`px-2.5 py-1 rounded font-semibold transition ${
-                  currentStep === 3
-                    ? 'bg-brand-teal text-white'
-                    : 'bg-surface-neutral text-ink-muted'
-                }`}
-              >
-                3. Complete
-              </span>
+              <button type="button" onClick={() => setCurrentStep(2)} disabled={selectedBillIds.size === 0} className={BTN1}>
+                Continue <ArrowRight className="size-4" />
+              </button>
             </div>
           </div>
         </div>
+      )}
 
-        {/* STEP 1: Select Bills & Account */}
-        {currentStep === 1 && (
-          <div className="flex flex-col gap-5 animate-in fade-in duration-150">
-            {/* Bank and Date selection */}
-            <div className="p-4 bg-surface-elevated border border-line-border rounded-md shadow-2xs grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-              <div className="flex flex-col gap-1">
-                <label className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider flex items-center gap-1">
-                  <CreditCard className="w-3.5 h-3.5 text-brand-teal" />
-                  Disbursing Bank Account *
-                </label>
-                <select
-                  value={selectedBankId}
-                  onChange={(e) => setSelectedBankId(e.target.value)}
-                  className="h-8 px-2.5 rounded-sm border border-line-border bg-surface-subtle font-medium text-ink-900 focus:outline-none focus:border-brand-teal"
-                >
-                  {bankAccounts.map((b) => (
-                    <option key={b.id} value={b.id}>
-                      {b.bank_name} - {b.name} ({b.currency})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <label className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider flex items-center gap-1">
-                  <Calendar className="w-3.5 h-3.5 text-brand-teal" />
-                  Payment Execution Date *
-                </label>
-                <input
-                  type="date"
-                  value={paymentDate}
-                  onChange={(e) => setPaymentDate(e.target.value)}
-                  className="h-8 px-2.5 font-mono text-ink-900 rounded-sm border border-line-border bg-surface-subtle focus:outline-none focus:border-brand-teal"
-                >
-                </input>
-              </div>
+      {currentStep === 2 && (
+        <div className="flex flex-col gap-5 ui-rise-in">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className={cn(CARD, 'p-5')}>
+              <div className="text-xs font-medium text-text-muted">Bills selected</div>
+              <div className="mt-1 text-2xl font-semibold tracking-tight tabular-nums text-text-primary">{formatMoney(totals.gross)}</div>
+              <div className="mt-1 text-xs text-text-muted">{selectedBills.length} bills to clear</div>
             </div>
-
-            {/* Due Bills Table */}
-            <div className="p-4 bg-surface-elevated border border-line-border rounded-md shadow-2xs flex flex-col gap-3 text-xs">
-              <div className="flex items-center justify-between">
-                <span className="font-bold text-ink-900 uppercase tracking-wider text-[11px]">
-                  Open Due Bills ({payableBills.length})
-                </span>
-                <button
-                  type="button"
-                  onClick={handleToggleSelectAll}
-                  className="text-xs text-brand-teal hover:underline font-semibold"
-                >
-                  {selectedBillIds.size === payableBills.length ? 'Deselect All' : 'Select All'}
-                </button>
+            <div className={cn(CARD, 'p-5')}>
+              <div className="flex items-center gap-1.5 text-xs font-medium text-text-muted">
+                <ShieldCheck className="size-3.5" /> Withholding tax held back
               </div>
-
-              <div className="border border-line-border rounded-sm overflow-hidden">
-                <table className="w-full border-collapse text-left text-xs">
-                  <thead>
-                    <tr className="h-8 bg-surface-neutral border-b border-line-border text-[11px] font-semibold text-ink-muted uppercase">
-                      <th className="px-3 w-8 text-center">
-                        <input
-                          type="checkbox"
-                          checked={
-                            payableBills.length > 0 && selectedBillIds.size === payableBills.length
-                          }
-                          onChange={handleToggleSelectAll}
-                          className="rounded border-line-border"
-                        />
-                      </th>
-                      <th className="px-3">Bill Number</th>
-                      <th className="px-3">Supplier</th>
-                      <th className="px-3">Due Date</th>
-                      <th className="px-3 text-right">Total Amount</th>
-                      <th className="px-3 text-right">Open Payable</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-line-border">
-                    {payableBills.length === 0 ? (
-                      <tr>
-                        <td colSpan={6} className="py-8 text-center text-ink-muted">
-                          No open due bills available for payment.
-                        </td>
-                      </tr>
-                    ) : (
-                      payableBills.map((b) => {
-                        const isChecked = selectedBillIds.has(b.id);
-                        const supplier = suppliersMap.get(b.contact_id);
-                        const open = b.total - b.settled;
-
-                        return (
-                          <tr
-                            key={b.id}
-                            onClick={() => handleToggleBill(b.id)}
-                            className={`h-9 cursor-pointer transition select-none ${
-                              isChecked ? 'bg-brand-teal/10 font-medium' : 'hover:bg-surface-neutral'
-                            }`}
-                          >
-                            <td className="px-3 text-center">
-                              <input
-                                type="checkbox"
-                                checked={isChecked}
-                                onChange={() => handleToggleBill(b.id)}
-                                onClick={(e) => e.stopPropagation()}
-                                className="rounded border-line-border"
-                              />
-                            </td>
-                            <td className="px-3 font-mono text-ink-900">{b.number || 'DRAFT'}</td>
-                            <td className="px-3 text-ink-900">{supplier?.name || b.contact_id}</td>
-                            <td className="px-3 font-mono text-[11px] text-ink-muted">{b.due_date}</td>
-                            <td className="px-3 text-right font-mono text-num text-ink-muted">
-                              {formatMoney(b.total)}
-                            </td>
-                            <td className="px-3 text-right font-mono text-num font-semibold text-danger">
-                              {formatMoney(open)}
-                            </td>
-                          </tr>
-                        );
-                      })
-                    )}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Bottom Nav */}
-              <div className="flex items-center justify-between pt-3 border-t border-line-border">
-                <span className="text-[11px] text-ink-muted">
-                  {selectedBillIds.size} bills selected ({formatMoney(totals.gross)})
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setCurrentStep(2)}
-                  disabled={selectedBillIds.size === 0}
-                  className="h-8 px-4 bg-brand-teal hover:bg-brand-teal-hover text-white rounded-sm font-semibold text-xs shadow-2xs transition flex items-center gap-1.5 disabled:opacity-50"
-                >
-                  <span>Continue to WHT Review</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
+              <div className="mt-1 text-2xl font-semibold tracking-tight tabular-nums text-danger">-{formatMoney(totals.wht)}</div>
+              <div className="mt-1 text-xs text-text-muted">Certificates are created for you</div>
+            </div>
+            <div className="rounded-xl border border-accent/30 bg-accent-soft p-5 shadow-card">
+              <div className="text-xs font-medium text-accent">Leaves your bank</div>
+              <div className="mt-1 text-2xl font-semibold tracking-tight tabular-nums text-accent">{formatMoney(totals.net)}</div>
+              <div className="mt-1 text-xs text-text-muted">
+                From {bankAccounts.find((b) => b.id === selectedBankId)?.name || 'your bank account'}
               </div>
             </div>
           </div>
-        )}
 
-        {/* STEP 2: WHT Review & Sign */}
-        {currentStep === 2 && (
-          <div className="flex flex-col gap-5 animate-in fade-in duration-150">
-            {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-              <div className="p-4 bg-surface-elevated border border-line-border rounded-md shadow-2xs flex flex-col justify-between">
-                <span className="text-ink-muted uppercase font-semibold text-[11px]">
-                  Gross Bills Selected
-                </span>
-                <span className="text-xl font-bold font-mono text-num text-ink-900">
-                  {formatMoney(totals.gross)}
-                </span>
-                <span className="text-[11px] text-ink-muted">{selectedBills.length} invoices to clear</span>
-              </div>
-
-              <div className="p-4 bg-surface-elevated border border-line-border rounded-md shadow-2xs flex flex-col justify-between">
-                <span className="text-danger uppercase font-semibold text-[11px] flex items-center gap-1">
-                  <ShieldCheck className="w-3.5 h-3.5" />
-                  WHT Tax Withheld (Payable)
-                </span>
-                <span className="text-xl font-bold font-mono text-num text-danger">
-                  -{formatMoney(totals.wht)}
-                </span>
-                <span className="text-[11px] text-ink-muted">WHT Certs will be generated</span>
-              </div>
-
-              <div className="p-4 bg-surface-elevated border border-line-border rounded-md shadow-2xs flex flex-col justify-between bg-brand-teal/5 border-brand-teal/30">
-                <span className="text-brand-teal uppercase font-bold text-[11px]">
-                  Net Bank Disbursement
-                </span>
-                <span className="text-xl font-bold font-mono text-num text-brand-teal">
-                  {formatMoney(totals.net)}
-                </span>
-                <span className="text-[11px] text-ink-muted">Wire via Premier Bank USD</span>
-              </div>
+          <div className={cn(CARD, 'overflow-hidden')}>
+            <div className="px-5 py-4 border-b border-border">
+              <h2 className="text-sm font-semibold text-text-primary">What each supplier receives</h2>
             </div>
-
-            {/* Detailed Disbursement Breakdown */}
-            <div className="p-4 bg-surface-elevated border border-line-border rounded-md shadow-2xs flex flex-col gap-3 text-xs">
-              <span className="font-bold text-ink-900 uppercase tracking-wider text-[11px]">
-                Disbursement & Withholding Breakdown per Vendor
-              </span>
-
-              <div className="border border-line-border rounded-sm overflow-hidden">
-                <table className="w-full border-collapse text-left text-xs">
-                  <thead>
-                    <tr className="h-8 bg-surface-neutral border-b border-line-border text-[11px] font-semibold text-ink-muted uppercase">
-                      <th className="px-3">Supplier Name</th>
-                      <th className="px-3">Bill Ref</th>
-                      <th className="px-3 text-right">Gross Amount</th>
-                      <th className="px-3 text-right">WHT (5%)</th>
-                      <th className="px-3 text-right">Net Wire Amount</th>
+            <table className="w-full text-left text-[13px]">
+              <thead>
+                <tr className="bg-surface-neutral/60 border-b border-border">
+                  <th className={TH}>Supplier</th>
+                  <th className={TH}>Bill</th>
+                  <th className={cn(TH, 'text-right')}>Amount</th>
+                  <th className={cn(TH, 'text-right')}>Tax held back</th>
+                  <th className={cn(TH, 'text-right')}>They receive</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {selectedBills.map((b) => {
+                  const supplier = suppliersMap.get(b.contact_id);
+                  const open = b.total - b.settled;
+                  const wht = b.wht_amount_fc || Math.round(open * 0.05);
+                  const net = open - wht;
+                  return (
+                    <tr key={b.id} className="h-11 hover:bg-accent-soft/30 transition-colors">
+                      <td className="px-3 font-medium text-text-primary">{supplier?.name || b.contact_id}</td>
+                      <td className="px-3 font-mono text-text-muted">{b.number}</td>
+                      <td className="px-3 text-right font-mono text-num text-text-primary">{formatMoney(open)}</td>
+                      <td className="px-3 text-right font-mono text-num text-danger">-{formatMoney(wht)}</td>
+                      <td className="px-3 text-right font-mono text-num font-semibold text-text-primary">{formatMoney(net)}</td>
                     </tr>
-                  </thead>
-                  <tbody className="divide-y divide-line-border">
-                    {selectedBills.map((b) => {
-                      const supplier = suppliersMap.get(b.contact_id);
-                      const open = b.total - b.settled;
-                      const wht = b.wht_amount_fc || Math.round(open * 0.05);
-                      const net = open - wht;
-
-                      return (
-                        <tr key={b.id} className="h-9 hover:bg-surface-neutral transition">
-                          <td className="px-3 font-medium text-ink-900">
-                            {supplier?.name || b.contact_id}
-                          </td>
-                          <td className="px-3 font-mono text-[11px] text-ink-muted">
-                            {b.number}
-                          </td>
-                          <td className="px-3 text-right font-mono text-num text-ink-900">
-                            {formatMoney(open)}
-                          </td>
-                          <td className="px-3 text-right font-mono text-num text-danger font-medium">
-                            -{formatMoney(wht)}
-                          </td>
-                          <td className="px-3 text-right font-mono text-num font-semibold text-brand-teal">
-                            {formatMoney(net)}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Navigation & Sign Dialog trigger */}
-              <div className="flex items-center justify-between pt-3 border-t border-line-border">
-                <button
-                  type="button"
-                  onClick={() => setCurrentStep(1)}
-                  className="h-8 px-3 rounded-sm border border-line-border bg-surface-elevated hover:bg-surface-neutral text-ink-900 text-xs font-medium transition flex items-center gap-1.5"
-                >
-                  <ArrowLeft className="w-3.5 h-3.5" />
-                  <span>Back to Selection</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setSignDialogOpen(true)}
-                  className="h-8 px-5 bg-brand-teal hover:bg-brand-teal-hover text-white rounded-sm font-semibold text-xs shadow-2xs transition flex items-center gap-1.5"
-                >
-                  <ShieldCheck className="w-3.5 h-3.5" />
-                  <span>Sign with PIN & Post Payment Run</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* STEP 3: Completed */}
-        {currentStep === 3 && (
-          <div className="p-8 bg-surface-elevated border border-line-border rounded-md shadow-2xs flex flex-col items-center text-center gap-4 animate-in zoom-in-95 duration-150">
-            <div className="w-12 h-12 rounded-full bg-success/10 text-success flex items-center justify-center">
-              <CheckCircle2 className="w-7 h-7" />
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <h2 className="text-base font-bold text-ink-900">Payment Run Executed Successfully</h2>
-              <p className="text-xs text-ink-muted max-w-md">
-                All selected supplier bills have been marked as paid. AP Control (2000) was credited and Withholding Tax certificates were generated.
-              </p>
-            </div>
-
-            <div className="p-4 bg-surface-neutral border border-line-border rounded-md w-full max-w-md flex flex-col gap-2 text-xs">
-              <div className="flex justify-between">
-                <span className="text-ink-muted">Settlements Posted:</span>
-                <span className="font-semibold text-ink-900 font-mono">{selectedBills.length}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-ink-muted">Total Disbursed:</span>
-                <span className="font-bold text-brand-teal font-mono">{formatMoney(totals.net)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-ink-muted">WHT Tax Certificates Issued:</span>
-                <span className="font-semibold text-ink-900 font-mono">{selectedBills.length} Certificates</span>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 mt-2">
-              <button
-                type="button"
-                onClick={handleDownloadCsv}
-                className="h-9 px-4 rounded-sm bg-brand-teal hover:bg-brand-teal-hover text-white text-xs font-semibold shadow-2xs transition flex items-center gap-2"
-              >
-                <Download className="w-4 h-4" />
-                <span>{csvDownloaded ? 'Download Again (Bank CSV)' : 'Download Bank Wire CSV'}</span>
+                  );
+                })}
+              </tbody>
+            </table>
+            <div className="flex items-center justify-between px-5 py-4 border-t border-border bg-surface-neutral/40">
+              <button type="button" onClick={() => setCurrentStep(1)} className={BTN2}>
+                <ArrowLeft className="size-4" /> Back
               </button>
-
-              <button
-                type="button"
-                onClick={() => navigate(`/${coSlug}/wht-certificates`)}
-                className="h-9 px-4 rounded-sm border border-line-border bg-surface-subtle hover:bg-surface-neutral text-ink-900 text-xs font-medium transition flex items-center gap-2"
-              >
-                <ShieldCheck className="w-4 h-4 text-brand-teal" />
-                <span>View WHT Certificates</span>
+              <button type="button" onClick={() => setSignDialogOpen(true)} className={BTN1}>
+                <ShieldCheck className="size-4" /> Confirm with PIN and pay
               </button>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
-      {/* 6-Digit PIN SignDialog */}
+      {currentStep === 3 && (
+        <div className={cn(CARD, 'p-10 flex flex-col items-center text-center gap-4 ui-rise-in')}>
+          <div className="size-14 rounded-full bg-success-soft text-success flex items-center justify-center">
+            <CheckCircle2 className="size-8" />
+          </div>
+          <div className="flex flex-col gap-1">
+            <h2 className="text-lg font-semibold text-text-primary">Payments are done</h2>
+            <p className="text-[13px] text-text-muted max-w-md">
+              The selected bills are marked as paid, what you owe suppliers went down, and withholding tax certificates were created.
+            </p>
+          </div>
+          <dl className="w-full max-w-md divide-y divide-border rounded-xl border border-border text-[13px]">
+            <div className="flex justify-between px-4 py-2.5">
+              <dt className="text-text-muted">Bills paid</dt>
+              <dd className="font-semibold text-text-primary tabular-nums">{selectedBills.length}</dd>
+            </div>
+            <div className="flex justify-between px-4 py-2.5">
+              <dt className="text-text-muted">Total sent</dt>
+              <dd className="font-semibold text-accent tabular-nums">{formatMoney(totals.net)}</dd>
+            </div>
+            <div className="flex justify-between px-4 py-2.5">
+              <dt className="text-text-muted">Withholding certificates</dt>
+              <dd className="font-semibold text-text-primary tabular-nums">{selectedBills.length}</dd>
+            </div>
+          </dl>
+          <div className="flex flex-wrap items-center justify-center gap-3 mt-2">
+            <button type="button" onClick={handleDownloadCsv} className={BTN1}>
+              <Download className="size-4" /> {csvDownloaded ? 'Download bank file again' : 'Download bank file (CSV)'}
+            </button>
+            <button type="button" onClick={() => navigate(`/${coSlug}/wht-certificates`)} className={BTN2}>
+              <ShieldCheck className="size-4 text-text-muted" /> View certificates
+            </button>
+          </div>
+        </div>
+      )}
+
       <SignDialog
         isOpen={signDialogOpen}
         onClose={() => setSignDialogOpen(false)}

@@ -15,12 +15,15 @@ import { InvoicesList } from './pages/Sales/InvoicesList';
 import { InvoiceForm } from './pages/Sales/InvoiceForm';
 import { InvoiceView } from './pages/Sales/InvoiceView';
 import { CustomersList } from './pages/Sales/CustomersList';
+import { CustomerCard } from './pages/Sales/CustomerCard';
 import { ReceiptForm } from './pages/Sales/ReceiptForm';
 
 // Purchases
 import { BillsList } from './pages/Purchases/BillsList';
 import { BillForm } from './pages/Purchases/BillForm';
+import { BillView } from './pages/Purchases/BillView';
 import { SuppliersList } from './pages/Purchases/SuppliersList';
+import { SupplierCard } from './pages/Purchases/SupplierCard';
 import { PaymentRunWizard } from './pages/Purchases/PaymentRunWizard';
 import { WhtCertificatesList } from './pages/Purchases/WhtCertificatesList';
 
@@ -52,6 +55,12 @@ import { TaxReturn } from './pages/Reports/TaxReturn';
 
 // Settings
 import { CompanySettings } from './pages/Settings/CompanySettings';
+import { ImportWizard } from './pages/Settings/ImportWizard';
+import { OnboardingWizard } from './pages/Onboarding/OnboardingWizard';
+import { ItemsList } from './pages/Sales/ItemsList';
+import { CashFlow } from './pages/Reports/CashFlow';
+import { ClosePack } from './pages/Accounting/ClosePack';
+import { RecurringJournals } from './pages/Accounting/RecurringJournals';
 import { Toaster } from './components/ui/sonner';
 
 // Platform Admin Auth
@@ -143,13 +152,18 @@ export default function App() {
           <Route path="invoices/new" element={<InvoiceForm />} />
           <Route path="invoices/:id" element={<InvoiceView />} />
           <Route path="customers" element={<CustomersList />} />
+          <Route path="customers/:id" element={<CustomerCard />} />
           <Route path="receipts/new" element={<ReceiptForm />} />
+          <Route path="items" element={<ItemsList />} />
+          <Route path="sales/items" element={<ItemsList />} />
 
           {/* Purchases */}
           <Route path="bills" element={<BillsList />} />
           <Route path="bills/new" element={<BillForm />} />
-          <Route path="bills/:id" element={<BillForm />} />
+          <Route path="bills/:id" element={<BillView />} />
+          <Route path="bills/:id/edit" element={<BillForm />} />
           <Route path="suppliers" element={<SuppliersList />} />
+          <Route path="suppliers/:id" element={<SupplierCard />} />
           <Route path="payment-run" element={<PaymentRunWizard />} />
           <Route path="wht-certificates" element={<WhtCertificatesList />} />
 
@@ -160,8 +174,11 @@ export default function App() {
           <Route path="journals" element={<JournalsList />} />
           <Route path="journals/new" element={<JournalForm />} />
           <Route path="journals/:id" element={<JournalView />} />
+          <Route path="accounting/recurring" element={<RecurringJournals />} />
+          <Route path="recurring-journals" element={<RecurringJournals />} />
           <Route path="accounts" element={<ChartOfAccounts />} />
           <Route path="periods" element={<Periods />} />
+          <Route path="periods/close-pack" element={<ClosePack />} />
           <Route path="fx-rates" element={<FxRates />} />
           <Route path="assets" element={<FixedAssets />} />
           <Route path="budgets" element={<Budgets />} />
@@ -174,12 +191,16 @@ export default function App() {
           <Route path="reports/trial-balance" element={<TrialBalance />} />
           <Route path="reports/profit-and-loss" element={<ProfitAndLoss />} />
           <Route path="reports/balance-sheet" element={<BalanceSheet />} />
+          <Route path="reports/cash-flow" element={<CashFlow />} />
           <Route path="reports/aging" element={<AgingReport />} />
           <Route path="reports/general-ledger" element={<GeneralLedger />} />
           <Route path="reports/tax-return" element={<TaxReturn />} />
 
           {/* Settings & Audit */}
           <Route path="settings" element={<CompanySettings />} />
+          <Route path="settings/import" element={<ImportWizard />} />
+          <Route path="import" element={<ImportWizard />} />
+          <Route path="onboarding" element={<OnboardingWizard />} />
           <Route path="audit-log" element={<AuditLog />} />
 
           {/* Fallback */}

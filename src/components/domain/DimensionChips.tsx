@@ -44,7 +44,7 @@ export const DimensionChips: React.FC<DimensionChipsProps> = ({
           disabled={disabled}
           className={cn(
             'flex items-center gap-1.5 h-8 px-2 rounded-sm border text-xs transition-colors bg-surface',
-            hasMissingRequired
+            hasMissingRequired && error
               ? 'border-danger/70 text-danger bg-danger-soft'
               : error
               ? 'border-danger text-danger'
@@ -60,8 +60,8 @@ export const DimensionChips: React.FC<DimensionChipsProps> = ({
               {selectedBranch?.name || values.branch}
             </span>
           ) : (
-            <span className="text-danger font-medium flex items-center">
-              Branch<span className="text-danger ml-0.5">*</span>
+            <span className={cn('font-medium flex items-center', error ? 'text-danger' : 'text-text-muted')}>
+              Branch<span className={cn('ml-0.5', error ? 'text-danger' : 'text-text-muted')}>*</span>
             </span>
           )}
 

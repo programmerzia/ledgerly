@@ -1,20 +1,13 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { api } from '@/mock/api';
 import { useLedgerStore } from '@/mock/store';
 import { formatMoney, formatDate } from '@/lib/format';
-import {
-  CreditCard,
-  CheckCircle2,
-  Sparkles,
-  ArrowRight,
-  ShieldCheck,
-  Check,
-  AlertCircle,
-  FileCheck,
-  Building,
-  X,
-} from 'lucide-react';
+import { toast } from 'sonner';
+import { CheckCircle2, Sparkles, ShieldCheck, Check, AlertCircle, Landmark, Link2 } from 'lucide-react';
+import { PageHeader } from '@/components/domain/PageHeader';
+import { Kbd } from '@/components/ui/kbd';
+import { cn } from '@/lib/utils';
 import {
   Dialog,
   DialogContent,
@@ -22,6 +15,11 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from '@/components/ui/tooltip';
 
 export const BankReconcile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -99,236 +97,266 @@ export const BankReconcile: React.FC = () => {
   };
 
   const isDifferenceZero = unmatchedStatementLines.length === 0;
+  const totalLines = statementLines.length;
+  const progress = totalLines === 0 ? 100 : Math.round((matchedStatementLines.length / totalLines) * 100);
+  const difference = unmatchedStatementLines.reduce((s, l) => s + l.amount, 0);
+  const openBook = bookTransactions.filter((t) => !t.isMatched);
+
+  // Keyboard: J/K or arrows move through statement lines, Enter matches.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (document.querySelector('[role="dialog"]')) return;
+      const idx = unmatchedStatementLines.findIndex((l) => l.id === selectedStatementLineId);
+      if (e.key === 'ArrowDown' || e.key === 'j') {
+        e.preventDefault();
+        const n = unmatchedStatementLines[Math.min(idx + 1, unmatchedStatementLines.length - 1)];
+        if (n) setSelectedStatementLineId(n.id);
+      } else if (e.key === 'ArrowUp' || e.key === 'k') {
+        e.preventDefault();
+        const n = unmatchedStatementLines[Math.max(idx - 1, 0)];
+        if (n) setSelectedStatementLineId(n.id);
+      } else if (e.key === 'Enter') {
+        if (t && (t.tagName === 'BUTTON' || t.tagName === 'A')) return;
+        e.preventDefault();
+        void handleMatch();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  });
+
+  const paneCard = 'flex flex-col rounded-xl border border-border bg-surface shadow-card overflow-hidden';
+  const rowBase = 'relative w-full text-left px-4 py-3 transition-colors duration-150 outline-none focus-visible:bg-accent-soft/50';
 
   return (
     <div className="flex flex-col gap-5">
-      {/* Workspace Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-ink-200">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-h1 font-bold text-ink-900 flex items-center gap-2">
-              <Building className="w-5 h-5 text-brand-600" />
-              Bank Reconciliation Workspace
-            </h1>
-            <span className="font-mono text-xs font-semibold px-2 py-0.5 rounded bg-brand-50 text-brand-700 border border-brand-100">
-              {currentBank.name}
-            </span>
-          </div>
-          <p className="text-xs text-ink-500 mt-0.5">
-            Statement Period: Oct 01–31, 2026 • Match imported feeds against general ledger journal entries
-          </p>
-        </div>
+      <PageHeader
+        breadcrumb={[{ label: 'Bank & cash', to: `/${coSlug}/banking` }, { label: currentBank.name }]}
+        icon={<Landmark />}
+        title="Reconcile bank account"
+        subtitle="Pair each bank statement line with the matching entry in your books, until nothing is left over."
+        actions={
+          <>
+            <button
+              type="button"
+              onClick={handleMatchAll}
+              className="flex h-9 items-center gap-1.5 rounded-lg border border-border bg-surface px-3 text-[13px] font-medium text-text-secondary transition hover:bg-surface-neutral hover:text-text-primary"
+            >
+              <Sparkles className="size-4 text-accent" />
+              Match all suggested
+            </button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="inline-block">
+                  <button
+                    type="button"
+                    disabled={!isDifferenceZero}
+                    onClick={() => setIsFinishedModalOpen(true)}
+                    className="flex h-9 items-center gap-1.5 rounded-lg bg-success px-3.5 text-[13px] font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <CheckCircle2 className="size-4" />
+                    Finish reconciliation
+                  </button>
+                </span>
+              </TooltipTrigger>
+              {!isDifferenceZero && (
+                <TooltipContent className="max-w-xs">
+                  {unmatchedStatementLines.length} statement {unmatchedStatementLines.length === 1 ? 'line is' : 'lines are'} still unmatched. Match them to finish.
+                </TooltipContent>
+              )}
+            </Tooltip>
+          </>
+        }
+      />
 
-        <div className="flex items-center gap-2.5">
-          <button
-            type="button"
-            onClick={handleMatchAll}
-            className="flex items-center gap-1.5 h-8 px-3 rounded-sm border border-brand-200 hover:bg-brand-50 text-brand-700 text-xs font-medium transition-colors"
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Auto-Match High Confidence (Demo)</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setIsFinishedModalOpen(true)}
-            className="flex items-center gap-1.5 h-8 px-4 bg-success hover:opacity-90 text-white rounded-sm text-xs font-semibold shadow-sm transition-all"
-          >
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            <span>Finish Reconciliation</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Proof Strip Summary */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 p-4 bg-surface border border-ink-200 rounded-md shadow-sm font-mono text-xs">
-        <div className="flex flex-col">
-          <span className="text-[10px] text-ink-500 uppercase tracking-wider font-sans font-medium">
-            Statement Opening
-          </span>
-          <span className="font-bold text-ink-900 text-sm mt-0.5">{formatMoney(12000000)}</span>
-        </div>
-
-        <div className="flex flex-col">
-          <span className="text-[10px] text-ink-500 uppercase tracking-wider font-sans font-medium">
-            Matched Cleared Receipts
-          </span>
-          <span className="font-bold text-success text-sm mt-0.5">
-            +{formatMoney(matchedStatementLines.filter((l) => l.amount > 0).reduce((s, l) => s + l.amount, 0))}
-          </span>
-        </div>
-
-        <div className="flex flex-col">
-          <span className="text-[10px] text-ink-500 uppercase tracking-wider font-sans font-medium">
-            Matched Cleared Payments
-          </span>
-          <span className="font-bold text-danger text-sm mt-0.5">
-            -{formatMoney(Math.abs(matchedStatementLines.filter((l) => l.amount < 0).reduce((s, l) => s + l.amount, 0)))}
-          </span>
-        </div>
-
-        <div className="flex flex-col">
-          <span className="text-[10px] text-ink-500 uppercase tracking-wider font-sans font-medium">
-            Statement Closing
-          </span>
-          <span className="font-bold text-ink-900 text-sm mt-0.5">
-            {formatMoney(currentBank.last_statement_balance)}
-          </span>
-        </div>
-
-        <div className="flex flex-col justify-center">
-          <span className="text-[10px] text-ink-500 uppercase tracking-wider font-sans font-medium">
-            Reconciliation Variance
-          </span>
-          <div
-            className={`font-bold text-sm mt-0.5 inline-flex items-center gap-1.5 ${
-              isDifferenceZero ? 'text-success' : 'text-danger'
-            }`}
-          >
-            {isDifferenceZero ? (
-              <>
-                <Check className="w-4 h-4 text-success" />
-                <span>Difference: $0.00 (Balanced)</span>
-              </>
-            ) : (
-              <>
-                <AlertCircle className="w-4 h-4 text-danger" />
-                <span>Difference: {formatMoney(unmatchedStatementLines.reduce((s, l) => s + l.amount, 0))}</span>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Two-Pane Workspace (02_AppFlow §8: Left statement lines, right book transactions) */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        {/* Left Pane: Bank Statement Lines */}
-        <div className="bg-surface border border-ink-200 rounded-lg p-4 shadow-sm flex flex-col gap-3">
-          <div className="flex items-center justify-between pb-2 border-b border-ink-100">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-ink-900 uppercase tracking-wider">
-                1. Bank Statement Feed
-              </span>
-              <span className="text-[11px] font-mono bg-warning-bg text-warning px-1.5 rounded-full font-bold">
-                {unmatchedStatementLines.length} unmatched
-              </span>
+      {/* Sticky progress header */}
+      <div className="sticky top-0 z-10 -mx-1 rounded-xl border border-border bg-surface/95 px-5 py-4 shadow-card backdrop-blur" data-testid="recon-progress">
+        <div className="flex flex-wrap items-center gap-x-8 gap-y-3">
+          <div>
+            <div className="text-xs text-text-muted">Difference</div>
+            <div
+              className={cn(
+                'mt-0.5 flex items-center gap-2 text-2xl font-semibold tabular-nums tracking-tight',
+                isDifferenceZero ? 'text-success' : 'text-text-primary'
+              )}
+            >
+              {formatMoney(isDifferenceZero ? 0 : difference)}
+              {isDifferenceZero ? (
+                <span className="ui-rise-in flex size-6 items-center justify-center rounded-full bg-success text-white">
+                  <Check className="size-4" />
+                </span>
+              ) : (
+                <span className="text-xs font-normal text-text-muted">goal: $0.00</span>
+              )}
             </div>
-            <span className="text-[11px] text-ink-500">Electronic Feed • Verified</span>
           </div>
+          <div className="min-w-[200px] flex-1">
+            <div className="mb-1.5 flex justify-between text-xs text-text-muted">
+              <span>
+                {matchedStatementLines.length} of {totalLines} lines matched
+              </span>
+              <span className="tabular-nums">{progress}%</span>
+            </div>
+            <div className="h-2 overflow-hidden rounded-full bg-surface-neutral">
+              <div
+                className={cn('h-full rounded-full transition-all duration-500 ease-out', isDifferenceZero ? 'bg-success' : 'bg-accent')}
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+          </div>
+          <div className="flex gap-6 text-xs">
+            <div>
+              <div className="text-text-muted">Money in (matched)</div>
+              <div className="mt-0.5 text-sm font-semibold tabular-nums text-success">
+                +{formatMoney(matchedStatementLines.filter((l) => l.amount > 0).reduce((s, l) => s + l.amount, 0))}
+              </div>
+            </div>
+            <div>
+              <div className="text-text-muted">Money out (matched)</div>
+              <div className="mt-0.5 text-sm font-semibold tabular-nums text-danger">
+                -{formatMoney(Math.abs(matchedStatementLines.filter((l) => l.amount < 0).reduce((s, l) => s + l.amount, 0)))}
+              </div>
+            </div>
+            <div>
+              <div className="text-text-muted">Statement balance</div>
+              <div className="mt-0.5 text-sm font-semibold tabular-nums text-text-primary">{formatMoney(currentBank.last_statement_balance)}</div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-          <div className="divide-y divide-ink-100 max-h-[460px] overflow-y-auto">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+        {/* Left: statement lines */}
+        <section className={paneCard} aria-label="Bank statement lines">
+          <div className="flex items-center justify-between border-b border-border px-4 py-3">
+            <div className="flex items-center gap-2">
+              <span className="flex size-6 items-center justify-center rounded-full bg-accent-soft text-[11px] font-semibold text-accent">1</span>
+              <h2 className="text-sm font-semibold text-text-primary">From your bank</h2>
+              <span className="rounded-full bg-warning-soft px-2 py-0.5 text-[11px] font-medium text-warning">{unmatchedStatementLines.length} to match</span>
+            </div>
+          </div>
+          <div className="max-h-[460px] divide-y divide-border overflow-y-auto">
+            {unmatchedStatementLines.length === 0 && (
+              <div className="ui-rise-in flex flex-col items-center gap-2 px-4 py-12 text-center">
+                <span className="flex size-12 items-center justify-center rounded-full bg-success-soft text-success">
+                  <CheckCircle2 className="size-6" />
+                </span>
+                <p className="text-sm font-semibold text-text-primary">Every statement line is matched</p>
+                <p className="text-xs text-text-muted">Difference is $0.00. You can finish the reconciliation.</p>
+              </div>
+            )}
             {unmatchedStatementLines.map((line) => {
               const isSelected = selectedStatementLineId === line.id;
               return (
-                <div
+                <button
+                  type="button"
                   key={line.id}
                   onClick={() => setSelectedStatementLineId(line.id)}
-                  className={`p-3 rounded-md cursor-pointer transition-all flex flex-col gap-1.5 ${
-                    isSelected
-                      ? 'bg-brand-50 border border-brand-500/50 shadow-sm'
-                      : 'hover:bg-ink-50 border border-transparent'
-                  }`}
+                  aria-pressed={isSelected}
+                  className={cn(rowBase, isSelected ? 'bg-accent-soft/60' : 'hover:bg-surface-neutral/70')}
                 >
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-ink-900">{line.counterparty}</span>
-                    <span
-                      className={`text-xs font-mono font-bold ${
-                        line.amount > 0 ? 'text-success' : 'text-ink-900'
-                      }`}
-                    >
+                  {isSelected && <span className="absolute inset-y-0 left-0 w-0.5 bg-accent" />}
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="truncate text-[13px] font-medium text-text-primary">{line.counterparty}</span>
+                    <span className={cn('text-[13px] font-semibold tabular-nums', line.amount > 0 ? 'text-success' : 'text-text-primary')}>
                       {formatMoney(line.amount)}
                     </span>
                   </div>
-
-                  <div className="flex items-center justify-between text-[11px] text-ink-500">
-                    <span className="truncate max-w-[260px] font-mono">{line.description}</span>
-                    <span className="font-mono">{formatDate(line.txn_date)}</span>
+                  <div className="mt-0.5 flex items-center justify-between gap-3 text-xs text-text-muted">
+                    <span className="truncate">{line.description}</span>
+                    <span className="shrink-0 tabular-nums">{formatDate(line.txn_date)}</span>
                   </div>
-
                   {line.confidence && (
-                    <div className="flex items-center gap-1.5 text-[10px] text-brand-700 bg-brand-100/50 px-2 py-0.5 rounded font-medium mt-0.5">
-                      <Sparkles className="w-3 h-3 text-brand-600" />
-                      <span>{line.confidence}% confidence suggested match</span>
+                    <div className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-violet-soft px-2 py-0.5 text-[11px] font-medium text-violet">
+                      <Sparkles className="size-3" />
+                      {line.confidence}% sure of a match
                     </div>
                   )}
-                </div>
+                </button>
+              );
+            })}
+            {matchedStatementLines.map((line) => (
+              <div key={line.id} className="flex items-center justify-between gap-3 bg-success-soft/30 px-4 py-2.5 text-xs">
+                <span className="flex items-center gap-2 truncate text-text-secondary">
+                  <span className="flex size-4 items-center justify-center rounded-full bg-success text-white">
+                    <Check className="size-3" />
+                  </span>
+                  <span className="truncate">{line.counterparty}</span>
+                </span>
+                <span className="tabular-nums text-text-muted">{formatMoney(line.amount)}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Right: ledger suggestions */}
+        <section className={paneCard} aria-label="Entries in your books">
+          <div className="flex items-center justify-between border-b border-border px-4 py-3">
+            <div className="flex items-center gap-2">
+              <span className="flex size-6 items-center justify-center rounded-full bg-accent-soft text-[11px] font-semibold text-accent">2</span>
+              <h2 className="text-sm font-semibold text-text-primary">From your books</h2>
+              <span className="text-xs text-text-muted">not yet on a statement</span>
+            </div>
+          </div>
+          <div className="max-h-[460px] divide-y divide-border overflow-y-auto">
+            {openBook.length === 0 && <div className="px-4 py-12 text-center text-xs text-text-muted">No book entries are waiting for a match.</div>}
+            {openBook.map((txn) => {
+              const isSelected = selectedBookTxnId === txn.id;
+              const exact = activeStatementLine?.amount === txn.amount;
+              return (
+                <button
+                  type="button"
+                  key={txn.id}
+                  onClick={() => setSelectedBookTxnId(txn.id)}
+                  aria-pressed={isSelected}
+                  className={cn(rowBase, isSelected ? 'bg-accent-soft/60' : 'hover:bg-surface-neutral/70')}
+                >
+                  {isSelected && <span className="absolute inset-y-0 left-0 w-0.5 bg-accent" />}
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex min-w-0 items-center gap-2">
+                      <span className="truncate text-[13px] font-medium text-text-primary">{txn.contact_name}</span>
+                      <span className="shrink-0 text-xs text-text-muted">{txn.doc_number}</span>
+                    </div>
+                    <span className={cn('text-[13px] font-semibold tabular-nums', txn.amount > 0 ? 'text-success' : 'text-text-primary')}>
+                      {formatMoney(txn.amount)}
+                    </span>
+                  </div>
+                  <div className="mt-0.5 flex items-center justify-between gap-3 text-xs text-text-muted">
+                    <span>
+                      {txn.type === 'Receipt' ? 'Payment received' : 'Payment made'} · Ref {txn.reference}
+                    </span>
+                    <span className="shrink-0 tabular-nums">{formatDate(txn.date)}</span>
+                  </div>
+                  {exact && (
+                    <div className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-success-soft px-2 py-0.5 text-[11px] font-medium text-success">
+                      <Link2 className="size-3" />
+                      Same amount as the selected line
+                    </div>
+                  )}
+                </button>
               );
             })}
           </div>
-        </div>
-
-        {/* Right Pane: General Ledger / Book Transactions */}
-        <div className="bg-surface border border-ink-200 rounded-lg p-4 shadow-sm flex flex-col gap-3">
-          <div className="flex items-center justify-between pb-2 border-b border-ink-100">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-ink-900 uppercase tracking-wider">
-                2. General Ledger Transactions
-              </span>
-              <span className="text-[11px] text-ink-500 font-mono">Unmatched Book Entries</span>
-            </div>
-          </div>
-
-          <div className="divide-y divide-ink-100 max-h-[460px] overflow-y-auto">
-            {bookTransactions
-              .filter((t) => !t.isMatched)
-              .map((txn) => {
-                const isSelected = selectedBookTxnId === txn.id;
-                return (
-                  <div
-                    key={txn.id}
-                    onClick={() => setSelectedBookTxnId(txn.id)}
-                    className={`p-3 rounded-md cursor-pointer transition-all flex flex-col gap-1.5 ${
-                      isSelected
-                        ? 'bg-brand-50 border border-brand-500/50 shadow-sm'
-                        : 'hover:bg-ink-50 border border-transparent'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono text-xs font-bold text-brand-700">
-                          {txn.doc_number}
-                        </span>
-                        <span className="text-xs font-medium text-ink-900">{txn.contact_name}</span>
-                      </div>
-                      <span
-                        className={`text-xs font-mono font-bold ${
-                          txn.amount > 0 ? 'text-success' : 'text-ink-900'
-                        }`}
-                      >
-                        {formatMoney(txn.amount)}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center justify-between text-[11px] text-ink-500">
-                      <span>
-                        {txn.type} • Ref: {txn.reference}
-                      </span>
-                      <span className="font-mono">{formatDate(txn.date)}</span>
-                    </div>
-                  </div>
-                );
-              })}
-          </div>
-
-          {/* Match Action Bar */}
-          <div className="mt-auto pt-3 border-t border-ink-100 flex items-center justify-between">
-            <span className="text-xs text-ink-500">
-              Selected Pair:{' '}
-              <strong className="text-ink-900 font-mono">
-                {activeStatementLine ? formatMoney(activeStatementLine.amount) : 'None'}
-              </strong>
+          <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-border bg-surface-neutral/40 px-4 py-3">
+            <span className="hidden items-center gap-2 text-xs text-text-muted sm:flex">
+              <Kbd>J</Kbd>
+              <Kbd>K</Kbd> move
+              <Kbd>Enter</Kbd> match
             </span>
-
             <button
               type="button"
               onClick={handleMatch}
-              className="flex items-center gap-1.5 h-8 px-4 bg-brand-600 hover:bg-brand-700 text-white rounded-sm text-xs font-semibold shadow-sm transition-colors"
+              className="flex h-9 items-center gap-1.5 rounded-lg bg-accent px-4 text-[13px] font-semibold text-white transition hover:bg-accent-hover"
             >
-              <Check className="w-4 h-4" />
-              <span>Match Selected Transactions</span>
+              <Check className="size-4" />
+              Match
+              {activeStatementLine ? ` ${formatMoney(activeStatementLine.amount)}` : ''}
             </button>
           </div>
-        </div>
+        </section>
       </div>
 
       {/* Finished Reconciliation Proof Dialog (Demo Step 5 requirement: Difference = 0) */}
@@ -341,7 +369,7 @@ export const BankReconcile: React.FC = () => {
             </DialogTitle>
           </DialogHeader>
 
-          <div className="flex flex-col gap-3 text-xs text-text-secondary font-mono">
+          <div className="flex flex-col gap-3 text-xs text-text-secondary ">
             <div className="p-4 bg-surface-neutral rounded-md border border-border flex flex-col gap-2">
               <div className="flex justify-between">
                 <span className="text-text-muted">Bank Account:</span>
@@ -383,9 +411,17 @@ export const BankReconcile: React.FC = () => {
               type="button"
               onClick={() => {
                 setIsFinishedModalOpen(false);
+                useLedgerStore.setState((s: any) => ({
+                  closeChecks: s.closeChecks.map((c: any) =>
+                    c.check_code === 'BANK_REC'
+                      ? { ...c, status: 'pass', detail: 'Bank accounts fully reconciled (Zero Difference certified)' }
+                      : c
+                  ),
+                }));
+                toast.success('Reconciliation certified and sealed into audit log. BANK_REC check passed.');
                 navigate(`/${coSlug}/periods`);
               }}
-              className="px-4 py-1.5 rounded-sm bg-success hover:opacity-90 text-white text-xs font-semibold shadow-xs"
+              className="px-4 py-1.5 rounded-sm bg-success hover:opacity-90 text-white text-xs font-semibold shadow-xs cursor-pointer"
             >
               Lock Reconciliation & View Periods
             </button>

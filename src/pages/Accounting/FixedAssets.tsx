@@ -1,7 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ColumnDef } from '@tanstack/react-table';
 import { useLedgerStore } from '@/mock/store';
 import { FixedAsset } from '@/types';
+import { PageHeader } from '@/components/domain/PageHeader';
+import { toast } from 'sonner';
+import { DataTable, type RowAction } from '@/components/domain/DataTable';
 import { formatMoney } from '@/lib/format';
 import { SplitPane } from '@/components/domain/SplitPane';
 import { SignDialog } from '@/components/domain/SignDialog';
@@ -18,6 +22,7 @@ import {
   TrendingDown,
   Layers,
   FileSpreadsheet,
+  Trash2,
 } from 'lucide-react';
 import {
   Dialog,
@@ -39,6 +44,7 @@ export const FixedAssets: React.FC = () => {
     previewDepreciationRun,
     postDepreciationRun,
     addFixedAsset,
+    uiDensity,
   } = useLedgerStore();
   const coSlug = currentCompany.slug;
 
@@ -61,6 +67,94 @@ export const FixedAssets: React.FC = () => {
     if (a.useful_life_months <= 0) return 0;
     return Math.round((deprBase / a.useful_life_months) * 12);
   };
+
+  const CATEGORY_LABEL: Record<string, string> = {
+    'cat-it': 'IT equipment',
+    'cat-furn': 'Furniture',
+    'cat-equip': 'Equipment',
+    'cat-veh': 'Vehicles',
+  };
+  const categoryLabel = (id: string) => CATEGORY_LABEL[id] ?? id;
+  const deprPct = (a: FixedAsset) => {
+    const base = a.cost - a.residual;
+    return base > 0 ? Math.min(100, Math.max(0, (getAccumDepr(a) / base) * 100)) : 0;
+  };
+
+  const columns: ColumnDef<FixedAsset>[] = [
+    {
+      accessorKey: 'name',
+      header: 'Asset',
+      cell: ({ row }) => (
+        <div className="flex items-center gap-3">
+          <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent">
+            <Package className="size-4" />
+          </span>
+          <div className="min-w-0">
+            <div className="truncate font-medium text-text-primary">{row.original.name}</div>
+            <div className="font-mono text-[11px] text-text-muted">{row.original.number}</div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      accessorKey: 'category_id',
+      header: 'Category',
+      cell: ({ row }) => <span className="text-text-secondary">{categoryLabel(row.original.category_id)}</span>,
+    },
+    {
+      accessorKey: 'acquired_on',
+      header: 'Bought',
+      cell: ({ row }) => <span className="text-text-muted">{row.original.acquired_on}</span>,
+    },
+    {
+      accessorKey: 'cost',
+      header: () => <div className="text-right">Cost</div>,
+      cell: ({ row }) => <div className="text-right font-mono tabular-nums text-text-primary">{formatMoney(row.original.cost)}</div>,
+    },
+    {
+      id: 'progress',
+      header: 'Worn down',
+      cell: ({ row }) => {
+        const pct = deprPct(row.original);
+        return (
+          <div className="flex w-36 items-center gap-2" title={`${formatMoney(getAccumDepr(row.original))} depreciated so far`}>
+            <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface-neutral">
+              <div
+                className={`h-full rounded-full ${pct > 80 ? 'bg-warning' : 'bg-accent'}`}
+                style={{ width: `${pct}%` }}
+              />
+            </div>
+            <span className="w-9 text-right font-mono text-[11px] tabular-nums text-text-muted">{Math.round(pct)}%</span>
+          </div>
+        );
+      },
+    },
+    {
+      id: 'nbv',
+      header: () => <div className="text-right">Value today</div>,
+      cell: ({ row }) => (
+        <div className="text-right font-mono font-semibold tabular-nums text-text-primary">
+          {formatMoney(row.original.cost - getAccumDepr(row.original))}
+        </div>
+      ),
+    },
+    {
+      accessorKey: 'status',
+      header: 'Status',
+      cell: ({ row }) => (
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-success-soft px-2 py-0.5 text-xs font-medium capitalize text-success">
+          <span className="size-1.5 rounded-full bg-success" />
+          {row.original.status}
+        </span>
+      ),
+    },
+  ];
+
+  const totals = useMemo(() => {
+    const cost = fixedAssets.reduce((t, a) => t + a.cost, 0);
+    const accum = fixedAssets.reduce((t, a) => t + getAccumDepr(a), 0);
+    return { cost, accum, nbv: cost - accum };
+  }, [fixedAssets]);
 
   const filteredAssets = useMemo(() => {
     if (!searchQuery) return fixedAssets;
@@ -118,235 +212,149 @@ export const FixedAssets: React.FC = () => {
         )} posted to P&L (6500).`
       );
     } catch (err: any) {
-      alert(err.message || 'Depreciation run failed');
+      toast.error(err.message || 'Depreciation run failed');
     }
   };
 
+  const tabBtn = (id: 'register' | 'depreciation', label: string) => (
+    <button
+      type="button"
+      onClick={() => setActiveTab(id)}
+      className={`rounded-md px-3 py-1.5 text-[13px] font-medium transition cursor-pointer ${
+        activeTab === id ? 'bg-surface text-text-primary shadow-card font-semibold' : 'text-text-muted hover:text-text-primary'
+      }`}
+    >
+      {label}
+    </button>
+  );
+
+  const assetActions = (a: FixedAsset): RowAction<FixedAsset>[] => [
+    { label: 'View details', icon: Layers, onClick: (r) => setSelectedAssetId(r.id) },
+    { label: 'Run depreciation', icon: TrendingDown, onClick: () => setActiveTab('depreciation') },
+    { label: 'Copy asset number', icon: FileSpreadsheet, onClick: (r) => { navigator.clipboard?.writeText(r.number); toast.success(`${r.number} copied`); } },
+    {
+      label: 'Dispose of asset',
+      icon: Trash2,
+      destructive: true,
+      onClick: () => toast.info(`Disposal of ${a.number} needs approval from your finance manager.`),
+    },
+  ];
+
+  const kpi = (label: string, value: number, tone: string, icon: React.ReactNode) => (
+    <div className="flex items-center gap-3 rounded-xl border border-border bg-surface p-4 shadow-card">
+      <span className={`flex size-9 items-center justify-center rounded-lg ${tone}`}>{icon}</span>
+      <div>
+        <div className="text-xs text-text-muted">{label}</div>
+        <div className="text-xl font-semibold tabular-nums tracking-tight text-text-primary">{formatMoney(value)}</div>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="flex-1 flex flex-col h-full overflow-hidden bg-surface-canvas">
-      {/* Top Header */}
-      <div className="h-12 border-b border-border px-4 flex items-center justify-between shrink-0 bg-surface-elevated">
-        <div className="flex items-center gap-3">
-          <div className="flex items-baseline gap-2">
-            <h1 className="text-xl font-semibold text-text-primary">Fixed Assets Register & Schedules</h1>
-            <span className="text-xs text-text-muted">Asset lifecycle, capitalization & monthly depreciation</span>
-          </div>
-
-          <span className="text-border">|</span>
-
-          {/* Tabs */}
-          <div className="flex items-center gap-1">
+    <div className="flex flex-col gap-5">
+      <PageHeader
+        icon={<Package />}
+        title="Fixed assets"
+        subtitle="Equipment and property you own, and how much value they lose each month"
+        actions={
+          <>
             <button
               type="button"
-              onClick={() => setActiveTab('register')}
-              className={`px-2.5 py-1 text-xs rounded-sm font-medium transition ${
-                activeTab === 'register'
-                  ? 'bg-surface-neutral text-ink-900 font-semibold'
-                  : 'text-ink-muted hover:text-ink-900'
-              }`}
+              onClick={() => setIsNewAssetOpen(true)}
+              className="flex h-9 items-center gap-1.5 rounded-lg bg-accent px-3.5 text-[13px] font-semibold text-white shadow-sm transition hover:bg-accent-hover cursor-pointer"
             >
-              Assets Register
+              <Plus className="size-4" />
+              <span>Add asset</span>
             </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('depreciation')}
-              className={`px-2.5 py-1 text-xs rounded-sm font-medium transition ${
-                activeTab === 'depreciation'
-                  ? 'bg-surface-neutral text-ink-900 font-semibold'
-                  : 'text-ink-muted hover:text-ink-900'
-              }`}
-            >
-              Depreciation Run
-            </button>
-          </div>
-        </div>
+          </>
+        }
+      />
 
-        <div className="flex items-center gap-2">
-          {activeTab === 'register' && (
-            <>
-              <div className="relative">
-                <Search className="w-3.5 h-3.5 text-ink-muted absolute left-2.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  placeholder="Search assets, categories..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="h-8 pl-8 pr-3 text-xs rounded-sm border border-line-border bg-surface-subtle focus:bg-surface-elevated focus:outline-none focus:border-brand-teal w-60"
-                />
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setIsNewAssetOpen(true)}
-                className="flex items-center gap-1.5 h-8 px-3 rounded-sm bg-brand-teal text-white text-xs font-semibold hover:bg-brand-teal-hover transition shadow-2xs"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span>Add Fixed Asset</span>
-              </button>
-            </>
-          )}
-        </div>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        {kpi('Original cost', totals.cost, 'bg-accent-soft text-accent', <Coins className="size-4" />)}
+        {kpi('Depreciated so far', totals.accum, 'bg-warning-soft text-warning', <TrendingDown className="size-4" />)}
+        {kpi('Value today', totals.nbv, 'bg-success-soft text-success', <ShieldCheck className="size-4" />)}
       </div>
 
-      {/* TAB 1: Asset Register */}
+      <div className="flex w-fit items-center gap-1 rounded-lg border border-border bg-surface-neutral p-1">
+        {tabBtn('register', 'Asset list')}
+        {tabBtn('depreciation', 'Monthly depreciation')}
+      </div>
+
       {activeTab === 'register' && (
         <SplitPane
           storageKey="ledgerly_assets_split_width"
           isOpen={Boolean(selectedAsset)}
           onClose={() => setSelectedAssetId(null)}
           title={selectedAsset?.name}
+          subtitle={selectedAsset ? `${categoryLabel(selectedAsset.category_id)} · ${selectedAsset.number}` : undefined}
+          icon={<Building className="w-4 h-4" />}
           badge={
             selectedAsset && (
-              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-surface-neutral font-semibold text-brand-teal">
+              <span className="rounded-full bg-accent-soft px-2 py-0.5 font-mono text-[11px] font-semibold text-accent">
                 {selectedAsset.number}
               </span>
             )
           }
           detailContent={
             selectedAsset && (
-              <div className="flex flex-col gap-4 text-xs">
-                {/* Book value card */}
-                <div className="p-3 bg-surface-subtle border border-line-border rounded-sm flex items-center justify-between">
-                  <div>
-                    <span className="text-[10px] uppercase font-bold text-ink-muted block">
-                      Net Book Value (NBV)
-                    </span>
-                    <span className="text-lg font-bold font-mono text-num text-ink-900">
-                      {formatMoney(selectedAsset.cost - getAccumDepr(selectedAsset))}
-                    </span>
+              <div className="flex flex-col gap-4 text-[13px]">
+                <div className="rounded-xl border border-border bg-surface-neutral/50 p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="block text-xs text-text-muted">Value today</span>
+                      <span className="font-mono text-xl font-semibold tabular-nums text-text-primary">
+                        {formatMoney(selectedAsset.cost - getAccumDepr(selectedAsset))}
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <span className="block text-xs text-text-muted">Loses each month</span>
+                      <span className="font-mono text-sm font-semibold text-danger">
+                        {formatMoney(calculateMonthlyDepreciation(selectedAsset))}
+                      </span>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <span className="text-[10px] text-ink-muted block">Monthly Amortisation</span>
-                    <span className="font-mono text-xs font-semibold text-danger">
-                      {formatMoney(calculateMonthlyDepreciation(selectedAsset))}/mo
-                    </span>
+                  <div className="mt-3 h-2 overflow-hidden rounded-full bg-surface-neutral">
+                    <div className="h-full rounded-full bg-accent" style={{ width: `${deprPct(selectedAsset)}%` }} />
                   </div>
+                  <div className="mt-1 text-xs text-text-muted">{Math.round(deprPct(selectedAsset))}% of its value used up</div>
                 </div>
 
-                {/* Details */}
-                <div className="p-3 bg-surface-neutral border border-line-border rounded-sm flex flex-col gap-2 text-[11px]">
-                  <div className="flex justify-between">
-                    <span className="text-ink-muted">Category:</span>
-                    <span className="font-medium text-ink-900">{selectedAsset.category_id}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-ink-muted">Acquisition Date:</span>
-                    <span className="font-mono text-ink-900">{selectedAsset.acquired_on}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-ink-muted">Initial Capitalized Cost:</span>
-                    <span className="font-mono text-num text-ink-900 font-semibold">{formatMoney(selectedAsset.cost)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-ink-muted">Accumulated Depreciation:</span>
-                    <span className="font-mono text-num text-danger">{formatMoney(getAccumDepr(selectedAsset))}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-ink-muted">Depreciation Method:</span>
-                    <span className="font-medium text-ink-900 capitalize">{selectedAsset.method.replace('_', ' ')}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-ink-muted">Useful Life:</span>
-                    <span className="font-medium text-ink-900">{selectedAsset.useful_life_months} Months ({Math.round(selectedAsset.useful_life_months / 12)} Yrs)</span>
-                  </div>
-                </div>
-
-                {/* GL Mapping */}
-                <div className="p-3 bg-surface-subtle border border-line-border rounded-sm flex flex-col gap-1.5 text-[11px] font-mono">
-                  <span className="font-bold text-ink-900 uppercase font-sans text-[10px]">
-                    General Ledger Mapping
-                  </span>
-                  <div className="flex justify-between text-ink-muted">
-                    <span>Asset Cost Acc:</span>
-                    <span className="text-ink-900">{selectedAsset.asset_account_id} (1500)</span>
-                  </div>
-                  <div className="flex justify-between text-ink-muted">
-                    <span>Accum Depr Acc:</span>
-                    <span className="text-ink-900">{selectedAsset.accum_depr_account_id} (1510)</span>
-                  </div>
-                  <div className="flex justify-between text-ink-muted">
-                    <span>Depr Expense Acc:</span>
-                    <span className="text-ink-900">{selectedAsset.depr_expense_account_id} (6500)</span>
-                  </div>
-                </div>
+                <dl className="flex flex-col divide-y divide-border rounded-xl border border-border bg-surface px-4">
+                  {[
+                    ['Category', categoryLabel(selectedAsset.category_id)],
+                    ['Bought on', selectedAsset.acquired_on],
+                    ['Original cost', formatMoney(selectedAsset.cost)],
+                    ['Depreciated so far', formatMoney(getAccumDepr(selectedAsset))],
+                    ['Method', selectedAsset.method.replace('_', ' ')],
+                    ['Useful life', `${selectedAsset.useful_life_months} months (${Math.round(selectedAsset.useful_life_months / 12)} years)`],
+                  ].map(([k, v]) => (
+                    <div key={k} className="flex justify-between py-2.5">
+                      <dt className="text-text-muted">{k}</dt>
+                      <dd className="font-medium capitalize text-text-primary">{v}</dd>
+                    </div>
+                  ))}
+                </dl>
               </div>
             )
           }
         >
-          {/* Table */}
-          <div className="p-4 flex flex-col gap-3">
-            <div className="border border-line-border rounded-md overflow-hidden bg-surface-elevated shadow-2xs">
-              <table className="w-full border-collapse text-left text-xs">
-                <thead>
-                  <tr className="h-9 bg-surface-neutral border-b border-line-border text-[11px] font-semibold text-ink-muted uppercase tracking-wider">
-                    <th className="px-3">Asset #</th>
-                    <th className="px-3">Asset Name</th>
-                    <th className="px-3">Category</th>
-                    <th className="px-3">Acquired</th>
-                    <th className="px-3 text-right">Cost</th>
-                    <th className="px-3 text-right">Accum Depr</th>
-                    <th className="px-3 text-right">Net Book Value</th>
-                    <th className="px-3 text-center">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-line-border">
-                  {filteredAssets.map((asset) => {
-                    const isSelected = selectedAssetId === asset.id;
-                    const accum = getAccumDepr(asset);
-                    const nbv = asset.cost - accum;
-
-                    return (
-                      <tr
-                        key={asset.id}
-                        onClick={() => setSelectedAssetId(asset.id)}
-                        className={`h-9 cursor-pointer transition select-none ${
-                          isSelected ? 'bg-brand-teal/10 font-medium' : 'hover:bg-surface-neutral'
-                        }`}
-                      >
-                        <td className="px-3 font-mono font-medium text-brand-teal">
-                          {asset.number}
-                        </td>
-                        <td className="px-3 font-medium text-ink-900">
-                          {asset.name}
-                        </td>
-                        <td className="px-3 text-ink-muted">
-                          {asset.category_id}
-                        </td>
-                        <td className="px-3 font-mono text-[11px] text-ink-muted">
-                          {asset.acquired_on}
-                        </td>
-                        <td className="px-3 text-right font-mono text-num font-medium text-ink-900">
-                          {formatMoney(asset.cost)}
-                        </td>
-                        <td className="px-3 text-right font-mono text-num text-danger">
-                          {formatMoney(accum)}
-                        </td>
-                        <td className="px-3 text-right font-mono text-num font-semibold text-ink-900">
-                          {formatMoney(nbv)}
-                        </td>
-                        <td className="px-3 text-center">
-                          <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-success/10 text-success capitalize">
-                            {asset.status}
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-
-            <div className="flex items-center justify-between text-[11px] text-ink-muted px-1">
-              <span>Showing {filteredAssets.length} fixed assets</span>
-              <span>Straight-line and declining balance depreciation schedules</span>
-            </div>
-          </div>
+          <DataTable
+            columns={columns}
+            data={filteredAssets}
+            activeRowId={selectedAssetId}
+            searchPlaceholder="Filter assets by number, name, category..."
+            rowDensity={uiDensity}
+            onRowClick={(row) => setSelectedAssetId(row.id)}
+            rowActions={assetActions}
+            contextMenuTitle={(r) => `${r.number} · ${r.name}`}
+          />
         </SplitPane>
       )}
 
       {/* TAB 2: Depreciation Run */}
       {activeTab === 'depreciation' && (
-        <div className="p-6 flex flex-col gap-6 w-full overflow-y-auto">
+        <div className="flex flex-col gap-5 w-full">
           {deprSuccess && (
             <div className="p-3 bg-success/10 border border-success/30 rounded-md text-success text-xs flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 shrink-0" />
@@ -355,55 +363,55 @@ export const FixedAssets: React.FC = () => {
           )}
 
           {/* Config card */}
-          <div className="p-4 bg-surface-elevated border border-line-border rounded-md shadow-2xs grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+          <div className="p-4 bg-surface border border-border rounded-xl shadow-card grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
             <div className="flex flex-col gap-1">
-              <label className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider flex items-center gap-1">
-                <Calendar className="w-3.5 h-3.5 text-brand-teal" />
-                Depreciation Run Date
+              <label className="text-[11px] font-semibold text-text-muted uppercase tracking-wider flex items-center gap-1">
+                <Calendar className="w-3.5 h-3.5 text-accent" />
+                Run date
               </label>
               <input
                 type="date"
                 value={asOfDate}
                 onChange={(e) => setAsOfDate(e.target.value)}
-                className="h-8 px-2.5 font-mono text-ink-900 rounded-sm border border-line-border bg-surface-subtle focus:outline-none focus:border-brand-teal"
+                className="h-8 px-2.5 font-mono text-text-primary rounded-lg border border-border bg-surface focus:outline-none focus:border-accent"
               />
             </div>
 
             <div className="flex flex-col gap-1">
-              <label className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider">
-                Target Fiscal Period
+              <label className="text-[11px] font-semibold text-text-muted uppercase tracking-wider">
+                Accounting period
               </label>
-              <div className="h-8 px-2.5 flex items-center rounded-sm border border-line-border bg-surface-neutral font-medium text-ink-900">
-                October 2026 (per-2026-10)
+              <div className="h-8 px-2.5 flex items-center rounded-lg border border-border bg-surface-neutral font-medium text-text-primary">
+                October 2026
               </div>
             </div>
           </div>
 
           {/* Preview Schedule */}
-          <div className="p-4 bg-surface-elevated border border-line-border rounded-md shadow-2xs flex flex-col gap-3 text-xs">
+          <div className="p-4 bg-surface border border-border rounded-xl shadow-card flex flex-col gap-3 text-xs">
             <div className="flex items-center justify-between">
-              <span className="font-bold text-ink-900 uppercase tracking-wider text-[11px]">
-                Monthly Depreciation Amortization Schedule
+              <span className="font-bold text-text-primary uppercase tracking-wider text-[11px]">
+                This month’s depreciation
               </span>
-              <span className="text-[11px] text-ink-muted">
-                {deprPreview.lines.length} Active Capital Assets
+              <span className="text-[11px] text-text-muted">
+                {deprPreview.lines.length} assets included
               </span>
             </div>
 
-            <div className="border border-line-border rounded-sm overflow-hidden">
+            <div className="border border-border rounded-lg overflow-hidden">
               <table className="w-full border-collapse text-left text-xs">
                 <thead>
-                  <tr className="h-8 bg-surface-neutral border-b border-line-border text-[11px] font-semibold text-ink-muted uppercase">
-                    <th className="px-3">Asset Number</th>
-                    <th className="px-3">Asset Description</th>
-                    <th className="px-3 text-right">Depreciation Expense</th>
+                  <tr className="h-8 bg-surface-neutral border-b border-border text-[11px] font-semibold text-text-muted uppercase">
+                    <th className="px-3">Asset</th>
+                    <th className="px-3">Name</th>
+                    <th className="px-3 text-right">Amount</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-line-border">
+                <tbody className="divide-y divide-border">
                   {deprPreview.lines.map((line) => (
                     <tr key={line.asset_id} className="h-9 hover:bg-surface-neutral transition">
-                      <td className="px-3 font-mono text-brand-teal font-medium">{line.asset_number}</td>
-                      <td className="px-3 font-medium text-ink-900">{line.asset_name}</td>
+                      <td className="px-3 font-mono text-accent font-medium">{line.asset_number}</td>
+                      <td className="px-3 font-medium text-text-primary">{line.asset_name}</td>
                       <td className="px-3 text-right font-mono text-num font-semibold text-danger">
                         {formatMoney(line.amount)}
                       </td>
@@ -414,14 +422,14 @@ export const FixedAssets: React.FC = () => {
             </div>
 
             {/* Total and Execute */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pt-4 border-t border-line-border">
-              <div className="p-3 bg-brand-teal/5 border border-brand-teal/20 rounded-md text-ink-900 max-w-md">
-                <span className="font-semibold text-[11px] text-brand-teal uppercase tracking-wide block mb-1">
-                  Accounting Effect
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pt-4 border-t border-border">
+              <div className="p-3 bg-accent-soft/60 border border-accent/20 rounded-md text-text-primary max-w-md">
+                <span className="font-semibold text-[11px] text-accent uppercase tracking-wide block mb-1">
+                  What this does
                 </span>
-                <p className="text-[11px] text-ink-muted leading-relaxed">
-                  Executing this run will debit Depreciation Expense (6500) and credit Accumulated Depreciation (1510) for{' '}
-                  <strong className="text-num font-mono text-ink-900">
+                <p className="text-[11px] text-text-muted leading-relaxed">
+                  Executing this run will debit Amount (6500) and credit Accumulated Depreciation (1510) for{' '}
+                  <strong className="text-num font-mono text-text-primary">
                     {formatMoney(deprPreview.total_depreciation)}
                   </strong>.
                 </p>
@@ -429,7 +437,7 @@ export const FixedAssets: React.FC = () => {
 
               <div className="flex flex-col items-end gap-3">
                 <div className="text-right">
-                  <span className="text-ink-muted text-xs block">Total Monthly Depreciation:</span>
+                  <span className="text-text-muted text-xs block">Total this month</span>
                   <span className="text-xl font-bold font-mono text-num text-danger">
                     {formatMoney(deprPreview.total_depreciation)}
                   </span>
@@ -438,10 +446,10 @@ export const FixedAssets: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setSignDialogOpen(true)}
-                  className="h-8 px-5 bg-brand-teal hover:bg-brand-teal-hover text-white rounded-sm font-semibold text-xs shadow-2xs transition flex items-center gap-1.5"
+                  className="h-8 px-5 bg-accent hover:bg-accent-hover text-white rounded-lg font-semibold text-xs shadow-2xs transition flex items-center gap-1.5"
                 >
                   <ShieldCheck className="w-3.5 h-3.5" />
-                  <span>Sign with PIN & Post Depreciation Run</span>
+                  <span>Sign and record depreciation</span>
                 </button>
               </div>
             </div>
@@ -454,17 +462,17 @@ export const FixedAssets: React.FC = () => {
         <DialogContent className="max-w-[480px] p-5">
           <form onSubmit={handleCreateAsset} className="flex flex-col gap-4 text-xs">
             <DialogHeader>
-              <DialogTitle className="text-sm font-bold text-text-primary">Capitalize New Fixed Asset</DialogTitle>
+              <DialogTitle className="text-sm font-bold text-text-primary">Add an asset</DialogTitle>
             </DialogHeader>
 
             <div className="flex flex-col gap-1">
-              <label className="text-[11px] text-text-muted font-medium">Asset Name / Description *</label>
+              <label className="text-[11px] text-text-muted font-medium">Asset name *</label>
               <input
                 type="text"
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
                 placeholder="e.g. Core Cisco Fiber Switch 9300"
-                className="h-8 px-2.5 rounded-sm border border-border bg-surface text-text-primary"
+                className="h-9 px-3 rounded-lg border border-border bg-surface text-[13px] text-text-primary"
                 required
               />
             </div>
@@ -475,7 +483,7 @@ export const FixedAssets: React.FC = () => {
                 <select
                   value={newCategory}
                   onChange={(e) => setNewCategory(e.target.value)}
-                  className="h-8 px-2 rounded-sm border border-border bg-surface text-text-primary"
+                  className="h-8 px-2 rounded-lg border border-border bg-surface text-text-primary"
                 >
                   <option value="IT & Telecom Equipment">IT & Telecom Equipment</option>
                   <option value="Vehicles & Transport">Vehicles & Transport</option>
@@ -485,25 +493,25 @@ export const FixedAssets: React.FC = () => {
               </div>
 
               <div className="flex flex-col gap-1">
-                <label className="text-[11px] text-text-muted font-medium">Capitalized Cost ($)</label>
+                <label className="text-[11px] text-text-muted font-medium">Cost ($)</label>
                 <input
                   type="number"
                   step="0.01"
                   value={newCost}
                   onChange={(e) => setNewCost(e.target.value)}
-                  className="h-8 px-2 font-mono text-right rounded-sm border border-border bg-surface text-text-primary"
+                  className="h-8 px-2 font-mono text-right rounded-lg border border-border bg-surface text-text-primary"
                   required
                 />
               </div>
             </div>
 
             <div className="flex flex-col gap-1">
-              <label className="text-[11px] text-text-muted font-medium">Useful Life (Months)</label>
+              <label className="text-[11px] text-text-muted font-medium">Useful life (months)</label>
               <input
                 type="number"
                 value={newMonths}
                 onChange={(e) => setNewMonths(e.target.value)}
-                className="h-8 px-2 font-mono rounded-sm border border-border bg-surface text-text-primary"
+                className="h-8 px-2 font-mono rounded-lg border border-border bg-surface text-text-primary"
                 required
               />
             </div>
@@ -512,15 +520,15 @@ export const FixedAssets: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsNewAssetOpen(false)}
-                className="h-8 px-3 rounded-sm border border-border bg-surface hover:bg-surface-neutral text-text-secondary transition"
+                className="h-8 px-3 rounded-lg border border-border bg-surface hover:bg-surface-neutral text-text-secondary transition"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="h-8 px-4 rounded-sm bg-accent text-white font-semibold hover:bg-accent-hover transition shadow-xs"
+                className="h-8 px-4 rounded-lg bg-accent text-white font-semibold hover:bg-accent-hover transition shadow-xs"
               >
-                Save Asset
+                Save asset
               </button>
             </DialogFooter>
           </form>

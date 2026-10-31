@@ -1,39 +1,42 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLedgerStore } from '@/mock/store';
-import { Contact } from '@/types';
-import { formatMoney } from '@/lib/format';
+import { Contact, Bill } from '@/types';
+import { formatMoney, formatDate } from '@/lib/format';
+import { DataTable } from '@/components/domain/DataTable';
 import { SplitPane } from '@/components/domain/SplitPane';
+import { PageHeader } from '@/components/domain/PageHeader';
+import { NameAvatar } from '@/components/domain/NameAvatar';
+import { ContactKpiStrip } from '@/pages/Sales/ContactKpiStrip';
+import { BUSINESS_TODAY, amountDue } from '@/lib/docStatus';
+import { ColumnDef } from '@tanstack/react-table';
 import {
   Building,
   Plus,
-  Search,
-  FileText,
-  CreditCard,
-  ExternalLink,
   Mail,
   Phone,
-  Coins,
-  ArrowRight,
-  Printer,
-  Calendar,
+  CreditCard,
+  FileText,
+  ExternalLink,
+  Users,
+  AlertTriangle,
+  Wallet,
 } from 'lucide-react';
-import { toast } from 'sonner';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
+import { toast } from 'sonner';
 
 export const SuppliersList: React.FC = () => {
   const navigate = useNavigate();
-  const { currentCompany, contacts, bills, settlements, contactBalance, addContact } = useLedgerStore();
+  const { currentCompany, contacts, bills, contactBalance, addContact, openTab, uiDensity } =
+    useLedgerStore();
   const coSlug = currentCompany.slug;
 
-  const [searchQuery, setSearchQuery] = useState('');
   const [selectedSupplierId, setSelectedSupplierId] = useState<string | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
@@ -48,35 +51,28 @@ export const SuppliersList: React.FC = () => {
   });
 
   const suppliers = useMemo(() => {
-    return contacts.filter((c) => c.kind === 'supplier');
+    return contacts.filter((c) => c.kind === 'supplier' || c.kind === 'both');
   }, [contacts]);
-
-  const filteredSuppliers = useMemo(() => {
-    if (!searchQuery) return suppliers;
-    const q = searchQuery.toLowerCase();
-    return suppliers.filter(
-      (s) =>
-        s.name.toLowerCase().includes(q) ||
-        s.code.toLowerCase().includes(q) ||
-        (s.tax_id || '').toLowerCase().includes(q)
-    );
-  }, [suppliers, searchQuery]);
 
   const selectedSupplier = useMemo(() => {
     return suppliers.find((s) => s.id === selectedSupplierId) || null;
   }, [suppliers, selectedSupplierId]);
 
-  // Supplier's bills
   const supplierBills = useMemo(() => {
-    if (!selectedSupplier) return [];
-    return bills.filter((b) => b.contact_id === selectedSupplier.id);
+    return selectedSupplier
+      ? bills.filter((b: Bill) => b.contact_id === selectedSupplier.id)
+      : [];
   }, [bills, selectedSupplier]);
 
-  // Supplier's settlements
-  const supplierPayments = useMemo(() => {
-    if (!selectedSupplier) return [];
-    return settlements.filter((s) => s.contact_id === selectedSupplier.id);
-  }, [settlements, selectedSupplier]);
+  const handleOpenSupplierCard = (supplier: Contact) => {
+    openTab({
+      id: `supplier-${supplier.id}`,
+      title: supplier.name,
+      url: `/${coSlug}/suppliers/${supplier.id}`,
+      type: 'supplier',
+    });
+    navigate(`/${coSlug}/suppliers/${supplier.id}`);
+  };
 
   const handleOpenAddModal = () => {
     setFormData({
@@ -97,266 +93,278 @@ export const SuppliersList: React.FC = () => {
       toast.error('Supplier name is required');
       return;
     }
+
     const newContact: Contact = {
-      id: `cnt-supp-${Date.now()}`,
-      tenant_id: 'tenant-default',
+      id: `cnt-${Date.now()}`,
+      tenant_id: currentCompany.tenant_id || 'ten-mock',
       company_id: currentCompany.id,
       kind: 'supplier',
+      code: formData.code.trim() || `SUPP-${Date.now().toString().slice(-4)}`,
       name: formData.name.trim(),
-      code: formData.code.trim() || `SUPP-${Date.now()}`,
-      email: formData.email.trim() || 'billing@supplier.com',
-      phone: formData.phone.trim() || undefined,
+      legal_name: formData.name.trim(),
       tax_id: formData.tax_id.trim() || undefined,
+      email: formData.email.trim() || 'finance@supplier.com',
+      phone: formData.phone.trim() || undefined,
       default_currency: formData.currency,
       payment_terms_days: Number(formData.payment_terms_days) || 30,
       is_active: true,
     };
+
     addContact(newContact);
-    toast.success(`Supplier ${newContact.name} added successfully`);
+    toast.success(`Supplier ${newContact.name} created successfully`);
     setIsAddModalOpen(false);
   };
 
-  return (
-    <div className="flex-1 flex flex-col h-full overflow-hidden bg-surface-canvas">
-      {/* Top Header */}
-      <div className="h-12 border-b border-line-border px-4 flex items-center justify-between shrink-0 bg-surface-elevated">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <Building className="w-4 h-4 text-accent" />
-            <h1 className="text-sm font-bold text-text-primary">Suppliers Register</h1>
-            <span className="text-[11px] text-text-muted">Vendors, Contractors & AP Accounts</span>
+  const supplierStats = useMemo(() => {
+    const m = new Map<string, { overdue: number; owed: number; last?: string }>();
+    for (const b of bills as Bill[]) {
+      const e = m.get(b.contact_id) ?? { overdue: 0, owed: 0 };
+      if (b.status === 'posted') e.owed += amountDue(b);
+      if (!e.last || b.issue_date > e.last) e.last = b.issue_date;
+      if (b.status === 'posted' && b.due_date < BUSINESS_TODAY && b.settled < b.total) e.overdue += b.total - b.settled;
+      m.set(b.contact_id, e);
+    }
+    return m;
+  }, [bills]);
+
+  const kpis = useMemo(() => {
+    let owed = 0;
+    let overdue = 0;
+    let overdueCount = 0;
+    for (const s of suppliers) {
+      owed += supplierStats.get(s.id)?.owed ?? 0;
+      const o = supplierStats.get(s.id)?.overdue ?? 0;
+      overdue += o;
+      if (o > 0) overdueCount += 1;
+    }
+    return { owed, overdue, overdueCount, active: suppliers.filter((s) => s.is_active).length };
+  }, [suppliers, supplierStats]);
+
+  const columns: ColumnDef<Contact>[] = [
+    {
+      accessorKey: 'name',
+      header: 'Supplier',
+      cell: ({ row }) => (
+        <div className="flex items-center gap-3 min-w-0">
+          <NameAvatar name={row.original.name} />
+          <div className="flex flex-col min-w-0 leading-tight">
+            <span className="font-medium text-text-primary truncate">{row.original.name}</span>
+            <span className="text-xs text-text-muted truncate">{row.original.email}</span>
           </div>
         </div>
-
-        <div className="flex items-center gap-2">
-          <div className="relative">
-            <Search className="w-3.5 h-3.5 text-text-muted absolute left-2.5 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              placeholder="Search suppliers by name, code..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-8 pl-8 pr-3 text-xs rounded-sm border border-border bg-surface hover:border-border-strong focus:outline-none focus:border-accent w-60 text-text-primary"
-            />
+      ),
+    },
+    {
+      accessorKey: 'payment_terms_days',
+      header: 'Terms',
+      cell: ({ row }) => <span className="text-text-secondary">Net {row.original.payment_terms_days}</span>,
+    },
+    {
+      id: 'overdue',
+      header: 'Overdue',
+      cell: ({ row }) => {
+        const o = supplierStats.get(row.original.id)?.overdue ?? 0;
+        return o > 0 ? (
+          <span className="inline-flex items-center gap-1 rounded-full bg-danger-soft px-2 py-0.5 text-xs font-medium text-danger tabular-nums">
+            <span className="size-1.5 rounded-full bg-danger" />
+            {formatMoney(o, row.original.default_currency)}
+          </span>
+        ) : (
+          <span className="text-text-muted">—</span>
+        );
+      },
+    },
+    {
+      id: 'last_activity',
+      header: 'Last activity',
+      cell: ({ row }) => {
+        const d = supplierStats.get(row.original.id)?.last;
+        return <span className="text-text-secondary">{d ? formatDate(d) : '—'}</span>;
+      },
+    },
+    {
+      id: 'balance',
+      header: () => <div className="text-right">Balance you owe</div>,
+      cell: ({ row }) => {
+        const bal = supplierStats.get(row.original.id)?.owed ?? 0;
+        return (
+          <div className="text-right font-semibold tabular-nums text-text-primary">
+            {formatMoney(bal, row.original.default_currency)}
           </div>
+        );
+      },
+    },
+  ];
 
+  return (
+    <div className="flex flex-col h-full gap-4">
+      <PageHeader
+        title="Suppliers"
+        subtitle="Who you owe money to, and when it's due"
+        actions={
           <button
             type="button"
             onClick={handleOpenAddModal}
-            className="flex items-center gap-1.5 h-8 px-3 rounded-sm border border-border hover:border-border-strong bg-surface text-text-primary text-xs font-semibold hover:bg-surface-neutral transition"
+            className="inline-flex items-center gap-1.5 h-9 px-4 bg-accent hover:bg-accent-hover text-white rounded-lg text-[13px] font-semibold shadow-xs transition cursor-pointer"
           >
-            <Plus className="w-3.5 h-3.5 text-accent" />
-            <span>New Supplier</span>
+            <Plus className="w-4 h-4" />
+            <span>New supplier</span>
+            <kbd className="ml-1 text-[10px] bg-white/20 px-1 rounded text-white/90">N</kbd>
           </button>
+        }
+      />
 
-          <button
-            type="button"
-            onClick={() => navigate(`/${coSlug}/bills/new`)}
-            className="flex items-center gap-1.5 h-8 px-3 rounded-sm bg-accent text-white text-xs font-semibold hover:bg-accent-hover transition shadow-2xs"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>Record Bill from Supplier</span>
-          </button>
-        </div>
-      </div>
+      <ContactKpiStrip
+        items={[
+          { label: 'Total you owe', value: formatMoney(kpis.owed, currentCompany.base_currency), sub: `across ${suppliers.length} suppliers`, icon: <Wallet />, tone: 'accent' },
+          { label: 'Overdue', value: formatMoney(kpis.overdue, currentCompany.base_currency), sub: kpis.overdueCount > 0 ? `${kpis.overdueCount} ${kpis.overdueCount === 1 ? 'supplier' : 'suppliers'} waiting` : 'Nothing overdue', icon: <AlertTriangle />, tone: kpis.overdue > 0 ? 'danger' : 'success' },
+          { label: 'Active suppliers', value: kpis.active, sub: 'with an open account', icon: <Users />, tone: 'success' },
+        ]}
+      />
 
-      {/* SplitPane view */}
+      {/* Main SplitPane Layout */}
       <SplitPane
         storageKey="ledgerly_suppliers_split_width"
         isOpen={Boolean(selectedSupplier)}
         onClose={() => setSelectedSupplierId(null)}
-        title={selectedSupplier?.name}
+        title={selectedSupplier?.name || 'Supplier Preview'}
+        subtitle={selectedSupplier ? `Code: ${selectedSupplier.code} • ${selectedSupplier.default_currency} Base` : undefined}
+        icon={<Building className="w-4 h-4" />}
+        onOpenFull={() => selectedSupplier && handleOpenSupplierCard(selectedSupplier)}
+        openFullLabel="Open Card"
         badge={
-          selectedSupplier && (
-            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-surface-neutral font-semibold text-ink-muted">
+          selectedSupplier ? (
+            <span className="font-mono text-[10px] bg-accent-soft text-accent px-1.5 py-0.5 rounded font-bold border border-accent/20">
               {selectedSupplier.code}
             </span>
-          )
+          ) : undefined
         }
         detailContent={
           selectedSupplier && (
             <div className="flex flex-col gap-4 text-xs">
-              {/* AP Balance summary */}
-              <div className="p-3 bg-surface-subtle border border-line-border rounded-sm flex items-center justify-between">
-                <div>
-                  <span className="text-[10px] uppercase font-bold text-ink-muted block">
-                    Outstanding AP Balance
-                  </span>
-                  <span className="text-lg font-bold font-mono text-num text-danger">
-                    {formatMoney(contactBalance(selectedSupplier.id))}
-                  </span>
-                </div>
-                <div className="text-right">
-                  <span className="text-[10px] text-ink-muted block">Currency</span>
-                  <span className="font-mono text-xs font-semibold text-ink-900">
-                    {selectedSupplier.default_currency}
-                  </span>
+              {/* Financial KPI */}
+              <div className="p-3 bg-surface border border-border rounded-md">
+                <span className="text-[10px] text-text-muted uppercase tracking-wider block">Total Open Payable</span>
+                <span className="font-mono font-bold text-text-primary text-base mt-0.5 block">
+                  {formatMoney(contactBalance(selectedSupplier.id), selectedSupplier.default_currency)}
+                </span>
+              </div>
+
+              {/* Contact info */}
+              <div className="p-3 bg-surface border border-border rounded-md flex flex-col gap-2">
+                <span className="text-[10px] uppercase font-bold text-text-muted tracking-wider">
+                  Contact & Terms
+                </span>
+                <div className="flex flex-col gap-1 text-[11px]">
+                  {selectedSupplier.email && (
+                    <div className="flex items-center gap-1.5 text-text-secondary">
+                      <Mail className="w-3.5 h-3.5 text-text-muted" />
+                      <span>{selectedSupplier.email}</span>
+                    </div>
+                  )}
+                  {selectedSupplier.phone && (
+                    <div className="flex items-center gap-1.5 text-text-secondary">
+                      <Phone className="w-3.5 h-3.5 text-text-muted" />
+                      <span>{selectedSupplier.phone}</span>
+                    </div>
+                  )}
+                  <div className="text-text-muted font-mono mt-1">
+                    Tax PIN: {selectedSupplier.tax_id || 'N/A'} • Terms: {selectedSupplier.payment_terms_days} days
+                  </div>
                 </div>
               </div>
 
-              {/* Vendor details */}
-              <div className="p-3 bg-surface-neutral border border-line-border rounded-sm flex flex-col gap-1.5 text-[11px]">
-                <div className="flex items-center justify-between">
-                  <span className="text-ink-muted">Tax / VAT ID:</span>
-                  <span className="font-mono text-ink-900 font-medium">
-                    {selectedSupplier.tax_id || 'SO-VAT-EXEMPT'}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-ink-muted">Payment Terms:</span>
-                  <span className="font-medium text-ink-900">
-                    Net {selectedSupplier.payment_terms_days} Days
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-ink-muted">Phone:</span>
-                  <span className="font-medium text-ink-900">
-                    {selectedSupplier.phone || '+252 61 5000000'}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-ink-muted">Email:</span>
-                  <span className="font-mono text-ink-900">{selectedSupplier.email}</span>
-                </div>
-              </div>
-
-              {/* Recent Bills */}
-              <div className="flex flex-col gap-1.5">
-                <span className="font-semibold text-ink-900 uppercase tracking-wide text-[10px] flex items-center justify-between">
-                  <span>Recent Bills ({supplierBills.length})</span>
+              {/* Actions */}
+              <div className="flex flex-col gap-2 pt-2 border-t border-border">
+                <button
+                  type="button"
+                  onClick={() => handleOpenSupplierCard(selectedSupplier)}
+                  className="w-full h-8 bg-accent hover:bg-accent-hover text-white rounded-sm font-semibold transition flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <span>Open Supplier Card (Enter)</span>
+                </button>
+                <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
-                    onClick={() => navigate(`/${coSlug}/bills`)}
-                    className="text-brand-teal hover:underline font-normal text-[10px]"
+                    onClick={() => navigate(`/${coSlug}/bills/new?contactId=${selectedSupplier.id}`)}
+                    className="h-8 border border-border bg-surface hover:bg-surface-neutral text-text-primary rounded-sm font-medium transition flex items-center justify-center gap-1 cursor-pointer"
                   >
-                    View All
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Record Bill</span>
                   </button>
-                </span>
-                <div className="border border-line-border rounded-sm divide-y divide-line-border overflow-hidden">
-                  {supplierBills.length === 0 ? (
-                    <div className="p-3 text-center text-ink-muted text-[11px]">No bills recorded</div>
-                  ) : (
-                    supplierBills.slice(0, 4).map((bill) => (
-                      <div key={bill.id} className="p-2 flex items-center justify-between bg-surface-subtle text-[11px]">
-                        <div className="flex flex-col">
-                          <span className="font-mono font-medium text-ink-900">{bill.number || 'DRAFT'}</span>
-                          <span className="text-[10px] text-ink-muted font-mono">{bill.issue_date}</span>
-                        </div>
-                        <div className="flex flex-col text-right">
-                          <span className="font-mono text-num font-semibold text-ink-900">
-                            {formatMoney(bill.total)}
-                          </span>
-                          <span className="text-[10px] text-danger font-mono font-medium">
-                            Due {bill.due_date}
-                          </span>
-                        </div>
-                      </div>
-                    ))
-                  )}
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/${coSlug}/payment-run`)}
+                    className="h-8 border border-border bg-surface hover:bg-surface-neutral text-text-primary rounded-sm font-medium transition flex items-center justify-center gap-1 cursor-pointer"
+                  >
+                    <CreditCard className="w-3.5 h-3.5" />
+                    <span>Disburse</span>
+                  </button>
                 </div>
               </div>
 
-              {/* Quick Actions */}
-              <div className="pt-2 border-t border-line-border flex flex-col gap-2">
-                <button
-                  type="button"
-                  onClick={() => navigate(`/${coSlug}/payment-run`)}
-                  className="w-full h-8 bg-brand-teal text-white rounded-sm font-semibold hover:bg-brand-teal-hover transition flex items-center justify-center gap-1.5 shadow-2xs"
-                >
-                  <Coins className="w-3.5 h-3.5" />
-                  <span>Schedule Payment in Payment Run</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => window.print()}
-                  className="w-full h-8 border border-line-border bg-surface-subtle hover:bg-surface-neutral text-ink-900 rounded-sm font-medium transition flex items-center justify-center gap-1.5"
-                >
-                  <Printer className="w-3.5 h-3.5 text-ink-muted" />
-                  <span>Print Supplier Statement</span>
-                </button>
+              {/* Bills List */}
+              <div className="flex flex-col gap-2 mt-2">
+                <span className="text-[11px] font-semibold text-text-muted uppercase tracking-wider">
+                  Recent Bills ({supplierBills.length})
+                </span>
+                <div className="border border-border rounded-md overflow-hidden bg-surface max-h-48 overflow-y-auto">
+                  {supplierBills.length === 0 ? (
+                    <div className="p-4 text-center text-text-muted text-[11px]">No purchase bills recorded yet</div>
+                  ) : (
+                    <div className="divide-y divide-border/60">
+                      {supplierBills.map((b) => (
+                        <div
+                          key={b.id}
+                          onClick={() => navigate(`/${coSlug}/bills/${b.id}`)}
+                          className="p-2 flex items-center justify-between hover:bg-surface-neutral/60 cursor-pointer text-xs"
+                        >
+                          <div>
+                            <span className="font-mono text-accent font-semibold">{b.number || b.reference}</span>
+                            <span className="text-[10px] text-text-muted ml-2">{formatDate(b.issue_date)}</span>
+                          </div>
+                          <span className="font-mono font-bold text-text-primary">
+                            {formatMoney(b.total, b.currency)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )
         }
       >
-        {/* Table Content */}
-        <div className="p-4 flex flex-col gap-3">
-          <div className="border border-line-border rounded-md overflow-hidden bg-surface-elevated shadow-2xs">
-            <table className="w-full border-collapse text-left text-xs">
-              <thead>
-                <tr className="h-9 bg-surface-neutral border-b border-line-border text-[11px] font-semibold text-ink-muted uppercase tracking-wider">
-                  <th className="px-3">Code</th>
-                  <th className="px-3">Supplier Name</th>
-                  <th className="px-3">Currency</th>
-                  <th className="px-3">Tax ID</th>
-                  <th className="px-3">Terms</th>
-                  <th className="px-3 text-right">AP Balance</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-line-border">
-                {filteredSuppliers.map((supplier) => {
-                  const isSelected = selectedSupplierId === supplier.id;
-                  const balance = contactBalance(supplier.id);
-
-                  return (
-                    <tr
-                      key={supplier.id}
-                      onClick={() => setSelectedSupplierId(supplier.id)}
-                      className={`h-9 cursor-pointer transition select-none ${
-                        isSelected ? 'bg-brand-teal/10 font-medium' : 'hover:bg-surface-neutral'
-                      }`}
-                    >
-                      <td className="px-3 font-mono font-medium text-brand-teal">
-                        {supplier.code}
-                      </td>
-                      <td className="px-3 font-medium text-ink-900">
-                        {supplier.name}
-                      </td>
-                      <td className="px-3 font-mono text-[11px] text-ink-muted">
-                        {supplier.default_currency}
-                      </td>
-                      <td className="px-3 font-mono text-[11px] text-ink-muted">
-                        {supplier.tax_id || '—'}
-                      </td>
-                      <td className="px-3 text-[11px] text-ink-muted">
-                        Net {supplier.payment_terms_days}d
-                      </td>
-                      <td className="px-3 text-right font-mono text-num font-semibold">
-                        <span className={balance > 0 ? 'text-danger' : 'text-ink-muted'}>
-                          {formatMoney(balance)}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="flex items-center justify-between text-[11px] text-text-muted px-1">
-            <span>Showing {filteredSuppliers.length} suppliers</span>
-            <span>Balances dynamically reduced over posted AP journal lines</span>
-          </div>
+        <div className="flex-1 overflow-hidden">
+          <DataTable
+            columns={columns}
+            data={suppliers}
+            activeRowId={selectedSupplierId}
+            searchPlaceholder="Search suppliers..."
+            rowDensity={uiDensity}
+            onRowClick={(row) => setSelectedSupplierId(row.id)}
+            onRowDoubleClick={(row) => handleOpenSupplierCard(row)}
+            amountAccessor={(row) => contactBalance(row.id)}
+          />
         </div>
       </SplitPane>
 
-      {/* New Supplier Dialog Modal */}
+      {/* New Supplier Modal */}
       <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
-        <DialogContent className="max-w-[480px] p-5">
+        <DialogContent className="max-w-lg p-6 bg-surface border border-border rounded-lg shadow-xl">
           <DialogHeader>
-            <DialogTitle className="text-base font-semibold text-text-primary flex items-center gap-2">
-              <Building className="w-4 h-4 text-accent" />
-              Add New Supplier
+            <DialogTitle className="text-base font-bold text-text-primary flex items-center gap-2">
+              <Building className="w-5 h-5 text-accent" />
+              <span>Create Supplier Account</span>
             </DialogTitle>
-            <DialogDescription className="text-xs text-text-muted">
-              Register a vendor or contractor counterparty in the accounts payable subledger.
-            </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleCreateSupplier} className="flex flex-col gap-3 py-2 text-xs">
+          <form onSubmit={handleCreateSupplier} className="flex flex-col gap-4 text-xs mt-2">
             <div className="grid grid-cols-2 gap-3">
-              <div className="flex flex-col gap-1">
-                <label className="text-[11px] font-medium text-text-secondary">
+              <div>
+                <label className="block text-[11px] font-semibold text-text-primary mb-1">
                   Supplier Code <span className="text-danger">*</span>
                 </label>
                 <input
@@ -364,105 +372,77 @@ export const SuppliersList: React.FC = () => {
                   required
                   value={formData.code}
                   onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-                  placeholder="e.g. SUPP-005"
-                  className="h-8 px-2.5 rounded-sm border border-border bg-surface text-text-primary font-mono focus:outline-none focus:border-accent"
+                  className="w-full h-8 px-2.5 rounded-sm border border-border bg-surface text-text-primary font-mono focus:border-accent outline-hidden"
                 />
               </div>
 
-              <div className="flex flex-col gap-1">
-                <label className="text-[11px] font-medium text-text-secondary">
-                  Currency
+              <div>
+                <label className="block text-[11px] font-semibold text-text-primary mb-1">
+                  Currency <span className="text-danger">*</span>
                 </label>
                 <select
                   value={formData.currency}
                   onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
-                  className="h-8 px-2 rounded-sm border border-border bg-surface text-text-primary font-mono focus:outline-none focus:border-accent"
+                  className="w-full h-8 px-2.5 rounded-sm border border-border bg-surface text-text-primary focus:border-accent outline-hidden"
                 >
-                  <option value="USD">USD — US Dollar</option>
-                  <option value="SOS">SOS — Somali Shilling</option>
-                  <option value="KES">KES — Kenyan Shilling</option>
-                  <option value="EUR">EUR — Euro</option>
-                  <option value="GBP">GBP — British Pound</option>
+                  <option value="USD">USD - US Dollar</option>
+                  <option value="KES">KES - Kenyan Shilling</option>
+                  <option value="SOS">SOS - Somali Shilling</option>
                 </select>
               </div>
             </div>
 
-            <div className="flex flex-col gap-1">
-              <label className="text-[11px] font-medium text-text-secondary">
-                Company / Vendor Name <span className="text-danger">*</span>
+            <div>
+              <label className="block text-[11px] font-semibold text-text-primary mb-1">
+                Supplier Name <span className="text-danger">*</span>
               </label>
               <input
                 type="text"
                 required
+                placeholder="e.g. Dahabshiil Telecom"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="e.g. Somali Petroleum Ltd"
-                className="h-8 px-2.5 rounded-sm border border-border bg-surface text-text-primary focus:outline-none focus:border-accent"
+                className="w-full h-8 px-2.5 rounded-sm border border-border bg-surface text-text-primary focus:border-accent outline-hidden"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <div className="flex flex-col gap-1">
-                <label className="text-[11px] font-medium text-text-secondary">Email Address</label>
+              <div>
+                <label className="block text-[11px] font-semibold text-text-primary mb-1">Email Address</label>
                 <input
                   type="email"
+                  placeholder="accounts@supplier.com"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  placeholder="accounts@supplier.com"
-                  className="h-8 px-2.5 rounded-sm border border-border bg-surface text-text-primary focus:outline-none focus:border-accent"
+                  className="w-full h-8 px-2.5 rounded-sm border border-border bg-surface text-text-primary focus:border-accent outline-hidden"
                 />
               </div>
 
-              <div className="flex flex-col gap-1">
-                <label className="text-[11px] font-medium text-text-secondary">Phone Number</label>
+              <div>
+                <label className="block text-[11px] font-semibold text-text-primary mb-1">Tax ID / PIN</label>
                 <input
                   type="text"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  placeholder="+252 61 777 9999"
-                  className="h-8 px-2.5 rounded-sm border border-border bg-surface text-text-primary focus:outline-none focus:border-accent"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="flex flex-col gap-1">
-                <label className="text-[11px] font-medium text-text-secondary">Tax ID / PIN</label>
-                <input
-                  type="text"
+                  placeholder="e.g. SOM-TAX-77412"
                   value={formData.tax_id}
                   onChange={(e) => setFormData({ ...formData, tax_id: e.target.value })}
-                  placeholder="A012938475B"
-                  className="h-8 px-2.5 rounded-sm border border-border bg-surface text-text-primary font-mono focus:outline-none focus:border-accent"
-                />
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <label className="text-[11px] font-medium text-text-secondary">Payment Terms (Days)</label>
-                <input
-                  type="number"
-                  min="0"
-                  max="180"
-                  value={formData.payment_terms_days}
-                  onChange={(e) => setFormData({ ...formData, payment_terms_days: Number(e.target.value) })}
-                  className="h-8 px-2.5 rounded-sm border border-border bg-surface text-text-primary font-mono focus:outline-none focus:border-accent"
+                  className="w-full h-8 px-2.5 rounded-sm border border-border bg-surface text-text-primary font-mono focus:border-accent outline-hidden"
                 />
               </div>
             </div>
 
-            <DialogFooter className="mt-4 flex items-center justify-end gap-2">
+            <DialogFooter className="mt-4 flex justify-end gap-2">
               <button
                 type="button"
                 onClick={() => setIsAddModalOpen(false)}
-                className="h-8 px-3 rounded-sm border border-border text-text-muted hover:text-text-primary text-xs font-medium hover:bg-surface-neutral transition"
+                className="h-8 px-3 rounded-sm border border-border bg-surface text-text-primary text-xs hover:bg-surface-neutral cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="h-8 px-3.5 bg-accent hover:bg-accent-hover text-white rounded-sm text-xs font-semibold shadow-xs transition"
+                className="h-8 px-4 rounded-sm bg-accent hover:bg-accent-hover text-white text-xs font-semibold shadow-xs cursor-pointer"
               >
-                Create Supplier
+                Save Supplier
               </button>
             </DialogFooter>
           </form>

@@ -8,7 +8,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useLedgerStore } from '@/mock/store';
 import { formatMoney } from '@/lib/format';
-import { ShieldCheck, AlertTriangle, Lock, Clock, CheckCircle2 } from 'lucide-react';
+import { ShieldCheck, AlertTriangle, Lock, CheckCircle2 } from 'lucide-react';
+import { Avatar } from '@/components/ui/avatar';
+import { Kbd } from '@/components/ui/kbd';
+import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 import {
   Dialog,
   DialogContent,
@@ -41,17 +45,26 @@ export const SignDialog: React.FC<SignDialogProps> = ({
   currency = 'USD',
   periodName,
   makerName,
-  actionTitle = 'Approve & Sign',
+  actionTitle = 'Approve and sign',
   consequenceText,
   requireReason = false,
 }) => {
-  const { currentUser, activeSignature, setActiveSignature, recordFailedPin, resetFailedPin } =
-    useLedgerStore();
+  const {
+    currentUser,
+    activeSignature,
+    setActiveSignature,
+    recordFailedPin,
+    resetFailedPin,
+    appendAuditEvent,
+    auditEvents,
+  } = useLedgerStore();
 
   const [pin, setPin] = useState(['', '', '', '', '', '']);
   const [reason, setReason] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [lockoutSeconds, setLockoutSeconds] = useState(0);
+  const [isShaking, setIsShaking] = useState(false);
+  const [cachedTimeRemaining, setCachedTimeRemaining] = useState<string>('2:00');
 
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
@@ -76,22 +89,55 @@ export const SignDialog: React.FC<SignDialogProps> = ({
         return () => clearInterval(timer);
       }
     }
-  }, [isOpen, currentUser]);
+  }, [isOpen, currentUser, resetFailedPin]);
+
+  // If active signature is valid and non-expired (cached for 2 min)
+  const isSignatureCached =
+    Boolean(activeSignature &&
+    activeSignature.userId === currentUser.id &&
+    activeSignature.expiresAt > Date.now());
+
+  // Cached countdown timer
+  useEffect(() => {
+    if (!isSignatureCached || !activeSignature) return;
+
+    const updateCachedTime = () => {
+      const remainingMs = activeSignature.expiresAt - Date.now();
+      if (remainingMs <= 0) {
+        setCachedTimeRemaining('0:00');
+      } else {
+        const mins = Math.floor(remainingMs / 60000);
+        const secs = Math.floor((remainingMs % 60000) / 1000);
+        setCachedTimeRemaining(`${mins}:${String(secs).padStart(2, '0')}`);
+      }
+    };
+
+    updateCachedTime();
+    const interval = setInterval(updateCachedTime, 1000);
+    return () => clearInterval(interval);
+  }, [isSignatureCached, activeSignature]);
+
+  // Global key listener for Enter when cached
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleGlobalKey = (e: KeyboardEvent) => {
+      if (e.key === 'Enter' && isSignatureCached && lockoutSeconds === 0) {
+        e.preventDefault();
+        handleSubmit();
+      }
+    };
+    window.addEventListener('keydown', handleGlobalKey);
+    return () => window.removeEventListener('keydown', handleGlobalKey);
+  }, [isOpen, isSignatureCached, lockoutSeconds, activeSignature, reason]);
 
   // Focus first input on open
   useEffect(() => {
-    if (isOpen && lockoutSeconds === 0) {
+    if (isOpen && lockoutSeconds === 0 && !isSignatureCached) {
       setTimeout(() => {
         inputRefs.current[0]?.focus();
       }, 50);
     }
-  }, [isOpen, lockoutSeconds]);
-
-  // If active signature is valid and non-expired (cached for 2 min)
-  const isSignatureCached =
-    activeSignature &&
-    activeSignature.userId === currentUser.id &&
-    activeSignature.expiresAt > Date.now();
+  }, [isOpen, lockoutSeconds, isSignatureCached]);
 
   const handleDigitChange = (index: number, val: string) => {
     if (val.length > 1) {
@@ -131,20 +177,20 @@ export const SignDialog: React.FC<SignDialogProps> = ({
     if (lockoutSeconds > 0) return;
 
     if (requireReason && !reason.trim()) {
-      setError('Please provide a mandatory reason for this dual-approver action.');
+      setError('Please write a short reason before continuing.');
       return;
     }
 
     // Check if using cached signature
-    if (isSignatureCached) {
-      onConfirm(activeSignature!.pin, reason);
+    if (isSignatureCached && activeSignature) {
+      onConfirm(activeSignature.pin, reason);
       onClose();
       return;
     }
 
     const fullPin = pin.join('');
     if (fullPin.length < 6) {
-      setError('Please enter all 6 digits of your signing PIN.');
+      setError('Enter all 6 digits of your PIN.');
       return;
     }
 
@@ -152,15 +198,38 @@ export const SignDialog: React.FC<SignDialogProps> = ({
     if (fullPin !== currentUser.signingPin) {
       recordFailedPin(currentUser.id);
       const updatedUser = useLedgerStore.getState().currentUser;
-      if (updatedUser.signingLockoutUntil) {
-        setLockoutSeconds(30);
-        setError('Incorrect PIN entered 3 times. Account signing locked for 30 seconds.');
-      } else {
-        const count = updatedUser.failedPinAttempts || 1;
-        setError(`Incorrect PIN. Attempt ${count} of 3 before temporary lockout.`);
-      }
+      const count = updatedUser.failedPinAttempts || 1;
+      const attemptsLeft = Math.max(0, 3 - count);
+
+      setIsShaking(true);
+      setTimeout(() => setIsShaking(false), 500);
       setPin(['', '', '', '', '', '']);
-      inputRefs.current[0]?.focus();
+
+      if (attemptsLeft === 0 || updatedUser.signingLockoutUntil) {
+        setLockoutSeconds(30);
+        // Record audit event per 1.1
+        const now = new Date().toISOString();
+        const prevHash = auditEvents[0]?.hash || '0000000000000000000000000000000000000000000000000000000000000000';
+        appendAuditEvent({
+          id: `aud-lockout-${Date.now()}`,
+          occurred_at: now,
+          actor_id: currentUser.id,
+          actor_name: currentUser.name,
+          action: 'signing.locked_out',
+          subject_type: 'user',
+          subject_id: currentUser.id,
+          subject_number: currentUser.name,
+          detail: `Signing locked for 30 s: 3 consecutive invalid PIN entries by ${currentUser.name}`,
+          prev_hash: prevHash,
+          hash: `hash-lockout-${Date.now()}`,
+        });
+
+        toast.error('Signing locked for 30 s');
+        onClose();
+      } else {
+        setError(`That PIN is not right. ${attemptsLeft} ${attemptsLeft === 1 ? 'try' : 'tries'} left before signing is paused for 30 seconds.`);
+        inputRefs.current[0]?.focus();
+      }
       return;
     }
 
@@ -177,103 +246,82 @@ export const SignDialog: React.FC<SignDialogProps> = ({
     onClose();
   };
 
+  const attemptsUsed = currentUser.failedPinAttempts || 0;
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-[780px] p-0 overflow-hidden border-border bg-surface-elevated shadow-lg">
-        {/* Header */}
-        <DialogHeader className="px-5 py-3 border-b border-border bg-surface-neutral/40">
-          <DialogTitle className="flex items-center gap-2 text-sm font-semibold text-text-primary">
-            <ShieldCheck className="w-4 h-4 text-accent" />
-            <span>Digital Authorization & Signature</span>
+      <DialogContent className="max-w-[760px] overflow-hidden border-border bg-surface-elevated p-0 shadow-popover">
+        <DialogHeader className="border-b border-border px-6 py-4">
+          <DialogTitle className="flex items-center gap-3 text-base font-semibold text-text-primary">
+            <span className="flex size-8 items-center justify-center rounded-lg bg-accent-soft text-accent">
+              <ShieldCheck className="size-4" />
+            </span>
+            Confirm with your PIN
           </DialogTitle>
         </DialogHeader>
 
-        {/* 2-Column Layout: Consequence panel on Left, PIN Entry on Right (Block 5.4) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-border">
-          {/* Left: Consequence & Document Summary Panel */}
-          <div className="p-5 flex flex-col justify-between space-y-4 bg-canvas/40">
-            <div className="space-y-3">
-              <div className="text-[11px] font-semibold text-text-muted uppercase tracking-wider">
-                Document Consequence
-              </div>
-
-              {/* Summary Box */}
-              <div className="bg-surface p-3 rounded-md border border-border space-y-1.5 shadow-xs">
-                <div className="flex justify-between items-center text-text-primary font-medium text-xs">
-                  <span className="truncate">{documentTitle}</span>
-                  {amount !== undefined && (
-                    <span className="font-mono text-xs font-semibold text-accent">
-                      {formatMoney(amount, currency)}
-                    </span>
-                  )}
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_1.1fr] md:divide-x divide-border">
+          {/* What you are signing */}
+          <div className="flex flex-col justify-between gap-5 bg-surface-neutral/40 p-6">
+            <div className="space-y-4">
+              <div className="text-[11px] font-semibold tracking-wide text-text-muted">What you are signing</div>
+              <div className="rounded-xl border border-border bg-surface p-4 shadow-card">
+                <div className="truncate text-[13px] font-medium text-text-primary">{documentTitle}</div>
+                {amount !== undefined && (
+                  <div className="mt-1 text-2xl font-semibold tabular-nums tracking-tight text-text-primary">
+                    {formatMoney(amount, currency)}
+                  </div>
+                )}
+                <div className="mt-2 flex flex-wrap justify-between gap-x-3 text-xs text-text-muted">
+                  <span>Period {periodName || 'Oct 2026'}</span>
+                  {documentNumber && <span>{documentNumber}</span>}
                 </div>
-                <div className="flex justify-between text-text-muted text-[11px]">
-                  <span>Period: {periodName || 'Oct 2026'}</span>
-                  {makerName && <span>Prepared by: {makerName}</span>}
-                </div>
-                {documentNumber && (
-                  <div className="text-[10px] font-mono text-text-muted">Ref: {documentNumber}</div>
+                {makerName && (
+                  <div className="mt-3 flex items-center gap-2 border-t border-border pt-3 text-xs text-text-muted">
+                    <Avatar name={makerName} size="sm" /> Prepared by <span className="font-medium text-text-secondary">{makerName}</span>
+                  </div>
                 )}
               </div>
-
-              {/* Consequence Preview */}
-              <div className="p-3 bg-accent-soft/60 border border-accent/20 rounded-md text-text-secondary space-y-1 text-xs">
-                <div className="font-semibold text-text-primary text-[11px] flex items-center gap-1.5">
-                  <AlertTriangle className="w-3.5 h-3.5 text-accent" />
-                  <span>Ledger Impact</span>
-                </div>
-                <p className="text-[11px] leading-relaxed">
+              <div className="flex gap-2.5 text-xs leading-relaxed text-text-secondary">
+                <AlertTriangle className="mt-0.5 size-3.5 shrink-0 text-accent" />
+                <p>
                   {consequenceText ||
-                    `Approving this transaction commits balanced journal lines to period ${
-                      periodName || 'Oct 2026'
-                    }. This action will be cryptographically chained into the SHA-256 audit ledger.`}
+                    `This will post the document to ${periodName || 'Oct 2026'}. Posted entries cannot be edited, only reversed.`}
                 </p>
               </div>
             </div>
-
-            <div className="text-[11px] text-text-muted border-t border-border/60 pt-2 flex items-center justify-between">
-              <span>Signer: <strong>{currentUser.name}</strong></span>
-              <span className="font-mono text-[10px] text-accent">PIN: {currentUser.signingPin}</span>
+            <div className="text-xs text-text-muted">
+              Signing as <span className="font-medium text-text-secondary">{currentUser.name}</span> ({currentUser.roleTitle})
             </div>
           </div>
 
-          {/* Right: PIN Entry & Actions */}
-          <div className="p-5 flex flex-col justify-between space-y-4">
-            <div className="space-y-3">
-              <div className="text-[11px] font-semibold text-text-muted uppercase tracking-wider">
-                Authorized Checker PIN
-              </div>
-
-              {/* Cached Signature Notice */}
+          {/* PIN */}
+          <div className="flex flex-col justify-between gap-5 p-6">
+            <div className="space-y-4">
               {isSignatureCached ? (
-                <div className="p-3 bg-success-soft border border-success/30 rounded-md text-xs space-y-1">
-                  <div className="font-semibold text-success flex items-center gap-1.5">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>Cached Signature Active</span>
+                <div className="space-y-2 rounded-xl border border-accent/25 bg-accent-soft/40 p-4">
+                  <div className="flex items-center gap-2 text-[13px] font-semibold text-text-primary">
+                    <CheckCircle2 className="size-4 shrink-0 text-accent" />
+                    You signed a moment ago ({cachedTimeRemaining} left)
                   </div>
-                  <p className="text-[11px] text-text-secondary">
-                    Your signing session was authenticated less than 2 minutes ago. Click confirm to
-                    apply your signature token immediately.
+                  <p className="text-xs leading-relaxed text-text-secondary">
+                    No need to type your PIN again. Press <Kbd>Enter</Kbd> to continue.
                   </p>
                 </div>
               ) : lockoutSeconds > 0 ? (
-                <div className="p-4 bg-danger-soft border border-danger/30 rounded-md text-center space-y-2">
-                  <Lock className="w-6 h-6 text-danger mx-auto animate-pulse" />
-                  <div className="font-semibold text-danger text-xs">Signing Locked Out</div>
-                  <p className="text-[11px] text-text-secondary">
-                    Too many incorrect PIN attempts. Please wait{' '}
-                    <span className="font-mono font-bold text-danger">{lockoutSeconds}s</span> before
-                    retrying.
+                <div className="space-y-2 rounded-xl border border-danger/30 bg-danger-soft p-5 text-center">
+                  <Lock className="mx-auto size-6 text-danger" />
+                  <div className="text-sm font-semibold text-danger">Signing is paused</div>
+                  <p className="text-xs text-text-secondary">
+                    Three wrong PINs in a row. Try again in <span className="font-semibold tabular-nums text-danger">{lockoutSeconds}s</span>.
                   </p>
                 </div>
               ) : (
                 <div className="space-y-3">
-                  <p className="text-[11px] text-text-secondary">
-                    Enter your 6-digit signing PIN to digitally seal and post this transaction:
-                  </p>
-
-                  {/* 6 Digit Input Boxes */}
-                  <div className="flex items-center justify-between gap-1.5">
+                  <div>
+                    <div className="text-sm font-semibold text-text-primary">Enter your 6-digit PIN</div>
+                    <p className="mt-0.5 text-xs text-text-muted">This is your personal signing PIN, not your login password.</p>
+                  </div>
+                  <div className={cn('flex items-center gap-2', isShaking && 'animate-shake')}>
                     {pin.map((digit, idx) => (
                       <input
                         key={idx}
@@ -284,47 +332,54 @@ export const SignDialog: React.FC<SignDialogProps> = ({
                         inputMode="numeric"
                         maxLength={6}
                         value={digit}
+                        aria-label={`PIN digit ${idx + 1}`}
                         onChange={(e) => handleDigitChange(idx, e.target.value)}
                         onKeyDown={(e) => handleKeyDown(idx, e)}
-                        className="w-10 h-10 text-center text-sm font-mono font-bold border border-border bg-surface text-text-primary rounded-sm focus:outline-none focus:ring-1 focus:ring-accent"
+                        className={cn(
+                          'size-11 flex-1 rounded-lg border bg-surface text-center text-lg font-semibold text-text-primary transition outline-none',
+                          'focus:border-accent focus:ring-2 focus:ring-accent/25',
+                          digit && 'border-border-strong bg-surface-neutral',
+                          error ? 'border-danger focus:border-danger focus:ring-danger/25' : !digit && 'border-border'
+                        )}
                         disabled={lockoutSeconds > 0}
                       />
                     ))}
                   </div>
-
-                  {error && (
-                    <div className="text-[11px] text-danger font-medium flex items-center gap-1 mt-1">
-                      <AlertTriangle className="w-3 h-3 shrink-0" />
+                  {error ? (
+                    <div className="flex items-start gap-1.5 text-xs font-medium text-danger">
+                      <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
                       <span>{error}</span>
                     </div>
+                  ) : (
+                    attemptsUsed > 0 && (
+                      <div className="text-xs text-warning">{3 - attemptsUsed} {3 - attemptsUsed === 1 ? 'try' : 'tries'} left before signing pauses.</div>
+                    )
                   )}
                 </div>
               )}
 
-              {/* Mandatory Reason Field (if required) */}
               {requireReason && (
-                <div className="space-y-1">
-                  <label className="text-[11px] font-medium text-text-secondary flex items-center justify-between">
-                    <span>Justification / Reason</span>
-                    <span className="text-danger">* Required</span>
+                <div className="space-y-1.5">
+                  <label className="flex items-center justify-between text-xs font-medium text-text-secondary">
+                    <span>Reason</span>
+                    <span className="text-danger">Required</span>
                   </label>
                   <textarea
                     rows={2}
                     value={reason}
                     onChange={(e) => setReason(e.target.value)}
-                    placeholder="Enter audit reason for reopening or override..."
-                    className="w-full p-2 text-xs border border-border rounded-sm bg-surface text-text-primary focus:outline-none focus:ring-1 focus:ring-accent resize-none"
+                    placeholder="Say why you are doing this. It is saved in the audit trail."
+                    className="w-full resize-none rounded-lg border border-border bg-surface p-2.5 text-[13px] text-text-primary outline-none focus:border-accent focus:ring-2 focus:ring-accent/25"
                   />
                 </div>
               )}
             </div>
 
-            {/* Footer Buttons */}
-            <div className="flex items-center justify-end gap-2 pt-3 border-t border-border">
+            <div className="flex items-center justify-end gap-2 border-t border-border pt-4">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-3 py-1.5 rounded-sm border border-border text-xs text-text-secondary hover:bg-surface-neutral transition"
+                className="h-9 rounded-lg border border-border px-3.5 text-[13px] font-medium text-text-secondary transition hover:bg-surface-neutral"
               >
                 Cancel
               </button>
@@ -332,9 +387,9 @@ export const SignDialog: React.FC<SignDialogProps> = ({
                 type="button"
                 onClick={handleSubmit}
                 disabled={lockoutSeconds > 0}
-                className="px-3.5 py-1.5 rounded-sm bg-accent hover:bg-accent-hover text-white text-xs font-semibold shadow-xs disabled:opacity-50 transition"
+                className="h-9 rounded-lg bg-accent px-4 text-[13px] font-semibold text-white transition hover:bg-accent-hover disabled:opacity-50"
               >
-                {actionTitle}
+                {isSignatureCached ? `Sign as ${currentUser.name.split(' ')[0]}` : actionTitle}
               </button>
             </div>
           </div>

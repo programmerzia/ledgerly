@@ -13,6 +13,7 @@ import {
   ContextMenuItem,
   ContextMenuSeparator,
 } from '@/components/ui/context-menu';
+import { FieldHelp } from './FieldHelp';
 
 export interface GridLineItem {
   id: string;
@@ -44,6 +45,8 @@ interface LineGridProps {
   taxCodes?: TaxCode[];
   currency?: string;
   readOnly?: boolean;
+  /** Hide the built-in totals strip when the page renders its own totals block. */
+  showTotals?: boolean;
   className?: string;
 }
 
@@ -56,6 +59,7 @@ export const LineGrid: React.FC<LineGridProps> = ({
   taxCodes = [],
   currency = 'USD',
   readOnly = false,
+  showTotals = true,
   className,
 }) => {
   const isInvoice = mode === 'invoice';
@@ -143,21 +147,66 @@ export const LineGrid: React.FC<LineGridProps> = ({
           <thead>
             <tr className="bg-surface-neutral/80 border-b border-border text-col-header">
               <th className="w-10 text-center py-2 px-1">#</th>
-              <th className="min-w-[200px] py-2 px-2">Account</th>
-              <th className="min-w-[180px] py-2 px-2">Description</th>
-              <th className="min-w-[170px] py-2 px-2">Dimensions</th>
+              <th className="min-w-[200px] py-2 px-2">
+                <span className="inline-flex items-center">
+                  Account
+                  <FieldHelp help="General ledger posting account for this line." example="4000 Sales Revenue" />
+                </span>
+              </th>
+              <th className="min-w-[260px] py-2 px-2">
+                <span className="inline-flex items-center">
+                  Description
+                  <FieldHelp help="Line narrative or commercial item description." example="Transceiver modules" />
+                </span>
+              </th>
+              <th className="min-w-[170px] py-2 px-2">
+                <span className="inline-flex items-center">
+                  Dimensions
+                  <FieldHelp help="Branch, Cost Centre or Project tags for segmental accounting." example="Branch = Mogadishu" />
+                </span>
+              </th>
 
               {isInvoice ? (
                 <>
-                  <th className="w-20 text-right py-2 px-2">Qty</th>
-                  <th className="w-32 text-right py-2 px-2">Unit Price</th>
-                  <th className="w-28 py-2 px-2">Tax Code</th>
-                  <th className="w-32 text-right py-2 px-2">Line Total</th>
+                  <th className="w-20 min-w-[80px] text-right py-2 px-2">
+                    <span className="inline-flex items-center justify-end">
+                      Qty
+                      <FieldHelp help="Quantity of goods or services billed." example="1" />
+                    </span>
+                  </th>
+                  <th className="w-32 min-w-[128px] text-right py-2 px-2">
+                    <span className="inline-flex items-center justify-end">
+                      Unit Price
+                      <FieldHelp help="Price per unit in transaction currency." example="500.00" />
+                    </span>
+                  </th>
+                  <th className="w-28 min-w-[112px] py-2 px-2">
+                    <span className="inline-flex items-center">
+                      Tax Code
+                      <FieldHelp help="Applicable tax treatment (e.g. VAT 5%, Zero Rated, Exempt)." example="tax-vat5" />
+                    </span>
+                  </th>
+                  <th className="w-32 min-w-[128px] text-right py-2 px-2">
+                    <span className="inline-flex items-center justify-end">
+                      Line Total
+                      <FieldHelp help="Calculated line amount before withholding taxes." />
+                    </span>
+                  </th>
                 </>
               ) : (
                 <>
-                  <th className="w-32 text-right py-2 px-2">Debit</th>
-                  <th className="w-32 text-right py-2 px-2">Credit</th>
+                  <th className="w-32 min-w-[128px] text-right py-2 px-2">
+                    <span className="inline-flex items-center justify-end">
+                      Debit
+                      <FieldHelp help="Debit posting amount in base currency." />
+                    </span>
+                  </th>
+                  <th className="w-32 min-w-[128px] text-right py-2 px-2">
+                    <span className="inline-flex items-center justify-end">
+                      Credit
+                      <FieldHelp help="Credit posting amount in base currency." />
+                    </span>
+                  </th>
                 </>
               )}
 
@@ -170,13 +219,14 @@ export const LineGrid: React.FC<LineGridProps> = ({
               const hasBranchError = !line.dimensions?.branch;
 
               return (
-                <ContextMenu key={line.id}>
-                  <ContextMenuTrigger asChild>
-                    <tr
-                      className={cn(
-                        'hover:bg-surface-neutral/60 transition-colors h-9',
-                        hasLineError && 'bg-danger-soft/20'
-                      )}
+                <React.Fragment key={line.id}>
+                  <ContextMenu>
+                    <ContextMenuTrigger asChild>
+                      <tr
+                        className={cn(
+                          'hover:bg-surface-neutral/60 transition-colors h-9',
+                          hasLineError && 'bg-danger-soft/20'
+                        )}
                       onKeyDown={(e) => handleKeyDown(e, idx)}
                     >
                       {/* Row Index */}
@@ -201,7 +251,7 @@ export const LineGrid: React.FC<LineGridProps> = ({
                       {/* Description */}
                       <td className="px-2">
                         {readOnly ? (
-                          <span className="truncate block text-text-primary">{line.description}</span>
+                          <span className="block whitespace-normal break-words text-text-primary">{line.description}</span>
                         ) : (
                           <input
                             type="text"
@@ -386,8 +436,25 @@ export const LineGrid: React.FC<LineGridProps> = ({
                     </ContextMenuItem>
                   </ContextMenuContent>
                 </ContextMenu>
-              );
-            })}
+                {hasLineError && (
+                  <tr className="bg-danger-soft/15 text-danger text-[11px] border-b border-danger/30">
+                    <td colSpan={10} className="px-4 py-1.5">
+                      <div className="flex items-center gap-1.5 font-medium">
+                        <AlertCircle className="w-3.5 h-3.5 text-danger shrink-0" />
+                        <div className="flex flex-wrap gap-x-3 gap-y-0.5">
+                          {Object.entries(line.errors!).map(([k, msg]) => (
+                            <span key={k}>
+                              Line {line.line_no}: {msg}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </React.Fragment>
+            );
+          })}
           </tbody>
         </table>
       </div>
@@ -401,7 +468,7 @@ export const LineGrid: React.FC<LineGridProps> = ({
             className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-surface border border-border hover:border-accent text-text-primary rounded-sm text-xs font-medium shadow-xs transition-colors shrink-0"
           >
             <Plus className="w-3.5 h-3.5 text-accent" />
-            <span>Add Line</span>
+            <span>Add line</span>
             <span className="hidden sm:inline text-[10px] text-text-muted font-mono ml-1.5">(⌘ + Enter)</span>
           </button>
         ) : (
@@ -409,7 +476,7 @@ export const LineGrid: React.FC<LineGridProps> = ({
         )}
 
         {/* Totals & Balancing Section */}
-        {isInvoice ? (
+        {!showTotals ? null : isInvoice ? (
           <div className="flex flex-wrap items-center justify-end gap-3 sm:gap-6 text-xs font-mono sm:ml-auto">
             <div className="flex items-center gap-2">
               <span className="text-text-muted uppercase tracking-wider text-[11px]">Subtotal:</span>

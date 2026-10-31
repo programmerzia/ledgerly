@@ -1,7 +1,16 @@
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { formatMoney, formatDateTime } from '@/lib/format';
-import { ShieldAlert, CheckCircle, RotateCcw, X, AlertTriangle } from 'lucide-react';
+import { ShieldAlert, CheckCircle, RotateCcw, AlertTriangle } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Avatar } from '@/components/ui/avatar';
 
 interface ApprovalBarProps {
   makerId: string;
@@ -67,185 +76,146 @@ export const ApprovalBar: React.FC<ApprovalBarProps> = ({
 
   return (
     <>
-      {/* Sticky Bottom Bar */}
       <div
         className={cn(
-          'sticky bottom-0 left-0 right-0 z-20 bg-surface border-t border-ink-200 px-6 py-3.5 shadow-lg flex flex-wrap items-center justify-between gap-4 select-none',
+          'sticky bottom-0 left-0 right-0 z-20 flex select-none flex-wrap items-center justify-between gap-4 rounded-xl border border-border bg-surface/95 px-5 py-3.5 shadow-popover backdrop-blur',
           className
         )}
       >
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-warning-bg text-warning flex items-center justify-center shrink-0">
-            <ShieldAlert className="w-4 h-4" />
-          </div>
+          <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-warning-soft text-warning">
+            <ShieldAlert className="size-4" />
+          </span>
           <div className="flex flex-col">
-            <div className="text-xs font-semibold text-ink-900 flex items-center gap-2">
-              <span>Pending Independent Approval</span>
-              <span className="font-mono text-ink-500 font-normal">
-                {formatMoney(amount, currency)}
-              </span>
+            <div className="flex items-center gap-2 text-[13px] font-semibold text-text-primary">
+              <span>Waiting for a second person to approve</span>
+              <span className="font-normal tabular-nums text-text-muted">{formatMoney(amount, currency)}</span>
             </div>
-            <div className="text-[11px] text-ink-500">
-              Submitted by <span className="font-medium text-ink-700">{makerName}</span>
-              {submittedAt && ` on ${formatDateTime(submittedAt)}`} • Fiscal Period: {periodName}
+            <div className="flex items-center gap-1.5 text-xs text-text-muted">
+              <Avatar name={makerName} size="sm" className="!size-4 !text-[8px]" />
+              Sent by <span className="font-medium text-text-secondary">{makerName}</span>
+              {submittedAt && ` on ${formatDateTime(submittedAt)}`} · {periodName}
             </div>
           </div>
         </div>
 
-        {/* Action Controls */}
         <div className="flex items-center gap-2.5">
           {isMaker ? (
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-danger-bg/40 text-danger border border-danger/20 rounded-sm text-xs font-medium">
-              <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
-              <span>Maker-Checker Control: You submitted this document and cannot approve it.</span>
+            <div className="flex items-center gap-2 rounded-lg border border-danger/20 bg-danger-soft px-3 py-1.5 text-xs font-medium text-danger">
+              <AlertTriangle className="size-3.5 shrink-0" />
+              <span>You sent this, so someone else has to approve it.</span>
             </div>
           ) : (
             <>
               <button
                 type="button"
                 onClick={() => setIsReturnOpen(true)}
-                className="flex items-center gap-1.5 h-8 px-3 rounded-sm border border-ink-200 hover:border-danger hover:text-danger bg-surface text-ink-700 text-xs font-medium transition-colors"
+                className="flex h-9 items-center gap-1.5 rounded-lg border border-border bg-surface px-3 text-[13px] font-medium text-text-secondary transition hover:border-danger/50 hover:bg-danger-soft hover:text-danger"
               >
-                <RotateCcw className="w-3.5 h-3.5" />
-                <span>Return to Maker</span>
+                <RotateCcw className="size-3.5" />
+                Send back
               </button>
-
               <button
                 type="button"
                 onClick={() => setIsApproveOpen(true)}
-                className="flex items-center gap-1.5 h-8 px-4 rounded-sm bg-success hover:opacity-90 text-white text-xs font-semibold shadow-sm transition-all"
+                className="flex h-9 items-center gap-1.5 rounded-lg bg-success px-4 text-[13px] font-semibold text-white transition hover:opacity-90"
               >
-                <CheckCircle className="w-3.5 h-3.5" />
-                <span>Approve & Post</span>
+                <CheckCircle className="size-3.5" />
+                Approve and post
               </button>
             </>
           )}
         </div>
       </div>
 
-      {/* Confirm Approve Dialog (03_UI_Spec §6: States period, amount, and consequences) */}
-      {isApproveOpen && (
-        <div className="fixed inset-0 z-50 bg-ink-900/40 backdrop-blur-[2px] flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-surface border border-ink-200 rounded-lg shadow-lg p-5 flex flex-col gap-4">
-            <div className="flex items-center justify-between pb-2 border-b border-ink-100">
-              <h3 className="text-h3 text-ink-900 flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-success" />
-                Approve & Post Document
-              </h3>
-              <button
-                type="button"
-                onClick={() => setIsApproveOpen(false)}
-                className="text-ink-500 hover:text-ink-900"
-              >
-                <X className="w-4 h-4" />
-              </button>
+      <Dialog open={isApproveOpen} onOpenChange={(o) => !o && setIsApproveOpen(false)}>
+        <DialogContent className="max-w-md rounded-xl bg-surface-elevated p-6 shadow-popover">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-base font-semibold">
+              <span className="flex size-8 items-center justify-center rounded-lg bg-success-soft text-success">
+                <CheckCircle className="size-4" />
+              </span>
+              Approve and post
+            </DialogTitle>
+            <DialogDescription className="text-xs text-text-muted">This adds the document to your books for good.</DialogDescription>
+          </DialogHeader>
+          {errorMsg && <div className="rounded-lg border border-danger/30 bg-danger-soft p-2.5 text-xs text-danger">{errorMsg}</div>}
+          <div className="flex flex-col gap-1.5 rounded-lg border border-border bg-surface-neutral/50 p-3 text-xs">
+            <div className="flex justify-between">
+              <span className="text-text-muted">Document</span>
+              <span className="font-semibold text-text-primary">{documentNumber}</span>
             </div>
-
-            {errorMsg && (
-              <div className="p-2.5 bg-danger-bg text-danger text-xs rounded-sm border border-danger/30">
-                {errorMsg}
-              </div>
-            )}
-
-            <div className="text-xs text-ink-700 flex flex-col gap-2.5">
-              <p>You are about to authorize and lock this document into the immutable general ledger:</p>
-
-              <div className="bg-ink-50 p-3 rounded-sm border border-ink-200 flex flex-col gap-1.5 font-mono text-[11px]">
-                <div className="flex justify-between">
-                  <span className="text-ink-500">Document:</span>
-                  <span className="font-semibold text-ink-900">{documentNumber}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-ink-500">Total Amount:</span>
-                  <span className="font-semibold text-ink-900">{formatMoney(amount, currency)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-ink-500">Target Fiscal Period:</span>
-                  <span className="font-semibold text-brand-700">{periodName} (Open)</span>
-                </div>
-              </div>
-
-              <p className="text-[11px] text-ink-500 italic">
-                Consequence: A permanent, gapless sequence number will be assigned and double-entry
-                journal lines will be committed. Posted records cannot be edited, only reversed.
-              </p>
+            <div className="flex justify-between">
+              <span className="text-text-muted">Total</span>
+              <span className="font-semibold tabular-nums text-text-primary">{formatMoney(amount, currency)}</span>
             </div>
-
-            <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-ink-100">
-              <button
-                type="button"
-                onClick={() => setIsApproveOpen(false)}
-                disabled={loading}
-                className="px-3 py-1.5 rounded-sm border border-ink-200 hover:bg-ink-100 text-xs font-medium text-ink-700"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirmApprove}
-                disabled={loading}
-                className="px-4 py-1.5 rounded-sm bg-success hover:opacity-90 text-white text-xs font-semibold shadow-sm flex items-center gap-1.5"
-              >
-                {loading ? 'Authorizing...' : 'Authorize & Post'}
-              </button>
+            <div className="flex justify-between">
+              <span className="text-text-muted">Period</span>
+              <span className="font-semibold text-text-primary">{periodName} (open)</span>
             </div>
           </div>
-        </div>
-      )}
+          <p className="text-xs text-text-muted">It gets its permanent number and cannot be edited afterwards. Mistakes are fixed with a reversal.</p>
+          <DialogFooter className="gap-2 border-t border-border pt-3">
+            <button
+              type="button"
+              onClick={() => setIsApproveOpen(false)}
+              disabled={loading}
+              className="h-9 rounded-lg border border-border px-3.5 text-[13px] font-medium text-text-secondary hover:bg-surface-neutral"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleConfirmApprove}
+              disabled={loading}
+              className="h-9 rounded-lg bg-success px-4 text-[13px] font-semibold text-white hover:opacity-90 disabled:opacity-60"
+            >
+              {loading ? 'Approving...' : 'Approve and post'}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-      {/* Return Dialog with Mandatory Comment */}
-      {isReturnOpen && (
-        <div className="fixed inset-0 z-50 bg-ink-900/40 backdrop-blur-[2px] flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-surface border border-ink-200 rounded-lg shadow-lg p-5 flex flex-col gap-4">
-            <div className="flex items-center justify-between pb-2 border-b border-ink-100">
-              <h3 className="text-h3 text-ink-900 flex items-center gap-2">
-                <RotateCcw className="w-4 h-4 text-warning" />
-                Return Document to Maker
-              </h3>
-              <button
-                type="button"
-                onClick={() => setIsReturnOpen(false)}
-                className="text-ink-500 hover:text-ink-900"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="text-xs text-ink-700 flex flex-col gap-2">
-              <p>
-                Explain why this document is being returned to {makerName}. The document will revert
-                to <strong>Draft</strong> status for revision.
-              </p>
-              <textarea
-                rows={3}
-                value={returnComment}
-                onChange={(e) => setReturnComment(e.target.value)}
-                placeholder="Specify corrections needed (e.g. incorrect tax code or dimension)..."
-                className="w-full p-2 text-xs bg-surface border border-ink-200 rounded-sm text-ink-900 focus:outline-none focus:border-brand-500"
-              />
-            </div>
-
-            <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-ink-100">
-              <button
-                type="button"
-                onClick={() => setIsReturnOpen(false)}
-                disabled={loading}
-                className="px-3 py-1.5 rounded-sm border border-ink-200 hover:bg-ink-100 text-xs font-medium text-ink-700"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirmReturn}
-                disabled={loading || !returnComment.trim()}
-                className="px-4 py-1.5 rounded-sm bg-warning hover:opacity-90 text-white text-xs font-semibold shadow-sm disabled:opacity-40"
-              >
-                {loading ? 'Returning...' : 'Return with Comment'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <Dialog open={isReturnOpen} onOpenChange={(o) => !o && setIsReturnOpen(false)}>
+        <DialogContent className="max-w-md rounded-xl bg-surface-elevated p-6 shadow-popover">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-base font-semibold">
+              <span className="flex size-8 items-center justify-center rounded-lg bg-warning-soft text-warning">
+                <RotateCcw className="size-4" />
+              </span>
+              Send back for changes
+            </DialogTitle>
+            <DialogDescription className="text-xs text-text-muted">
+              {makerName} gets it back as a draft, with your note.
+            </DialogDescription>
+          </DialogHeader>
+          <textarea
+            rows={3}
+            value={returnComment}
+            onChange={(e) => setReturnComment(e.target.value)}
+            placeholder="What needs to change? e.g. the tax code is wrong."
+            className="w-full rounded-lg border border-border bg-surface p-2.5 text-[13px] text-text-primary outline-none focus:border-accent focus:ring-2 focus:ring-accent/25"
+          />
+          <DialogFooter className="gap-2 border-t border-border pt-3">
+            <button
+              type="button"
+              onClick={() => setIsReturnOpen(false)}
+              disabled={loading}
+              className="h-9 rounded-lg border border-border px-3.5 text-[13px] font-medium text-text-secondary hover:bg-surface-neutral"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleConfirmReturn}
+              disabled={loading || !returnComment.trim()}
+              className="h-9 rounded-lg bg-warning px-4 text-[13px] font-semibold text-white hover:opacity-90 disabled:opacity-40"
+            >
+              {loading ? 'Sending...' : 'Send back'}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

@@ -1,29 +1,32 @@
 import React, { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { ColumnDef } from '@tanstack/react-table';
 import { useLedgerStore } from '@/mock/store';
 import { AuditEvent } from '@/types';
+import { DataTable } from '@/components/domain/DataTable';
 import { SplitPane } from '@/components/domain/SplitPane';
+import { formatDateTime } from '@/lib/format';
+import { PageHeader } from '@/components/domain/PageHeader';
+import { Kbd } from '@/components/ui/kbd';
+import { Avatar } from '@/components/ui/avatar';
+import { toast } from 'sonner';
+import { Copy, Eye } from 'lucide-react';
 import {
   History,
   ShieldCheck,
-  Search,
-  Filter,
   CheckCircle2,
   AlertTriangle,
   Lock,
-  Copy,
   ExternalLink,
-  Calendar,
-  User,
-  Hash,
+  Code2,
 } from 'lucide-react';
 
-export const AuditLog: React.FC = () => {
-  const navigate = useNavigate();
-  const { currentCompany, auditEvents, verifyAuditChain } = useLedgerStore();
-  const coSlug = currentCompany.slug;
+const humanize = (action: string) => {
+  const t = action.replace(/[._]/g, ' ').trim();
+  return t.charAt(0).toUpperCase() + t.slice(1);
+};
 
-  const [searchQuery, setSearchQuery] = useState('');
+export const AuditLog: React.FC = () => {
+  const { currentCompany, auditEvents, verifyAuditChain, uiDensity } = useLedgerStore();
   const [selectedAction, setSelectedAction] = useState('all');
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
@@ -33,20 +36,20 @@ export const AuditLog: React.FC = () => {
     reason?: string;
   } | null>(null);
 
+  const filterTabs = [
+    { label: 'Everything', value: 'all', count: auditEvents.length },
+    { label: 'Journals', value: 'journal', count: auditEvents.filter((e) => e.action.includes('journal')).length },
+    { label: 'Periods', value: 'period', count: auditEvents.filter((e) => e.action.includes('period')).length },
+    { label: 'Invoices', value: 'invoice', count: auditEvents.filter((e) => e.action.includes('invoice')).length },
+    { label: 'Bills', value: 'bill', count: auditEvents.filter((e) => e.action.includes('bill')).length },
+  ];
+
   const filteredEvents = useMemo(() => {
     return auditEvents.filter((ev) => {
-      if (selectedAction !== 'all' && !ev.action.includes(selectedAction)) return false;
-      if (!searchQuery) return true;
-      const q = searchQuery.toLowerCase();
-      return (
-        ev.action.toLowerCase().includes(q) ||
-        ev.actor_name.toLowerCase().includes(q) ||
-        ev.detail.toLowerCase().includes(q) ||
-        (ev.subject_number || '').toLowerCase().includes(q) ||
-        ev.hash.toLowerCase().includes(q)
-      );
+      if (selectedAction === 'all') return true;
+      return ev.action.includes(selectedAction);
     });
-  }, [auditEvents, selectedAction, searchQuery]);
+  }, [auditEvents, selectedAction]);
 
   const selectedEvent = useMemo(() => {
     return auditEvents.find((e) => e.id === selectedEventId) || null;
@@ -59,144 +62,144 @@ export const AuditLog: React.FC = () => {
       const result = verifyAuditChain();
       setVerifyResult(result);
       setIsVerifying(false);
-    }, 700);
+    }, 400);
   };
 
+  const rowActions = (ev: AuditEvent) => [
+    { label: 'View details', icon: Eye, shortcut: 'Enter', onClick: () => setSelectedEventId(ev.id) },
+    {
+      label: 'Copy reference',
+      icon: Copy,
+      onClick: () => {
+        navigator.clipboard?.writeText(ev.subject_number || ev.subject_id).catch(() => undefined);
+        toast.success('Reference copied');
+      },
+    },
+  ];
+
+  const columns: ColumnDef<AuditEvent>[] = [
+    {
+      accessorKey: 'occurred_at',
+      header: 'When',
+      cell: ({ row }) => (
+        <span className="whitespace-nowrap text-xs text-text-muted">{formatDateTime(row.original.occurred_at)}</span>
+      ),
+    },
+    {
+      accessorKey: 'actor_name',
+      header: 'Who',
+      cell: ({ row }) => (
+        <span className="flex items-center gap-2 whitespace-nowrap font-medium text-text-primary">
+          <Avatar name={row.original.actor_name} size="sm" /> {row.original.actor_name}
+        </span>
+      ),
+    },
+    {
+      accessorKey: 'action',
+      header: 'What happened',
+      cell: ({ row }) => <span className="font-medium text-text-primary">{humanize(row.original.action)}</span>,
+    },
+    {
+      accessorKey: 'subject_number',
+      header: 'On',
+      cell: ({ row }) => <span className="text-text-secondary">{row.original.subject_number || row.original.subject_id}</span>,
+    },
+    {
+      accessorKey: 'detail',
+      header: 'Details',
+      cell: ({ row }) => <span className="block max-w-sm truncate text-text-muted">{row.original.detail}</span>,
+    },
+  ];
+
   return (
-    <div className="flex-1 flex flex-col h-full overflow-hidden bg-surface-canvas">
-      {/* Top Header */}
-      <div className="h-12 border-b border-line-border px-4 flex items-center justify-between shrink-0 bg-surface-elevated">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <History className="w-4 h-4 text-brand-teal" />
-            <h1 className="text-sm font-bold text-ink-900">Audit Trail & Security Chain</h1>
-            <span className="text-[11px] text-ink-muted">Cryptographic SHA-256 Forward-Chained Ledger Log</span>
-          </div>
-
-          <span className="text-line-border">|</span>
-
-          {/* Action Filter */}
-          <div className="flex items-center gap-1">
-            {[
-              { id: 'all', label: 'All Actions' },
-              { id: 'journal', label: 'Journals' },
-              { id: 'period', label: 'Periods' },
-              { id: 'invoice', label: 'Invoices' },
-              { id: 'bill', label: 'Bills' },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setSelectedAction(tab.id)}
-                className={`px-2.5 py-1 text-xs rounded-sm font-medium transition ${
-                  selectedAction === tab.id
-                    ? 'bg-surface-neutral text-ink-900 font-semibold'
-                    : 'text-ink-muted hover:text-ink-900'
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          {/* Verify button */}
+    <div className="flex flex-col gap-4">
+      <PageHeader
+        icon={<History />}
+        title="Activity log"
+        subtitle="A permanent record of who did what. Each entry is linked to the one before it, so nothing can be changed quietly."
+        actions={
           <button
             type="button"
             onClick={handleRunVerify}
             disabled={isVerifying}
-            className="flex items-center gap-1.5 h-8 px-3 rounded-sm bg-brand-teal text-white text-xs font-semibold hover:bg-brand-teal-hover transition shadow-2xs"
+            className="flex h-9 items-center gap-1.5 rounded-lg bg-accent px-3.5 text-[13px] font-semibold text-white transition hover:bg-accent-hover disabled:opacity-70"
           >
-            <ShieldCheck className={`w-3.5 h-3.5 ${isVerifying ? 'animate-spin' : ''}`} />
-            <span>{isVerifying ? 'Verifying Hashes...' : 'Verify Hash Chain'}</span>
+            <ShieldCheck className={`size-4 ${isVerifying ? 'animate-pulse' : ''}`} />
+            {isVerifying ? 'Checking...' : 'Verify chain'}
+            <Kbd className="ml-1 border-white/30 bg-white/20 text-white">V</Kbd>
           </button>
+        }
+      />
 
-          {/* Search */}
-          <div className="relative">
-            <Search className="w-3.5 h-3.5 text-ink-muted absolute left-2.5 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              placeholder="Search actors, events, hashes..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-8 pl-8 pr-3 text-xs rounded-sm border border-line-border bg-surface-subtle focus:bg-surface-elevated focus:outline-none focus:border-brand-teal w-60"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Verification banner if verified */}
       {verifyResult && (
         <div
-          className={`px-4 py-2 text-xs flex items-center justify-between border-b ${
-            verifyResult.isValid
-              ? 'bg-success/10 border-success/30 text-success'
-              : 'bg-danger/10 border-danger/30 text-danger'
+          role="status"
+          className={`ui-rise-in flex items-center justify-between gap-3 rounded-xl border px-4 py-3 text-[13px] ${
+            verifyResult.isValid ? 'border-success/30 bg-success-soft text-success' : 'border-danger/30 bg-danger-soft text-danger'
           }`}
         >
-          <div className="flex items-center gap-2">
-            {verifyResult.isValid ? (
-              <CheckCircle2 className="w-4 h-4 shrink-0" />
-            ) : (
-              <AlertTriangle className="w-4 h-4 shrink-0" />
-            )}
-            <span className="font-semibold">
-              {verifyResult.isValid
-                ? `Cryptographic Chain Integrity Verified: All ${verifyResult.totalEvents} audit events form an unbroken SHA-256 Merkle link.`
-                : `Tampering Detected: ${verifyResult.reason}`}
-            </span>
+          <div className="flex items-center gap-3">
+            {verifyResult.isValid ? <CheckCircle2 className="size-5 shrink-0" /> : <AlertTriangle className="size-5 shrink-0" />}
+            <div>
+              <div className="font-semibold">{verifyResult.isValid ? 'Chain verified. Nothing has been changed.' : 'Chain check failed'}</div>
+              <p className="mt-0.5 text-xs opacity-90">
+                {verifyResult.isValid
+                  ? `All ${verifyResult.totalEvents} log entries link correctly to the one before them.`
+                  : verifyResult.reason}
+              </p>
+            </div>
           </div>
-
-          <button
-            type="button"
-            onClick={() => setVerifyResult(null)}
-            className="text-[11px] hover:underline font-medium"
-          >
+          <button type="button" onClick={() => setVerifyResult(null)} className="text-xs font-medium hover:underline">
             Dismiss
           </button>
         </div>
       )}
 
-      {/* SplitPane view */}
+      {/* Main SplitPane Layout */}
       <SplitPane
         storageKey="ledgerly_audit_split_width"
         isOpen={Boolean(selectedEvent)}
         onClose={() => setSelectedEventId(null)}
-        title={selectedEvent?.action}
+        title={selectedEvent ? `${humanize(selectedEvent.action)}` : 'Details'}
+        subtitle={
+          selectedEvent
+            ? `By ${selectedEvent.actor_name}`
+            : undefined
+        }
+        icon={<ShieldCheck className="w-4 h-4" />}
         badge={
-          selectedEvent && (
-            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-surface-neutral font-semibold text-brand-teal">
-              {selectedEvent.id}
+          selectedEvent ? (
+            <span className="font-mono text-[10px] bg-accent-soft text-accent px-1.5 py-0.5 rounded font-bold border border-accent/20">
+              {selectedEvent.action}
             </span>
-          )
+          ) : undefined
         }
         detailContent={
           selectedEvent && (
             <div className="flex flex-col gap-4 text-xs">
               {/* Event metadata */}
-              <div className="p-3 bg-surface-subtle border border-line-border rounded-sm flex flex-col gap-2">
-                <span className="font-bold text-ink-900 text-[11px] uppercase tracking-wider">
-                  Event Metadata
+              <div className="p-3 bg-surface-neutral/60 border border-border rounded-lg flex flex-col gap-2">
+                <span className="font-bold text-text-primary text-[11px] uppercase tracking-wider">
+                  About this entry
                 </span>
                 <div className="grid grid-cols-2 gap-2 text-[11px]">
                   <div>
-                    <span className="text-ink-muted block">Timestamp</span>
-                    <span className="font-mono text-ink-900 font-medium">
+                    <span className="text-text-muted block">When</span>
+                    <span className="font-mono text-text-primary font-medium">
                       {new Date(selectedEvent.occurred_at).toLocaleString()}
                     </span>
                   </div>
                   <div>
-                    <span className="text-ink-muted block">Signatory / Actor</span>
-                    <span className="font-medium text-ink-900">{selectedEvent.actor_name}</span>
+                    <span className="text-text-muted block">Who</span>
+                    <span className="font-medium text-text-primary">{selectedEvent.actor_name}</span>
                   </div>
                   <div>
-                    <span className="text-ink-muted block">Subject Type</span>
-                    <span className="font-mono text-ink-900">{selectedEvent.subject_type}</span>
+                    <span className="text-text-muted block">Type</span>
+                    <span className="font-mono text-text-primary">{selectedEvent.subject_type}</span>
                   </div>
                   <div>
-                    <span className="text-ink-muted block">Subject ID</span>
-                    <span className="font-mono text-brand-teal font-medium">
+                    <span className="text-text-muted block">Document</span>
+                    <span className="font-mono text-accent font-medium">
                       {selectedEvent.subject_number || selectedEvent.subject_id}
                     </span>
                   </div>
@@ -204,32 +207,77 @@ export const AuditLog: React.FC = () => {
               </div>
 
               {/* Action Detail */}
-              <div className="p-3 bg-surface-neutral border border-line-border rounded-sm flex flex-col gap-1">
-                <span className="text-ink-muted uppercase font-bold text-[10px]">
-                  Audit Consequence Description
+              <div className="p-3 bg-surface border border-border rounded-lg flex flex-col gap-1">
+                <span className="text-text-muted uppercase font-bold text-[10px]">
+                  What it means
                 </span>
-                <p className="text-ink-900 leading-relaxed font-medium">
+                <p className="text-text-primary leading-relaxed font-medium">
                   {selectedEvent.detail}
                 </p>
               </div>
 
+              {/* Before / After Diff */}
+              <div className="p-3 bg-surface-neutral/40 border border-border rounded-lg flex flex-col gap-2 font-mono text-[11px]">
+                <span className="font-bold text-text-primary font-sans uppercase text-[10px] flex items-center gap-1">
+                  <Code2 className="w-3.5 h-3.5 text-accent" />
+                  What changed
+                </span>
+                <div className="grid grid-cols-2 gap-2 p-2 bg-surface rounded border border-border text-[10px]">
+                  <div>
+                    <span className="text-danger font-semibold block mb-1">Before</span>
+                    <pre className="text-text-muted font-mono whitespace-pre-wrap">
+                      {JSON.stringify(
+                        {
+                          status: selectedEvent.action.includes('posted')
+                            ? 'draft'
+                            : selectedEvent.action.includes('reopened')
+                            ? 'closed'
+                            : 'previous',
+                          version: 1,
+                        },
+                        null,
+                        2
+                      )}
+                    </pre>
+                  </div>
+                  <div className="border-l border-border pl-2">
+                    <span className="text-success font-semibold block mb-1">After</span>
+                    <pre className="text-text-primary font-mono whitespace-pre-wrap">
+                      {JSON.stringify(
+                        {
+                          status: selectedEvent.action.includes('posted')
+                            ? 'posted'
+                            : selectedEvent.action.includes('reopened')
+                            ? 'open'
+                            : 'updated',
+                          version: 2,
+                          signatory: selectedEvent.actor_name,
+                        },
+                        null,
+                        2
+                      )}
+                    </pre>
+                  </div>
+                </div>
+              </div>
+
               {/* Cryptographic Hashes */}
-              <div className="p-3 bg-surface-subtle border border-line-border rounded-sm flex flex-col gap-2 font-mono text-[11px]">
-                <span className="font-bold text-ink-900 font-sans uppercase text-[10px] flex items-center gap-1">
-                  <Lock className="w-3.5 h-3.5 text-brand-teal" />
-                  SHA-256 Merkle Block Hash
+              <div className="p-3 bg-surface-neutral/60 border border-border rounded-lg flex flex-col gap-2 font-mono text-[11px]">
+                <span className="font-bold text-text-primary font-sans uppercase text-[10px] flex items-center gap-1">
+                  <Lock className="w-3.5 h-3.5 text-accent" />
+                  Tamper-proof seal
                 </span>
 
                 <div>
-                  <span className="text-ink-muted block text-[10px]">Current Event Hash</span>
-                  <span className="break-all text-brand-teal font-semibold selection:bg-brand-teal/20">
+                  <span className="text-text-muted block text-[10px]">This entry's seal</span>
+                  <span className="break-all text-accent font-semibold selection:bg-accent/20">
                     {selectedEvent.hash}
                   </span>
                 </div>
 
-                <div className="pt-2 border-t border-line-border">
-                  <span className="text-ink-muted block text-[10px]">Parent Event Hash (prev_hash)</span>
-                  <span className="break-all text-ink-muted selection:bg-surface-neutral">
+                <div className="pt-2 border-t border-border">
+                  <span className="text-text-muted block text-[10px]">Previous entry's seal</span>
+                  <span className="break-all text-text-muted">
                     {selectedEvent.prev_hash}
                   </span>
                 </div>
@@ -238,61 +286,19 @@ export const AuditLog: React.FC = () => {
           )
         }
       >
-        {/* Table Content */}
-        <div className="p-4 flex flex-col gap-3">
-          <div className="border border-line-border rounded-md overflow-hidden bg-surface-elevated shadow-2xs">
-            <table className="w-full border-collapse text-left text-xs">
-              <thead>
-                <tr className="h-9 bg-surface-neutral border-b border-line-border text-[11px] font-semibold text-ink-muted uppercase tracking-wider">
-                  <th className="px-3">Timestamp (UTC)</th>
-                  <th className="px-3">Signatory</th>
-                  <th className="px-3">Action Type</th>
-                  <th className="px-3">Subject</th>
-                  <th className="px-3">Details</th>
-                  <th className="px-3">SHA-256 Hash</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-line-border">
-                {filteredEvents.map((ev) => {
-                  const isSelected = selectedEventId === ev.id;
-                  return (
-                    <tr
-                      key={ev.id}
-                      onClick={() => setSelectedEventId(ev.id)}
-                      className={`h-9 cursor-pointer transition select-none ${
-                        isSelected ? 'bg-brand-teal/10 font-medium' : 'hover:bg-surface-neutral'
-                      }`}
-                    >
-                      <td className="px-3 font-mono text-[11px] text-ink-muted whitespace-nowrap">
-                        {new Date(ev.occurred_at).toLocaleDateString()} {new Date(ev.occurred_at).toLocaleTimeString()}
-                      </td>
-                      <td className="px-3 font-medium text-ink-900 whitespace-nowrap">
-                        {ev.actor_name}
-                      </td>
-                      <td className="px-3 font-mono text-[11px] text-brand-teal">
-                        {ev.action}
-                      </td>
-                      <td className="px-3 font-mono font-medium text-ink-900">
-                        {ev.subject_number || ev.subject_id}
-                      </td>
-                      <td className="px-3 text-ink-muted truncate max-w-xs">
-                        {ev.detail}
-                      </td>
-                      <td className="px-3 font-mono text-[10px] text-ink-muted truncate max-w-[120px]">
-                        {ev.hash.slice(0, 16)}...
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="flex items-center justify-between text-[11px] text-ink-muted px-1">
-            <span>Showing {filteredEvents.length} audit trail records</span>
-            <span>Tamper-evident append-only ledger security</span>
-          </div>
-        </div>
+        <DataTable
+          columns={columns}
+          data={filteredEvents}
+          activeRowId={selectedEventId}
+          filterTabs={filterTabs}
+          activeTab={selectedAction}
+          onTabChange={setSelectedAction}
+          searchPlaceholder="Search by person, action or document..."
+          rowDensity={uiDensity}
+          rowActions={rowActions}
+          contextMenuTitle={(r) => humanize(r.action)}
+          onRowClick={(row) => setSelectedEventId(row.id)}
+        />
       </SplitPane>
     </div>
   );

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLedgerlyStore } from '@/mock/store';
-import { ShieldAlert, ArrowRight, KeyRound } from 'lucide-react';
+import { AuthLayout } from './AuthLayout';
+import { ArrowRight, KeyRound } from 'lucide-react';
 
 export const TwoFactor: React.FC = () => {
   const [code, setCode] = useState('829104');
@@ -14,56 +15,68 @@ export const TwoFactor: React.FC = () => {
     navigate(`/${currentCompany.slug}/dashboard`);
   };
 
+  const digits = code.padEnd(6, ' ').slice(0, 6).split('');
+  const inputRef = React.useRef<HTMLInputElement>(null);
   return (
-    <div className="min-h-screen bg-ink-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-surface border border-ink-200 rounded-xl shadow-lg p-8 flex flex-col gap-6">
-        <div className="flex flex-col items-center text-center gap-2">
-          <div className="w-12 h-12 rounded-full bg-brand-50 text-brand-600 flex items-center justify-center mb-1 shadow-sm">
-            <KeyRound className="w-6 h-6" />
+    <AuthLayout>
+      <div className="flex flex-col gap-6 rounded-2xl border border-border bg-surface p-8 shadow-card">
+        <div className="flex flex-col gap-3">
+          <span className="flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-accent-soft to-violet-soft text-accent ring-1 ring-inset ring-border">
+            <KeyRound className="size-6" />
+          </span>
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight text-text-primary">Check your authenticator</h1>
+            <p className="mt-1 text-[13px] text-text-muted">
+              Enter the 6-digit code from your app for{' '}
+              <span className="font-medium text-text-primary">{currentUser.email}</span>.
+            </p>
           </div>
-          <h1 className="text-h1 font-bold text-ink-900">Two-Factor Authentication</h1>
-          <p className="text-xs text-ink-500 max-w-xs">
-            Enter the 6-digit verification code from your authenticator app for{' '}
-            <span className="font-semibold text-ink-900">{currentUser.email}</span>.
-          </p>
         </div>
 
         <form onSubmit={handleVerify} className="flex flex-col gap-5">
-          <div className="flex flex-col items-center gap-2">
-            <input
-              type="text"
-              maxLength={6}
-              autoFocus
-              value={code}
-              onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
-              placeholder="000000"
-              className="w-48 text-center text-2xl font-mono tracking-[0.5em] h-12 bg-ink-50 border border-ink-300 rounded-sm focus:outline-none focus:border-brand-500 font-bold text-ink-900"
-            />
-            <span className="text-[11px] text-ink-500 font-mono">Demo pre-filled: 829104</span>
+          <div className="flex flex-col gap-2">
+            <div className="relative flex justify-between gap-2" onClick={() => inputRef.current?.focus()}>
+              {digits.map((d, i) => (
+                <span
+                  key={i}
+                  className={`flex h-14 flex-1 items-center justify-center rounded-xl border bg-surface-neutral/50 font-mono text-2xl font-semibold text-text-primary transition ${
+                    i === Math.min(code.length, 5) ? 'border-accent ring-2 ring-accent/20' : 'border-border'
+                  }`}
+                >
+                  {d.trim()}
+                </span>
+              ))}
+              <input
+                ref={inputRef}
+                type="text"
+                inputMode="numeric"
+                maxLength={6}
+                autoFocus
+                aria-label="6-digit verification code"
+                value={code}
+                onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+                className="absolute inset-0 h-full w-full cursor-text opacity-0"
+              />
+            </div>
+            <span className="text-xs text-text-muted">Demo: the code is already filled in (829104).</span>
           </div>
 
           <button
             type="submit"
-            className="h-9 bg-brand-600 hover:bg-brand-700 text-white rounded-sm text-xs font-semibold flex items-center justify-center gap-2 shadow-sm transition-colors"
+            className="flex h-10 items-center justify-center gap-2 rounded-lg bg-accent text-[13px] font-semibold text-white shadow-sm transition hover:bg-accent-hover"
           >
-            <span>Verify & Enter Ledgerly</span>
-            <ArrowRight className="w-4 h-4" />
+            <span>Verify and sign in</span>
+            <ArrowRight className="size-4" />
           </button>
         </form>
 
-        <div className="flex items-center justify-between text-xs text-ink-500 border-t border-ink-100 pt-4">
-          <button
-            type="button"
-            onClick={() => navigate('/login')}
-            className="hover:text-ink-900"
-          >
-            Switch Account
+        <div className="flex items-center justify-between border-t border-border pt-4 text-[13px] text-text-muted">
+          <button type="button" onClick={() => navigate('/login')} className="hover:text-text-primary cursor-pointer">
+            Use a different account
           </button>
-          <a href="#" className="text-brand-600 hover:underline">
-            Use recovery code
-          </a>
+          <a href="#" className="text-accent hover:underline">Use a recovery code</a>
         </div>
       </div>
-    </div>
+    </AuthLayout>
   );
 };

@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLedgerlyStore } from '@/mock/store';
 import { User } from '@/types';
+import { Avatar } from '@/components/ui/avatar';
+import { AuthLayout } from './AuthLayout';
 import { ShieldCheck, ArrowRight, UserCheck } from 'lucide-react';
 
 export const Login: React.FC = () => {
@@ -23,43 +25,38 @@ export const Login: React.FC = () => {
     if (u) setEmail(u.email);
   };
 
+  const field =
+    'h-10 px-3 bg-surface border border-border rounded-lg text-[13px] text-text-primary transition focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20';
   return (
-    <div className="min-h-screen bg-ink-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-surface border border-ink-200 rounded-xl shadow-lg p-8 flex flex-col gap-6">
-        {/* Header */}
-        <div className="flex flex-col items-center text-center gap-2">
-          <div className="w-10 h-10 rounded-lg bg-brand-600 text-white flex items-center justify-center font-bold text-lg shadow-sm">
-            L
-          </div>
-          <h1 className="text-h1 font-bold text-ink-900">Ledgerly</h1>
-          <p className="text-xs text-ink-500">
-            Controls-grade multi-tenant general ledger & financial controls
-          </p>
+    <AuthLayout>
+      <div className="flex flex-col gap-6 rounded-2xl border border-border bg-surface p-8 shadow-card">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-text-primary">Welcome back</h1>
+          <p className="mt-1 text-[13px] text-text-muted">Sign in to your company books.</p>
         </div>
 
         {isAuthenticated && (
-          <div className="p-3 bg-brand-50 border border-brand-200 rounded-md flex items-center justify-between text-xs">
+          <div className="flex items-center justify-between rounded-lg border border-success/30 bg-success-soft px-3 py-2.5 text-[13px]">
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-success inline-block" />
-              <span className="text-ink-700">Signed in as <strong>{currentUser.name}</strong></span>
+              <span className="size-2 rounded-full bg-success" />
+              <span className="text-text-primary">Signed in as <strong>{currentUser.name}</strong></span>
             </div>
             <button
               type="button"
               onClick={() => navigate(`/${currentCompany.slug}/dashboard`)}
-              className="text-brand-600 hover:text-brand-800 font-semibold underline text-[11px] cursor-pointer"
+              className="text-accent hover:underline font-semibold text-xs cursor-pointer"
             >
-              Go to Dashboard →
+              Go to dashboard →
             </button>
           </div>
         )}
 
-        {/* Demo Fast-Switch User Selector */}
-        <div className="flex flex-col gap-2 p-3 bg-brand-50/60 rounded-md border border-brand-100">
-          <span className="text-[11px] font-semibold text-brand-700 uppercase tracking-wider flex items-center gap-1.5">
-            <UserCheck className="w-3.5 h-3.5" />
-            Quick Demo Persona Login
+        <div className="flex flex-col gap-2.5">
+          <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-text-muted">
+            <UserCheck className="size-3.5" />
+            Demo: sign in as
           </span>
-          <div className="grid grid-cols-2 gap-2 text-xs">
+          <div className="grid grid-cols-2 gap-2">
             {users.map((u: User) => {
               const isSelected = selectedRole === u.id;
               return (
@@ -67,63 +64,52 @@ export const Login: React.FC = () => {
                   key={u.id}
                   type="button"
                   onClick={() => handleQuickSelect(u.id)}
-                  className={`p-2 rounded border text-left flex flex-col transition-all ${
+                  aria-pressed={isSelected}
+                  className={`flex items-center gap-2.5 rounded-xl border p-2 text-left transition ${
                     isSelected
-                      ? 'border-brand-500 bg-surface shadow-sm text-brand-700 font-semibold'
-                      : 'border-ink-200 bg-surface/50 text-ink-700 hover:border-ink-300'
+                      ? 'border-accent bg-accent-soft/60 ring-2 ring-accent/20'
+                      : 'border-border bg-surface hover:border-border-strong hover:shadow-card'
                   }`}
                 >
-                  <span className="truncate">{u.name}</span>
-                  <span className="text-[10px] text-ink-500 font-normal">{u.roleTitle.split('(')[0]}</span>
+                  <Avatar name={u.name} />
+                  <span className="flex min-w-0 flex-col leading-tight">
+                    <span className="truncate text-[13px] font-medium text-text-primary">{u.name}</span>
+                    <span className="truncate text-[11px] text-text-muted">{u.roleTitle.split('(')[0]}</span>
+                  </span>
                 </button>
               );
             })}
           </div>
         </div>
 
-        {/* Login Form */}
         <form onSubmit={handleLogin} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-medium text-ink-700">Email Address</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="h-9 px-3 bg-surface border border-ink-200 rounded-sm text-xs text-ink-900 focus:outline-none focus:border-brand-500"
-            />
+            <label className="text-[13px] font-medium text-text-primary">Email</label>
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className={field} />
           </div>
 
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between">
-              <label className="text-xs font-medium text-ink-700">Password</label>
-              <a href="#" className="text-[11px] text-brand-600 hover:underline">
-                Forgot password?
-              </a>
+              <label className="text-[13px] font-medium text-text-primary">Password</label>
+              <a href="#" className="text-xs text-accent hover:underline">Forgot password?</a>
             </div>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="h-9 px-3 bg-surface border border-ink-200 rounded-sm text-xs text-ink-900 focus:outline-none focus:border-brand-500"
-            />
+            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required className={field} />
           </div>
 
           <button
             type="submit"
-            className="h-9 mt-2 bg-brand-600 hover:bg-brand-700 text-white rounded-sm text-xs font-semibold flex items-center justify-center gap-2 shadow-sm transition-colors"
+            className="mt-1 flex h-10 items-center justify-center gap-2 rounded-lg bg-accent text-[13px] font-semibold text-white shadow-sm transition hover:bg-accent-hover"
           >
-            <span>Proceed to 2FA Challenge</span>
-            <ArrowRight className="w-4 h-4" />
+            <span>Continue</span>
+            <ArrowRight className="size-4" />
           </button>
         </form>
 
-        <div className="text-center text-[11px] text-ink-500 border-t border-ink-100 pt-4 flex items-center justify-center gap-1.5">
-          <ShieldCheck className="w-3.5 h-3.5 text-success" />
-          <span>SOC 1 Type II & ISO 27001 Controls Enforced</span>
+        <div className="flex items-center justify-center gap-1.5 border-t border-border pt-4 text-xs text-text-muted">
+          <ShieldCheck className="size-3.5 text-success" />
+          <span>Protected with two-step sign-in</span>
         </div>
       </div>
-    </div>
+    </AuthLayout>
   );
 };

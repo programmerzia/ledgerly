@@ -1,136 +1,163 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
+import { ArrowDownLeft, ArrowUpRight, Landmark } from 'lucide-react';
 import { useLedgerStore } from '@/mock/store';
-import { ReportShell, ReportParameters } from './ReportShell';
+import { BUSINESS_TODAY } from '@/lib/docStatus';
 import { formatMoney } from '@/lib/format';
-import { FileSpreadsheet, ShieldCheck, Printer, Download } from 'lucide-react';
+import { ReportShell, defaultReportParameters, useSelectedPeriod, type ReportParameters } from './ReportShell';
+import { KpiCard, ReportCard, moneyFmt } from './ReportParts';
+import type { Invoice } from '@/types';
+
+const GRID = 'grid grid-cols-[minmax(10rem,1fr)_5rem_repeat(4,7.5rem)] gap-3';
+
+interface CodeRow {
+  id: string;
+  name: string;
+  rate: number;
+  salesNet: number;
+  outputVat: number;
+  purchasesNet: number;
+  inputVat: number;
+}
 
 export const TaxReturn: React.FC = () => {
-  const { currentCompany, balanceOf, accounts } = useLedgerStore();
+  const { currentCompany, accounts, balanceOf, taxCodes, invoices, bills, periods, journals } = useLedgerStore();
+  const cur = currentCompany.base_currency;
+  const money = moneyFmt(cur);
+  const [parameters, setParameters] = useState<ReportParameters>(defaultReportParameters());
+  const period = useSelectedPeriod(parameters.periodTo);
 
-  const [parameters, setParameters] = useState<ReportParameters>({
-    periodFrom: 'per-2026-10',
-    periodTo: 'per-2026-10',
-    comparison: 'none',
-    pivotDimension: 'none',
-    hideZeroRows: false,
-    presentationCurrency: 'USD',
-    levelOfDetail: 'summary',
-  });
+  const idOf = (code: string) => accounts.find((a) => a.code === code)?.id ?? '';
+  const prev = period ? periods.find((p) => p.kind !== 'adjustment' && p.number === period.number - 1) : undefined;
+  const startDate = prev?.ends_on ?? '0000-00-00';
+  const inPeriod = (d: Invoice) =>
+    d.status === 'posted' && !!period && d.issue_date > startDate && d.issue_date <= period.ends_on;
 
-  // Calculate Output Tax (2100) and Input Tax (2110) and WHT Payable (2120)
-  const outputTax = balanceOf('acc-2100'); // normal credit
-  const inputTax = balanceOf('acc-2110'); // normal debit
-  const whtPayable = balanceOf('acc-2120');
+  const whtOwed = balanceOf(idOf('2120'));
 
-  // Sales revenue
-  const standardSales = balanceOf('acc-4000') + balanceOf('acc-4100');
-  const netVatPayable = outputTax - inputTax;
+  // The return is driven by the ledger: VAT charged = credits to VAT output, VAT paid = debits to
+  // VAT input, in the period. Payments to / refunds from the tax authority sit on the opposite
+  // sides of those accounts, so they are excluded without special-casing.
+  const sideTotal = (code: string, side: 'debit' | 'credit') => {
+    if (!period) return 0;
+    const id = idOf(code);
+    return journals
+      .filter((j) => (j.status === 'posted' || j.status === 'reversed') && j.journal_date > startDate && j.journal_date <= period.ends_on)
+      .flatMap((j) => j.lines)
+      .filter((l) => l.account_id === id)
+      .reduce((t, l) => t + (side === 'credit' ? l.credit : l.debit), 0);
+  };
+  const ledgerOutput = sideTotal('2100', 'credit');
+  const ledgerInput = sideTotal('2110', 'debit');
+
+  const rows = useMemo<CodeRow[]>(() => {
+    const map = new Map<string, CodeRow>();
+    const row = (id: string): CodeRow => {
+      let r = map.get(id);
+      if (!r) {
+        const tc = taxCodes.find((t) => t.id === id);
+        r = { id, name: tc?.name ?? 'No tax code', rate: tc?.rate ?? 0, salesNet: 0, outputVat: 0, purchasesNet: 0, inputVat: 0 };
+        map.set(id, r);
+      }
+      return r;
+    };
+    const add = (docs: Invoice[], side: 'sales' | 'purchases') => {
+      for (const d of docs.filter(inPeriod)) {
+        const sign = d.kind === 'credit_note' || d.kind === 'debit_note' ? -1 : 1;
+        for (const l of d.lines) {
+          const r = row(l.tax_code_id ?? 'none');
+          const net = Math.round(l.line_total_fc * d.fx_rate) * sign;
+          const vat = Math.round(l.tax_amount_fc * d.fx_rate) * sign;
+          if (side === 'sales') {
+            r.salesNet += net;
+            r.outputVat += vat;
+          } else {
+            r.purchasesNet += net;
+            r.inputVat += vat;
+          }
+        }
+      }
+    };
+    add(invoices, 'sales');
+    add(bills, 'purchases');
+    return [...map.values()].filter((r) => taxCodes.find((t) => t.id === r.id)?.kind !== 'wht').sort((a, b) => b.rate - a.rate);
+  }, [invoices, bills, taxCodes, period?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const sum = (k: keyof CodeRow) => rows.reduce((s, r) => s + (r[k] as number), 0);
+  const outputVat = ledgerOutput;
+  const inputVat = ledgerInput;
+  // VAT recorded in journals without a sales/purchase document (e.g. cash and card sales summaries).
+  const otherOutput = ledgerOutput - sum('outputVat');
+  const otherInput = ledgerInput - sum('inputVat');
+  const netPayable = outputVat - inputVat;
+  const refund = netPayable < 0;
 
   return (
     <ReportShell
-      title="Value Added Tax (VAT) Return Form"
-      subtitle={`${currentCompany.legal_name} • Tax Period: October 2026`}
-      asOfMode={true}
+      title="VAT return"
       parameters={parameters}
       onParametersChange={setParameters}
+      showHideEmpty={false}
+      subtitle={`${period?.name ?? ''} · Standard rate ${(taxCodes.find((t) => t.id === 'tax-vat5')?.rate ?? 0) * 100}%`}
     >
-      <div className="w-full flex flex-col gap-6">
-        {/* Tax Return Form Card */}
-        <div className="bg-surface-elevated border border-line-border rounded-lg p-6 shadow-2xs flex flex-col gap-6 text-xs">
-          {/* Header */}
-          <div className="flex items-center justify-between pb-4 border-b border-line-border">
-            <div>
-              <h2 className="text-sm font-bold text-ink-900">{currentCompany.legal_name}</h2>
-              <div className="text-[11px] text-ink-muted">TIN: {currentCompany.tax_id} • Standard VAT Rate: 15%</div>
-            </div>
-            <div className="text-right">
-              <span className="text-[10px] font-mono uppercase bg-surface-neutral px-2 py-0.5 rounded font-semibold text-ink-muted">
-                Form VAT-100 (Monthly)
-              </span>
-            </div>
-          </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <KpiCard icon={<ArrowUpRight />} tint="danger" label="VAT you charged customers" value={money(outputVat)} hint="Output VAT, owed to the tax authority" />
+        <KpiCard icon={<ArrowDownLeft />} tint="success" label="VAT you paid suppliers" value={money(inputVat)} hint="Input VAT, you can reclaim this" />
+        <KpiCard
+          icon={<Landmark />}
+          tint={refund ? 'success' : 'accent'}
+          label={refund ? 'VAT refund due to you' : 'VAT to pay'}
+          value={money(Math.abs(netPayable))}
+          hint={refund ? 'You paid more VAT than you charged' : 'Charged minus paid'}
+        />
+      </div>
 
-          {/* Section A: Output Tax (Sales) */}
-          <div className="flex flex-col gap-2">
-            <span className="font-bold text-ink-900 uppercase tracking-wider text-[11px] border-b border-line-border pb-1">
-              Part 1: Output Tax on Supplies (Sales)
-            </span>
-            <div className="divide-y divide-line-border/60">
-              <div className="py-2 flex items-center justify-between">
-                <span className="text-ink-900">
-                  <strong className="font-mono text-brand-teal mr-2">Box 1</strong>
-                  Standard Rated Supplies (Exclusive of Tax)
-                </span>
-                <span className="font-mono text-num font-medium text-ink-900">
-                  {formatMoney(standardSales)}
-                </span>
-              </div>
-              <div className="py-2 flex items-center justify-between">
-                <span className="text-ink-900">
-                  <strong className="font-mono text-brand-teal mr-2">Box 2</strong>
-                  Zero-Rated and Exempt Supplies
-                </span>
-                <span className="font-mono text-num text-ink-muted">$0.00</span>
-              </div>
-              <div className="py-2 flex items-center justify-between font-bold bg-surface-neutral px-2 rounded-sm">
-                <span className="text-ink-900">
-                  <strong className="font-mono text-brand-teal mr-2">Box 4</strong>
-                  Total Output Tax Payable (Account 2100)
-                </span>
-                <span className="font-mono text-num text-danger">{formatMoney(outputTax)}</span>
-              </div>
-            </div>
+      <ReportCard className="p-0 sm:p-0">
+        <div className="min-w-[760px]">
+          <div className="px-4 pt-4 pb-2 text-sm font-semibold text-text-primary">Breakdown by tax code</div>
+          <div className={`${GRID} px-4 py-2.5 border-y border-border text-[11px] font-semibold text-text-muted`}>
+            <span>Tax code</span>
+            <span className="text-right">Rate</span>
+            <span className="text-right">Sales (before VAT)</span>
+            <span className="text-right">VAT charged</span>
+            <span className="text-right">Purchases (before VAT)</span>
+            <span className="text-right">VAT paid</span>
           </div>
-
-          {/* Section B: Input Tax (Purchases) */}
-          <div className="flex flex-col gap-2">
-            <span className="font-bold text-ink-900 uppercase tracking-wider text-[11px] border-b border-line-border pb-1">
-              Part 2: Input Tax on Acquisitions (Purchases & Expenses)
-            </span>
-            <div className="divide-y divide-line-border/60">
-              <div className="py-2 flex items-center justify-between">
-                <span className="text-ink-900">
-                  <strong className="font-mono text-brand-teal mr-2">Box 5</strong>
-                  Total Taxable Business Purchases & Imports
-                </span>
-                <span className="font-mono text-num font-medium text-ink-900">
-                  {formatMoney(balanceOf('acc-5000') + balanceOf('acc-6200'))}
-                </span>
+          {rows.length === 0 && <div className="p-8 text-center text-xs text-text-muted">No taxable sales or purchases in this period.</div>}
+          <div className="divide-y divide-border/60">
+            {rows.map((r) => (
+              <div key={r.id} className={`${GRID} items-baseline px-4 py-2 text-xs`}>
+                <span className="text-text-primary">{r.name}</span>
+                <span className="text-right font-mono tabular-nums text-text-secondary">{(r.rate * 100).toFixed(0)}%</span>
+                <span className="text-right font-mono tabular-nums">{money(r.salesNet)}</span>
+                <span className="text-right font-mono tabular-nums">{money(r.outputVat)}</span>
+                <span className="text-right font-mono tabular-nums">{money(r.purchasesNet)}</span>
+                <span className="text-right font-mono tabular-nums">{money(r.inputVat)}</span>
               </div>
-              <div className="py-2 flex items-center justify-between font-bold bg-surface-neutral px-2 rounded-sm">
-                <span className="text-ink-900">
-                  <strong className="font-mono text-brand-teal mr-2">Box 6</strong>
-                  Total Input Tax Recoverable (Account 2110)
-                </span>
-                <span className="font-mono text-num text-success">{formatMoney(inputTax)}</span>
-              </div>
-            </div>
+            ))}
           </div>
-
-          {/* Section C: Net Tax Calculation */}
-          <div className="p-4 bg-brand-teal/5 border border-brand-teal/20 rounded-md flex items-center justify-between text-xs font-bold">
-            <div>
-              <span className="font-mono text-brand-teal text-sm mr-2">Box 7</span>
-              <span className="text-ink-900 uppercase">
-                {netVatPayable >= 0 ? 'Net VAT Payable to Revenue Authority:' : 'Net VAT Refund Due from Revenue Authority:'}
-              </span>
+          {(otherOutput !== 0 || otherInput !== 0) && (
+            <div className={`${GRID} items-baseline px-4 py-2 text-xs border-t border-border/60`}>
+              <span className="text-text-primary">Recorded without an invoice or bill</span>
+              <span />
+              <span />
+              <span className="text-right font-mono tabular-nums">{money(otherOutput)}</span>
+              <span />
+              <span className="text-right font-mono tabular-nums">{money(otherInput)}</span>
             </div>
-            <span className="font-mono text-base text-num text-brand-teal">
-              {formatMoney(Math.abs(netVatPayable))}
-            </span>
-          </div>
-
-          {/* Section D: Withholding Tax Summary */}
-          <div className="flex flex-col gap-1.5 p-3 bg-surface-neutral rounded border border-line-border">
-            <div className="flex justify-between font-medium">
-              <span className="text-ink-muted">Withholding Tax (WHT) Deducted on Supplier Payments (Acc 2120):</span>
-              <span className="font-mono text-num font-semibold text-danger">{formatMoney(whtPayable)}</span>
-            </div>
-            <div className="text-[10px] text-ink-muted">
-              Remitted separately with monthly Withholding Tax schedule.
-            </div>
+          )}
+          <div className={`${GRID} items-baseline px-4 py-3 border-t-2 border-border bg-surface-neutral/50 text-[13px] font-semibold`}>
+            <span className="text-text-primary">Total</span>
+            <span />
+            <span className="text-right font-mono tabular-nums">{money(sum('salesNet'))}</span>
+            <span className="text-right font-mono tabular-nums">{money(outputVat)}</span>
+            <span className="text-right font-mono tabular-nums">{money(sum('purchasesNet'))}</span>
+            <span className="text-right font-mono tabular-nums">{money(inputVat)}</span>
           </div>
         </div>
+      </ReportCard>
+
+      <div className="text-xs text-text-muted px-1">
+        Withholding tax held from supplier payments, still to be paid over: <span className="font-mono font-medium text-text-primary">{money(whtOwed)}</span>. It is filed separately.
       </div>
     </ReportShell>
   );

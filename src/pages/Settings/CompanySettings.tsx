@@ -2,18 +2,42 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLedgerStore } from '@/mock/store';
 import { formatMoney } from '@/lib/format';
+import { FieldHelp } from '@/components/domain/FieldHelp';
+import { PageHeader } from '@/components/domain/PageHeader';
+import { Avatar } from '@/components/ui/avatar';
+import { Switch } from '@/components/ui/switch';
 import {
   Settings,
+  Palette,
+  CreditCard,
+  Tags,
+  KeyRound,
+  Undo2,
+  Info,
+  Sparkles,
   Building,
   Layers,
   Hash,
   CheckSquare,
   Users,
+  Percent,
   ShieldCheck,
   Save,
-  CheckCircle2,
-  Lock,
+  Coins,
 } from 'lucide-react';
+import { toast } from 'sonner';
+import { SettingsCard, Field, FieldGrid, inputCls } from './settings-ui';
+
+type SettingsTab =
+  | 'general'
+  | 'branding'
+  | 'numbering'
+  | 'tax'
+  | 'posting'
+  | 'dimensions'
+  | 'users'
+  | 'security'
+  | 'billing';
 
 export const CompanySettings: React.FC = () => {
   const navigate = useNavigate();
@@ -22,14 +46,14 @@ export const CompanySettings: React.FC = () => {
     currentUser,
     users,
     accounts,
+    taxCodes,
     companySettings,
     updatePostingAccounts,
     updateNumbering,
     updateApprovalWorkflows,
   } = useLedgerStore();
 
-  const [activeTab, setActiveTab] = useState<'profile' | 'posting' | 'numbering' | 'workflows' | 'users'>('profile');
-  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [activeTab, setActiveTab] = useState<SettingsTab>('general');
 
   // Profile fields
   const [legalName, setLegalName] = useState(currentCompany.legal_name);
@@ -44,449 +68,443 @@ export const CompanySettings: React.FC = () => {
   // Workflows
   const [workflows, setWorkflows] = useState(companySettings.approval_workflows);
 
+  // Security policy
+  const [pinLockoutAttempts, setPinLockoutAttempts] = useState(3);
+  const [pinLockoutDurationSeconds, setPinLockoutDurationSeconds] = useState(30);
+  const [cachedSignatureDurationMinutes, setCachedSignatureDurationMinutes] = useState(2);
+
+  // Tax Rounding (0.2, D2)
+  const [taxRounding, setTaxRounding] = useState<'document_per_code' | 'line'>(
+    companySettings.tax_rounding || 'document_per_code'
+  );
+
+  const snapshot = () =>
+    JSON.stringify({ legalName, taxId, posting, numbering, workflows, taxRounding, pinLockoutAttempts, pinLockoutDurationSeconds, cachedSignatureDurationMinutes });
+  const [baseline, setBaseline] = useState(() => snapshot());
+  const dirty = snapshot() !== baseline;
+
+  const handleDiscard = () => {
+    const b = JSON.parse(baseline);
+    setLegalName(b.legalName);
+    setTaxId(b.taxId);
+    setPosting(b.posting);
+    setNumbering(b.numbering);
+    setWorkflows(b.workflows);
+    setTaxRounding(b.taxRounding);
+    setPinLockoutAttempts(b.pinLockoutAttempts);
+    setPinLockoutDurationSeconds(b.pinLockoutDurationSeconds);
+    setCachedSignatureDurationMinutes(b.cachedSignatureDurationMinutes);
+  };
+
   const handleSave = () => {
     updatePostingAccounts(posting);
     updateNumbering(numbering);
     updateApprovalWorkflows(workflows);
 
-    setSaveSuccess(true);
-    setTimeout(() => setSaveSuccess(false), 2500);
+    useLedgerStore.setState((s: any) => ({
+      companySettings: {
+        ...s.companySettings,
+        tax_rounding: taxRounding,
+      },
+    }));
+
+    setBaseline(snapshot());
+    toast.success('Company settings saved successfully');
   };
 
+  const navItems: { id: SettingsTab; label: string; icon: React.ElementType; hint: string }[] = [
+    { id: 'general', label: 'General', icon: Building, hint: 'Company details' },
+    { id: 'branding', label: 'Branding', icon: Palette, hint: 'Logo and look' },
+    { id: 'numbering', label: 'Numbering', icon: Hash, hint: 'Document numbers' },
+    { id: 'tax', label: 'Tax', icon: Percent, hint: 'Rates and rounding' },
+    { id: 'posting', label: 'Posting accounts', icon: Layers, hint: 'Automatic entries' },
+    { id: 'dimensions', label: 'Dimensions', icon: Tags, hint: 'Tracking categories' },
+    { id: 'users', label: 'Users & roles', icon: Users, hint: 'Who can do what' },
+    { id: 'security', label: 'Security', icon: ShieldCheck, hint: 'PIN and approvals' },
+    { id: 'billing', label: 'Billing', icon: CreditCard, hint: 'Plan and invoices' },
+  ];
+
+  const postingFields: { key: keyof typeof posting; label: string; help: string; example: string }[] = [
+    { key: 'ar_control', label: 'Money customers owe you', help: 'Where customer invoices are recorded until they are paid.', example: '1200 Accounts Receivable' },
+    { key: 'ap_control', label: 'Money you owe suppliers', help: 'Where supplier bills are recorded until you pay them.', example: '2000 Accounts Payable' },
+    { key: 'tax_output', label: 'Sales tax collected', help: 'Tax charged on sales that you will pass on to the tax authority.', example: '2110 VAT Output' },
+    { key: 'tax_input', label: 'Purchase tax paid', help: 'Tax paid on purchases that you can claim back.', example: '1310 VAT Input' },
+    { key: 'wht_payable', label: 'Tax withheld from suppliers', help: 'Tax you hold back from supplier payments and owe to the tax authority.', example: '2120 WHT Payable' },
+    { key: 'fx_realised', label: 'Exchange gain or loss', help: 'Difference booked when a foreign-currency invoice is settled at a different rate.', example: '4900 Realised FX Gain' },
+    { key: 'retained_earnings', label: 'Retained earnings', help: 'Where the year’s profit is moved when you close the financial year.', example: '3000 Retained Earnings' },
+    { key: 'rounding', label: 'Rounding differences', help: 'Catches tiny cent differences from currency conversion.', example: '6990 Rounding Discrepancy' },
+  ];
+
+  const prefixFields: { key: 'invoice_prefix' | 'bill_prefix' | 'journal_prefix' | 'payment_prefix'; label: string; help: string; example: string; sample: string }[] = [
+    { key: 'invoice_prefix', label: 'Sales invoices', help: 'Text placed before each invoice number.', example: 'INV-', sample: '2026-0043' },
+    { key: 'bill_prefix', label: 'Supplier bills', help: 'Text placed before each bill number.', example: 'BILL-', sample: '2026-0016' },
+    { key: 'journal_prefix', label: 'Journals', help: 'Text placed before each manual journal number.', example: 'JRN-', sample: '2026-0103' },
+    { key: 'payment_prefix', label: 'Payments', help: 'Text placed before each payment or receipt number.', example: 'PAY-', sample: '2026-0012' },
+  ];
+
+  const thresholdFields: { key: 'invoice_threshold' | 'bill_threshold' | 'journal_threshold' | 'require_dual_approval_over'; label: string; help: string; hint: string }[] = [
+    { key: 'invoice_threshold', label: 'Invoices needing review above', help: 'Invoices above this amount need a second person to approve.', hint: 'A reviewer checks invoices over this amount' },
+    { key: 'bill_threshold', label: 'Bills needing review above', help: 'Bills above this amount need a second person to approve.', hint: 'A reviewer checks bills over this amount' },
+    { key: 'journal_threshold', label: 'Journals needing review above', help: 'Manual journals above this amount need a second person to approve.', hint: 'A reviewer checks journals over this amount' },
+    { key: 'require_dual_approval_over', label: 'Two approvers needed above', help: 'Above this amount two different people must sign.', hint: 'Finance manager and CFO both sign' },
+  ];
+
+  const active = navItems.find((n) => n.id === activeTab)!;
+  const th = (c = '') => `px-4 text-[11px] font-semibold uppercase tracking-wide text-text-muted ${c}`;
+
   return (
-    <div className="flex-1 flex flex-col h-full overflow-y-auto bg-surface-canvas p-6">
-      <div className="max-w-4xl mx-auto w-full flex flex-col gap-6">
-        {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-line-border">
-          <div className="flex items-center gap-3">
-            <Settings className="w-5 h-5 text-brand-teal" />
-            <div>
-              <h1 className="text-base font-bold text-ink-900">Company & Ledger Controls Settings</h1>
-              <p className="text-xs text-ink-muted">
-                System Rules, Mandatory Posting Accounts, Numbering & Segregation of Duties
-              </p>
+    <div className="flex h-full flex-1 flex-col overflow-hidden bg-surface-canvas">
+      <div className="shrink-0 border-b border-border bg-surface px-6 py-4">
+        <PageHeader
+          breadcrumb={[{ label: 'Settings' }, { label: active.label }]}
+          icon={<Settings />}
+          title="Company settings"
+          subtitle={`${currentCompany.name} · how your books are set up and protected`}
+          actions={
+            <button
+              type="button"
+              onClick={() => navigate(`/${currentCompany.slug}/import`)}
+              className="h-9 rounded-lg border border-border bg-surface px-3 text-[13px] font-medium text-text-primary transition hover:bg-surface-neutral"
+            >
+              Import data
+            </button>
+          }
+        />
+      </div>
+
+      <div className="flex flex-1 flex-col overflow-hidden md:flex-row">
+        <aside className="shrink-0 overflow-x-auto border-b border-border bg-surface p-3 md:w-60 md:overflow-y-auto md:border-b-0 md:border-r">
+          <nav aria-label="Settings sections" className="flex gap-1 md:flex-col">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setActiveTab(item.id)}
+                  aria-current={isActive ? 'page' : undefined}
+                  className={`group relative flex shrink-0 items-center gap-2.5 rounded-lg px-3 py-2 text-left text-[13px] font-medium transition ${
+                    isActive ? 'bg-accent-soft text-accent' : 'text-text-secondary hover:bg-surface-neutral hover:text-text-primary'
+                  }`}
+                >
+                  {isActive && <span className="absolute inset-y-1.5 left-0 hidden w-0.5 rounded-full bg-accent md:block" />}
+                  <Icon className="size-4 shrink-0" />
+                  <span className="whitespace-nowrap">{item.label}</span>
+                </button>
+              );
+            })}
+          </nav>
+        </aside>
+
+        <main className="flex flex-1 flex-col overflow-hidden">
+          <div className="flex-1 overflow-y-auto p-6">
+            <div key={activeTab} className="ui-rise-in mx-auto flex max-w-3xl flex-col gap-5">
+              <div>
+                <h2 className="text-lg font-semibold tracking-tight text-text-primary">{active.label}</h2>
+                <p className="text-[13px] text-text-muted">{active.hint}</p>
+              </div>
+
+              {activeTab === 'general' && (
+                <>
+                  <SettingsCard icon={<Building />} title="Company details" description="Shown on invoices and reports.">
+                    <FieldGrid>
+                      <Field label="Legal name">
+                        <input type="text" value={legalName} onChange={(e) => setLegalName(e.target.value)} className={inputCls} />
+                      </Field>
+                      <Field label="Tax ID" hint="Printed on invoices you issue.">
+                        <input type="text" value={taxId} onChange={(e) => setTaxId(e.target.value)} className={`${inputCls} font-mono`} />
+                      </Field>
+                    </FieldGrid>
+                  </SettingsCard>
+                  <SettingsCard icon={<Coins />} title="Currency and country" description="Set when the company was created.">
+                    <FieldGrid>
+                      <Field label="Main currency" hint="All reports are shown in this currency.">
+                        <div className={`${inputCls} flex items-center bg-surface-neutral font-mono`}>{currentCompany.base_currency}</div>
+                      </Field>
+                      <Field label="Country">
+                        <div className={`${inputCls} flex items-center bg-surface-neutral`}>{currentCompany.country}</div>
+                      </Field>
+                    </FieldGrid>
+                  </SettingsCard>
+                </>
+              )}
+
+              {activeTab === 'branding' && (
+                <SettingsCard icon={<Palette />} title="Logo and document look" description="How your company appears to customers.">
+                  <div className="flex flex-col gap-5">
+                    <div className="flex items-center gap-4">
+                      <Avatar name={currentCompany.name} size="lg" square className="size-14 text-lg" />
+                      <div className="flex flex-col gap-1.5">
+                        <span className="text-[13px] font-medium text-text-primary">{currentCompany.name}</span>
+                        <button
+                          type="button"
+                          onClick={() => toast.info('Logo upload is available on paid plans.')}
+                          className="h-8 w-fit rounded-lg border border-border bg-surface px-3 text-[13px] font-medium text-text-primary transition hover:bg-surface-neutral"
+                        >
+                          Upload logo
+                        </button>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between gap-4 border-t border-border pt-4">
+                      <div>
+                        <div className="text-[13px] font-medium text-text-primary">Show logo on invoices</div>
+                        <div className="text-xs text-text-muted">Your logo appears at the top of every PDF.</div>
+                      </div>
+                      <Switch defaultChecked aria-label="Show logo on invoices" />
+                    </div>
+                  </div>
+                </SettingsCard>
+              )}
+
+              {activeTab === 'numbering' && (
+                <SettingsCard icon={<Hash />} title="Document numbers" description="Numbers run in order with no gaps, so every document can be traced.">
+                  <FieldGrid>
+                    {prefixFields.map((f) => (
+                      <Field key={f.key} label={f.label} help={f.help} example={f.example}>
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="text"
+                            value={numbering[f.key]}
+                            onChange={(e) => setNumbering({ ...numbering, [f.key]: e.target.value })}
+                            className={`${inputCls} w-28 font-mono`}
+                          />
+                          <span className="rounded-md bg-surface-neutral px-2 py-1 font-mono text-xs text-text-muted">
+                            {numbering[f.key]}{f.sample}
+                          </span>
+                        </div>
+                      </Field>
+                    ))}
+                  </FieldGrid>
+                </SettingsCard>
+              )}
+
+              {activeTab === 'tax' && (
+                <>
+                  <SettingsCard icon={<Percent />} title="Tax rounding" description="Choose how tax is rounded on invoices and bills.">
+                    <div className="max-w-md">
+                      <Field
+                        label="Rounding method"
+                        help="Default adds up tax for each tax code and rounds once. 'Per line' rounds every line on its own."
+                        example="Per document, per tax code"
+                        hint={
+                          taxRounding === 'document_per_code'
+                            ? 'Tax is added up for each tax code, then rounded once.'
+                            : 'Tax is rounded on every invoice and bill line separately.'
+                        }
+                      >
+                        <select
+                          value={taxRounding}
+                          onChange={(e) => setTaxRounding(e.target.value as 'document_per_code' | 'line')}
+                          className={inputCls}
+                        >
+                          <option value="document_per_code">Per document, per tax code (recommended)</option>
+                          <option value="line">Per line</option>
+                        </select>
+                      </Field>
+                    </div>
+                  </SettingsCard>
+                  <section className="overflow-hidden rounded-xl border border-border bg-surface shadow-card">
+                    <table className="w-full border-collapse text-left text-[13px]">
+                      <thead>
+                        <tr className="h-9 border-b border-border bg-surface-neutral/60">
+                          <th className={th()}>Code</th>
+                          <th className={th()}>Name</th>
+                          <th className={th('text-right')}>Rate</th>
+                          <th className={th()}>Since</th>
+                          <th className={th()}>Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border">
+                        {taxCodes.map((tc) => (
+                          <tr key={tc.id} className="h-11 transition hover:bg-accent-soft/40">
+                            <td className="px-4 font-mono font-semibold text-accent">{tc.code}</td>
+                            <td className="px-4 font-medium text-text-primary">{tc.name}</td>
+                            <td className="px-4 text-right font-mono tabular-nums text-text-primary">{(tc.rate * 100).toFixed(1)}%</td>
+                            <td className="px-4 text-text-muted">1 Jan 2026</td>
+                            <td className="px-4">
+                              <span className="inline-flex items-center gap-1.5 rounded-full bg-success-soft px-2 py-0.5 text-xs font-medium text-success">
+                                <span className="size-1.5 rounded-full bg-success" />Active
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </section>
+                </>
+              )}
+
+              {activeTab === 'posting' && (
+                <SettingsCard
+                  icon={<Layers />}
+                  title="Automatic posting accounts"
+                  description="Ledgerly uses these accounts when it records invoices, bills and payments for you."
+                >
+                  <FieldGrid>
+                    {postingFields.map((f) => (
+                      <Field key={f.key} label={f.label} help={f.help} example={f.example}>
+                        <select
+                          value={posting[f.key]}
+                          onChange={(e) => setPosting({ ...posting, [f.key]: e.target.value })}
+                          className={`${inputCls} font-mono`}
+                        >
+                          {accounts.map((a) => (
+                            <option key={a.id} value={a.id}>
+                              {a.code} - {a.name}
+                            </option>
+                          ))}
+                        </select>
+                      </Field>
+                    ))}
+                  </FieldGrid>
+                </SettingsCard>
+              )}
+
+              {activeTab === 'dimensions' && (
+                <SettingsCard icon={<Tags />} title="Tracking categories" description="Tag transactions by department, project or location to see profit for each.">
+                  <div className="flex flex-col items-center gap-3 py-4 text-center">
+                    <span className="flex size-12 items-center justify-center rounded-full bg-violet-soft text-violet">
+                      <Tags className="size-5" />
+                    </span>
+                    <div>
+                      <div className="text-[13px] font-medium text-text-primary">Tags are added while you enter a transaction</div>
+                      <p className="mx-auto mt-1 max-w-sm text-xs text-text-muted">
+                        Pick a department or project on any invoice, bill or journal line and reports can then be split by it.
+                      </p>
+                    </div>
+                  </div>
+                </SettingsCard>
+              )}
+
+              {activeTab === 'users' && (
+                <section className="overflow-hidden rounded-xl border border-border bg-surface shadow-card">
+                  <table className="w-full border-collapse text-left text-[13px]">
+                    <thead>
+                      <tr className="h-9 border-b border-border bg-surface-neutral/60">
+                        <th className={th()}>Person</th>
+                        <th className={th()}>Role</th>
+                        <th className={th()}>Signing PIN</th>
+                        <th className={th('text-center')}>2-step sign-in</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      {users.map((u) => (
+                        <tr key={u.id} className="h-14 transition hover:bg-accent-soft/40">
+                          <td className="px-4">
+                            <div className="flex items-center gap-3">
+                              <Avatar name={u.name} />
+                              <div className="min-w-0">
+                                <div className="font-medium text-text-primary">{u.name}</div>
+                                <div className="truncate text-xs text-text-muted">{u.email}</div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-4 text-text-primary">{u.roleTitle}</td>
+                          <td className="px-4 font-mono text-text-muted">{'••••••'}</td>
+                          <td className="px-4 text-center">
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-success-soft px-2 py-0.5 text-xs font-medium text-success">
+                              <span className="size-1.5 rounded-full bg-success" />On
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </section>
+              )}
+
+              {activeTab === 'security' && (
+                <>
+                  <SettingsCard icon={<KeyRound />} title="Signing PIN rules" description="Approvals are signed with a personal PIN. These rules protect it.">
+                    <FieldGrid>
+                      <Field label="Wrong PIN attempts allowed" help="Number of failed PIN entries before signing is paused." example="3" hint="Signing pauses after this many mistakes.">
+                        <input type="number" value={pinLockoutAttempts} onChange={(e) => setPinLockoutAttempts(parseInt(e.target.value, 10) || 3)} className={`${inputCls} font-mono`} />
+                      </Field>
+                      <Field label="Pause length (seconds)" help="How long signing stays paused after too many mistakes." example="30" hint="Default: 30 seconds.">
+                        <input type="number" value={pinLockoutDurationSeconds} onChange={(e) => setPinLockoutDurationSeconds(parseInt(e.target.value, 10) || 30)} className={`${inputCls} font-mono`} />
+                      </Field>
+                      <Field label="Remember my PIN for (minutes)" help="After a successful signature, further approvals need only one click within this window." example="2" hint="Default: 2 minutes.">
+                        <input type="number" value={cachedSignatureDurationMinutes} onChange={(e) => setCachedSignatureDurationMinutes(parseInt(e.target.value, 10) || 2)} className={`${inputCls} font-mono`} />
+                      </Field>
+                    </FieldGrid>
+                  </SettingsCard>
+                  <SettingsCard
+                    icon={<CheckSquare />}
+                    title="Approval limits"
+                    description="The person who creates a document can never approve it. Set when a second person must review."
+                  >
+                    <FieldGrid>
+                      {thresholdFields.map((f) => (
+                        <Field key={f.key} label={f.label} help={f.help} hint={f.hint}>
+                          <div className="relative">
+                            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[13px] text-text-muted">$</span>
+                            <input
+                              type="number"
+                              value={workflows[f.key] / 100}
+                              onChange={(e) => setWorkflows({ ...workflows, [f.key]: Math.round((parseFloat(e.target.value) || 0) * 100) })}
+                              className={`${inputCls} w-full pl-6 text-right font-mono tabular-nums`}
+                            />
+                          </div>
+                        </Field>
+                      ))}
+                    </FieldGrid>
+                  </SettingsCard>
+                </>
+              )}
+
+              {activeTab === 'billing' && (
+                <SettingsCard icon={<CreditCard />} title="Your plan" description="Billing is managed by the account owner.">
+                  <div className="flex flex-wrap items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <span className="flex size-10 items-center justify-center rounded-xl bg-brand text-white">
+                        <Sparkles className="size-5" />
+                      </span>
+                      <div>
+                        <div className="text-[13px] font-semibold text-text-primary">Business plan</div>
+                        <div className="text-xs text-text-muted">All features included · {users.length} seats in use</div>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => toast.info('Invoices and payment methods open here.')}
+                      className="h-9 rounded-lg border border-border bg-surface px-3 text-[13px] font-medium text-text-primary transition hover:bg-surface-neutral"
+                    >
+                      View invoices
+                    </button>
+                  </div>
+                </SettingsCard>
+              )}
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={handleSave}
-            className="h-8 px-4 bg-brand-teal hover:bg-brand-teal-hover text-white rounded-sm font-semibold text-xs shadow-2xs transition flex items-center gap-1.5"
-          >
-            <Save className="w-3.5 h-3.5" />
-            <span>Save Settings</span>
-          </button>
-        </div>
-
-        {saveSuccess && (
-          <div className="p-3 bg-success/10 border border-success/30 rounded-md text-success text-xs flex items-center gap-2 animate-in fade-in duration-100">
-            <CheckCircle2 className="w-4 h-4 shrink-0" />
-            <span>Settings saved and applied to all ledger posting rules.</span>
-          </div>
-        )}
-
-        {/* Tab Strip */}
-        <div className="flex items-center gap-1 bg-surface-subtle p-1 rounded-sm border border-line-border text-xs">
-          {[
-            { id: 'profile', label: 'Company Profile', icon: Building },
-            { id: 'posting', label: 'Posting Accounts', icon: Layers },
-            { id: 'numbering', label: 'Numbering Rules', icon: Hash },
-            { id: 'workflows', label: 'Approval Thresholds', icon: CheckSquare },
-            { id: 'users', label: 'Users & Permissions', icon: Users },
-          ].map((tab) => {
-            const Icon = tab.icon;
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded font-medium transition ${
-                  activeTab === tab.id
-                    ? 'bg-surface-elevated text-ink-900 font-semibold shadow-2xs'
-                    : 'text-ink-muted hover:text-ink-900'
-                }`}
-              >
-                <Icon className="w-3.5 h-3.5" />
-                <span>{tab.label}</span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* TAB 1: Profile */}
-        {activeTab === 'profile' && (
-          <div className="p-5 bg-surface-elevated border border-line-border rounded-md shadow-2xs flex flex-col gap-4 text-xs animate-in fade-in duration-150">
-            <span className="font-bold text-ink-900 uppercase tracking-wider text-[11px]">
-              Organization Details
-            </span>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex flex-col gap-1">
-                <label className="text-[11px] font-semibold text-ink-muted uppercase">Company Legal Name</label>
-                <input
-                  type="text"
-                  value={legalName}
-                  onChange={(e) => setLegalName(e.target.value)}
-                  className="h-8 px-2.5 rounded-sm border border-line-border bg-surface-subtle text-ink-900 font-medium"
-                />
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <label className="text-[11px] font-semibold text-ink-muted uppercase">Tax Identification (TIN)</label>
-                <input
-                  type="text"
-                  value={taxId}
-                  onChange={(e) => setTaxId(e.target.value)}
-                  className="h-8 px-2.5 font-mono rounded-sm border border-line-border bg-surface-subtle text-ink-900 font-medium"
-                />
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <label className="text-[11px] font-semibold text-ink-muted uppercase">Base Currency</label>
-                <div className="h-8 px-2.5 flex items-center rounded-sm border border-line-border bg-surface-neutral font-mono font-medium text-ink-900">
-                  {currentCompany.base_currency} (USD - United States Dollar)
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <label className="text-[11px] font-semibold text-ink-muted uppercase">Jurisdiction & Country</label>
-                <div className="h-8 px-2.5 flex items-center rounded-sm border border-line-border bg-surface-neutral font-medium text-ink-900">
-                  {currentCompany.country} (Federal Republic of Somalia)
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* TAB 2: Posting Accounts */}
-        {activeTab === 'posting' && (
-          <div className="p-5 bg-surface-elevated border border-line-border rounded-md shadow-2xs flex flex-col gap-4 text-xs animate-in fade-in duration-150">
-            <div>
-              <span className="font-bold text-ink-900 uppercase tracking-wider text-[11px] block">
-                Automatic Posting Accounts Mapping
-              </span>
-              <p className="text-[11px] text-ink-muted">
-                System-controlled General Ledger accounts required for automated double-entry postings.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex flex-col gap-1">
-                <label className="text-[11px] font-semibold text-ink-muted uppercase">Accounts Receivable (AR Control)</label>
-                <select
-                  value={posting.ar_control}
-                  onChange={(e) => setPosting({ ...posting, ar_control: e.target.value })}
-                  className="h-8 px-2 rounded-sm border border-line-border bg-surface-subtle font-mono text-xs"
-                >
-                  {accounts.map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.code} - {a.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <label className="text-[11px] font-semibold text-ink-muted uppercase">Accounts Payable (AP Control)</label>
-                <select
-                  value={posting.ap_control}
-                  onChange={(e) => setPosting({ ...posting, ap_control: e.target.value })}
-                  className="h-8 px-2 rounded-sm border border-line-border bg-surface-subtle font-mono text-xs"
-                >
-                  {accounts.map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.code} - {a.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <label className="text-[11px] font-semibold text-ink-muted uppercase">Sales Tax Output (VAT Payable)</label>
-                <select
-                  value={posting.tax_output}
-                  onChange={(e) => setPosting({ ...posting, tax_output: e.target.value })}
-                  className="h-8 px-2 rounded-sm border border-line-border bg-surface-subtle font-mono text-xs"
-                >
-                  {accounts.map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.code} - {a.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <label className="text-[11px] font-semibold text-ink-muted uppercase">Purchase Tax Input (VAT Recoverable)</label>
-                <select
-                  value={posting.tax_input}
-                  onChange={(e) => setPosting({ ...posting, tax_input: e.target.value })}
-                  className="h-8 px-2 rounded-sm border border-line-border bg-surface-subtle font-mono text-xs"
-                >
-                  {accounts.map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.code} - {a.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <label className="text-[11px] font-semibold text-ink-muted uppercase">Withholding Tax (WHT) Payable</label>
-                <select
-                  value={posting.wht_payable}
-                  onChange={(e) => setPosting({ ...posting, wht_payable: e.target.value })}
-                  className="h-8 px-2 rounded-sm border border-line-border bg-surface-subtle font-mono text-xs"
-                >
-                  {accounts.map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.code} - {a.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <label className="text-[11px] font-semibold text-ink-muted uppercase">Realised FX Gain / Loss</label>
-                <select
-                  value={posting.fx_realised}
-                  onChange={(e) => setPosting({ ...posting, fx_realised: e.target.value })}
-                  className="h-8 px-2 rounded-sm border border-line-border bg-surface-subtle font-mono text-xs"
-                >
-                  {accounts.map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.code} - {a.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <label className="text-[11px] font-semibold text-ink-muted uppercase">Retained Earnings (Equity)</label>
-                <select
-                  value={posting.retained_earnings}
-                  onChange={(e) => setPosting({ ...posting, retained_earnings: e.target.value })}
-                  className="h-8 px-2 rounded-sm border border-line-border bg-surface-subtle font-mono text-xs"
-                >
-                  {accounts.map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.code} - {a.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <label className="text-[11px] font-semibold text-ink-muted uppercase">Rounding Discrepancy Plug</label>
-                <select
-                  value={posting.rounding}
-                  onChange={(e) => setPosting({ ...posting, rounding: e.target.value })}
-                  className="h-8 px-2 rounded-sm border border-line-border bg-surface-subtle font-mono text-xs"
-                >
-                  {accounts.map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.code} - {a.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* TAB 3: Numbering Sequences */}
-        {activeTab === 'numbering' && (
-          <div className="p-5 bg-surface-elevated border border-line-border rounded-md shadow-2xs flex flex-col gap-4 text-xs animate-in fade-in duration-150">
-            <div>
-              <span className="font-bold text-ink-900 uppercase tracking-wider text-[11px] block">
-                Gapless Sequential Numbering Rules
-              </span>
-              <p className="text-[11px] text-ink-muted">
-                Document identifiers assigned sequentially upon posting. Gaps are prevented by controls-grade sequence locks.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex flex-col gap-1">
-                <label className="text-[11px] font-semibold text-ink-muted uppercase">Sales Invoice Prefix</label>
+          {dirty && (
+            <div role="region" aria-label="Unsaved changes" className="ui-rise-in shrink-0 border-t border-border bg-surface/95 px-6 py-3 shadow-popover backdrop-blur">
+              <div className="mx-auto flex max-w-3xl items-center justify-between gap-3">
+                <span className="flex items-center gap-2 text-[13px] text-text-secondary">
+                  <Info className="size-4 text-warning" />
+                  You have unsaved changes
+                </span>
                 <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={numbering.invoice_prefix}
-                    onChange={(e) => setNumbering({ ...numbering, invoice_prefix: e.target.value })}
-                    className="h-8 px-2 font-mono rounded-sm border border-line-border bg-surface-subtle w-32"
-                  />
-                  <span className="text-[11px] font-mono text-ink-muted">
-                    Preview: {numbering.invoice_prefix}2026-0043
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <label className="text-[11px] font-semibold text-ink-muted uppercase">Supplier Bill Prefix</label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={numbering.bill_prefix}
-                    onChange={(e) => setNumbering({ ...numbering, bill_prefix: e.target.value })}
-                    className="h-8 px-2 font-mono rounded-sm border border-line-border bg-surface-subtle w-32"
-                  />
-                  <span className="text-[11px] font-mono text-ink-muted">
-                    Preview: {numbering.bill_prefix}2026-0016
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <label className="text-[11px] font-semibold text-ink-muted uppercase">Journal Prefix</label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={numbering.journal_prefix}
-                    onChange={(e) => setNumbering({ ...numbering, journal_prefix: e.target.value })}
-                    className="h-8 px-2 font-mono rounded-sm border border-line-border bg-surface-subtle w-32"
-                  />
-                  <span className="text-[11px] font-mono text-ink-muted">
-                    Preview: {numbering.journal_prefix}2026-0103
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <label className="text-[11px] font-semibold text-ink-muted uppercase">Payment Prefix</label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={numbering.payment_prefix}
-                    onChange={(e) => setNumbering({ ...numbering, payment_prefix: e.target.value })}
-                    className="h-8 px-2 font-mono rounded-sm border border-line-border bg-surface-subtle w-32"
-                  />
-                  <span className="text-[11px] font-mono text-ink-muted">
-                    Preview: {numbering.payment_prefix}2026-0012
-                  </span>
+                  <button
+                    type="button"
+                    onClick={handleDiscard}
+                    className="flex h-9 items-center gap-1.5 rounded-lg border border-border bg-surface px-3 text-[13px] font-medium text-text-primary transition hover:bg-surface-neutral"
+                  >
+                    <Undo2 className="size-3.5" />Discard
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSave}
+                    className="flex h-9 items-center gap-1.5 rounded-lg bg-accent px-4 text-[13px] font-semibold text-white shadow-sm transition hover:bg-accent-hover"
+                  >
+                    <Save className="size-3.5" />Save changes
+                  </button>
                 </div>
               </div>
             </div>
-          </div>
-        )}
-
-        {/* TAB 4: Approval Workflows */}
-        {activeTab === 'workflows' && (
-          <div className="p-5 bg-surface-elevated border border-line-border rounded-md shadow-2xs flex flex-col gap-4 text-xs animate-in fade-in duration-150">
-            <div>
-              <span className="font-bold text-ink-900 uppercase tracking-wider text-[11px] block">
-                Segregation of Duties & Approval Thresholds
-              </span>
-              <p className="text-[11px] text-ink-muted">
-                Maker ≠ Checker is strictly enforced. Documents created by a Maker must be approved by a Finance Manager or CFO.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex flex-col gap-1">
-                <label className="text-[11px] font-semibold text-ink-muted uppercase">Invoice Approval Threshold ($)</label>
-                <input
-                  type="number"
-                  value={workflows.invoice_threshold / 100}
-                  onChange={(e) =>
-                    setWorkflows({
-                      ...workflows,
-                      invoice_threshold: Math.round((parseFloat(e.target.value) || 0) * 100),
-                    })
-                  }
-                  className="h-8 px-2.5 font-mono text-right rounded-sm border border-line-border bg-surface-subtle"
-                />
-                <span className="text-[10px] text-ink-muted">Invoices above this amount require Checker review</span>
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <label className="text-[11px] font-semibold text-ink-muted uppercase">Bill Approval Threshold ($)</label>
-                <input
-                  type="number"
-                  value={workflows.bill_threshold / 100}
-                  onChange={(e) =>
-                    setWorkflows({
-                      ...workflows,
-                      bill_threshold: Math.round((parseFloat(e.target.value) || 0) * 100),
-                    })
-                  }
-                  className="h-8 px-2.5 font-mono text-right rounded-sm border border-line-border bg-surface-subtle"
-                />
-                <span className="text-[10px] text-ink-muted">Bills above this amount require Checker review</span>
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <label className="text-[11px] font-semibold text-ink-muted uppercase">Journal Approval Threshold ($)</label>
-                <input
-                  type="number"
-                  value={workflows.journal_threshold / 100}
-                  onChange={(e) =>
-                    setWorkflows({
-                      ...workflows,
-                      journal_threshold: Math.round((parseFloat(e.target.value) || 0) * 100),
-                    })
-                  }
-                  className="h-8 px-2.5 font-mono text-right rounded-sm border border-line-border bg-surface-subtle"
-                />
-                <span className="text-[10px] text-ink-muted">Manual journals above this amount require Checker review</span>
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <label className="text-[11px] font-semibold text-ink-muted uppercase">Dual Approval Threshold ($)</label>
-                <input
-                  type="number"
-                  value={workflows.require_dual_approval_over / 100}
-                  onChange={(e) =>
-                    setWorkflows({
-                      ...workflows,
-                      require_dual_approval_over: Math.round((parseFloat(e.target.value) || 0) * 100),
-                    })
-                  }
-                  className="h-8 px-2.5 font-mono text-right rounded-sm border border-line-border bg-surface-subtle"
-                />
-                <span className="text-[10px] text-ink-muted">Requires 2 distinct signatories (Finance Manager + CFO)</span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* TAB 5: Users & Permissions */}
-        {activeTab === 'users' && (
-          <div className="p-5 bg-surface-elevated border border-line-border rounded-md shadow-2xs flex flex-col gap-4 text-xs animate-in fade-in duration-150">
-            <span className="font-bold text-ink-900 uppercase tracking-wider text-[11px]">
-              Users & Role Permissions Matrix
-            </span>
-
-            <div className="border border-line-border rounded-sm overflow-hidden">
-              <table className="w-full border-collapse text-left text-xs">
-                <thead>
-                  <tr className="h-8 bg-surface-neutral border-b border-line-border text-[11px] font-semibold text-ink-muted uppercase">
-                    <th className="px-3">Name</th>
-                    <th className="px-3">Email</th>
-                    <th className="px-3">Role & Title</th>
-                    <th className="px-3">Signing PIN</th>
-                    <th className="px-3 text-center">2FA Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-line-border">
-                  {users.map((u) => (
-                    <tr key={u.id} className="h-9 hover:bg-surface-neutral transition">
-                      <td className="px-3 font-medium text-ink-900">{u.name}</td>
-                      <td className="px-3 font-mono text-ink-muted">{u.email}</td>
-                      <td className="px-3 text-ink-900">{u.roleTitle}</td>
-                      <td className="px-3 font-mono text-ink-muted">••••••</td>
-                      <td className="px-3 text-center">
-                        <span className="text-[10px] font-medium text-success bg-success/10 px-1.5 py-0.5 rounded">
-                          Enforced
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
+          )}
+        </main>
       </div>
     </div>
   );

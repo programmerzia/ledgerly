@@ -54,6 +54,8 @@ export const ShortcutsOverlay: React.FC = () => {
       { id: 'ctrl-w', key: 'ctrl+w', description: 'Close active document tab', scope: 'global', action: () => {} },
       { id: 'ctrl-tab', key: 'ctrl+tab', description: 'Switch to next document tab', scope: 'global', action: () => {} },
       { id: 'ctrl-shift-d', key: 'ctrl+shift+d', description: 'Toggle Dark / Light mode', scope: 'global', action: () => {} },
+      { id: 'bracket', key: '[', description: 'Toggle navigation sidebar', scope: 'global', action: () => {} },
+      { id: 'shift-f', key: 'shift+f', description: 'Toggle full screen', scope: 'global', action: () => {} },
       { id: 'ctrl-comma', key: 'ctrl+,', description: 'Open Settings', scope: 'global', action: () => {} },
       { id: 'esc', key: 'Esc', description: 'Close modal, drawer, or tab', scope: 'global', action: () => {} },
       { id: 'question', key: '?', description: 'Toggle this keyboard shortcut guide', scope: 'global', action: () => {} },
@@ -68,7 +70,7 @@ export const ShortcutsOverlay: React.FC = () => {
           <DialogTitle className="flex items-center gap-2 text-sm font-semibold text-text-primary">
             <Keyboard className="w-4 h-4 text-accent" />
             <span>Keyboard Shortcuts</span>
-            <span className="text-xs text-text-muted font-normal">(Desktop Convention)</span>
+            
           </DialogTitle>
         </DialogHeader>
 
@@ -87,7 +89,7 @@ export const ShortcutsOverlay: React.FC = () => {
                       {item.key.split(' ').map((token, idx) => (
                         <kbd
                           key={idx}
-                          className="px-1.5 py-0.5 font-mono text-[10px] font-medium bg-surface-neutral text-text-primary border border-border rounded-xs shadow-xs"
+                          className="px-1.5 h-5 min-w-5 inline-flex items-center justify-center font-sans text-[11px] font-medium bg-surface-neutral text-text-primary border border-border rounded-md shadow-sm"
                         >
                           {token}
                         </kbd>

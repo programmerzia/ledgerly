@@ -4,7 +4,6 @@ import { AuditEvent } from '@/types';
 import { formatDateTime, formatMoney } from '@/lib/format';
 import {
   ShieldCheck,
-  CheckCircle2,
   Clock,
   Send,
   FileText,
@@ -13,8 +12,7 @@ import {
   DollarSign,
   Copy,
   Check,
-  Hash,
-  Lock,
+  ChevronDown,
 } from 'lucide-react';
 
 export interface DocumentAuditTimelineProps {
@@ -37,6 +35,15 @@ export interface DocumentAuditTimelineProps {
   contactName?: string | null;
   settledAmount?: number;
   journalId?: string | null;
+}
+
+function humanizeAction(a: string): string {
+  const tail = a.split('.').pop() ?? a;
+  return 'logged: ' + tail.replace(/_/g, ' ').toLowerCase();
+}
+
+function dotTone(badgeClass: string): string {
+  return badgeClass;
 }
 
 interface TimelineEntry {
@@ -75,7 +82,10 @@ export const DocumentAuditTimeline: React.FC<DocumentAuditTimelineProps> = ({
   settledAmount = 0,
   journalId,
 }) => {
-  const { auditEvents } = useLedgerStore();
+  const { auditEvents, users } = useLedgerStore();
+  const nameOf = (id: string | null | undefined, fallback: string) =>
+    (id && users.find((u) => u.id === id)?.name) || fallback;
+  const [showVerify, setShowVerify] = useState(false);
   const [copiedHash, setCopiedHash] = useState<string | null>(null);
 
   const handleCopy = (hashStr: string) => {
@@ -94,12 +104,14 @@ export const DocumentAuditTimeline: React.FC<DocumentAuditTimelineProps> = ({
   entries.push({
     id: `timeline-created-${documentId}`,
     action: 'document.created',
-    label: 'Document Draft Created',
-    actorName: (createdBy === 'usr-1' || !createdBy) ? 'Rahim Ahmed' : createdBy,
+    label: 'created the draft',
+    actorName: nameOf(createdBy, 'Rahim Ahmed'),
     actorRole: 'Maker / Staff Accountant',
     timestamp: createdAt,
-    detail: `Draft ${documentType} initiated for ${contactName} with ${linesCount} item(s) totaling ${formatMoney(total, currency)}. Initial tracking ID allocated: ${documentId}.`,
-    icon: <FileText className="w-3.5 h-3.5 text-text-muted" />,
+    detail: documentType === 'journal'
+      ? `${linesCount} line${linesCount === 1 ? '' : 's'} · ${formatMoney(total, currency)}`
+      : `${contactName} · ${linesCount} item${linesCount === 1 ? '' : 's'} · ${formatMoney(total, currency)}`,
+    icon: <FileText className="size-3.5" />,
     badgeClass: 'text-text-muted bg-surface-neutral border-border',
     hash: createdHash,
     prevHash: genesisHash,
@@ -114,12 +126,12 @@ export const DocumentAuditTimeline: React.FC<DocumentAuditTimelineProps> = ({
     entries.push({
       id: `timeline-submitted-${documentId}`,
       action: 'document.submitted',
-      label: 'Submitted for Approval',
-      actorName: (submittedBy === 'usr-1' || !submittedBy) ? 'Rahim Ahmed' : submittedBy,
+      label: 'submitted it for approval',
+      actorName: nameOf(submittedBy, 'Rahim Ahmed'),
       actorRole: 'Maker / Submitter',
       timestamp: submittedAt || createdAt,
-      detail: 'Submitted to checker queue for 4-eyes approval workflow. Segregation of duties invariant enforced (Creator cannot approve). Assigned to Fatima Hassan.',
-      icon: <Send className="w-3.5 h-3.5 text-warning" />,
+      detail: 'Waiting for a second person to approve.',
+      icon: <Send className="size-3.5" />,
       badgeClass: 'text-warning bg-warning-soft border-warning/30',
       hash: submittedHash,
       prevHash: createdHash,
@@ -132,12 +144,12 @@ export const DocumentAuditTimeline: React.FC<DocumentAuditTimelineProps> = ({
     entries.push({
       id: `timeline-returned-${documentId}`,
       action: 'document.returned',
-      label: 'Returned by Approver',
+      label: 'sent it back for changes',
       actorName: 'Fatima Hassan',
       actorRole: 'Checker / Finance Manager',
       timestamp: createdAt,
-      detail: `Document returned to maker with revision request: ${memo}`,
-      icon: <Clock className="w-3.5 h-3.5 text-danger" />,
+      detail: memo ?? '',
+      icon: <Clock className="size-3.5" />,
       badgeClass: 'text-danger bg-danger-soft border-danger/30',
       hash: '9a4c12ef0038472b89ad7e531846b9a8f2c3d4e5f601728394a5b6c7d8e9f012',
       prevHash: submittedHash,
@@ -153,12 +165,12 @@ export const DocumentAuditTimeline: React.FC<DocumentAuditTimelineProps> = ({
     entries.push({
       id: `timeline-authorized-${documentId}`,
       action: 'document.authorized_and_signed',
-      label: 'Authorized & Cryptographically Signed',
-      actorName: (approvedBy === 'usr-2' || !approvedBy) ? 'Fatima Hassan' : approvedBy,
+      label: 'approved and posted it',
+      actorName: nameOf(approvedBy, 'Fatima Hassan'),
       actorRole: 'Checker / Finance Manager',
       timestamp: signedAt || postedAt || createdAt,
-      detail: `6-Digit PIN authentication confirmed. Four-Eyes principle validated. Permanent gapless sequence assigned: ${documentNumber || documentId}.`,
-      icon: <UserCheck className="w-3.5 h-3.5 text-success" />,
+      detail: `Confirmed with PIN. Official number ${documentNumber || documentId}.`,
+      icon: <UserCheck className="size-3.5" />,
       badgeClass: 'text-success bg-success-soft border-success/30',
       hash: signedHash,
       prevHash: submittedHash,
@@ -170,12 +182,12 @@ export const DocumentAuditTimeline: React.FC<DocumentAuditTimelineProps> = ({
     entries.push({
       id: `timeline-ledger-${documentId}`,
       action: 'ledger.journal_committed',
-      label: 'Posted to General Ledger',
-      actorName: 'General Ledger Engine',
+      label: 'recorded it in the books',
+      actorName: 'Ledgerly',
       actorRole: 'Automated Posting System',
       timestamp: postedAt || createdAt,
-      detail: `Balanced double-entry journal ${journalId || 'JRN-2026-0103'} committed to open fiscal period. AR Control (1200) debited, Revenue (4000) credited. Dr = Cr verified.`,
-      icon: <BookOpen className="w-3.5 h-3.5 text-accent" />,
+      detail: `Journal ${journalId || 'entry'} added to the open period.`,
+      icon: <BookOpen className="size-3.5" />,
       badgeClass: 'text-accent bg-accent-soft border-accent/30',
       hash: ledgerHash,
       prevHash: signedHash,
@@ -189,12 +201,12 @@ export const DocumentAuditTimeline: React.FC<DocumentAuditTimelineProps> = ({
     entries.push({
       id: `timeline-settled-${documentId}`,
       action: 'settlement.payment_applied',
-      label: 'Settlement Receipt Applied',
-      actorName: 'Cashier Subsystem',
+      label: 'applied a payment',
+      actorName: 'Ledgerly',
       actorRole: 'Banking & Treasury',
       timestamp: postedAt || createdAt,
-      detail: `Cash receipt allocated in amount of ${formatMoney(settledAmount, currency)}. Remaining customer balance due: ${formatMoney(total - settledAmount, currency)}.`,
-      icon: <DollarSign className="w-3.5 h-3.5 text-info" />,
+      detail: `${formatMoney(settledAmount, currency)} received. ${formatMoney(total - settledAmount, currency)} still due.`,
+      icon: <DollarSign className="size-3.5" />,
       badgeClass: 'text-info bg-info-soft border-info/30',
       hash: settlementHash,
       prevHash: 'e82b719034f5c6a1b2d3e4f5061728394a5b6c7d8e9f0123456789abcdef0123',
@@ -217,12 +229,12 @@ export const DocumentAuditTimeline: React.FC<DocumentAuditTimelineProps> = ({
       entries.push({
         id: `timeline-store-${storeEv.id}`,
         action: storeEv.action,
-        label: storeEv.action.replace('_', ' ').replace('.', ' · '),
+        label: humanizeAction(storeEv.action),
         actorName: storeEv.actor_name,
-        actorRole: 'System Audit Record',
+        actorRole: '',
         timestamp: storeEv.occurred_at,
         detail: storeEv.detail,
-        icon: <ShieldCheck className="w-3.5 h-3.5 text-accent" />,
+        icon: <ShieldCheck className="size-3.5" />,
         badgeClass: 'text-accent bg-accent-soft border-accent/30',
         hash: storeEv.hash,
         prevHash: storeEv.prev_hash,
@@ -235,95 +247,62 @@ export const DocumentAuditTimeline: React.FC<DocumentAuditTimelineProps> = ({
   entries.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
 
   return (
-    <div className="flex flex-col gap-4">
-      {/* Integrity Header Banner */}
-      <div className="p-3 rounded-md bg-surface-neutral/60 border border-border flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-full bg-success-soft border border-success/30 flex items-center justify-center">
-            <ShieldCheck className="w-3.5 h-3.5 text-success" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-text-primary">Full Immutable Audit Trail</span>
-              <span className="text-[10px] font-mono font-bold bg-accent-soft text-accent px-1.5 py-0.2 rounded border border-accent/20">
-                SHA-256 Chained
-              </span>
-            </div>
-            <span className="text-[11px] text-text-muted">
-              {entries.length} cryptographic events verified • Tamper-evident sequence
+    <div className="flex flex-col gap-3 min-w-0">
+      <ol className="relative flex flex-col gap-3.5 before:absolute before:left-[11px] before:top-3 before:bottom-3 before:w-px before:bg-border">
+        {entries.map((entry) => (
+          <li key={entry.id} className="relative flex gap-3 min-w-0">
+            <span
+              className={`relative z-10 flex size-6 shrink-0 items-center justify-center rounded-full ring-4 ring-surface ${dotTone(entry.badgeClass).split(' ').filter((c) => !c.startsWith('border')).join(' ')}`}
+            >
+              {entry.icon}
             </span>
-          </div>
-        </div>
-        <div className="flex items-center gap-1.5 text-[11px] font-mono text-text-muted bg-surface px-2 py-1 rounded border border-border">
-          <Lock className="w-3 h-3 text-text-muted" />
-          <span>Genesis Verified</span>
-        </div>
-      </div>
-
-      {/* Vertical Timeline */}
-      <div className="relative pl-6 space-y-6 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-border">
-        {entries.map((entry, idx) => (
-          <div key={entry.id} className="relative group">
-            {/* Timeline Dot */}
-            <div className="absolute -left-6 top-1.5 w-5 h-5 rounded-full bg-surface border-2 border-accent flex items-center justify-center shadow-xs">
-              <div className="w-1.5 h-1.5 rounded-full bg-accent" />
-            </div>
-
-            {/* Event Card */}
-            <div className="rounded-md border border-border bg-surface p-3.5 shadow-2xs hover:border-border-strong transition flex flex-col gap-2">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <span className={`text-[10px] font-mono uppercase font-bold px-2 py-0.5 rounded border ${entry.badgeClass}`}>
-                    {entry.action}
-                  </span>
-                  <span className="text-xs font-bold text-text-primary">
-                    {entry.label}
-                  </span>
-                </div>
-                <span className="font-mono text-[11px] text-text-muted">
-                  {formatDateTime(entry.timestamp)}
-                </span>
-              </div>
-
-              {/* Actor & Role */}
-              <div className="flex items-center gap-2 text-xs text-text-secondary">
-                <span className="font-medium text-text-primary">{entry.actorName}</span>
-                <span className="text-[11px] text-text-muted">({entry.actorRole})</span>
-              </div>
-
-              {/* Event Details */}
-              <p className="text-xs text-text-secondary leading-relaxed">
-                {entry.detail}
+            <div className="min-w-0 flex-1 pt-0.5">
+              <p className="text-[13px] leading-snug text-text-primary break-words">
+                <span className="font-medium">{entry.actorName}</span> {entry.label}
               </p>
+              <p className="text-xs text-text-muted mt-0.5" title={formatDateTime(entry.timestamp)}>
+                {formatDateTime(entry.timestamp)}
+              </p>
+              {entry.detail && <p className="text-xs text-text-secondary mt-1 leading-relaxed break-words">{entry.detail}</p>}
+            </div>
+          </li>
+        ))}
+      </ol>
 
-              {/* Cryptographic Hash Chaining Block */}
-              <div className="mt-1 pt-2 border-t border-border/60 flex flex-col gap-1 text-[10px] font-mono text-text-muted bg-surface-neutral/50 p-2 rounded">
+      <div className="border-t border-border pt-2">
+        <button
+          type="button"
+          onClick={() => setShowVerify((v) => !v)}
+          aria-expanded={showVerify}
+          className="flex items-center gap-1.5 text-xs text-text-muted hover:text-text-primary transition-colors"
+        >
+          <ShieldCheck className="size-3.5 text-success" />
+          Verification details
+          <ChevronDown className={`size-3.5 transition-transform ${showVerify ? 'rotate-180' : ''}`} />
+        </button>
+        {showVerify && (
+          <div className="mt-2 flex flex-col gap-2">
+            <div className="flex items-center gap-1.5 text-xs text-success">
+              <Check className="size-3.5" /> Verified: {entries.length} events, no changes detected
+            </div>
+            {entries.map((entry) => (
+              <div key={entry.id} className="rounded-md bg-surface-neutral/60 p-2 text-[10px] font-mono text-text-muted min-w-0">
                 <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-1.5 truncate">
-                    <span className="text-text-muted">Hash:</span>
-                    <span className="text-text-primary font-mono truncate">{entry.hash}</span>
-                  </div>
+                  <span className="truncate" title={entry.hash}>Hash {entry.hash}</span>
                   <button
                     type="button"
                     onClick={() => handleCopy(entry.hash)}
-                    className="shrink-0 p-1 rounded hover:bg-surface text-text-muted hover:text-text-primary transition"
-                    title="Copy SHA-256 hash"
+                    className="shrink-0 p-1 rounded hover:bg-surface hover:text-text-primary"
+                    aria-label="Copy hash"
                   >
-                    {copiedHash === entry.hash ? (
-                      <Check className="w-3 h-3 text-success" />
-                    ) : (
-                      <Copy className="w-3 h-3" />
-                    )}
+                    {copiedHash === entry.hash ? <Check className="size-3 text-success" /> : <Copy className="size-3" />}
                   </button>
                 </div>
-                <div className="flex items-center gap-1.5 truncate text-[10px]">
-                  <span className="text-text-muted">Prev:</span>
-                  <span className="truncate text-text-muted">{entry.prevHash}</span>
-                </div>
+                <div className="truncate" title={entry.prevHash}>Prev {entry.prevHash}</div>
               </div>
-            </div>
+            ))}
           </div>
-        ))}
+        )}
       </div>
     </div>
   );

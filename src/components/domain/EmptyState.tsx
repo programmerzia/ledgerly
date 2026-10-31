@@ -26,24 +26,30 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   return (
     <div
       className={cn(
-        'flex flex-col items-center justify-center p-12 text-center border border-dashed border-ink-300 rounded-lg bg-surface/50',
+        'flex flex-col items-center justify-center rounded-xl border border-dashed border-border-strong bg-surface/60 px-6 py-14 text-center',
         className
       )}
     >
-      <div className="w-12 h-12 rounded-full bg-brand-50 text-brand-600 flex items-center justify-center mb-3">
-        <Icon className="w-6 h-6" />
+      <div className="relative mb-5">
+        <div
+          aria-hidden="true"
+          className="absolute -inset-3 rounded-full bg-brand opacity-[0.12] blur-md"
+        />
+        <div className="relative flex size-16 items-center justify-center rounded-full border border-border bg-gradient-to-br from-accent-soft to-violet-soft text-accent shadow-card">
+          <Icon className="size-7" strokeWidth={1.6} />
+        </div>
       </div>
-      <h3 className="text-h3 text-ink-900 mb-1">{title}</h3>
-      <p className="text-xs text-ink-500 max-w-sm mb-5">{description}</p>
+      <h3 className="mb-1 text-[15px] font-semibold tracking-tight text-text-primary">{title}</h3>
+      <p className="mb-6 max-w-sm text-[13px] leading-relaxed text-text-muted">{description}</p>
 
       <div className="flex items-center gap-2.5">
         {actionLabel && onAction && (
           <button
             type="button"
             onClick={onAction}
-            className="flex items-center gap-1.5 h-8 px-3.5 bg-brand-600 hover:bg-brand-700 text-white rounded-sm text-xs font-medium shadow-sm transition-colors"
+            className="flex h-9 items-center gap-1.5 rounded-lg bg-accent px-4 text-[13px] font-medium text-white shadow-card transition-colors hover:bg-accent-hover"
           >
-            <Plus className="w-3.5 h-3.5" />
+            <Plus className="size-4" />
             <span>{actionLabel}</span>
           </button>
         )}
@@ -52,7 +58,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
           <button
             type="button"
             onClick={onSecondaryAction}
-            className="flex items-center gap-1.5 h-8 px-3.5 bg-surface border border-ink-200 hover:border-ink-300 text-ink-700 rounded-sm text-xs font-medium transition-colors"
+            className="flex h-9 items-center gap-1.5 rounded-lg border border-border bg-surface px-4 text-[13px] font-medium text-text-secondary transition-colors hover:border-border-strong hover:bg-surface-neutral"
           >
             <span>{secondaryActionLabel}</span>
           </button>

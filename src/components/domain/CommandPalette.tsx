@@ -2,263 +2,183 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLedgerStore } from '@/mock/store';
 import {
-  CommandDialog,
-  CommandInput,
-  CommandList,
-  CommandEmpty,
-  CommandGroup,
-  CommandItem,
-  CommandShortcut,
-  CommandSeparator,
+  CommandDialog, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem, CommandShortcut,
 } from '@/components/ui/command';
 import { toast } from 'sonner';
 import {
-  Search,
-  FileText,
-  Users,
-  BookOpen,
-  Sun,
-  Moon,
-  PlusCircle,
-  Building2,
-  CheckCircle2,
-  Coins,
-  Package,
-  BarChart3,
-  Calendar,
-  Settings,
-  History,
-  CreditCard,
-  Layers,
-  LogOut,
+  FileText, Users, Sun, Moon, PlusCircle, Building2, CheckCircle2, Coins, BarChart3, Calendar, Settings,
+  History, CreditCard, Layers, LogOut, ShieldCheck, LayoutDashboard, Rows3, Truck, Receipt, Sparkles, CornerDownLeft,
 } from 'lucide-react';
+import { formatMoney } from '@/lib/format';
 
 interface CommandPaletteProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+const Kbd: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <kbd className="font-sans text-[11px] text-text-muted bg-surface border border-border px-1.5 h-5 min-w-5 inline-flex items-center justify-center rounded-md shadow-sm">{children}</kbd>
+);
+
+/** Tinted icon square used by every row so the list scans quickly. */
+const Tile: React.FC<{ icon: React.ComponentType<{ className?: string }>; tone?: string }> = ({ icon: Icon, tone = 'bg-surface-neutral text-text-secondary' }) => (
+  <span className={`size-6 shrink-0 grid place-items-center rounded-md [&_svg]:!text-current ${tone}`}><Icon className="size-3.5" /></span>
+);
+
+const KeyHint: React.FC<{ keys?: string }> = ({ keys }) =>
+  keys ? (
+    <span className="ml-auto flex items-center gap-1">
+      {keys.split(' ').map((k, i) => <Kbd key={i}>{k}</Kbd>)}
+    </span>
+  ) : null;
+
 export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
-
-  const {
-    currentCompany,
-    invoices,
-    bills,
-    contacts,
-    accounts,
-    theme,
-    toggleTheme,
-    setUiDensity,
-  } = useLedgerStore();
-
+  const { currentCompany, invoices, bills, contacts, theme, toggleTheme, setUiDensity } = useLedgerStore();
   const coSlug = currentCompany.slug;
-
-  const handleSelect = (action: () => void) => {
-    action();
+  const go = (path: string, message?: string) => () => {
+    navigate(`/${coSlug}${path}`);
+    if (message) toast.info(message);
     onClose();
   };
+  const run = (fn: () => void) => () => { fn(); onClose(); };
+
+  const nav: { label: string; path: string; icon: React.ComponentType<{ className?: string }>; keys?: string }[] = [
+    { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard, keys: 'G D' },
+    { label: 'Sales invoices', path: '/invoices', icon: FileText, keys: 'G I' },
+    { label: 'Supplier bills', path: '/bills', icon: FileText, keys: 'G B' },
+    { label: 'Approvals inbox', path: '/approvals', icon: CheckCircle2, keys: 'G A' },
+    { label: 'Bank reconciliation', path: '/banking/bnk-1/reconcile', icon: Building2 },
+    { label: 'Periods & close checklist', path: '/periods', icon: Calendar, keys: 'G P' },
+    { label: 'Trial balance', path: '/reports/trial-balance', icon: BarChart3, keys: 'G R' },
+    { label: 'Balance sheet', path: '/reports/balance-sheet', icon: BarChart3 },
+    { label: 'Cash flow statement', path: '/reports/cash-flow', icon: BarChart3 },
+    { label: 'Close pack certificate', path: '/periods/close-pack', icon: ShieldCheck },
+    { label: 'Products & services', path: '/items', icon: Receipt },
+    { label: 'Recurring journals', path: '/accounting/recurring', icon: Layers },
+    { label: 'Chart of accounts', path: '/accounts', icon: Layers },
+    { label: 'Import data', path: '/settings/import', icon: Settings },
+    { label: 'Setup wizard', path: '/onboarding', icon: Sparkles },
+    { label: 'Company settings', path: '/settings', icon: Settings, keys: 'Ctrl ,' },
+    { label: 'Audit log', path: '/audit-log', icon: History },
+  ];
+
+  const accent = 'bg-accent-soft text-accent';
 
   return (
     <CommandDialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <CommandInput placeholder="Type a command, document #, account code, or natural search..." />
-      <CommandList>
+      <CommandInput placeholder="Search or jump to…  documents, customers, accounts, actions" />
+      <CommandList className="max-h-[420px]">
         <CommandEmpty>No matching results found.</CommandEmpty>
 
-        {/* Quick Actions */}
-        <CommandGroup heading="Quick Actions">
+        <CommandGroup heading="Actions">
+          <CommandItem onSelect={go('/invoices/new')}><Tile icon={PlusCircle} tone={accent} /><span>New sales invoice</span><KeyHint keys="N" /></CommandItem>
+          <CommandItem onSelect={go('/bills/new')}><Tile icon={PlusCircle} tone={accent} /><span>New supplier bill</span></CommandItem>
+          <CommandItem onSelect={go('/journals/new')}><Tile icon={PlusCircle} tone={accent} /><span>New manual journal</span><KeyHint keys="G J" /></CommandItem>
+          <CommandItem onSelect={go('/payment-run')}><Tile icon={Coins} tone={accent} /><span>Pay bills (payment run)</span></CommandItem>
+          <CommandItem onSelect={go('/fx-rates')}><Tile icon={Coins} tone={accent} /><span>Run FX month-end revaluation</span></CommandItem>
           <CommandItem
-            onSelect={() => handleSelect(() => navigate(`/${coSlug}/invoices/new`))}
+            className="h-auto py-1.5"
+            value="unpaid invoices hormuud telecom customer open pending"
+            onSelect={go('/invoices?contact=cnt-1&status=posted', 'Filtered Hormuud Telecom unpaid invoices')}
           >
-            <PlusCircle className="mr-2 h-4 w-4 text-accent" />
-            <span>New Sales Invoice</span>
-            <CommandShortcut>N</CommandShortcut>
+            <Tile icon={FileText} tone="bg-violet-soft text-violet" />
+            <span className="flex flex-col leading-tight"><span>"unpaid invoices hormuud"</span><span className="text-[11px] text-text-muted">Show open invoices for Hormuud Telecom</span></span>
+            <CommandShortcut>Filter</CommandShortcut>
           </CommandItem>
           <CommandItem
-            onSelect={() => handleSelect(() => navigate(`/${coSlug}/bills/new`))}
+            className="h-auto py-1.5"
+            value="close october oct 2026 period checklist year-end lock"
+            onSelect={go('/periods?action=close&period=2026-10', 'Navigating to October 2026 close checklist')}
           >
-            <PlusCircle className="mr-2 h-4 w-4 text-accent" />
-            <span>New Supplier Bill</span>
-            <CommandShortcut>G B</CommandShortcut>
+            <Tile icon={Calendar} tone="bg-violet-soft text-violet" />
+            <span className="flex flex-col leading-tight"><span>"close october"</span><span className="text-[11px] text-text-muted">Open the October 2026 close checklist</span></span>
+            <CommandShortcut>Period close</CommandShortcut>
           </CommandItem>
           <CommandItem
-            onSelect={() => handleSelect(() => navigate(`/${coSlug}/journals/new`))}
+            className="h-auto py-1.5"
+            value="receipt 1050 1,050 receive payment customer hormuud settlement"
+            onSelect={go('/receipts/new?amount=105000&contact=cnt-1', 'Opened receipt form for $1,050.00 from Hormuud Telecom')}
           >
-            <PlusCircle className="mr-2 h-4 w-4 text-accent" />
-            <span>New Manual Journal</span>
-            <CommandShortcut>G J</CommandShortcut>
+            <Tile icon={CreditCard} tone="bg-violet-soft text-violet" />
+            <span className="flex flex-col leading-tight"><span>"receipt 1050"</span><span className="text-[11px] text-text-muted">Record a $1,050.00 receipt from Hormuud Telecom</span></span>
+            <CommandShortcut>New receipt</CommandShortcut>
           </CommandItem>
           <CommandItem
-            onSelect={() => handleSelect(() => navigate(`/${coSlug}/payment-run`))}
+            className="h-auto py-1.5"
+            value="reopen september sep 2026 period dual approver cfo unlock"
+            onSelect={go('/periods?action=reopen&period=2026-09', 'Initiating September 2026 dual-approver reopen request')}
           >
-            <Coins className="mr-2 h-4 w-4 text-accent" />
-            <span>Run Supplier Payment Run Wizard</span>
+            <Tile icon={ShieldCheck} tone="bg-violet-soft text-violet" />
+            <span className="flex flex-col leading-tight"><span>"reopen september"</span><span className="text-[11px] text-text-muted">Request a dual-approver reopen for September 2026</span></span>
+            <CommandShortcut>Reopen period</CommandShortcut>
           </CommandItem>
           <CommandItem
-            onSelect={() => handleSelect(() => navigate(`/${coSlug}/fx-rates`))}
+            onSelect={run(() => { toast.info('Signed out of session'); navigate('/login'); })}
+            className="text-danger data-[selected=true]:text-danger data-[selected=true]:bg-danger-soft"
           >
-            <Coins className="mr-2 h-4 w-4 text-accent" />
-            <span>Run FX Month-End Revaluation</span>
-          </CommandItem>
-          <CommandItem
-            onSelect={() =>
-              handleSelect(() => {
-                toast.info('Signed out of session');
-                navigate('/login');
-              })
-            }
-          >
-            <LogOut className="mr-2 h-4 w-4 text-danger" />
-            <span className="text-danger font-medium">Sign Out / Log Out</span>
+            <Tile icon={LogOut} tone="bg-danger-soft text-danger" /><span className="font-medium">Sign out</span>
           </CommandItem>
         </CommandGroup>
 
-        <CommandSeparator />
-
-        {/* Navigation */}
         <CommandGroup heading="Navigation">
-          <CommandItem
-            onSelect={() => handleSelect(() => navigate(`/${coSlug}/dashboard`))}
-          >
-            <BookOpen className="mr-2 h-4 w-4 text-text-muted" />
-            <span>Go to Dashboard</span>
-            <CommandShortcut>G D</CommandShortcut>
-          </CommandItem>
-          <CommandItem
-            onSelect={() => handleSelect(() => navigate(`/${coSlug}/invoices`))}
-          >
-            <FileText className="mr-2 h-4 w-4 text-text-muted" />
-            <span>Go to Sales Invoices</span>
-            <CommandShortcut>G I</CommandShortcut>
-          </CommandItem>
-          <CommandItem
-            onSelect={() => handleSelect(() => navigate(`/${coSlug}/bills`))}
-          >
-            <FileText className="mr-2 h-4 w-4 text-text-muted" />
-            <span>Go to Supplier Bills</span>
-            <CommandShortcut>G B</CommandShortcut>
-          </CommandItem>
-          <CommandItem
-            onSelect={() => handleSelect(() => navigate(`/${coSlug}/approvals`))}
-          >
-            <CheckCircle2 className="mr-2 h-4 w-4 text-text-muted" />
-            <span>Go to Approvals Inbox</span>
-            <CommandShortcut>G A</CommandShortcut>
-          </CommandItem>
-          <CommandItem
-            onSelect={() => handleSelect(() => navigate(`/${coSlug}/banking/bnk-1/reconcile`))}
-          >
-            <Building2 className="mr-2 h-4 w-4 text-text-muted" />
-            <span>Bank Reconciliation Workspace</span>
-          </CommandItem>
-          <CommandItem
-            onSelect={() => handleSelect(() => navigate(`/${coSlug}/periods`))}
-          >
-            <Calendar className="mr-2 h-4 w-4 text-text-muted" />
-            <span>Fiscal Periods & Close Checklist</span>
-            <CommandShortcut>G P</CommandShortcut>
-          </CommandItem>
-          <CommandItem
-            onSelect={() => handleSelect(() => navigate(`/${coSlug}/reports/trial-balance`))}
-          >
-            <BarChart3 className="mr-2 h-4 w-4 text-text-muted" />
-            <span>Trial Balance Report</span>
-            <CommandShortcut>G R</CommandShortcut>
-          </CommandItem>
-          <CommandItem
-            onSelect={() => handleSelect(() => navigate(`/${coSlug}/reports/balance-sheet`))}
-          >
-            <BarChart3 className="mr-2 h-4 w-4 text-text-muted" />
-            <span>Balance Sheet (Branch Pivot)</span>
-          </CommandItem>
-          <CommandItem
-            onSelect={() => handleSelect(() => navigate(`/${coSlug}/accounts`))}
-          >
-            <Layers className="mr-2 h-4 w-4 text-text-muted" />
-            <span>Chart of Accounts</span>
-          </CommandItem>
-          <CommandItem
-            onSelect={() => handleSelect(() => navigate(`/${coSlug}/settings`))}
-          >
-            <Settings className="mr-2 h-4 w-4 text-text-muted" />
-            <span>Company Settings</span>
-            <CommandShortcut>Ctrl+,</CommandShortcut>
-          </CommandItem>
-          <CommandItem
-            onSelect={() => handleSelect(() => navigate(`/${coSlug}/audit-log`))}
-          >
-            <History className="mr-2 h-4 w-4 text-text-muted" />
-            <span>Cryptographic Audit Log Trail</span>
-          </CommandItem>
-        </CommandGroup>
-
-        <CommandSeparator />
-
-        {/* Recent Invoices */}
-        <CommandGroup heading="Sales Invoices">
-          {invoices.slice(0, 4).map((inv) => (
-            <CommandItem
-              key={inv.id}
-              value={`${inv.number} ${inv.reference} ${(inv.total / 100).toFixed(2)}`}
-              onSelect={() => handleSelect(() => navigate(`/${coSlug}/invoices/${inv.id}`))}
-            >
-              <FileText className="mr-2 h-4 w-4 text-text-muted" />
-              <span className="font-mono font-medium text-accent mr-2">{inv.number}</span>
-              <span className="truncate">{inv.reference}</span>
-              <span className="ml-auto font-mono text-xs">${(inv.total / 100).toFixed(2)}</span>
+          {nav.map((n) => (
+            <CommandItem key={n.path} value={`go to ${n.label}`} onSelect={go(n.path)}>
+              <Tile icon={n.icon} /><span>{n.label}</span><KeyHint keys={n.keys} />
             </CommandItem>
           ))}
         </CommandGroup>
 
-        <CommandSeparator />
+        <CommandGroup heading="Recent documents">
+          {invoices.slice(0, 4).map((inv) => (
+            <CommandItem key={inv.id} value={`${inv.number} ${inv.reference} ${(inv.total / 100).toFixed(2)}`} onSelect={go(`/invoices/${inv.id}`)}>
+              <Tile icon={FileText} tone={accent} />
+              <span className="font-medium text-text-primary tabular-nums">{inv.number ?? 'Draft'}</span>
+              <span className="truncate text-text-muted">{inv.reference}</span>
+              <span className="ml-auto tabular-nums text-xs text-text-secondary">{formatMoney(inv.total_fc, inv.currency)}</span>
+            </CommandItem>
+          ))}
+          {bills.slice(0, 3).map((b) => (
+            <CommandItem key={b.id} value={`bill ${b.number} ${b.reference}`} onSelect={go(`/bills/${b.id}`)}>
+              <Tile icon={FileText} tone="bg-warning-soft text-warning" />
+              <span className="font-medium text-text-primary tabular-nums">{b.number ?? 'Draft'}</span>
+              <span className="truncate text-text-muted">{b.reference}</span>
+              <span className="ml-auto tabular-nums text-xs text-text-secondary">{formatMoney(b.total_fc, b.currency)}</span>
+            </CommandItem>
+          ))}
+        </CommandGroup>
 
-        {/* Contacts */}
-        <CommandGroup heading="Contacts (Customers & Suppliers)">
-          {contacts.slice(0, 4).map((c) => (
+        <CommandGroup heading="Customers & suppliers">
+          {contacts.slice(0, 5).map((c) => (
             <CommandItem
               key={c.id}
               value={`${c.code} ${c.name} ${c.kind}`}
-              onSelect={() =>
-                handleSelect(() =>
-                  navigate(c.kind === 'supplier' ? `/${coSlug}/suppliers` : `/${coSlug}/customers`)
-                )
-              }
+              onSelect={go(c.kind === 'supplier' ? '/suppliers' : '/customers')}
             >
-              <Users className="mr-2 h-4 w-4 text-text-muted" />
-              <span className="font-mono text-xs text-text-muted mr-2">{c.code}</span>
-              <span className="font-medium">{c.name}</span>
-              <CommandShortcut>{c.kind}</CommandShortcut>
+              <Tile icon={c.kind === 'supplier' ? Truck : Users} tone={c.kind === 'supplier' ? 'bg-warning-soft text-warning' : 'bg-success-soft text-success'} />
+              <span className="font-medium text-text-primary">{c.name}</span>
+              <span className="text-xs text-text-muted">{c.code}</span>
+              <CommandShortcut className="capitalize">{c.kind}</CommandShortcut>
             </CommandItem>
           ))}
         </CommandGroup>
 
-        <CommandSeparator />
-
-        {/* Preferences */}
-        <CommandGroup heading="Preferences & Display">
-          <CommandItem onSelect={() => handleSelect(() => toggleTheme())}>
-            {theme === 'light' ? (
-              <Moon className="mr-2 h-4 w-4 text-text-muted" />
-            ) : (
-              <Sun className="mr-2 h-4 w-4 text-text-muted" />
-            )}
-            <span>Switch to {theme === 'light' ? 'Dark' : 'Light'} Mode</span>
-            <CommandShortcut>Ctrl+Shift+D</CommandShortcut>
+        <CommandGroup heading="Preferences">
+          <CommandItem onSelect={run(() => toggleTheme())}>
+            <Tile icon={theme === 'light' ? Moon : Sun} />
+            <span>Switch to {theme === 'light' ? 'dark' : 'light'} mode</span><KeyHint keys="Ctrl Shift D" />
           </CommandItem>
-          <CommandItem onSelect={() => handleSelect(() => setUiDensity('compact'))}>
-            <span className="mr-2 font-mono text-xs font-bold">32</span>
-            <span>Compact Table Density (32px)</span>
-          </CommandItem>
-          <CommandItem onSelect={() => handleSelect(() => setUiDensity('default'))}>
-            <span className="mr-2 font-mono text-xs font-bold">36</span>
-            <span>Default Table Density (36px)</span>
-          </CommandItem>
-          <CommandItem onSelect={() => handleSelect(() => setUiDensity('comfortable'))}>
-            <span className="mr-2 font-mono text-xs font-bold">40</span>
-            <span>Comfortable Table Density (40px)</span>
-          </CommandItem>
+          <CommandItem onSelect={run(() => setUiDensity('compact'))}><Tile icon={Rows3} /><span>Compact table density</span></CommandItem>
+          <CommandItem onSelect={run(() => setUiDensity('default'))}><Tile icon={Rows3} /><span>Default table density</span></CommandItem>
+          <CommandItem onSelect={run(() => setUiDensity('comfortable'))}><Tile icon={Rows3} /><span>Comfortable table density</span></CommandItem>
         </CommandGroup>
       </CommandList>
+
+      <div className="flex items-center gap-4 border-t border-border bg-surface-neutral/50 px-3 h-9 text-[11px] text-text-muted shrink-0">
+        <span className="flex items-center gap-1.5"><Kbd>↑</Kbd><Kbd>↓</Kbd>navigate</span>
+        <span className="flex items-center gap-1.5"><Kbd><CornerDownLeft className="size-3" /></Kbd>open</span>
+        <span className="flex items-center gap-1.5"><Kbd>esc</Kbd>close</span>
+      </div>
     </CommandDialog>
   );
 };

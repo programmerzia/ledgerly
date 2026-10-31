@@ -1,14 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '@/mock/api';
-import { useLedgerlyStore } from '@/mock/store';
+import { useLedgerStore } from '@/mock/store';
 import { LineGrid, GridLineItem } from '@/components/domain/LineGrid';
+import { FieldHelp } from '@/components/domain/FieldHelp';
+import { ConsequenceDialog, ConsequenceAccountingLine } from '@/components/domain/ConsequenceDialog';
 import { formatMoney } from '@/lib/format';
+import { paymentStatus, amountDue } from '@/lib/docStatus';
 import { ArrowLeft, Save, Send, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { toast } from 'sonner';
 
 export const InvoiceForm: React.FC = () => {
   const navigate = useNavigate();
-  const { currentCompany, contacts, accounts, dimensions, taxCodes } = useLedgerlyStore();
+  const { currentCompany, contacts, accounts, dimensions, taxCodes, invoices } = useLedgerStore();
   const coSlug = currentCompany.slug;
 
   const [contactId, setContactId] = useState('cnt-1'); // Hormuud Telecom
@@ -18,6 +22,11 @@ export const InvoiceForm: React.FC = () => {
   const [memo, setMemo] = useState('Telecom tower equipment and maintenance spares');
   const [errorMessage, setErrorMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showConsequence, setShowConsequence] = useState(false);
+
+  // Autosave simulation state
+  const [dueDateEdited, setDueDateEdited] = useState(false);
+  const [submitAttempted, setSubmitAttempted] = useState(false);
 
   // 2 sample lines matching Demo Script Step 2 ($500 + $500 = $1,000 subtotal, VAT 5% = $50, Total = $1,050)
   const [lines, setLines] = useState<GridLineItem[]>([
@@ -51,14 +60,40 @@ export const InvoiceForm: React.FC = () => {
   const taxTotal = lines.reduce((s, l) => s + (l.tax_amount_fc || 0), 0);
   const total = subtotal + taxTotal;
 
+  const selectedContact = contacts.find((c) => c.id === contactId);
+
+  // Due date follows issue date + customer terms until the user edits it manually
+  useEffect(() => {
+    if (dueDateEdited || !selectedContact) return;
+    const d = new Date(`${issueDate}T00:00:00Z`);
+    if (isNaN(d.getTime())) return;
+    d.setUTCDate(d.getUTCDate() + selectedContact.payment_terms_days);
+    setDueDate(d.toISOString().slice(0, 10));
+  }, [issueDate, selectedContact, dueDateEdited]);
+
+  const customerSummary = useMemo(() => {
+    let outstanding = 0;
+    let overdue = 0;
+    for (const inv of invoices) {
+      if (inv.contact_id !== contactId) continue;
+      const st = paymentStatus(inv);
+      if (st === 'awaiting_payment' || st === 'partially_paid' || st === 'overdue') {
+        outstanding += amountDue(inv);
+        if (st === 'overdue') overdue += amountDue(inv);
+      }
+    }
+    return { outstanding, overdue };
+  }, [invoices, contactId]);
+
   // Validation function enforcing controls
   const validateForm = (): boolean => {
     setErrorMessage('');
+    setSubmitAttempted(true);
     // Check required Branch dimension on all lines
     for (let i = 0; i < lines.length; i++) {
       if (!lines[i].dimensions?.branch) {
         setErrorMessage(
-          'Controls Validation Failed: Branch dimension is strictly required on all lines (Branch = Mogadishu required for Hormuud Telecom).'
+          'Please choose a branch on every line before submitting.'
         );
         // Mark line errors
         const updated = lines.map((l, idx) =>
@@ -71,12 +106,35 @@ export const InvoiceForm: React.FC = () => {
     return true;
   };
 
-  const handleSubmit = async (submitForApproval: boolean) => {
-    if (submitForApproval) {
-      const isValid = validateForm();
-      if (!isValid) return;
-    }
+  const accountingPreviewLines: ConsequenceAccountingLine[] = [
+    {
+      accountCode: '1200',
+      accountName: 'Accounts Receivable',
+      debit: total,
+      credit: 0,
+    },
+    {
+      accountCode: '4000',
+      accountName: 'Sales Revenue',
+      debit: 0,
+      credit: subtotal,
+    },
+    {
+      accountCode: '2110',
+      accountName: 'VAT Output',
+      debit: 0,
+      credit: taxTotal,
+    },
+  ];
 
+  const handleOpenSubmitConsequence = () => {
+    const isValid = validateForm();
+    if (!isValid) return;
+    setShowConsequence(true);
+  };
+
+  const handleSaveDraft = async () => {
+    setSubmitAttempted(true);
     try {
       setIsSubmitting(true);
       const invoice = await api.createInvoice({
@@ -88,7 +146,7 @@ export const InvoiceForm: React.FC = () => {
         memo,
         currency: 'USD',
         fx_rate: 1.0,
-        status: submitForApproval ? 'pending_approval' : 'draft',
+        status: 'draft',
         lines: lines.map((l) => ({
           id: l.id,
           line_no: l.line_no,
@@ -110,6 +168,56 @@ export const InvoiceForm: React.FC = () => {
         total,
       });
 
+      toast.success('Draft invoice saved', {
+        action: {
+          label: 'Undo',
+          onClick: () => toast.info('Draft action restored'),
+        },
+      });
+      navigate(`/${coSlug}/invoices/${invoice.id}`);
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Failed to create invoice');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleConfirmSubmit = async () => {
+    try {
+      setIsSubmitting(true);
+      setShowConsequence(false);
+      const invoice = await api.createInvoice({
+        kind: 'sales_invoice',
+        contact_id: contactId,
+        issue_date: issueDate,
+        due_date: dueDate,
+        reference,
+        memo,
+        currency: 'USD',
+        fx_rate: 1.0,
+        status: 'pending_approval',
+        lines: lines.map((l) => ({
+          id: l.id,
+          line_no: l.line_no,
+          account_id: l.account_id,
+          description: l.description,
+          quantity: l.quantity || 1,
+          unit_price_fc: l.unit_price_fc || 0,
+          discount_pct: 0,
+          tax_code_id: l.tax_code_id,
+          line_total_fc: l.line_total_fc || 0,
+          tax_amount_fc: l.tax_amount_fc || 0,
+          dimensions: l.dimensions,
+        })),
+        subtotal_fc: subtotal,
+        tax_total_fc: taxTotal,
+        total_fc: total,
+        subtotal,
+        tax_total: taxTotal,
+        total,
+      });
+
+      toast.success('Invoice submitted for approval');
       navigate(`/${coSlug}/invoices/${invoice.id}`);
     } catch (err: any) {
       setErrorMessage(err.message || 'Failed to create invoice');
@@ -121,49 +229,51 @@ export const InvoiceForm: React.FC = () => {
   return (
     <div className="flex flex-col gap-5">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-ink-200">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-border">
         <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={() => navigate(`/${coSlug}/invoices`)}
-            className="p-1.5 rounded-sm border border-ink-200 hover:bg-ink-100 text-ink-500 hover:text-ink-900 transition-colors shrink-0"
+            className="p-1.5 rounded-sm border border-border hover:bg-surface-neutral text-text-secondary hover:text-text-primary transition shrink-0"
           >
             <ArrowLeft className="w-4 h-4" />
           </button>
           <div>
-            <h1 className="text-xl sm:text-h1 font-bold text-ink-900">New Sales Invoice</h1>
-            <p className="text-xs text-ink-500 mt-0.5">
-              Draft document • Autosaved locally • Dual-control approval required
-            </p>
+            <h1 className="text-xl font-semibold text-text-primary">New invoice</h1>
+            <div className="flex items-center gap-2 text-xs text-text-muted mt-0.5">
+              <span>Draft</span>
+              <span>·</span>
+              <span>Saved just now</span>
+            </div>
           </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">
           <button
             type="button"
-            onClick={() => handleSubmit(false)}
+            onClick={handleSaveDraft}
             disabled={isSubmitting}
-            className="flex items-center gap-1.5 h-8 px-3 rounded-sm border border-ink-200 hover:border-ink-300 bg-surface text-ink-700 text-xs font-medium transition-colors"
+            className="flex items-center gap-1.5 h-8 px-3 rounded-sm border border-border hover:border-border-strong bg-surface text-text-secondary hover:text-text-primary text-xs font-medium transition"
           >
             <Save className="w-3.5 h-3.5" />
-            <span>Save Draft</span>
+            <span>Save draft</span>
           </button>
 
           <button
             type="button"
-            onClick={() => handleSubmit(true)}
+            onClick={handleOpenSubmitConsequence}
             disabled={isSubmitting}
-            className="flex items-center gap-1.5 h-8 px-4 bg-brand-600 hover:bg-brand-700 text-white rounded-sm text-xs font-semibold shadow-sm transition-colors"
+            className="flex items-center gap-1.5 h-8 px-4 bg-accent hover:bg-accent-hover text-white rounded-sm text-xs font-semibold shadow-xs transition"
           >
             <Send className="w-3.5 h-3.5" />
-            <span>Submit for Approval</span>
+            <span>Submit for approval</span>
           </button>
         </div>
       </div>
 
-      {/* Inline Validation Error Banner (Demo Step 2 requirement) */}
+      {/* Inline Validation Error Banner */}
       {errorMessage && (
-        <div className="p-3 bg-danger-bg text-danger border border-danger/30 rounded-md text-xs font-medium flex items-center justify-between animate-in fade-in">
+        <div className="p-3 bg-danger-soft/20 text-danger border border-danger/30 rounded-md text-xs font-medium flex items-center justify-between animate-in fade-in">
           <div className="flex items-center gap-2">
             <AlertTriangle className="w-4 h-4 shrink-0 text-danger" />
             <span>{errorMessage}</span>
@@ -182,21 +292,25 @@ export const InvoiceForm: React.FC = () => {
             }}
             className="text-[11px] underline font-semibold text-danger hover:opacity-80 ml-4"
           >
-            Quick-fill Mogadishu Branch
+            Set all to Mogadishu
           </button>
         </div>
       )}
 
       {/* Header Fields: Customer, Dates, Reference */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-5 bg-surface border border-ink-200 rounded-md shadow-sm">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-5 bg-surface border border-border rounded-md shadow-2xs">
         <div className="flex flex-col gap-1 md:col-span-2">
-          <label className="text-xs font-medium text-ink-700 flex items-center">
-            Customer <span className="text-danger ml-0.5">*</span>
+          <label className="text-xs font-medium text-text-secondary flex items-center">
+            Customer <span className="text-text-muted ml-0.5">*</span>
+            <FieldHelp
+              help="Registered client entity to bill. Determines default currency, AR control account and payment terms."
+              example="CUST-001 Hormuud Telecom"
+            />
           </label>
           <select
             value={contactId}
             onChange={(e) => setContactId(e.target.value)}
-            className="h-8 px-2.5 bg-surface border border-ink-200 rounded-sm text-xs text-ink-900 focus:outline-none focus:border-brand-500 font-medium"
+            className="h-8 px-2.5 bg-surface border border-border rounded-sm text-xs text-text-primary focus:outline-none focus:border-accent font-medium"
           >
             {contacts
               .filter((c) => c.kind === 'customer' || c.kind === 'both')
@@ -206,62 +320,102 @@ export const InvoiceForm: React.FC = () => {
                 </option>
               ))}
           </select>
+          {selectedContact && (
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-text-muted mt-0.5">
+              <span>
+                Owes <span className="font-mono text-text-primary">{formatMoney(customerSummary.outstanding, 'USD')}</span>
+              </span>
+              <span className={customerSummary.overdue > 0 ? 'text-danger font-medium' : ''}>
+                Overdue <span className="font-mono">{formatMoney(customerSummary.overdue, 'USD')}</span>
+              </span>
+              <span>Net {selectedContact.payment_terms_days}</span>
+              {selectedContact.credit_limit ? (
+                <span>
+                  Credit limit <span className="font-mono">{formatMoney(selectedContact.credit_limit, 'USD')}</span>
+                </span>
+              ) : null}
+            </div>
+          )}
         </div>
 
         <div className="flex flex-col gap-1">
-          <label className="text-xs font-medium text-ink-700">Issue Date</label>
+          <label className="text-xs font-medium text-text-secondary flex items-center">
+            Issue date
+            <FieldHelp
+              help="The invoice date determining the fiscal period and aging calculation."
+              example="2026-10-28"
+            />
+          </label>
           <input
             type="date"
             value={issueDate}
             onChange={(e) => setIssueDate(e.target.value)}
-            className="h-8 px-2.5 bg-surface border border-ink-200 rounded-sm text-xs font-mono text-ink-900 focus:outline-none focus:border-brand-500"
+            className="h-8 px-2.5 bg-surface border border-border rounded-sm text-xs font-mono text-text-primary focus:outline-none focus:border-accent"
           />
         </div>
 
         <div className="flex flex-col gap-1">
-          <label className="text-xs font-medium text-ink-700">Due Date</label>
+          <label className="text-xs font-medium text-text-secondary flex items-center">
+            Due date
+            <FieldHelp
+              help="Settlement due date based on customer credit terms (e.g. Net 30)."
+              example="2026-11-27"
+            />
+          </label>
           <input
             type="date"
             value={dueDate}
-            onChange={(e) => setDueDate(e.target.value)}
-            className="h-8 px-2.5 bg-surface border border-ink-200 rounded-sm text-xs font-mono text-ink-900 focus:outline-none focus:border-brand-500"
+            onChange={(e) => {
+              setDueDate(e.target.value);
+              setDueDateEdited(true);
+            }}
+            className="h-8 px-2.5 bg-surface border border-border rounded-sm text-xs font-mono text-text-primary focus:outline-none focus:border-accent"
           />
+          {selectedContact && (
+            <span className="text-[11px] text-text-muted">
+              {dueDateEdited ? 'Custom date' : `Net ${selectedContact.payment_terms_days}`}
+            </span>
+          )}
         </div>
 
         <div className="flex flex-col gap-1 md:col-span-2">
-          <label className="text-xs font-medium text-ink-700">Customer Reference (PO #)</label>
+          <label className="text-xs font-medium text-text-secondary flex items-center">
+            Customer reference (PO #)
+            <FieldHelp
+              help="Customer's external purchase order number or contract identifier."
+              example="PO-HT-2026-X1"
+            />
+          </label>
           <input
             type="text"
             value={reference}
             onChange={(e) => setReference(e.target.value)}
             placeholder="e.g. PO-HT-2026-X1"
-            className="h-8 px-2.5 bg-surface border border-ink-200 rounded-sm text-xs font-mono text-ink-900 focus:outline-none focus:border-brand-500"
+            className="h-8 px-2.5 bg-surface border border-border rounded-sm text-xs font-mono text-text-primary focus:outline-none focus:border-accent"
           />
         </div>
 
         <div className="flex flex-col gap-1 md:col-span-2">
-          <label className="text-xs font-medium text-ink-700">Memo / Internal Notes</label>
+          <label className="text-xs font-medium text-text-secondary flex items-center">
+            Memo
+            <FieldHelp
+              help="Overall summary narrative printed on invoice header and visible in statements."
+              example="Telecom tower equipment spares"
+            />
+          </label>
           <input
             type="text"
             value={memo}
             onChange={(e) => setMemo(e.target.value)}
             placeholder="Contract details or delivery note reference..."
-            className="h-8 px-2.5 bg-surface border border-ink-200 rounded-sm text-xs text-ink-900 focus:outline-none focus:border-brand-500"
+            className="h-8 px-2.5 bg-surface border border-border rounded-sm text-xs text-text-primary focus:outline-none focus:border-accent"
           />
         </div>
       </div>
 
       {/* Editable Line Grid */}
       <div className="flex flex-col gap-2">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold text-ink-900 uppercase tracking-wider">
-            Invoice Lines (VAT 5%, Branch Required)
-          </span>
-          <span className="text-[11px] text-ink-500">
-            Total amount:{' '}
-            <strong className="text-ink-900 font-mono">{formatMoney(total, 'USD')}</strong>
-          </span>
-        </div>
+        <span className="text-sm font-semibold text-text-primary">Lines</span>
 
         <LineGrid
           mode="invoice"
@@ -271,20 +425,49 @@ export const InvoiceForm: React.FC = () => {
           dimensions={dimensions}
           taxCodes={taxCodes}
           currency="USD"
+          showTotals={false}
         />
+
+        <div className="flex justify-end">
+          <dl className="w-64 text-xs flex flex-col gap-1.5">
+            <div className="flex justify-between text-text-secondary">
+              <dt>Subtotal</dt>
+              <dd className="font-mono text-num text-text-primary">{formatMoney(subtotal, 'USD')}</dd>
+            </div>
+            <div className="flex justify-between text-text-secondary">
+              <dt>VAT 5%</dt>
+              <dd className="font-mono text-num text-text-primary">{formatMoney(taxTotal, 'USD')}</dd>
+            </div>
+            <div className="flex justify-between items-baseline border-t border-border pt-2 mt-0.5">
+              <dt className="font-semibold text-text-primary text-sm">Total</dt>
+              <dd className="font-mono text-num font-bold text-text-primary text-base">{formatMoney(total, 'USD')}</dd>
+            </div>
+          </dl>
+        </div>
       </div>
 
       {/* Controls compliance footer note */}
-      <div className="p-3 bg-ink-100/60 rounded-md border border-ink-200 text-xs text-ink-500 flex items-center justify-between">
+      <div className="p-3 bg-surface-neutral/60 rounded-md border border-border text-xs text-text-muted flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <ShieldCheck className="w-4 h-4 text-brand-600" />
+          <ShieldCheck className="w-4 h-4 text-accent" />
           <span>
-            Upon submission, this invoice will enter the <strong>pending_approval</strong> state and
-            must be authorized by an independent Finance Manager before posting to the general ledger.
+            After you submit, an approver reviews it before it's recorded and sent. Period: Oct 2026.
           </span>
         </div>
-        <span className="font-mono text-[11px] font-semibold text-ink-700">Period: Oct 2026</span>
       </div>
+
+      {/* Plain Language Consequence Modal */}
+      <ConsequenceDialog
+        isOpen={showConsequence}
+        onClose={() => setShowConsequence(false)}
+        onConfirm={handleConfirmSubmit}
+        title="Submit invoice for approval"
+        actionType="submit"
+        plainLanguageEffect={`This will send to Fatima for approval. When approved it posts 3 lines to Oct 2026 and increases ${selectedContact?.name || 'Hormuud Telecom'}'s balance by ${formatMoney(total, 'USD')}.`}
+        accountingLines={accountingPreviewLines}
+        confirmLabel="Submit"
+        isSubmitting={isSubmitting}
+      />
     </div>
   );
 };

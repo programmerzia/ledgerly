@@ -6,16 +6,14 @@ import { formatMoney, formatDate } from '@/lib/format';
 import { StatusPill } from '@/components/domain/StatusPill';
 import {
   CreditCard,
-  Building,
-  ShieldCheck,
   ArrowRight,
   Plus,
-  Layers,
-  Calendar,
-  ExternalLink,
-  CheckCircle2,
-  AlertCircle,
+  ArrowLeftRight,
 } from 'lucide-react';
+import { PageHeader } from '@/components/domain/PageHeader';
+import { BankAccountCard } from './BankAccountCard';
+import { CoachPanel } from '@/components/domain/CoachPanel';
+import { BankTransferDialog } from '@/components/domain/BankTransferDialog';
 import {
   Dialog,
   DialogContent,
@@ -41,6 +39,7 @@ export const BankAccountsList: React.FC = () => {
   const coSlug = currentCompany.slug;
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
   const [selectedBankId, setSelectedBankId] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
@@ -98,112 +97,70 @@ export const BankAccountsList: React.FC = () => {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Page Header */}
-      <div className="flex items-center justify-between pb-3 border-b border-border">
-        <div>
-          <h1 className="text-xl font-semibold text-text-primary flex items-center gap-2">
-            <CreditCard className="w-5 h-5 text-accent" />
-            Bank & Cash Accounts
-          </h1>
-          <p className="text-xs text-text-muted mt-0.5">
-            {currentCompany.name} • Treasury, operating accounts & statement reconciliation feeds
-          </p>
-        </div>
-
-        <button
-          type="button"
-          onClick={handleOpenAddModal}
-          className="flex items-center gap-1.5 h-8 px-3.5 bg-accent hover:bg-accent-hover text-white rounded-sm text-xs font-semibold shadow-xs transition"
-        >
-          <Plus className="w-3.5 h-3.5" />
-          <span>Add Bank Account</span>
-        </button>
-      </div>
-
-      {/* Account Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        {bankAccounts.map((b) => {
-          const bookBalance = balanceOf(b.account_id);
-          const unreconciledCount = bankStatementLines.filter(
-            (l) => l.bank_account_id === b.id && l.status === 'unmatched'
-          ).length;
-
-          return (
-            <div
-              key={b.id}
-              onClick={() => setSelectedBankId(b.id)}
-              className="p-5 bg-surface border border-border hover:border-border-strong rounded-lg shadow-2xs hover:shadow-xs transition cursor-pointer flex flex-col justify-between gap-5 group"
+      <PageHeader
+        icon={<CreditCard />}
+        title="Bank & cash accounts"
+        subtitle={`${currentCompany.name} · balances, statements and reconciliation`}
+        actions={
+          <>
+            <button
+              type="button"
+              onClick={() => setIsTransferModalOpen(true)}
+              className="flex h-9 items-center gap-1.5 rounded-lg border border-border bg-surface px-3 text-[13px] font-medium text-text-secondary transition hover:bg-surface-neutral hover:text-text-primary"
             >
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-md bg-accent-soft text-accent flex items-center justify-center font-bold">
-                      <Building className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-semibold text-text-primary group-hover:text-accent transition">
-                        {b.name}
-                      </h3>
-                      <div className="text-xs text-text-muted">
-                        {b.bank_name} • {b.account_number_masked}
-                      </div>
-                    </div>
-                  </div>
-                  <span className="font-mono text-xs font-semibold px-2 py-0.5 rounded bg-surface-neutral text-text-secondary border border-border">
-                    {b.currency}
-                  </span>
-                </div>
+              <ArrowLeftRight className="size-4 text-accent" />
+              Transfer money
+            </button>
+            <button
+              type="button"
+              onClick={handleOpenAddModal}
+              className="flex h-9 items-center gap-1.5 rounded-lg bg-accent px-3.5 text-[13px] font-semibold text-white transition hover:bg-accent-hover"
+            >
+              <Plus className="size-4" />
+              Add account
+            </button>
+          </>
+        }
+      />
 
-                <div className="grid grid-cols-2 gap-3 mt-3 p-3 bg-surface-neutral/60 rounded-md border border-border font-mono text-xs">
-                  <div>
-                    <span className="text-[10px] text-text-muted uppercase font-sans font-medium block">
-                      Book Balance
-                    </span>
-                    <div className="font-bold text-text-primary text-sm mt-0.5">
-                      {formatMoney(bookBalance, b.currency)}
-                    </div>
-                  </div>
-                  <div>
-                    <span className="text-[10px] text-text-muted uppercase font-sans font-medium block">
-                      Last Statement
-                    </span>
-                    <div className="font-bold text-text-primary text-sm mt-0.5">
-                      {formatMoney(b.last_statement_balance, b.currency)}
-                    </div>
-                  </div>
-                </div>
-              </div>
+      {/* 3-Step Guided Coach Panel */}
+      <CoachPanel
+        moduleId="banking"
+        moduleName="Bank & Cash Accounts"
+        steps={[
+          {
+            title: '1. Connect or Add Bank Account',
+            desc: 'Configure operating, savings, or petty cash accounts mapped to GL 1010-1090.',
+            actionLabel: 'Add Account',
+            onAction: handleOpenAddModal,
+          },
+          {
+            title: '2. Import Statement Feeds',
+            desc: 'Upload CSV/OFX statement lines or fetch real-time bank transactions.',
+            actionLabel: 'Reconcile Feed',
+            onAction: () => navigate(`/${coSlug}/banking/reconcile`),
+          },
+          {
+            title: '3. Zero-Difference Reconciliation',
+            desc: 'Match statement lines against ledger receipts and payments until Difference = 0.',
+            actionLabel: 'Start Reconcile',
+            onAction: () => navigate(`/${coSlug}/banking/reconcile`),
+          },
+        ]}
+      />
 
-              <div className="flex items-center justify-between pt-3 border-t border-border">
-                <div className="flex items-center gap-2">
-                  {unreconciledCount > 0 ? (
-                    <span className="text-xs font-medium text-warning bg-warning-soft px-2 py-0.5 rounded-full border border-warning/30 flex items-center gap-1">
-                      <AlertCircle className="w-3.5 h-3.5" />
-                      {unreconciledCount} unreconciled lines
-                    </span>
-                  ) : (
-                    <span className="text-xs font-medium text-success bg-success-soft px-2 py-0.5 rounded-full flex items-center gap-1 border border-success/30">
-                      <ShieldCheck className="w-3.5 h-3.5" />
-                      Reconciled
-                    </span>
-                  )}
-                </div>
-
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate(`/${coSlug}/banking/${b.id}/reconcile`);
-                  }}
-                  className="flex items-center gap-1.5 h-8 px-3 bg-surface hover:bg-surface-neutral text-text-primary border border-border rounded-sm text-xs font-semibold shadow-2xs transition"
-                >
-                  <span>Reconcile</span>
-                  <ArrowRight className="w-3.5 h-3.5 text-accent" />
-                </button>
-              </div>
-            </div>
-          );
-        })}
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+        {bankAccounts.map((b) => (
+          <BankAccountCard
+            key={b.id}
+            bank={b}
+            bookBalance={balanceOf(b.account_id)}
+            toReconcile={bankStatementLines.filter((l) => l.bank_account_id === b.id && l.status === 'unmatched').length}
+            balanceAt={(iso) => balanceOf(b.account_id, iso)}
+            onOpen={() => setSelectedBankId(b.id)}
+            onReconcile={() => navigate(`/${coSlug}/banking/${b.id}/reconcile`)}
+          />
+        ))}
       </div>
 
       {/* Quick Detail Drawer on Bank Account Card Click */}
@@ -444,6 +401,12 @@ export const BankAccountsList: React.FC = () => {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Inter-Account Bank Transfer Modal */}
+      <BankTransferDialog
+        isOpen={isTransferModalOpen}
+        onClose={() => setIsTransferModalOpen(false)}
+      />
     </div>
   );
 };

@@ -1,42 +1,52 @@
 import React, { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { ColumnDef } from '@tanstack/react-table';
 import { useLedgerStore } from '@/mock/store';
+import { DataTable } from '@/components/domain/DataTable';
 import { formatMoney } from '@/lib/format';
 import {
   ShieldCheck,
-  Search,
-  Download,
   Printer,
-  Calendar,
-  Building,
   FileText,
-  CheckCircle2,
-  ExternalLink,
   Coins,
+  Eye,
+  ExternalLink,
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from '@/components/ui/dialog';
+import { PageHeader } from '@/components/domain/PageHeader';
+
+interface WhtCert {
+  id: string;
+  cert_number: string;
+  issue_date: string;
+  period: string;
+  supplier_name: string;
+  supplier_tax_id: string;
+  gross_amount: number;
+  wht_rate_pct: number;
+  wht_amount: number;
+  currency: string;
+  source_bill_number: string;
+  status: string;
+}
 
 export const WhtCertificatesList: React.FC = () => {
+  const { currentCompany, contacts, bills, uiDensity } = useLedgerStore();
   const navigate = useNavigate();
-  const { currentCompany, contacts, settlements, bills } = useLedgerStore();
-  const coSlug = currentCompany.slug;
-
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCert, setSelectedCert] = useState<any | null>(null);
+  const [selectedCert, setSelectedCert] = useState<WhtCert | null>(null);
 
   const suppliersMap = useMemo(() => {
     return new Map(contacts.map((c) => [c.id, c]));
   }, [contacts]);
 
-  // Derive WHT certificates from bills with wht_amount_fc > 0 or settlements
-  const certificates = useMemo(() => {
-    const certs: any[] = [];
+  // Derive WHT certificates from bills with wht_amount_fc > 0
+  const certificates = useMemo<WhtCert[]>(() => {
+    const certs: WhtCert[] = [];
     let count = 1;
 
     for (const b of bills) {
@@ -59,7 +69,6 @@ export const WhtCertificatesList: React.FC = () => {
       }
     }
 
-    // Default mock entry if none exist
     if (certs.length === 0) {
       certs.push({
         id: 'wht-cert-sample',
@@ -80,128 +89,121 @@ export const WhtCertificatesList: React.FC = () => {
     return certs;
   }, [bills, suppliersMap]);
 
-  const filteredCerts = useMemo(() => {
-    if (!searchQuery) return certificates;
-    const q = searchQuery.toLowerCase();
-    return certificates.filter(
-      (c) =>
-        c.cert_number.toLowerCase().includes(q) ||
-        c.supplier_name.toLowerCase().includes(q) ||
-        c.source_bill_number.toLowerCase().includes(q)
-    );
-  }, [certificates, searchQuery]);
+  const columns: ColumnDef<WhtCert>[] = [
+    {
+      accessorKey: 'cert_number',
+      header: 'Certificate #',
+      cell: ({ row }) => (
+        <span
+          onClick={() => setSelectedCert(row.original)}
+          className="font-mono font-medium text-accent hover:underline cursor-pointer"
+        >
+          {row.original.cert_number}
+        </span>
+      ),
+    },
+    {
+      accessorKey: 'supplier_name',
+      header: 'Supplier / Payee',
+      cell: ({ row }) => (
+        <span className="font-medium text-text-primary">{row.original.supplier_name}</span>
+      ),
+    },
+    {
+      accessorKey: 'supplier_tax_id',
+      header: 'Supplier TIN',
+      cell: ({ row }) => (
+        <span className="font-mono text-text-muted text-[11px]">{row.original.supplier_tax_id}</span>
+      ),
+    },
+    {
+      accessorKey: 'issue_date',
+      header: 'Date',
+      cell: ({ row }) => (
+        <span className="font-mono text-text-muted text-[11px]">{row.original.issue_date}</span>
+      ),
+    },
+    {
+      accessorKey: 'source_bill_number',
+      header: 'Source Bill',
+      cell: ({ row }) => (
+        <span className="font-mono text-text-muted text-[11px]">{row.original.source_bill_number}</span>
+      ),
+    },
+    {
+      accessorKey: 'gross_amount',
+      header: () => <div className="text-right">Gross Amount</div>,
+      cell: ({ row }) => (
+        <div className="text-right font-mono text-num text-text-primary">
+          {formatMoney(row.original.gross_amount, row.original.currency)}
+        </div>
+      ),
+    },
+    {
+      accessorKey: 'wht_rate_pct',
+      header: () => <div className="text-right">Rate</div>,
+      cell: ({ row }) => (
+        <div className="text-right font-mono text-num text-text-muted">
+          {row.original.wht_rate_pct}%
+        </div>
+      ),
+    },
+    {
+      accessorKey: 'wht_amount',
+      header: () => <div className="text-right">WHT Withheld</div>,
+      cell: ({ row }) => (
+        <div className="text-right font-mono text-num font-semibold text-danger">
+          {formatMoney(row.original.wht_amount, row.original.currency)}
+        </div>
+      ),
+    },
+  ];
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-hidden bg-surface-canvas">
-      {/* Top Header */}
-      <div className="h-12 border-b border-line-border px-4 flex items-center justify-between shrink-0 bg-surface-elevated">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-brand-teal" />
-            <h1 className="text-sm font-bold text-ink-900">Withholding Tax (WHT) Certificates</h1>
-            <span className="text-[11px] text-ink-muted">Official Supplier Tax Deduction Records</span>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <div className="relative">
-            <Search className="w-3.5 h-3.5 text-ink-muted absolute left-2.5 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              placeholder="Search certificates, vendors..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-8 pl-8 pr-3 text-xs rounded-sm border border-line-border bg-surface-subtle focus:bg-surface-elevated focus:outline-none focus:border-brand-teal w-60"
-            />
-          </div>
-
+    <div className="flex flex-col gap-4">
+      <PageHeader
+        title="Withholding tax certificates"
+        subtitle="Proof of tax held back from supplier payments"
+        icon={<ShieldCheck />}
+        actions={
           <button
             type="button"
             onClick={() => window.print()}
-            className="flex items-center gap-1.5 h-8 px-3 rounded-sm border border-line-border bg-surface-subtle hover:bg-surface-neutral text-ink-900 text-xs font-medium transition"
+            className="inline-flex items-center gap-1.5 h-9 px-3.5 border border-border hover:border-border-strong bg-surface hover:bg-surface-neutral text-text-primary rounded-lg text-[13px] font-medium transition"
           >
-            <Printer className="w-3.5 h-3.5 text-ink-muted" />
-            <span>Print Batch</span>
+            <Printer className="size-4 text-text-muted" />
+            <span>Print all</span>
           </button>
-        </div>
-      </div>
+        }
+      />
 
-      {/* Main Content */}
-      <div className="p-4 flex flex-col gap-4 overflow-y-auto">
-        <div className="border border-line-border rounded-md overflow-hidden bg-surface-elevated shadow-2xs">
-          <table className="w-full border-collapse text-left text-xs">
-            <thead>
-              <tr className="h-9 bg-surface-neutral border-b border-line-border text-[11px] font-semibold text-ink-muted uppercase tracking-wider">
-                <th className="px-3">Certificate #</th>
-                <th className="px-3">Supplier Name</th>
-                <th className="px-3">Tax Identification (TIN)</th>
-                <th className="px-3">Issue Date</th>
-                <th className="px-3">Source Bill</th>
-                <th className="px-3 text-right">Gross Contract</th>
-                <th className="px-3 text-right">WHT Rate</th>
-                <th className="px-3 text-right">Tax Withheld</th>
-                <th className="px-3 text-center">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-line-border">
-              {filteredCerts.map((cert) => (
-                <tr
-                  key={cert.id}
-                  onClick={() => setSelectedCert(cert)}
-                  className="h-9 hover:bg-surface-neutral cursor-pointer transition"
-                >
-                  <td className="px-3 font-mono font-medium text-brand-teal">
-                    {cert.cert_number}
-                  </td>
-                  <td className="px-3 font-medium text-ink-900">
-                    {cert.supplier_name}
-                  </td>
-                  <td className="px-3 font-mono text-[11px] text-ink-muted">
-                    {cert.supplier_tax_id}
-                  </td>
-                  <td className="px-3 font-mono text-[11px] text-ink-muted">
-                    {cert.issue_date}
-                  </td>
-                  <td className="px-3 font-mono text-[11px] text-ink-muted">
-                    {cert.source_bill_number}
-                  </td>
-                  <td className="px-3 text-right font-mono text-num text-ink-900">
-                    {formatMoney(cert.gross_amount)}
-                  </td>
-                  <td className="px-3 text-right font-mono text-num text-ink-muted">
-                    {cert.wht_rate_pct}%
-                  </td>
-                  <td className="px-3 text-right font-mono text-num font-semibold text-danger">
-                    {formatMoney(cert.wht_amount)}
-                  </td>
-                  <td className="px-3 text-center">
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedCert(cert);
-                      }}
-                      className="p-1 text-ink-muted hover:text-brand-teal rounded transition"
-                      title="View Certificate"
-                    >
-                      <FileText className="w-4 h-4" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="text-[11px] text-ink-muted px-1 flex items-center justify-between">
-          <span>Showing {filteredCerts.length} certificates</span>
-          <span>Compliant with Ministry of Finance Withholding Tax Regulations</span>
-        </div>
-      </div>
+      <DataTable
+        columns={columns}
+        data={certificates}
+        searchPlaceholder="Filter certificates by number, supplier, or bill..."
+        rowDensity={uiDensity}
+        contextMenuTitle={(r) => r.cert_number}
+        rowActions={(r) => {
+          const bill = bills.find((b) => (b.number || b.reference) === r.source_bill_number);
+          return [
+            { label: 'View certificate', icon: Eye, shortcut: 'Enter', onClick: () => setSelectedCert(r) },
+            { label: 'Print', icon: Printer, onClick: () => { setSelectedCert(r); setTimeout(() => window.print(), 200); } },
+            {
+              label: 'Open source bill',
+              icon: ExternalLink,
+              disabled: !bill,
+              disabledReason: 'The original bill could not be found',
+              onClick: () => bill && navigate(`/${currentCompany.slug}/bills/${bill.id}`),
+            },
+          ];
+        }}
+        onRowClick={(row) => setSelectedCert(row)}
+        onRowDoubleClick={(row) => setSelectedCert(row)}
+      />
 
       {/* Certificate Preview Modal */}
       <Dialog open={!!selectedCert} onOpenChange={(open) => !open && setSelectedCert(null)}>
-        <DialogContent className="max-w-[540px] p-6">
+        <DialogContent className="p-6">
           {selectedCert && (
             <div className="flex flex-col gap-4">
               <DialogHeader>
@@ -216,7 +218,7 @@ export const WhtCertificatesList: React.FC = () => {
                 </div>
               </DialogHeader>
 
-              <div className="p-4 bg-surface-neutral border border-border rounded-md flex flex-col gap-3 text-xs">
+              <div className="p-4 bg-surface-neutral/60 border border-border rounded-md flex flex-col gap-3 text-xs">
                 <div className="text-center pb-2 border-b border-border">
                   <div className="font-bold text-text-primary text-sm">{currentCompany.legal_name}</div>
                   <div className="text-[11px] text-text-muted">Taxpayer Identification Number: {currentCompany.tax_id}</div>
@@ -244,40 +246,36 @@ export const WhtCertificatesList: React.FC = () => {
                 <div className="p-3 bg-surface rounded border border-border flex flex-col gap-1.5 font-mono text-xs">
                   <div className="flex justify-between text-text-muted">
                     <span>Gross Contract / Service Amount:</span>
-                    <span className="text-text-primary font-semibold">{formatMoney(selectedCert.gross_amount)}</span>
+                    <span className="text-text-primary font-semibold">{formatMoney(selectedCert.gross_amount, selectedCert.currency)}</span>
                   </div>
                   <div className="flex justify-between text-text-muted">
                     <span>Withholding Tax Rate:</span>
                     <span className="text-text-primary font-semibold">{selectedCert.wht_rate_pct}%</span>
                   </div>
                   <div className="flex justify-between text-danger font-bold pt-1 border-t border-border">
-                    <span>Tax Withheld & Remitted:</span>
-                    <span>{formatMoney(selectedCert.wht_amount)}</span>
+                    <span>Tax Amount Withheld:</span>
+                    <span>{formatMoney(selectedCert.wht_amount, selectedCert.currency)}</span>
                   </div>
                 </div>
               </div>
 
-              <DialogFooter className="gap-2 pt-2 border-t border-border">
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
                 <button
                   type="button"
                   onClick={() => setSelectedCert(null)}
-                  className="h-8 px-3 rounded-sm border border-border bg-surface text-text-primary text-xs font-medium hover:bg-surface-neutral transition"
+                  className="h-8 px-3 rounded border border-border text-xs text-text-muted hover:text-text-primary hover:bg-surface-neutral transition"
                 >
                   Close
                 </button>
-
                 <button
                   type="button"
-                  onClick={() => {
-                    window.print();
-                    setSelectedCert(null);
-                  }}
-                  className="h-8 px-4 rounded-sm bg-accent text-white text-xs font-semibold hover:bg-accent-hover transition flex items-center gap-1.5 shadow-xs"
+                  onClick={() => window.print()}
+                  className="h-8 px-3 bg-accent hover:bg-accent-hover text-white rounded text-xs font-semibold flex items-center gap-1.5 transition"
                 >
                   <Printer className="w-3.5 h-3.5" />
                   <span>Print Certificate</span>
                 </button>
-              </DialogFooter>
+              </div>
             </div>
           )}
         </DialogContent>
