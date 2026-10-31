@@ -22,6 +22,7 @@ final class InvitationResource extends JsonResource
             'company_ids' => $this->company_ids ?? [],
             'invited_by' => $this->invited_by,
             'expires_at' => $this->expires_at->toIso8601String(),
+            'can' => ['revoke' => (bool) $request->user()?->can('delete', $this->resource)],
         ];
     }
 }

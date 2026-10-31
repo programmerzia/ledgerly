@@ -8,6 +8,7 @@ use App\Domain\Shared\DomainRuleViolation;
 use App\Http\Controllers\Controller;
 use App\Http\Middleware\ResolveTenant;
 use App\Models\Platform\User;
+use App\Support\Tenancy\OrganisationRole;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -33,6 +34,11 @@ final class SessionController extends Controller
             ->map(fn (object $t): array => [
                 'id' => $t->id, 'name' => $t->name, 'slug' => $t->slug,
                 'lifecycle' => $t->lifecycle, 'role' => $t->role, 'current' => $t->id === $current,
+                // Org-level rights follow the org role (13 §7); company rights come per company.
+                'can' => [
+                    'manage_members' => OrganisationRole::isAdmin($t->role),
+                    'create_companies' => OrganisationRole::isAdmin($t->role),
+                ],
             ])->all();
 
         return new JsonResponse(['data' => [

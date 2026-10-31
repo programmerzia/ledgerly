@@ -11,6 +11,7 @@ final class StatusMap
         'version_conflict' => 409,
         'idempotency_in_progress' => 409,
         'forbidden' => 403,
+        'not_found' => 404,
         'self_approval_forbidden' => 403,
         'signature_required' => 403,
         'two_factor_required' => 403,

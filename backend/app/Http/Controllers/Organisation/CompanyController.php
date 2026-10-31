@@ -15,9 +15,11 @@ use App\Support\Tenancy\TenantContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Routing\Attributes\Controllers\Authorize;
 
 final class CompanyController extends Controller
 {
+    #[Authorize('viewAny', Company::class)]
     public function index(Request $request, CompanyAccess $access, TenantContext $tenant): AnonymousResourceCollection
     {
         $principal = $request->user();
@@ -30,6 +32,7 @@ final class CompanyController extends Controller
         return CompanyResource::collection($companies);
     }
 
+    #[Authorize('create', Company::class)]
     public function store(CreateCompanyRequest $request, CreateCompany $action): JsonResponse
     {
         $company = $action->handle(RequestActor::user($request), $request->toInput());

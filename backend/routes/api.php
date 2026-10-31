@@ -32,7 +32,7 @@ Route::middleware(['auth:sanctum', 'tenant', 'tenant.writable'])->group(function
     Route::post('companies', [CompanyController::class, 'store'])->name('companies.store');
     Route::get('invitations', [InvitationController::class, 'index'])->name('invitations.index');
     Route::post('invitations', [InvitationController::class, 'store'])->name('invitations.store');
-    Route::delete('invitations/{invitation}', [InvitationController::class, 'destroy'])->name('invitations.destroy');
+    Route::delete('invitations/{invitation}', [InvitationController::class, 'destroy'])->whereUuid('invitation')->name('invitations.destroy');
 });
 
 // Tenant routes (2.8+) use: auth:sanctum, tenant, tenant.writable [, company].

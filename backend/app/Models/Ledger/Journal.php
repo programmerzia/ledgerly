@@ -32,6 +32,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $lock_version
  * @property string|null $created_by
  * @property string|null $posted_by
+ * @property string|null $submitted_by
+ * @property string|null $approved_by
  * @property-read Collection<int, JournalLine> $lines
  */
 class Journal extends BaseModel

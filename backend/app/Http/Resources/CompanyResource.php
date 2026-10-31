@@ -25,6 +25,11 @@ final class CompanyResource extends JsonResource
             'tax_id' => $this->tax_id,
             'timezone' => $this->timezone,
             'status' => $this->status,
+            // 13 §7: the SPA shows actions from these hints and never re-derives permissions.
+            'can' => [
+                'open' => (bool) $request->user()?->can('view', $this->resource),
+                'manage_settings' => (bool) $request->user()?->can('update', $this->resource),
+            ],
         ];
     }
 }

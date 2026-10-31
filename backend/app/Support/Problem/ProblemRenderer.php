@@ -36,6 +36,14 @@ final class ProblemRenderer
         return self::respond($body, 422);
     }
 
+    /** Framework errors (denied policy, unknown record, no session) in the same shape. */
+    public static function http(string $code, string $detail, Request $request): JsonResponse
+    {
+        $status = StatusMap::status($code);
+
+        return self::respond(self::base($code, $status, $detail, $request), $status);
+    }
+
     /** @return array<string, mixed> */
     private static function base(string $code, int $status, string $detail, Request $request): array
     {

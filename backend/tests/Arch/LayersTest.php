@@ -33,3 +33,7 @@ arch('strict types everywhere in app code')
 arch('no debugging leftovers')
     ->expect(['dd', 'dump', 'ray', 'var_dump'])
     ->not->toBeUsed();
+
+arch('policies only read: no Actions, no unit of work')
+    ->expect('App\Policies')
+    ->not->toUse(['App\Actions', 'App\Support\UnitOfWork', 'Illuminate\Support\Facades\DB']);

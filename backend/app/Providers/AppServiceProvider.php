@@ -8,7 +8,13 @@ use App\Contracts\Clock;
 use App\Contracts\CompanyAccess;
 use App\Contracts\IdGenerator;
 use App\Contracts\PermissionChecker;
+use App\Models\Ledger\Journal;
+use App\Models\Organisation\Company;
+use App\Models\Organisation\Invitation;
 use App\Models\Platform\PersonalAccessToken;
+use App\Policies\Ledger\JournalPolicy;
+use App\Policies\Organisation\CompanyPolicy;
+use App\Policies\Organisation\InvitationPolicy;
 use App\Services\Ledger\SequenceAllocator;
 use App\Services\SystemClock;
 use App\Services\Tenancy\SpatieCompanyAccess;
@@ -25,6 +31,7 @@ use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Events\ConnectionEstablished;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Cashier\Cashier;
 use Laravel\Sanctum\Sanctum;
@@ -69,6 +76,12 @@ class AppServiceProvider extends ServiceProvider
     {
         Model::shouldBeStrict(! $this->app->isProduction());
         Sanctum::usePersonalAccessTokenModel(PersonalAccessToken::class);
+
+        // Explicit map, no guessing (13 §7). Policies type-hint User, so API client tokens are denied
+        // until their abilities land (2.8).
+        Gate::policy(Company::class, CompanyPolicy::class);
+        Gate::policy(Invitation::class, InvitationPolicy::class);
+        Gate::policy(Journal::class, JournalPolicy::class);
 
         Event::listen(ConnectionEstablished::class, function (ConnectionEstablished $event): void {
             if ($this->app->resolved(TenantContext::class)) {
