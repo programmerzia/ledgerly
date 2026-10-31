@@ -8,6 +8,7 @@ use App\Domain\Fiscal\PeriodKind;
 use App\Domain\Fiscal\PeriodStatus;
 use App\Domain\Ledger\PeriodInfo;
 use App\Models\BaseModel;
+use Carbon\CarbonImmutable;
 use DateTimeImmutable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -21,6 +22,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property DateTimeImmutable $starts_on
  * @property DateTimeImmutable $ends_on
  * @property PeriodStatus $status
+ * @property CarbonImmutable|null $soft_closed_at
+ * @property CarbonImmutable|null $closed_at
+ * @property string|null $closed_by
+ * @property int $reopened_count
  * @property-read FiscalYear $fiscalYear
  */
 class FiscalPeriod extends BaseModel
@@ -33,6 +38,9 @@ class FiscalPeriod extends BaseModel
             'ends_on' => 'immutable_date',
             'status' => PeriodStatus::class,
             'number' => 'integer',
+            'soft_closed_at' => 'immutable_datetime',
+            'closed_at' => 'immutable_datetime',
+            'reopened_count' => 'integer',
         ];
     }
 
