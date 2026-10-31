@@ -15,6 +15,12 @@ final class StatusMap
         'two_factor_required' => 403,
         'signing_locked' => 423,
         'tenant_read_only' => 423,
+        'unauthenticated' => 401,
+        'tenant_required' => 409,
+        'tenant_access_denied' => 403,
+        'tenant_unavailable' => 403,
+        'company_access_denied' => 403,
+        'company_not_found' => 404,
         'entitlement_exceeded' => 402,
         'rate_limited' => 429,
     ];

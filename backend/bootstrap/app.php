@@ -1,7 +1,13 @@
 <?php
 
 use App\Domain\Shared\DomainRuleViolation;
+use App\Http\Middleware\AssignRequestId;
+use App\Http\Middleware\EnsureTenantWritable;
+use App\Http\Middleware\ResolveCompany;
+use App\Http\Middleware\ResolveTenant;
+use App\Http\Middleware\SetTenantFromToken;
 use App\Support\Problem\ProblemRenderer;
+use Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -16,7 +22,15 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // 13 §5. Every API request gets a request id; bearer tokens set the tenant before
+        // auth:sanctum loads the (RLS-protected) API client.
+        $middleware->api(prepend: [AssignRequestId::class, SetTenantFromToken::class]);
+        $middleware->prependToPriorityList(before: AuthenticatesRequests::class, prepend: SetTenantFromToken::class);
+        $middleware->alias([
+            'tenant' => ResolveTenant::class,
+            'company' => ResolveCompany::class,
+            'tenant.writable' => EnsureTenantWritable::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

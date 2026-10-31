@@ -5,12 +5,16 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Contracts\Clock;
+use App\Contracts\CompanyAccess;
 use App\Contracts\IdGenerator;
 use App\Contracts\PermissionChecker;
+use App\Models\Platform\PersonalAccessToken;
 use App\Services\DenyAllPermissions;
 use App\Services\Ledger\SequenceAllocator;
 use App\Services\SystemClock;
+use App\Services\Tenancy\OrgRoleCompanyAccess;
 use App\Services\UuidV7Generator;
+use App\Support\Tenancy\CompanyContext;
 use App\Support\Tenancy\TenantContext;
 use App\Support\UnitOfWork\AuditWriter;
 use App\Support\UnitOfWork\OutboxWriter;
@@ -23,6 +27,7 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Cashier\Cashier;
 use Laravel\Fortify\Fortify;
+use Laravel\Sanctum\Sanctum;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -39,6 +44,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(Clock::class, SystemClock::class);
         $this->app->singleton(IdGenerator::class, UuidV7Generator::class);
         $this->app->singleton(PermissionChecker::class, DenyAllPermissions::class);
+        $this->app->singleton(CompanyAccess::class, OrgRoleCompanyAccess::class);
+        $this->app->scoped(CompanyContext::class);
 
         $this->app->scoped(TenantContext::class, function ($app) {
             /** @var list<string> $connections */
@@ -60,6 +67,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Model::shouldBeStrict(! $this->app->isProduction());
+        Sanctum::usePersonalAccessTokenModel(PersonalAccessToken::class);
 
         Event::listen(ConnectionEstablished::class, function (ConnectionEstablished $event): void {
             if ($this->app->resolved(TenantContext::class)) {

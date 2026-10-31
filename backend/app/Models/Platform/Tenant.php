@@ -11,6 +11,7 @@ use App\Models\BaseModel;
  * @property string $name
  * @property string $slug
  * @property string $lifecycle
+ * @property array<string, mixed> $settings
  */
 class Tenant extends BaseModel
 {
