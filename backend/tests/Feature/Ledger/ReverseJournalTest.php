@@ -8,12 +8,14 @@ use App\Domain\Ledger\JournalStatus;
 use App\Domain\Ledger\JournalType;
 use App\Domain\Ledger\PostingRejected;
 use App\Domain\Shared\DomainRuleViolation;
+use App\Support\Actor;
 use Tests\Support\LedgerFixture;
 
 beforeEach(function () {
+    $this->grant('journals.reverse');
     $this->f = LedgerFixture::create();
     $this->reverse = fn (string $id, ?string $date = null) => app(ReverseJournal::class)
-        ->handle($this->f->actor, new ReverseJournalInput($id, $date ? new DateTimeImmutable($date) : null));
+        ->handle($this->f->signedActor(), new ReverseJournalInput($id, $date ? new DateTimeImmutable($date) : null));
 });
 
 it('posts a mirror on the original date and marks the original reversed (D3)', function () {
@@ -57,4 +59,18 @@ it('rejects a reversal dated before the original and a second reversal', functio
         ->toThrow(fn (DomainRuleViolation $e) => expect($e->errorCode)->toBe('journal_already_reversed'))
         ->and(fn () => ($this->reverse)($reversal->id))
         ->toThrow(fn (DomainRuleViolation $e) => expect($e->errorCode)->toBe('journal_not_reversible'));
+});
+
+it('needs the permission and a signing grant, because reversing posts (ADR-0004)', function () {
+    $original = cashSale($this->f);
+
+    expect(fn () => app(ReverseJournal::class)->handle($this->f->actor, new ReverseJournalInput($original->id)))
+        ->toThrow(DomainRuleViolation::class, 'signing PIN');
+    $this->grant();
+    expect(fn () => app(ReverseJournal::class)->handle($this->f->signedActor(), new ReverseJournalInput($original->id)))
+        ->toThrow(DomainRuleViolation::class, 'journals.reverse');
+
+    $system = Actor::system($this->f->tenantId, $this->f->companyId);
+    expect(app(ReverseJournal::class)->handle($system, new ReverseJournalInput($original->id))->status)->toBe(JournalStatus::Posted);
+    expect($original->fresh()?->status)->toBe(JournalStatus::Reversed);
 });

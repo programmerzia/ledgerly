@@ -7,6 +7,7 @@ use App\Actions\Fiscal\Inputs\CreateFiscalYearInput;
 use App\Domain\Audit\Jcs;
 use App\Queries\Audit\AuditChainReport;
 use App\Queries\Audit\VerifyAuditChain;
+use App\Support\Actor;
 use App\Support\Audit\AuditSealer;
 use App\Support\Audit\DetachedAudit;
 use App\Support\Tenancy\TenantContext;
@@ -29,7 +30,7 @@ function auditedTenant(string $slug = 'acme'): LedgerFixture
 {
     $f = LedgerFixture::create(slug: $slug);
     foreach (['2027', '2028'] as $year) {
-        app(CreateFiscalYear::class)->handle($f->actor, new CreateFiscalYearInput($f->companyId, new DateTimeImmutable("{$year}-01-01"), "FY{$year}"));
+        app(CreateFiscalYear::class)->handle(Actor::system($f->tenantId, $f->companyId), new CreateFiscalYearInput($f->companyId, new DateTimeImmutable("{$year}-01-01"), "FY{$year}"));
     }
 
     return $f;
@@ -111,7 +112,7 @@ it('seals only when the chain moved, and checks only newer events from the newes
     expect($seal['sealed_through_id'])->toBe(max(eventIds()))
         ->and($sealer->seal())->toBeNull();
 
-    app(CreateFiscalYear::class)->handle($f->actor, new CreateFiscalYearInput($f->companyId, new DateTimeImmutable('2029-01-01'), 'FY2029'));
+    app(CreateFiscalYear::class)->handle(Actor::system($f->tenantId, $f->companyId), new CreateFiscalYearInput($f->companyId, new DateTimeImmutable('2029-01-01'), 'FY2029'));
 
     $report = verify(fromSeal: true);
     expect($report->intact)->toBeTrue()

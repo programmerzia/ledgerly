@@ -22,6 +22,7 @@ use App\Models\Ledger\Journal;
 use App\Models\Organisation\Company;
 use App\Services\Ledger\PostingEngine;
 use App\Support\Actor;
+use App\Support\ActorType;
 use App\Support\UnitOfWork\AuditBuffer;
 use App\Support\UnitOfWork\LockSet;
 use App\Support\UnitOfWork\Outbox;
@@ -45,9 +46,23 @@ final class ReverseJournal
 
     public function handle(Actor $actor, ReverseJournalInput $in): Journal
     {
+        if ($actor->isApiClient()) {
+            throw DomainRuleViolation::single('forbidden', 'Only a person can reverse a journal.');
+        }
+
         return $this->uow->run($actor, function (LockSet $locks, AuditBuffer $audit, Outbox $outbox) use ($actor, $in) {
             $original = Journal::query()->findOrFail($in->journalId);                       // unlocked
             $this->assertReversible($original);
+            // Reversing posts (ADR-0004): a person needs the permission and a signing grant. Only the
+            // system (auto-reversing runs) acts without one; the Action checks even though the policy did.
+            if ($actor->type !== ActorType::System) {
+                if (! $this->permissions->allows($actor, 'journals.reverse', $original->company_id)) {
+                    throw DomainRuleViolation::single('forbidden', 'This needs the journals.reverse permission.');
+                }
+                if (! $actor->hasSigningGrant) {
+                    throw DomainRuleViolation::single('signature_required', 'Reversing needs your signing PIN.');
+                }
+            }
             $originalPeriod = FiscalPeriod::query()->findOrFail($original->fiscal_period_id);
             $inAdjustment = $originalPeriod->kind === 'adjustment';
 

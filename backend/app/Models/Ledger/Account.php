@@ -22,6 +22,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property ControlType $control_type
  * @property CurrencyPolicy $currency_policy
  * @property string|null $fixed_currency
+ * @property string|null $account_subtype
+ * @property string $normal_balance
+ * @property string|null $parent_id
+ * @property string|null $description
+ * @property int $lock_version
  */
 class Account extends BaseModel
 {
@@ -32,6 +37,7 @@ class Account extends BaseModel
     {
         return [
             'is_postable' => 'boolean',
+            'lock_version' => 'integer',
             'is_active' => 'boolean',
             'allow_manual_journals' => 'boolean',
             'control_type' => ControlType::class,

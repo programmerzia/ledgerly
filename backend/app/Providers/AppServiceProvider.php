@@ -11,14 +11,28 @@ use App\Contracts\CompanyAccess;
 use App\Contracts\IdGenerator;
 use App\Contracts\PermissionChecker;
 use App\Contracts\RoleChecker;
+use App\Http\Support\CompanyBindings;
+use App\Models\Fiscal\FiscalPeriod;
+use App\Models\Fiscal\FiscalYear;
+use App\Models\Fiscal\PeriodReopenRequest;
+use App\Models\Ledger\Account;
+use App\Models\Ledger\Dimension;
 use App\Models\Ledger\Journal;
+use App\Models\Organisation\ApiClient;
 use App\Models\Organisation\Company;
 use App\Models\Organisation\Invitation;
 use App\Models\Platform\PersonalAccessToken;
+use App\Models\Workflow\ApprovalRequest;
+use App\Models\Workflow\ApprovalWorkflow;
+use App\Policies\Fiscal\PeriodPolicy;
+use App\Policies\Ledger\AccountPolicy;
+use App\Policies\Ledger\DimensionPolicy;
 use App\Policies\Ledger\JournalPolicy;
 use App\Policies\Organisation\CompanyPolicy;
 use App\Policies\Organisation\InvitationPolicy;
 use App\Policies\SigningPolicy;
+use App\Policies\Workflow\ApprovalRequestPolicy;
+use App\Policies\Workflow\ApprovalWorkflowPolicy;
 use App\Services\Ledger\SequenceAllocator;
 use App\Services\SystemClock;
 use App\Services\Tenancy\SpatieCompanyAccess;
@@ -32,14 +46,17 @@ use App\Support\Tenancy\TenantContext;
 use App\Support\UnitOfWork\AuditWriter;
 use App\Support\UnitOfWork\OutboxWriter;
 use App\Support\UnitOfWork\UnitOfWork;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Contracts\Hashing\Hasher;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Events\ConnectionEstablished;
 use Illuminate\Hashing\HashManager;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Cashier\Cashier;
 use Laravel\Sanctum\Sanctum;
@@ -92,11 +109,28 @@ class AppServiceProvider extends ServiceProvider
         Model::shouldBeStrict(! $this->app->isProduction());
         Sanctum::usePersonalAccessTokenModel(PersonalAccessToken::class);
 
-        // Explicit map, no guessing (13 §7). Policies type-hint User, so API client tokens are denied
-        // until their abilities land (2.8).
+        // Explicit map, no guessing (13 §7). Policies take any principal and decide for people (permissions)
+        // and API clients (token abilities) themselves; whatever approves, reverses or closes asks for a person.
         Gate::policy(Company::class, CompanyPolicy::class);
         Gate::policy(Invitation::class, InvitationPolicy::class);
         Gate::policy(Journal::class, JournalPolicy::class);
+        Gate::policy(Account::class, AccountPolicy::class);
+        Gate::policy(Dimension::class, DimensionPolicy::class);
+        foreach ([FiscalYear::class, FiscalPeriod::class, PeriodReopenRequest::class] as $model) {
+            Gate::policy($model, PeriodPolicy::class);
+        }
+        Gate::policy(ApprovalWorkflow::class, ApprovalWorkflowPolicy::class);
+        Gate::policy(ApprovalRequest::class, ApprovalRequestPolicy::class);
+        CompanyBindings::register();
+
+        // 13 §16: API client 600/min, SPA user 300/min, each counted per principal.
+        RateLimiter::for('company-api', function (Request $request): Limit {
+            $principal = call_user_func($request->getUserResolver());
+
+            return $principal instanceof ApiClient
+                ? Limit::perMinute(600)->by('client:'.$principal->id)
+                : Limit::perMinute(300)->by('user:'.(is_object($principal) && method_exists($principal, 'getAuthIdentifier') ? (string) $principal->getAuthIdentifier() : (string) $request->ip()));
+        });
         Gate::define('sign', [SigningPolicy::class, 'sign']);
 
         Event::listen(ConnectionEstablished::class, function (ConnectionEstablished $event): void {

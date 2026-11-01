@@ -6,6 +6,7 @@ namespace App\Actions\Fiscal;
 
 use App\Actions\Fiscal\Inputs\CreateFiscalYearInput;
 use App\Contracts\IdGenerator;
+use App\Contracts\PermissionChecker;
 use App\Domain\Fiscal\FiscalCalendar;
 use App\Domain\Fiscal\PeriodStatus;
 use App\Domain\Shared\DomainRuleViolation;
@@ -13,6 +14,7 @@ use App\Models\Fiscal\FiscalPeriod;
 use App\Models\Fiscal\FiscalYear;
 use App\Models\Organisation\Company;
 use App\Support\Actor;
+use App\Support\ActorType;
 use App\Support\UnitOfWork\AuditBuffer;
 use App\Support\UnitOfWork\LockSet;
 use App\Support\UnitOfWork\Outbox;
@@ -21,12 +23,19 @@ use App\Support\UnitOfWork\UnitOfWork;
 /** Creates a fiscal year with 12 monthly periods and its adjustment period (D7). */
 final class CreateFiscalYear
 {
-    public function __construct(private readonly UnitOfWork $uow, private readonly IdGenerator $ids) {}
+    public function __construct(
+        private readonly UnitOfWork $uow,
+        private readonly IdGenerator $ids,
+        private readonly PermissionChecker $permissions,
+    ) {}
 
     public function handle(Actor $actor, CreateFiscalYearInput $in): FiscalYear
     {
         return $this->uow->run($actor, function (LockSet $locks, AuditBuffer $audit, Outbox $outbox) use ($actor, $in) {
             $company = Company::query()->findOrFail($in->companyId);
+            if ($actor->type !== ActorType::System && ! $this->permissions->allows($actor, 'settings.manage', $company->id)) {
+                throw DomainRuleViolation::single('forbidden', 'This needs the settings.manage permission.');
+            }
             $planned = FiscalCalendar::monthly($in->startsOn);
             $endsOn = $planned[11]->endsOn;
 

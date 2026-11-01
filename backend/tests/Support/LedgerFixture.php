@@ -71,7 +71,7 @@ final class LedgerFixture
             ]);
         }
 
-        app(CreateFiscalYear::class)->handle($f->actor, new CreateFiscalYearInput($f->companyId, new DateTimeImmutable('2026-01-01'), 'FY2026'));
+        app(CreateFiscalYear::class)->handle(Actor::system($f->tenantId, $f->companyId), new CreateFiscalYearInput($f->companyId, new DateTimeImmutable('2026-01-01'), 'FY2026'));
 
         return $f;
     }
@@ -95,6 +95,12 @@ final class LedgerFixture
     public function setPeriodStatus(string $date, string $status): void
     {
         DB::table('fiscal_periods')->where('id', $this->period($date)->id)->update(['status' => $status]);
+    }
+
+    /** The owner with a verified signing PIN. */
+    public function signedActor(): Actor
+    {
+        return new Actor(ActorType::User, $this->userId, $this->tenantId, $this->companyId, hasSigningGrant: true, requestId: 'test');
     }
 
     public function actorAs(ActorType $type): Actor

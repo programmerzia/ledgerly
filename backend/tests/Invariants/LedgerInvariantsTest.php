@@ -15,6 +15,7 @@ use Tests\Support\LedgerFixture;
 it('holds every ledger invariant after random postings', function (int $seed) {
     mt_srand($seed);
     $f = LedgerFixture::create();
+    $this->grant('journals.reverse');
     $codes = ['1000', '1300', '4000', '5000'];
     $posted = [];
 
@@ -41,7 +42,7 @@ it('holds every ledger invariant after random postings', function (int $seed) {
         $posted[] = postJournal($f, draftJournal($f, $lines, $date));
     }
     foreach (array_rand($posted, 8) as $i) {
-        app(ReverseJournal::class)->handle($f->actor, new ReverseJournalInput($posted[$i]->id));
+        app(ReverseJournal::class)->handle($f->signedActor(), new ReverseJournalInput($posted[$i]->id));
     }
 
     // 1. every journal balances and matches its totals

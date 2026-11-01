@@ -28,7 +28,7 @@ use Tests\Support\LedgerFixture;
  */
 
 beforeEach(function (): void {
-    $this->grant('periods.close', 'periods.reopen.request', 'periods.reopen.approve', 'periods.year_end', 'periods.post_adjustment');
+    $this->grant('periods.close', 'periods.reopen.request', 'periods.reopen.approve', 'periods.year_end', 'periods.post_adjustment', 'journals.reverse');
     $this->f = LedgerFixture::create();
 });
 

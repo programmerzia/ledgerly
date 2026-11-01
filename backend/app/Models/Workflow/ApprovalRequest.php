@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Models\Workflow;
 
 use App\Models\BaseModel;
+use App\Models\Ledger\Journal;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * One required signature of one document (a workflow step snapshot, per slot).
@@ -28,6 +30,7 @@ use Carbon\CarbonImmutable;
  * @property string|null $signed_by
  * @property CarbonImmutable|null $signed_at
  * @property string|null $signature_hash
+ * @property-read Journal $journal
  */
 class ApprovalRequest extends BaseModel
 {
@@ -38,5 +41,15 @@ class ApprovalRequest extends BaseModel
     protected function casts(): array
     {
         return ['step' => 'integer', 'slot' => 'integer', 'requested_at' => 'immutable_datetime', 'decided_at' => 'immutable_datetime', 'signed_at' => 'immutable_datetime'];
+    }
+
+    /**
+     * The journal this request is for (the only document type so far).
+     *
+     * @return BelongsTo<Journal, $this>
+     */
+    public function journal(): BelongsTo
+    {
+        return $this->belongsTo(Journal::class, 'document_id');
     }
 }

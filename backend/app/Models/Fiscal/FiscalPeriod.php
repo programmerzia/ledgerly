@@ -11,6 +11,7 @@ use App\Models\BaseModel;
 use Carbon\CarbonImmutable;
 use DateTimeImmutable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * @property string $id
@@ -27,6 +28,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string|null $closed_by
  * @property int $reopened_count
  * @property-read FiscalYear $fiscalYear
+ * @property-read PeriodReopenRequest|null $pendingReopenRequest
  */
 class FiscalPeriod extends BaseModel
 {
@@ -48,6 +50,12 @@ class FiscalPeriod extends BaseModel
     public function fiscalYear(): BelongsTo
     {
         return $this->belongsTo(FiscalYear::class);
+    }
+
+    /** @return HasOne<PeriodReopenRequest, $this> */
+    public function pendingReopenRequest(): HasOne
+    {
+        return $this->hasOne(PeriodReopenRequest::class, 'fiscal_period_id')->where('status', 'pending');
     }
 
     public function toInfo(): PeriodInfo
