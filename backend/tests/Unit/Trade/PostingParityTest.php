@@ -125,6 +125,24 @@ it('posts a purchase bill identically to the mock', function (array $case): void
     assertOutcome(fn () => BillPosting::journal($doc, postingAccounts($case['input']['settings'])), $case);
 })->with(postingFixtures('bill.json'));
 
+it('posts a credit note identically to the mock', function (array $case): void {
+    $d = $case['input']['credit_note'];
+    $doc = new InvoiceDocument(
+        $d['id'], $d['number'], $d['reference'], $d['memo'] ?? null, $d['contact_id'], $d['issue_date'], $d['currency'],
+        rate($d['fx_rate']), docLines($d), $d['tax_total_fc'], $d['tax_total'], $d['total_fc'],
+    );
+    assertOutcome(fn () => InvoicePosting::creditNote($doc, postingAccounts($case['input']['settings'])), $case);
+})->with(postingFixtures('credit_note.json'));
+
+it('posts a debit note identically to the mock', function (array $case): void {
+    $d = $case['input']['debit_note'];
+    $doc = new BillDocument(
+        $d['id'], $d['number'], $d['reference'], $d['memo'] ?? null, $d['contact_id'], $d['issue_date'], $d['currency'],
+        rate($d['fx_rate']), docLines($d), $d['tax_total_fc'], $d['tax_total'], $d['total_fc'], $d['wht_amount_fc'] ?? 0,
+    );
+    assertOutcome(fn () => BillPosting::debitNote($doc, postingAccounts($case['input']['settings'])), $case);
+})->with(postingFixtures('debit_note.json'));
+
 it('posts a settlement identically to the mock', function (array $case): void {
     $d = $case['input']['settlement'];
     $allocs = array_map(static fn (array $a): SettlementAllocation => new SettlementAllocation(
@@ -156,7 +174,7 @@ it('posts a depreciation run identically to the mock', function (array $case): v
 })->with(postingFixtures('depreciation.json'));
 
 it('every fixture journal balances unless flagged', function (): void {
-    foreach (['invoice', 'bill', 'settlement', 'revaluation', 'depreciation'] as $f) {
+    foreach (['invoice', 'credit_note', 'bill', 'debit_note', 'settlement', 'revaluation', 'depreciation'] as $f) {
         foreach (postingFixtures($f.'.json') as $name => [$case]) {
             if (isset($case['expected']['error'])) {
                 continue;

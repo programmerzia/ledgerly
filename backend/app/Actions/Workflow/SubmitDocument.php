@@ -19,7 +19,6 @@ use App\Domain\Workflow\WorkflowResolver;
 use App\Events\Workflow\DocumentSubmitted;
 use App\Models\Workflow\ApprovalRequest;
 use App\Models\Workflow\ApprovalWorkflow;
-use App\Queries\Ledger\PreviewJournalPosting;
 use App\Services\Workflow\Documents;
 use App\Support\Actor;
 use App\Support\UnitOfWork\AuditBuffer;
@@ -40,7 +39,6 @@ final class SubmitDocument
         private readonly UnitOfWork $uow,
         private readonly Documents $documents,
         private readonly PermissionChecker $permissions,
-        private readonly PreviewJournalPosting $preview,
         private readonly Clock $clock,
         private readonly IdGenerator $ids,
     ) {}
@@ -60,9 +58,9 @@ final class SubmitDocument
             }
 
             // Fail early: everything that would stop the posting is reported now, not at approval.
-            $check = $this->preview->of($actor, $doc->documentId());
-            if ($check->violations !== []) {
-                throw PostingRejected::because($check->violations);
+            $violations = $this->documents->violations($actor, $doc);
+            if ($violations !== []) {
+                throw PostingRejected::because($violations);
             }
 
             $source = $actor->isApiClient() ? DocumentSource::Api : DocumentSource::User;

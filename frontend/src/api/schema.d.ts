@@ -168,6 +168,136 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/companies/{company}/bills": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["bills.index"];
+        put?: never;
+        post: operations["bills.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/bills/{bill}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["bills.show"];
+        put: operations["bills.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/bills/{bill}/posting-preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** What posting this draft would do (the journal lines), or why it cannot. Writes nothing */
+        post: operations["bills.preview"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/bills/{bill}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Posts at once when no workflow applies (a person needs a signing grant), else waits for approval */
+        post: operations["bills.submit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/bills/{bill}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["bills.approve"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/bills/{bill}/return": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["bills.return"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/bills/{bill}/void": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["bills.void"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/bills/{bill}/reverse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["bills.reverse"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/companies/{company}/chart-templates": {
         parameters: {
             query?: never;
@@ -658,6 +788,184 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/companies/{company}/invoices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["invoices.index"];
+        put?: never;
+        post: operations["invoices.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/invoices/{invoice}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["invoices.show"];
+        put: operations["invoices.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/invoices/{invoice}/posting-preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** What posting this draft would do (the journal lines), or why it cannot. Writes nothing */
+        post: operations["invoices.preview"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/invoices/{invoice}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Posts at once when no workflow applies (a person needs a signing grant), else waits for approval */
+        post: operations["invoices.submit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/invoices/{invoice}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["invoices.approve"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/invoices/{invoice}/return": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["invoices.return"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/invoices/{invoice}/void": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["invoices.void"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/invoices/{invoice}/reverse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["invoices.reverse"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["items.index"];
+        put?: never;
+        post: operations["items.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/items/{item}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["items.show"];
+        put: operations["items.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/items/{item}/deactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["items.deactivate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/companies/{company}/journals": {
         parameters: {
             query?: never;
@@ -919,6 +1227,140 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["reopen-requests.reject"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/reports/trial-balance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["reports.trial-balance"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/reports/profit-and-loss": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["reports.profit-and-loss"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/reports/balance-sheet": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["reports.balance-sheet"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/reports/cash-flow": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["reports.cash-flow"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/reports/general-ledger": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One account's ledger: header with opening and closing balance, then a page of lines with a running balance */
+        get: operations["reports.general-ledger"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/reports/drill": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The journal lines behind one report cell. The drill key a cell carries is this request's query string;
+         *     `summary` totals every line of the cell, not just the page, and equals the cell's amount
+         */
+        get: operations["reports.drill"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/reports/exports/{exportId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Status of a queued export; the file itself once it is ready */
+        get: operations["reports.exports.show"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/reports/{report}/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["reports.export"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1187,6 +1629,121 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/webhook-endpoints": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["webhook-endpoints.index"];
+        put?: never;
+        /** The response carries the signing secret; it is shown this once */
+        post: operations["webhook-endpoints.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/webhook-endpoints/{webhook}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["webhook-endpoints.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/webhook-endpoints/{webhook}/rotate-secret": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** The new secret replaces the old at once and is shown this once */
+        post: operations["webhook-endpoints.rotate-secret"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/webhook-endpoints/{webhook}/disable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["webhook-endpoints.disable"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/webhook-endpoints/{webhook}/enable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["webhook-endpoints.enable"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/webhook-endpoints/{webhook}/deliveries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Newest first; `?status=` narrows to pending, delivered, failed or cancelled */
+        get: operations["webhook-endpoints.deliveries"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/webhook-endpoints/{webhook}/deliveries/{delivery}/redeliver": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["webhook-endpoints.redeliver"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1277,6 +1834,22 @@ export interface components {
                 created_by: string | null;
                 submitted_by: string | null;
                 version: number;
+            } | {
+                id: string;
+                /** @enum {string} */
+                kind: "sales_invoice" | "credit_note" | "purchase_bill" | "debit_note";
+                number: string | null;
+                issue_date: string | null;
+                contact_id: string;
+                reference: string | null;
+                memo: string | null;
+                amount: {
+                    amount: number;
+                    currency: string;
+                };
+                created_by: string | null;
+                submitted_by: string | null;
+                version: number;
             };
         };
         /**
@@ -1285,7 +1858,7 @@ export interface components {
          */
         ApprovalWorkflowRequest: {
             /** @enum {string} */
-            document_type: "journal";
+            document_type: "journal" | "invoice" | "bill";
             name: string;
             /** @enum {string} */
             source: "any" | "user" | "api";
@@ -1429,6 +2002,16 @@ export interface components {
             };
             is_active: boolean;
             notes: string | null;
+            balances?: {
+                receivable: {
+                    amount: number;
+                    currency: string;
+                };
+                payable: {
+                    amount: number;
+                    currency: string;
+                };
+            };
             version: number;
             can: unknown[];
         };
@@ -1632,6 +2215,236 @@ export interface components {
             role: "owner" | "admin" | "member";
             company_role?: string | null;
             company_ids?: string[];
+        };
+        /** InvoiceLineResource */
+        InvoiceLineResource: {
+            line_no: number;
+            item_id: string | null;
+            account_id: string;
+            description: string | null;
+            quantity: string;
+            unit_price_fc: {
+                amount: number;
+                currency: string;
+            };
+            discount_pct: string;
+            tax_code_id: string | null;
+            /** @description Net of discount, before tax; the tax of the line and its share per tax code (D2). */
+            line_total_fc: {
+                amount: number;
+                currency: string;
+            };
+            tax_amount_fc: {
+                amount: number;
+                currency: string;
+            };
+            /** @description tax code id → minor units of the document currency */
+            tax_detail: {
+                [key: string]: number;
+            };
+            /** @description dimension id → dimension value id */
+            dimensions: {
+                [key: string]: string;
+            };
+        };
+        /** InvoicePostingPreviewResource */
+        InvoicePostingPreviewResource: {
+            valid: boolean;
+            violations: unknown[];
+            period: {
+                id: string | null;
+                name: string | null;
+                status: string | null;
+            } | null;
+            total_debit: {
+                amount: number;
+                currency: string;
+            };
+            total_credit: {
+                amount: number;
+                currency: string;
+            };
+            number: null;
+            lines: {
+                line_no: number;
+                account_id: string;
+                debit: {
+                    amount: number;
+                    currency: string;
+                };
+                credit: {
+                    amount: number;
+                    currency: string;
+                };
+                currency: string;
+                fx_rate: string | null;
+                amount_fc: number | null;
+                description: string | null;
+                contact_id: string | null;
+                tax_code_id: string | null;
+                due_date: string | null;
+            }[];
+        };
+        /**
+         * InvoiceRequest
+         * @description Create (POST) or replace (PUT, with `version`) a draft invoice, credit note, bill or debit note. Shape only:
+         *     ids exist in this company, quantities and rates are decimal strings, prices whole minor units. Totals, tax and
+         *     base amounts are not accepted: whatever the client sends for them is ignored and the server calculates.
+         *     Whether the contact fits the kind, the tax code has a rate that day, or the rate exists is the Action's call.
+         *
+         *     Line dimensions are `{"<dimension id>": "<dimension value id>"}`. On `/bills` the kind is purchase_bill
+         *     (default) or debit_note; on `/invoices` sales_invoice (default) or credit_note.
+         */
+        InvoiceRequest: {
+            /** @enum {string|null} */
+            kind?: "sales_invoice" | "credit_note" | null;
+            /** Format: uuid */
+            contact_id: string;
+            /** Format: date */
+            issue_date: string;
+            /** Format: date */
+            due_date?: string | null;
+            currency?: string | null;
+            fx_rate?: string | null;
+            reference?: string | null;
+            memo?: string | null;
+            /** Format: uuid */
+            related_invoice_id?: string | null;
+            /** Format: uuid */
+            wht_code_id?: string;
+            version?: number;
+            lines: {
+                /** Format: uuid */
+                item_id?: string | null;
+                /** Format: uuid */
+                account_id?: string | null;
+                description?: string | null;
+                quantity: string;
+                unit_price_fc?: number | null;
+                discount_pct?: string | null;
+                /** Format: uuid */
+                tax_code_id?: string | null;
+                dimensions?: string[] | null;
+            }[];
+        };
+        /** InvoiceResource */
+        InvoiceResource: {
+            id: string;
+            /** @enum {string} */
+            kind: "sales_invoice" | "credit_note" | "purchase_bill" | "debit_note";
+            number: string | null;
+            /** @enum {string} */
+            status: "draft" | "pending_approval" | "posted" | "reversed" | "void";
+            /** @enum {string} */
+            payment_status: "draft" | "pending_approval" | "awaiting_payment" | "partially_paid" | "overdue" | "paid" | "reversed" | "void";
+            contact_id: string;
+            issue_date: string | null;
+            due_date: string | null;
+            currency: string;
+            fx_rate: string;
+            reference: string | null;
+            memo: string | null;
+            subtotal_fc: {
+                amount: number;
+                currency: string;
+            };
+            tax_total_fc: {
+                amount: number;
+                currency: string;
+            };
+            total_fc: {
+                amount: number;
+                currency: string;
+            };
+            subtotal: {
+                amount: number;
+                currency: string;
+            };
+            tax_total: {
+                amount: number;
+                currency: string;
+            };
+            total: {
+                amount: number;
+                currency: string;
+            };
+            wht_code_id: string | null;
+            wht_amount_fc: {
+                amount: number;
+                currency: string;
+            };
+            wht_amount: {
+                amount: number;
+                currency: string;
+            };
+            settled_fc: {
+                amount: number;
+                currency: string;
+            };
+            settled: {
+                amount: number;
+                currency: string;
+            };
+            amount_due: {
+                amount: number;
+                currency: string;
+            };
+            related_invoice_id: string | null;
+            journal_id: string | null;
+            reversal_journal_id: string | null;
+            created_by: string | null;
+            submitted_by: string | null;
+            approved_by: string | null;
+            posted_by: string | null;
+            posted_at: string | null;
+            version: number;
+            /** @description The list answers summaries; one document comes with its lines. */
+            lines?: components["schemas"]["InvoiceLineResource"][];
+            can: unknown[];
+        };
+        /**
+         * ItemRequest
+         * @description Create (POST) and replace (PUT, with the `version` it was based on) an item. Prices are whole minor units of its currency.
+         */
+        ItemRequest: {
+            code: string;
+            name: string;
+            description?: string | null;
+            /** @enum {string} */
+            kind: "service" | "good";
+            currency: string;
+            /** Format: uuid */
+            sales_account_id?: string | null;
+            /** Format: uuid */
+            purchase_account_id?: string | null;
+            sales_price?: number | null;
+            purchase_price?: number | null;
+            /** Format: uuid */
+            tax_code_id?: string | null;
+            version?: number;
+        };
+        /** ItemResource */
+        ItemResource: {
+            id: string;
+            code: string;
+            name: string;
+            description: string | null;
+            kind: string;
+            currency: string;
+            sales_account_id: string | null;
+            purchase_account_id: string | null;
+            sales_price: {
+                amount: number;
+                currency: string;
+            };
+            purchase_price: {
+                amount: number;
+                currency: string;
+            };
+            tax_code_id: string | null;
+            is_active: boolean;
+            version: number;
+            can: unknown[];
         };
         /** JournalLineResource */
         JournalLineResource: {
@@ -1944,6 +2757,47 @@ export interface components {
         VoidJournalRequest: {
             reason?: string | null;
             version?: number | null;
+        };
+        /** WebhookDeliveryResource */
+        WebhookDeliveryResource: {
+            id: string;
+            endpoint_id: string;
+            event_id: string;
+            event_type: string;
+            status: string;
+            attempts: number;
+            next_retry_at: string | null;
+            last_attempt_at: string | null;
+            delivered_at: string | null;
+            response_code: number | null;
+            response_snippet: string | null;
+            error: string | null;
+            created_at: string | null;
+        };
+        /**
+         * WebhookEndpointRequest
+         * @description Create or update an endpoint. `version` is required on update (the route has a webhook id).
+         */
+        WebhookEndpointRequest: {
+            url: string;
+            description?: string | null;
+            events: ("*" | "journal.posted" | "journal.reversed" | "invoice.posted" | "invoice.reversed" | "bill.posted" | "bill.reversed" | "document.submitted" | "document.approved" | "document.returned" | "document.voided" | "period.soft_closed" | "period.closed" | "period.reopened" | "fiscal_year.closed" | "fiscal_year.locked")[];
+            version?: number;
+        };
+        /** WebhookEndpointResource */
+        WebhookEndpointResource: {
+            id: string;
+            url: string;
+            description: string | null;
+            events: string[];
+            is_active: boolean;
+            disabled_at: string | null;
+            disabled_reason: string | null;
+            secret_rotated_at: string | null;
+            created_at: string | null;
+            version: number;
+            secret?: string;
+            can: unknown[];
         };
     };
     responses: {
@@ -2429,6 +3283,354 @@ export interface operations {
                 };
             };
             401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "bills.index": {
+        parameters: {
+            query?: {
+                kind?: "sales_invoice" | "credit_note" | null;
+                status?: "draft" | "pending_approval" | "posted" | "reversed" | "void" | null;
+                payment_status?: "draft" | "pending_approval" | "awaiting_payment" | "partially_paid" | "overdue" | "paid" | "reversed" | "void" | null;
+                overdue?: "true" | "false" | "1" | "0" | null;
+                contact_id?: string | null;
+                issued_from?: string | null;
+                issued_to?: string | null;
+                due_from?: string | null;
+                due_to?: string | null;
+                search?: string | null;
+            };
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `InvoiceResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["InvoiceResource"][];
+                        meta: {
+                            next_cursor: string | null;
+                            prev_cursor: string | null;
+                            limit: number;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "bills.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InvoiceRequest"];
+            };
+        };
+        responses: {
+            /** @description `InvoiceResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["InvoiceResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "bills.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The bill ID */
+                bill: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `InvoiceResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["InvoiceResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "bills.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The bill ID */
+                bill: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InvoiceRequest"];
+            };
+        };
+        responses: {
+            /** @description `InvoiceResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["InvoiceResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "bills.preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The bill ID */
+                bill: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `InvoicePostingPreviewResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["InvoicePostingPreviewResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "bills.submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The bill ID */
+                bill: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["TransitionRequest"];
+            };
+        };
+        responses: {
+            /** @description `InvoiceResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["InvoiceResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "bills.approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The bill ID */
+                bill: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["TransitionRequest"];
+            };
+        };
+        responses: {
+            /** @description `InvoiceResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["InvoiceResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "bills.return": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The bill ID */
+                bill: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReturnJournalRequest"];
+            };
+        };
+        responses: {
+            /** @description `InvoiceResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["InvoiceResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "bills.void": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The bill ID */
+                bill: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["VoidJournalRequest"];
+            };
+        };
+        responses: {
+            /** @description `InvoiceResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["InvoiceResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "bills.reverse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The bill ID */
+                bill: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ReverseJournalRequest"];
+            };
+        };
+        responses: {
+            /** @description `InvoiceResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["InvoiceResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
         };
     };
     "chart-templates.index": {
@@ -3627,6 +4829,525 @@ export interface operations {
             422: components["responses"]["ValidationException"];
         };
     };
+    "invoices.index": {
+        parameters: {
+            query?: {
+                kind?: "sales_invoice" | "credit_note" | null;
+                status?: "draft" | "pending_approval" | "posted" | "reversed" | "void" | null;
+                payment_status?: "draft" | "pending_approval" | "awaiting_payment" | "partially_paid" | "overdue" | "paid" | "reversed" | "void" | null;
+                overdue?: "true" | "false" | "1" | "0" | null;
+                contact_id?: string | null;
+                issued_from?: string | null;
+                issued_to?: string | null;
+                due_from?: string | null;
+                due_to?: string | null;
+                search?: string | null;
+            };
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `InvoiceResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["InvoiceResource"][];
+                        meta: {
+                            next_cursor: string | null;
+                            prev_cursor: string | null;
+                            limit: number;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "invoices.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InvoiceRequest"];
+            };
+        };
+        responses: {
+            /** @description `InvoiceResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["InvoiceResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "invoices.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The invoice ID */
+                invoice: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `InvoiceResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["InvoiceResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "invoices.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The invoice ID */
+                invoice: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InvoiceRequest"];
+            };
+        };
+        responses: {
+            /** @description `InvoiceResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["InvoiceResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "invoices.preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The invoice ID */
+                invoice: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `InvoicePostingPreviewResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["InvoicePostingPreviewResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "invoices.submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The invoice ID */
+                invoice: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["TransitionRequest"];
+            };
+        };
+        responses: {
+            /** @description `InvoiceResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["InvoiceResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "invoices.approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The invoice ID */
+                invoice: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["TransitionRequest"];
+            };
+        };
+        responses: {
+            /** @description `InvoiceResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["InvoiceResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "invoices.return": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The invoice ID */
+                invoice: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReturnJournalRequest"];
+            };
+        };
+        responses: {
+            /** @description `InvoiceResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["InvoiceResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "invoices.void": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The invoice ID */
+                invoice: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["VoidJournalRequest"];
+            };
+        };
+        responses: {
+            /** @description `InvoiceResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["InvoiceResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "invoices.reverse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The invoice ID */
+                invoice: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ReverseJournalRequest"];
+            };
+        };
+        responses: {
+            /** @description `InvoiceResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["InvoiceResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "items.index": {
+        parameters: {
+            query?: {
+                kind?: "service" | "good" | null;
+                active?: "true" | "false" | "1" | "0" | null;
+                search?: string | null;
+            };
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `ItemResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ItemResource"][];
+                        meta: {
+                            next_cursor: string | null;
+                            prev_cursor: string | null;
+                            limit: number;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "items.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ItemRequest"];
+            };
+        };
+        responses: {
+            /** @description `ItemResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ItemResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "items.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The item ID */
+                item: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `ItemResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ItemResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "items.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The item ID */
+                item: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ItemRequest"];
+            };
+        };
+        responses: {
+            /** @description `ItemResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ItemResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "items.deactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The item ID */
+                item: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VersionRequest"];
+            };
+        };
+        responses: {
+            /** @description `ItemResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ItemResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
     "journals.index": {
         parameters: {
             query?: {
@@ -4190,6 +5911,404 @@ export interface operations {
                 content: {
                     "application/json": {
                         data: components["schemas"]["ReopenRequestResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "reports.trial-balance": {
+        parameters: {
+            query?: {
+                period_id?: string | null;
+                as_of?: string | null;
+                from?: string | null;
+                to?: string | null;
+                basis?: "month" | "ytd" | null;
+                comparison?: "none" | "previous_period" | "previous_year" | null;
+                "dimensions[]"?: (string | null)[] | null;
+                hide_zero?: boolean | null;
+                account_id?: string | null;
+                exclude_closing?: boolean | null;
+                contact_side?: "debit" | "credit" | null;
+                contact_id?: string | null;
+                format?: "xlsx" | "csv" | "pdf" | null;
+            };
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            [key: string]: unknown;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "reports.profit-and-loss": {
+        parameters: {
+            query?: {
+                period_id?: string | null;
+                as_of?: string | null;
+                from?: string | null;
+                to?: string | null;
+                basis?: "month" | "ytd" | null;
+                comparison?: "none" | "previous_period" | "previous_year" | null;
+                "dimensions[]"?: (string | null)[] | null;
+                hide_zero?: boolean | null;
+                account_id?: string | null;
+                exclude_closing?: boolean | null;
+                contact_side?: "debit" | "credit" | null;
+                contact_id?: string | null;
+                format?: "xlsx" | "csv" | "pdf" | null;
+            };
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            [key: string]: unknown;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "reports.balance-sheet": {
+        parameters: {
+            query?: {
+                period_id?: string | null;
+                as_of?: string | null;
+                from?: string | null;
+                to?: string | null;
+                basis?: "month" | "ytd" | null;
+                comparison?: "none" | "previous_period" | "previous_year" | null;
+                "dimensions[]"?: (string | null)[] | null;
+                hide_zero?: boolean | null;
+                account_id?: string | null;
+                exclude_closing?: boolean | null;
+                contact_side?: "debit" | "credit" | null;
+                contact_id?: string | null;
+                format?: "xlsx" | "csv" | "pdf" | null;
+            };
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            [key: string]: unknown;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "reports.cash-flow": {
+        parameters: {
+            query?: {
+                period_id?: string | null;
+                as_of?: string | null;
+                from?: string | null;
+                to?: string | null;
+                basis?: "month" | "ytd" | null;
+                comparison?: "none" | "previous_period" | "previous_year" | null;
+                "dimensions[]"?: (string | null)[] | null;
+                hide_zero?: boolean | null;
+                account_id?: string | null;
+                exclude_closing?: boolean | null;
+                contact_side?: "debit" | "credit" | null;
+                contact_id?: string | null;
+                format?: "xlsx" | "csv" | "pdf" | null;
+            };
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            [key: string]: unknown;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "reports.general-ledger": {
+        parameters: {
+            query?: {
+                period_id?: string | null;
+                as_of?: string | null;
+                from?: string | null;
+                to?: string | null;
+                basis?: "month" | "ytd" | null;
+                comparison?: "none" | "previous_period" | "previous_year" | null;
+                "dimensions[]"?: (string | null)[] | null;
+                hide_zero?: boolean | null;
+                account_id?: string | null;
+                exclude_closing?: boolean | null;
+                contact_side?: "debit" | "credit" | null;
+                contact_id?: string | null;
+                format?: "xlsx" | "csv" | "pdf" | null;
+            };
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: unknown[][];
+                        meta: {
+                            next_cursor: string | null;
+                            prev_cursor: string | null;
+                            limit: number;
+                        };
+                        report: {
+                            [key: string]: unknown;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "reports.drill": {
+        parameters: {
+            query?: {
+                period_id?: string | null;
+                as_of?: string | null;
+                from?: string | null;
+                to?: string | null;
+                basis?: "month" | "ytd" | null;
+                comparison?: "none" | "previous_period" | "previous_year" | null;
+                "dimensions[]"?: (string | null)[] | null;
+                hide_zero?: boolean | null;
+                account_id?: string | null;
+                exclude_closing?: boolean | null;
+                contact_side?: "debit" | "credit" | null;
+                contact_id?: string | null;
+                format?: "xlsx" | "csv" | "pdf" | null;
+            };
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            id: string;
+                            journal: {
+                                id: string;
+                                number: unknown;
+                                date: unknown;
+                                type: unknown;
+                                reference: unknown;
+                                memo: unknown;
+                            };
+                            source: {
+                                type: unknown;
+                                id: unknown;
+                            } | null;
+                            line_no: number;
+                            account_id: string;
+                            debit: {
+                                amount: number;
+                                currency: string;
+                            };
+                            credit: {
+                                amount: number;
+                                currency: string;
+                            };
+                            description: string | null;
+                            contact_id: string | null;
+                            /** @description dimension id → dimension value id */
+                            dimensions: {
+                                [key: string]: string;
+                            };
+                        }[];
+                        meta: {
+                            next_cursor: string | null;
+                            prev_cursor: string | null;
+                            limit: number;
+                        };
+                        summary: {
+                            [key: string]: unknown;
+                        };
+                        account: unknown[];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "reports.exports.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                exportId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "Transfer-Encoding"?: "chunked";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/html": string;
+                    "application/json": {
+                        data: {
+                            id: string;
+                            status: unknown;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "reports.export": {
+        parameters: {
+            query?: {
+                period_id?: string | null;
+                as_of?: string | null;
+                from?: string | null;
+                to?: string | null;
+                basis?: "month" | "ytd" | null;
+                comparison?: "none" | "previous_period" | "previous_year" | null;
+                "dimensions[]"?: (string | null)[] | null;
+                hide_zero?: boolean | null;
+                account_id?: string | null;
+                exclude_closing?: boolean | null;
+                contact_side?: "debit" | "credit" | null;
+                contact_id?: string | null;
+                format?: "xlsx" | "csv" | "pdf" | null;
+            };
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                report: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "Transfer-Encoding": "chunked";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/html": string;
+                };
+            };
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            id: string;
+                            /** @constant */
+                            status: "queued";
+                            report: string;
+                            format: string;
+                        };
                     };
                 };
             };
@@ -4767,6 +6886,242 @@ export interface operations {
                 };
             };
             401: components["responses"]["AuthenticationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "webhook-endpoints.index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `WebhookEndpointResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["WebhookEndpointResource"][];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+        };
+    };
+    "webhook-endpoints.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WebhookEndpointRequest"];
+            };
+        };
+        responses: {
+            /** @description `WebhookEndpointResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["WebhookEndpointResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "webhook-endpoints.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The webhook ID */
+                webhook: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WebhookEndpointRequest"];
+            };
+        };
+        responses: {
+            /** @description `WebhookEndpointResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["WebhookEndpointResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "webhook-endpoints.rotate-secret": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The webhook ID */
+                webhook: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `WebhookEndpointResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["WebhookEndpointResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "webhook-endpoints.disable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The webhook ID */
+                webhook: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `WebhookEndpointResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["WebhookEndpointResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "webhook-endpoints.enable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The webhook ID */
+                webhook: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `WebhookEndpointResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["WebhookEndpointResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "webhook-endpoints.deliveries": {
+        parameters: {
+            query?: {
+                status?: "pending" | "delivered" | "failed" | "cancelled" | null;
+            };
+            header?: never;
+            path: {
+                /** @description The webhook ID */
+                webhook: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `WebhookDeliveryResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["WebhookDeliveryResource"][];
+                        meta: {
+                            next_cursor: string | null;
+                            prev_cursor: string | null;
+                            limit: number;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "webhook-endpoints.redeliver": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The webhook ID */
+                webhook: string;
+                /** @description The delivery ID */
+                delivery: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `WebhookDeliveryResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["WebhookDeliveryResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
         };
     };

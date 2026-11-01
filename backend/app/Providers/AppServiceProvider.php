@@ -9,6 +9,7 @@ use App\Actions\Signing\VerifySigningPin;
 use App\Contracts\Clock;
 use App\Contracts\CompanyAccess;
 use App\Contracts\ExchangeRateProvider;
+use App\Contracts\HostResolver;
 use App\Contracts\IdGenerator;
 use App\Contracts\PermissionChecker;
 use App\Contracts\RoleChecker;
@@ -28,6 +29,9 @@ use App\Models\Platform\PersonalAccessToken;
 use App\Models\Tax\TaxCode;
 use App\Models\Tax\TaxGroup;
 use App\Models\Trade\Contact;
+use App\Models\Trade\Invoice;
+use App\Models\Trade\Item;
+use App\Models\Webhooks\WebhookEndpoint;
 use App\Models\Workflow\ApprovalRequest;
 use App\Models\Workflow\ApprovalWorkflow;
 use App\Policies\Fiscal\PeriodPolicy;
@@ -37,10 +41,14 @@ use App\Policies\Ledger\DimensionPolicy;
 use App\Policies\Ledger\JournalPolicy;
 use App\Policies\Organisation\CompanyPolicy;
 use App\Policies\Organisation\InvitationPolicy;
+use App\Policies\Reports\ReportPolicy;
 use App\Policies\SigningPolicy;
 use App\Policies\Tax\TaxCodePolicy;
 use App\Policies\Tax\TaxGroupPolicy;
 use App\Policies\Trade\ContactPolicy;
+use App\Policies\Trade\InvoicePolicy;
+use App\Policies\Trade\ItemPolicy;
+use App\Policies\Webhooks\WebhookEndpointPolicy;
 use App\Policies\Workflow\ApprovalRequestPolicy;
 use App\Policies\Workflow\ApprovalWorkflowPolicy;
 use App\Services\Fx\EcbRateProvider;
@@ -52,11 +60,15 @@ use App\Services\Tenancy\SpatieRoleChecker;
 use App\Services\Tenancy\TenantAwarePermissionRegistrar;
 use App\Services\UuidV7Generator;
 use App\Support\Idempotency\IdempotencyStore;
+use App\Support\Reports\LedgerVersion;
+use App\Support\Reports\Report;
 use App\Support\Tenancy\CompanyContext;
 use App\Support\Tenancy\TenantContext;
 use App\Support\UnitOfWork\AuditWriter;
 use App\Support\UnitOfWork\OutboxWriter;
 use App\Support\UnitOfWork\UnitOfWork;
+use App\Support\Webhooks\DnsHostResolver;
+use App\Support\Webhooks\SsrfGuard;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Contracts\Hashing\Hasher;
@@ -91,6 +103,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->extend(PermissionRegistrar::class, fn ($registrar, $app) => new TenantAwarePermissionRegistrar($app->make('cache')));
         $this->app->singleton(CompanyAccess::class, SpatieCompanyAccess::class);
         $this->app->singleton(ExchangeRateProvider::class, EcbRateProvider::class);
+        $this->app->singleton(HostResolver::class, DnsHostResolver::class);
+        $this->app->singleton(SsrfGuard::class, fn ($app) => new SsrfGuard($app->make(HostResolver::class), (bool) config('webhooks.allow_http')));
         $this->app->scoped(CompanyContext::class);
 
         $this->app->scoped(TenantContext::class, function ($app) {
@@ -113,6 +127,7 @@ class AppServiceProvider extends ServiceProvider
             $app->make(OutboxWriter::class),
             $app->make(IdempotencyStore::class),
             (bool) $app['config']->get('tenancy.strict_lock_order'),
+            ledgerVersion: $app->make(LedgerVersion::class),
         ));
     }
 
@@ -131,13 +146,17 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(ExchangeRate::class, FxPolicy::class);
         Gate::policy(FxRevaluation::class, FxPolicy::class);
         Gate::policy(Contact::class, ContactPolicy::class);
+        Gate::policy(Invoice::class, InvoicePolicy::class);
+        Gate::policy(Item::class, ItemPolicy::class);
         Gate::policy(TaxCode::class, TaxCodePolicy::class);
         Gate::policy(TaxGroup::class, TaxGroupPolicy::class);
+        Gate::policy(WebhookEndpoint::class, WebhookEndpointPolicy::class);
         foreach ([FiscalYear::class, FiscalPeriod::class, PeriodReopenRequest::class] as $model) {
             Gate::policy($model, PeriodPolicy::class);
         }
         Gate::policy(ApprovalWorkflow::class, ApprovalWorkflowPolicy::class);
         Gate::policy(ApprovalRequest::class, ApprovalRequestPolicy::class);
+        Gate::policy(Report::class, ReportPolicy::class);
         CompanyBindings::register();
 
         // 13 §16: API client 600/min, SPA user 300/min, each counted per principal.
@@ -147,6 +166,12 @@ class AppServiceProvider extends ServiceProvider
             return $principal instanceof ApiClient
                 ? Limit::perMinute(600)->by('client:'.$principal->id)
                 : Limit::perMinute(300)->by('user:'.(is_object($principal) && method_exists($principal, 'getAuthIdentifier') ? (string) $principal->getAuthIdentifier() : (string) $request->ip()));
+        });
+        // 13 §16: 10 report exports an hour per company, whoever asks.
+        RateLimiter::for('report-exports', function (Request $request): Limit {
+            $company = $request->route('company');
+
+            return Limit::perHour((int) config('reports.exports_per_hour'))->by('report-exports:'.($company instanceof Company ? $company->id : (string) $company));
         });
         Gate::define('sign', [SigningPolicy::class, 'sign']);
 

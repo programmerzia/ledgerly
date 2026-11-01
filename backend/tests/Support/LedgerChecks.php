@@ -21,6 +21,7 @@ final class LedgerChecks
             'projection_drift' => self::projectionDrift(),
             'numbering' => self::numberingProblems(),
             'maker_checker' => self::makerCheckerBreaches(),
+            'trade_documents' => self::tradeProblems(),
             'posted_after_close' => self::postedAfterClose(),
             'trial_balance' => (int) DB::table('account_period_balances')->sum(DB::raw('debit - credit')) === 0 ? [] : ['trial balance does not net to zero'],
             'audit_chain' => self::auditChainProblems(),
@@ -66,7 +67,9 @@ final class LedgerChecks
     {
         $problems = [];
         $byPrefix = [];
-        foreach (DB::table('journals')->whereNotNull('number')->pluck('number') as $number) {
+        // Journals and trade documents (invoices, credit notes, bills, debit notes) number from sequences of their own.
+        $numbers = [...DB::table('journals')->whereNotNull('number')->pluck('number')->all(), ...DB::table('invoices')->whereNotNull('number')->pluck('number')->all()];
+        foreach ($numbers as $number) {
             preg_match('/^(.*-)(\d+)$/', (string) $number, $m);
             $byPrefix[$m[1]][] = (int) $m[2];
         }
@@ -82,11 +85,36 @@ final class LedgerChecks
         }
         foreach ($counters as $prefix => $next) {
             if ($next > 1 && ! isset($byPrefix[$prefix])) {
-                $problems[] = "{$prefix}: counter advanced to {$next} but no journal carries a number";
+                $problems[] = "{$prefix}: counter advanced to {$next} but no document carries a number";
             }
         }
 
         return $problems;
+    }
+
+    /**
+     * Trade documents (13 §9): a posted document has a posted journal that names it as its source, whose control
+     * line carries exactly what the document says is owed (sales: Dr/Cr AR total; purchases: Cr/Dr AP total less
+     * withheld tax), and nobody approved what they made or submitted. @return list<mixed>
+     */
+    public static function tradeProblems(): array
+    {
+        return [
+            ...DB::select(<<<'SQL'
+                SELECT i.id, i.number, 'journal link' AS problem FROM invoices i
+                LEFT JOIN journals j ON j.id = i.journal_id
+                WHERE i.status IN ('posted', 'reversed') AND (j.id IS NULL OR j.status NOT IN ('posted', 'reversed') OR j.source_id <> i.id OR j.source_type <> i.kind::text)
+            SQL),
+            ...DB::select(<<<'SQL'
+                SELECT i.id, i.number, 'control line' AS problem FROM invoices i
+                JOIN journal_lines l ON l.journal_id = i.journal_id AND l.line_no = 1
+                WHERE i.status IN ('posted', 'reversed') AND NOT (
+                    (i.kind = 'sales_invoice' AND l.debit = i.total AND l.credit = 0) OR (i.kind = 'credit_note' AND l.credit = i.total AND l.debit = 0)
+                    OR (i.kind = 'purchase_bill' AND l.credit = i.total - i.wht_amount AND l.debit = 0) OR (i.kind = 'debit_note' AND l.debit = i.total - i.wht_amount AND l.credit = 0))
+            SQL),
+            ...DB::select("SELECT id, number, 'maker-checker' AS problem FROM invoices WHERE approved_by IS NOT NULL AND (approved_by = created_by OR approved_by = submitted_by)"),
+            ...DB::select("SELECT id, number, 'settled beyond total' AS problem FROM invoices WHERE settled_fc > total_fc OR settled > total"),
+        ];
     }
 
     /** @return list<mixed> */

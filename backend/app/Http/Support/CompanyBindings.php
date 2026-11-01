@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Support;
 
 use App\Domain\Shared\DomainRuleViolation;
+use App\Domain\Trade\InvoiceKind;
 use App\Models\BaseModel;
 use App\Models\Fiscal\FiscalPeriod;
 use App\Models\Fiscal\FiscalYear;
@@ -16,6 +17,8 @@ use App\Models\Ledger\Journal;
 use App\Models\Tax\TaxCode;
 use App\Models\Tax\TaxGroup;
 use App\Models\Trade\Contact;
+use App\Models\Trade\Invoice;
+use App\Models\Trade\Item;
 use App\Models\Workflow\ApprovalWorkflow;
 use App\Support\Tenancy\CompanyContext;
 use Illuminate\Routing\Route as RoutedRequest;
@@ -42,6 +45,10 @@ final class CompanyBindings
         'contact' => Contact::class,
         'taxCode' => TaxCode::class,
         'taxGroup' => TaxGroup::class,
+        'item' => Item::class,
+        // /invoices/{invoice} holds invoices and credit notes, /bills/{bill} bills and debit notes: the other family is a 404.
+        'invoice' => Invoice::class,
+        'bill' => Invoice::class,
     ];
 
     public static function register(): void
@@ -59,6 +66,10 @@ final class CompanyBindings
                 if ($parameter === 'dimensionValue' && $route->hasParameter('dimension')) {
                     $dimension = $route->parameter('dimension');
                     $query->where('dimension_id', $dimension instanceof Dimension ? $dimension->id : (is_string($dimension) ? $dimension : ''));
+                }
+
+                if ($parameter === 'invoice' || $parameter === 'bill') {
+                    $query->whereIn('kind', InvoiceKind::values(...($parameter === 'invoice' ? InvoiceKind::sales() : InvoiceKind::purchases())));
                 }
 
                 return $query->first() ?? throw DomainRuleViolation::single('not_found', 'The resource does not exist.');

@@ -98,11 +98,11 @@ final class Race
         return $id;
     }
 
-    /** An active journal workflow for every amount and source. @param list<array{role: string, count?: int}> $steps */
-    public static function workflow(LedgerFixture $f, array $steps): void
+    /** An active workflow of $type (journal by default) for every amount and source. @param list<array{role: string, count?: int}> $steps */
+    public static function workflow(LedgerFixture $f, array $steps, string $type = 'journal'): void
     {
         (new ApprovalWorkflow)->forceFill([
-            'id' => (string) Str::uuid7(), 'tenant_id' => $f->tenantId, 'company_id' => $f->companyId, 'document_type' => 'journal',
+            'id' => (string) Str::uuid7(), 'tenant_id' => $f->tenantId, 'company_id' => $f->companyId, 'document_type' => $type,
             'name' => 'Race flow', 'source' => 'any', 'min_amount' => 0, 'max_amount' => null, 'steps' => $steps, 'is_active' => true,
         ])->save();
     }

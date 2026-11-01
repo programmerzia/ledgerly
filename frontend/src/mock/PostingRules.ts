@@ -682,6 +682,229 @@ export function buildJournalFromBill(
 }
 
 /**
+ * Credit note to journal: the mirror of a sales invoice (IFRS 15: revenue and output tax are reversed).
+ * Cr AR control, Dr revenue per line, Dr output tax. The amounts on the note are positive.
+ */
+export function buildJournalFromCreditNote(
+  note: Invoice,
+  settings: CompanySettings,
+  periodId: string,
+  user: User
+): Omit<Journal, 'id' | 'number' | 'status' | 'posted_at' | 'posted_by'> {
+  const rate = note.fx_rate;
+  const firstDims = note.lines[0]?.dimensions || {};
+  const label = note.number || 'Credit note';
+  const lines: JournalLine[] = [];
+  let lineNo = 1;
+
+  lines.push({
+    id: `jl-cn-${note.id}-ar`,
+    line_no: lineNo++,
+    account_id: settings.posting_accounts.ar_control,
+    debit: 0,
+    credit: roundHalfUp(note.total_fc * rate),
+    currency: note.currency,
+    fx_rate: rate,
+    amount_fc: -note.total_fc,
+    dimensions: firstDims,
+    description: `AR Control: ${label} - Contact Ref #${note.reference}`,
+    contact_id: note.contact_id,
+  });
+
+  for (const l of note.lines) {
+    lines.push({
+      id: `jl-cn-${note.id}-rev-${l.id}`,
+      line_no: lineNo++,
+      account_id: l.account_id,
+      debit: roundHalfUp(l.line_total_fc * rate),
+      credit: 0,
+      currency: note.currency,
+      fx_rate: rate,
+      amount_fc: l.line_total_fc,
+      dimensions: l.dimensions,
+      description: l.description || `Sales credit: ${label}`,
+      contact_id: note.contact_id,
+      tax_code_id: l.tax_code_id,
+    });
+  }
+
+  const taxFc = documentTaxFc(note);
+  if (taxFc > 0) {
+    lines.push({
+      id: `jl-cn-${note.id}-tax`,
+      line_no: lineNo++,
+      account_id: settings.posting_accounts.tax_output,
+      debit: roundHalfUp(taxFc * rate),
+      credit: 0,
+      currency: note.currency,
+      fx_rate: rate,
+      amount_fc: taxFc,
+      dimensions: firstDims,
+      description: `Sales Tax Output reversed: ${label}`,
+      contact_id: note.contact_id,
+    });
+  }
+
+  const totalDebits = lines.reduce((s, l) => s + l.debit, 0);
+  const totalCredits = lines.reduce((s, l) => s + l.credit, 0);
+  if (totalDebits !== totalCredits) {
+    const diff = totalDebits - totalCredits;
+    assertResidueBounded(diff, lines.length);
+    lines.push({
+      id: `jl-cn-${note.id}-round`,
+      line_no: lineNo++,
+      account_id: settings.posting_accounts.rounding,
+      debit: diff < 0 ? Math.abs(diff) : 0,
+      credit: diff > 0 ? diff : 0,
+      currency: note.currency,
+      fx_rate: rate,
+      amount_fc: 0,
+      dimensions: firstDims,
+      description: `FX Rounding adjustment: ${label}`,
+    });
+  }
+
+  return {
+    tenant_id: note.tenant_id,
+    company_id: note.company_id,
+    fiscal_period_id: periodId,
+    journal_type: 'sales',
+    journal_date: note.issue_date,
+    reference: note.number || note.reference,
+    memo: `Credit note ${note.number || 'Draft'}: ${note.memo || ''}`,
+    source_type: 'credit_note',
+    source_id: note.id,
+    total_debit: lines.reduce((s, l) => s + l.debit, 0),
+    total_credit: lines.reduce((s, l) => s + l.credit, 0),
+    lines,
+    created_by: user.id,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  };
+}
+
+/**
+ * Debit note to journal: the mirror of a purchase bill. Dr AP control net of WHT, Dr WHT payable,
+ * Cr expense per line, Cr input tax. The amounts on the note are positive.
+ */
+export function buildJournalFromDebitNote(
+  note: Bill,
+  settings: CompanySettings,
+  periodId: string,
+  user: User
+): Omit<Journal, 'id' | 'number' | 'status' | 'posted_at' | 'posted_by'> {
+  const rate = note.fx_rate;
+  const firstDims = note.lines[0]?.dimensions || {};
+  const label = note.number || 'Debit note';
+  const lines: JournalLine[] = [];
+  let lineNo = 1;
+
+  const whtBase = note.wht_amount_fc ? roundHalfUp(note.wht_amount_fc * rate) : 0;
+  const netAp = roundHalfUp(note.total_fc * rate) - whtBase;
+
+  lines.push({
+    id: `jl-dn-${note.id}-ap`,
+    line_no: lineNo++,
+    account_id: settings.posting_accounts.ap_control,
+    debit: netAp,
+    credit: 0,
+    currency: note.currency,
+    fx_rate: rate,
+    amount_fc: note.total_fc - (note.wht_amount_fc || 0),
+    dimensions: firstDims,
+    description: `AP Control: ${label} - ${note.reference}`,
+    contact_id: note.contact_id,
+  });
+
+  if (whtBase > 0) {
+    lines.push({
+      id: `jl-dn-${note.id}-wht`,
+      line_no: lineNo++,
+      account_id: settings.posting_accounts.wht_payable,
+      debit: whtBase,
+      credit: 0,
+      currency: note.currency,
+      fx_rate: rate,
+      amount_fc: note.wht_amount_fc || 0,
+      dimensions: firstDims,
+      description: `WHT Withheld on Bill reversed: ${label}`,
+      contact_id: note.contact_id,
+    });
+  }
+
+  for (const l of note.lines) {
+    lines.push({
+      id: `jl-dn-${note.id}-exp-${l.id}`,
+      line_no: lineNo++,
+      account_id: l.account_id,
+      debit: 0,
+      credit: roundHalfUp(l.line_total_fc * rate),
+      currency: note.currency,
+      fx_rate: rate,
+      amount_fc: -l.line_total_fc,
+      dimensions: l.dimensions,
+      description: l.description || `Expense credit: ${label}`,
+      contact_id: note.contact_id,
+      tax_code_id: l.tax_code_id,
+    });
+  }
+
+  const taxFc = documentTaxFc(note);
+  if (taxFc > 0) {
+    lines.push({
+      id: `jl-dn-${note.id}-tax`,
+      line_no: lineNo++,
+      account_id: settings.posting_accounts.tax_input,
+      debit: 0,
+      credit: roundHalfUp(taxFc * rate),
+      currency: note.currency,
+      fx_rate: rate,
+      amount_fc: -taxFc,
+      dimensions: firstDims,
+      description: `Input VAT Recoverable reversed: ${label}`,
+      contact_id: note.contact_id,
+    });
+  }
+
+  const totalDebits = lines.reduce((s, l) => s + l.debit, 0);
+  const totalCredits = lines.reduce((s, l) => s + l.credit, 0);
+  if (totalDebits !== totalCredits) {
+    const diff = totalDebits - totalCredits;
+    assertResidueBounded(diff, lines.length);
+    lines.push({
+      id: `jl-dn-${note.id}-round`,
+      line_no: lineNo++,
+      account_id: settings.posting_accounts.rounding,
+      debit: diff < 0 ? Math.abs(diff) : 0,
+      credit: diff > 0 ? diff : 0,
+      currency: note.currency,
+      fx_rate: rate,
+      amount_fc: 0,
+      dimensions: firstDims,
+      description: `FX Rounding adjustment: ${label}`,
+    });
+  }
+
+  return {
+    tenant_id: note.tenant_id,
+    company_id: note.company_id,
+    fiscal_period_id: periodId,
+    journal_type: 'purchase',
+    journal_date: note.issue_date,
+    reference: note.number || note.reference,
+    memo: `Debit note ${note.number || 'Draft'}: ${note.memo || ''}`,
+    source_type: 'debit_note',
+    source_id: note.id,
+    total_debit: lines.reduce((s, l) => s + l.debit, 0),
+    total_credit: lines.reduce((s, l) => s + l.credit, 0),
+    lines,
+    created_by: user.id,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  };
+}
+
+/**
  * Builds the balanced journal draft for a settlement (Receipt or Payment) (0.8, D4).
  */
 /**

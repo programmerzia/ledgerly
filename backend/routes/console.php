@@ -6,6 +6,8 @@ use Illuminate\Support\Facades\Schedule;
 
 // 13 §15 scheduler. Per-tenant work fans out through sysops.tenants_due_for, never a tenant loop.
 Schedule::command('outbox:sweep')->everyTenSeconds()->withoutOverlapping()->onOneServer();
+// Webhook deliveries that are due: first attempts that missed the queue, and every retry (stored next_retry_at).
+Schedule::command('webhooks:sweep')->everyTenSeconds()->withoutOverlapping()->onOneServer();
 Schedule::command('idempotency:purge')->hourly()->onOneServer();
 Schedule::command('audit:seal')->dailyAt('01:30')->timezone('UTC')->onOneServer();
 // ECB publishes around 16:00 CET; fetch after that, then retry pending FX revaluation reversals.

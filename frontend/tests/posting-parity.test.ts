@@ -34,7 +34,9 @@ function actual(j: any) {
 
 const rules: Record<string, (i: any) => any> = {
   'invoice.json': (i) => R.buildJournalFromInvoice(i.invoice, i.settings, 'p', user),
+  'credit_note.json': (i) => R.buildJournalFromCreditNote(i.credit_note, i.settings, 'p', user),
   'bill.json': (i) => R.buildJournalFromBill(i.bill, i.settings, 'p', user),
+  'debit_note.json': (i) => R.buildJournalFromDebitNote(i.debit_note, i.settings, 'p', user),
   'settlement.json': (i) => R.buildJournalFromSettlement(i.settlement, i.bank_account_id, i.settings, 'p', user),
   'revaluation.json': (i) => R.buildJournalFromRevaluation(i.revaluation, i.settings, 'p', user),
   'depreciation.json': (i) =>

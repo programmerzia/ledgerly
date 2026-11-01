@@ -50,9 +50,9 @@ return [
         L::make('2130', 'Income tax payable', 'liability', 'Tax Payable', '21'),
 
         L::make('22', 'Borrowings and provisions', 'liability', 'Non-current Liabilities'),
-        L::make('2200', 'Short-term borrowings', 'liability', 'Current Liabilities', '22'),
+        L::make('2200', 'Short-term borrowings', 'liability', 'Borrowings', '22'),
         L::make('2210', 'Long-term loans', 'liability', 'Non-current Liabilities', '22'),
-        L::make('2230', 'Provisions', 'liability', 'Non-current Liabilities', '22'),
+        L::make('2230', 'Provisions', 'liability', 'Provisions', '22'),
 
         L::make('9999', 'Suspense account', 'liability', 'Clearing', control: 'suspense', description: 'Holds unidentified items until they are investigated and reclassified. Should be zero at period end.'),
 

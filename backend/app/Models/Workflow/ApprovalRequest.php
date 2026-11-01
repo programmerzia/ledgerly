@@ -6,6 +6,7 @@ namespace App\Models\Workflow;
 
 use App\Models\BaseModel;
 use App\Models\Ledger\Journal;
+use App\Models\Trade\Invoice;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -51,5 +52,11 @@ class ApprovalRequest extends BaseModel
     public function journal(): BelongsTo
     {
         return $this->belongsTo(Journal::class, 'document_id');
+    }
+
+    /** @return BelongsTo<Invoice, $this> null unless the document is an invoice or bill */
+    public function invoice(): BelongsTo
+    {
+        return $this->belongsTo(Invoice::class, 'document_id');
     }
 }

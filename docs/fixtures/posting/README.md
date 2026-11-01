@@ -5,7 +5,7 @@ Shared by `frontend/tests/posting-parity.test.ts` (runs `frontend/src/mock/Posti
 same lines and totals (13 §9). Generated from the mock builders; if a rule changes, regenerate from the mock
 and review the diff by hand.
 
-One file per rule: `invoice.json`, `bill.json`, `settlement.json`, `revaluation.json`, `depreciation.json`.
+One file per rule: `invoice.json`, `credit_note.json` (key `credit_note`), `bill.json`, `debit_note.json` (key `debit_note`; amounts positive, the rules mirror the parent), `settlement.json`, `revaluation.json`, `depreciation.json`.
 Each is an array of cases:
 
 ```jsonc

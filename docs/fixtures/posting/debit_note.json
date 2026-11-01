@@ -1,0 +1,475 @@
+[
+  {
+    "name": "debit_plain_bill_input_vat",
+    "input": {
+      "settings": {
+        "posting_accounts": {
+          "ar_control": "acc-1200",
+          "ap_control": "acc-2000",
+          "tax_output": "acc-2100",
+          "tax_input": "acc-2110",
+          "fx_realised": "acc-4900",
+          "fx_unrealised": "acc-4800",
+          "rounding": "acc-9999",
+          "wht_payable": "acc-2120"
+        },
+        "base_currency": "USD"
+      },
+      "debit_note": {
+        "id": "debit_plain_bill_input_vat",
+        "number": "DOC-debit_plain_bill_input_vat",
+        "reference": "REF-debit_plain_bill_input_vat",
+        "memo": "",
+        "contact_id": "con-1",
+        "issue_date": "2026-10-15",
+        "currency": "USD",
+        "fx_rate": 1,
+        "lines": [
+          {
+            "id": "l1",
+            "account_id": "acc-5000",
+            "description": "Office supplies",
+            "line_total_fc": 50000,
+            "tax_code_id": "tax-15",
+            "dimensions": {
+              "branch": "MG"
+            }
+          }
+        ],
+        "tax_total_fc": 7500,
+        "tax_total": 0,
+        "total_fc": 57500,
+        "kind": "debit_note"
+      }
+    },
+    "expected": {
+      "journal": {
+        "journal_type": "purchase",
+        "journal_date": "2026-10-15",
+        "reference": "DOC-debit_plain_bill_input_vat",
+        "memo": "Debit note DOC-debit_plain_bill_input_vat: ",
+        "source_type": "debit_note",
+        "source_id": "debit_plain_bill_input_vat"
+      },
+      "lines": [
+        {
+          "account_ref": "acc-2000",
+          "debit": 57500,
+          "credit": 0,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": 57500,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "AP Control: DOC-debit_plain_bill_input_vat - REF-debit_plain_bill_input_vat",
+          "contact_ref": "con-1"
+        },
+        {
+          "account_ref": "acc-5000",
+          "debit": 0,
+          "credit": 50000,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": -50000,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "Office supplies",
+          "contact_ref": "con-1",
+          "tax_code_ref": "tax-15"
+        },
+        {
+          "account_ref": "acc-2110",
+          "debit": 0,
+          "credit": 7500,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": -7500,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "Input VAT Recoverable reversed: DOC-debit_plain_bill_input_vat",
+          "contact_ref": "con-1"
+        }
+      ],
+      "totals": {
+        "debit": 57500,
+        "credit": 57500
+      }
+    }
+  },
+  {
+    "name": "debit_bill_two_expense_lines_no_tax",
+    "input": {
+      "settings": {
+        "posting_accounts": {
+          "ar_control": "acc-1200",
+          "ap_control": "acc-2000",
+          "tax_output": "acc-2100",
+          "tax_input": "acc-2110",
+          "fx_realised": "acc-4900",
+          "fx_unrealised": "acc-4800",
+          "rounding": "acc-9999",
+          "wht_payable": "acc-2120"
+        },
+        "base_currency": "USD"
+      },
+      "debit_note": {
+        "id": "debit_bill_two_expense_lines_no_tax",
+        "number": "DOC-debit_bill_two_expense_lines_no_tax",
+        "reference": "REF-debit_bill_two_expense_lines_no_tax",
+        "memo": "",
+        "contact_id": "con-1",
+        "issue_date": "2026-10-15",
+        "currency": "USD",
+        "fx_rate": 1,
+        "lines": [
+          {
+            "id": "l1",
+            "account_id": "acc-5000",
+            "description": "",
+            "line_total_fc": 12345,
+            "dimensions": {
+              "branch": "MG"
+            }
+          },
+          {
+            "id": "l2",
+            "account_id": "acc-5100",
+            "description": "",
+            "line_total_fc": 6789,
+            "dimensions": {
+              "branch": "MG",
+              "cost_centre": "ADMIN"
+            }
+          }
+        ],
+        "tax_total_fc": 0,
+        "tax_total": 0,
+        "total_fc": 19134,
+        "kind": "debit_note"
+      }
+    },
+    "expected": {
+      "journal": {
+        "journal_type": "purchase",
+        "journal_date": "2026-10-15",
+        "reference": "DOC-debit_bill_two_expense_lines_no_tax",
+        "memo": "Debit note DOC-debit_bill_two_expense_lines_no_tax: ",
+        "source_type": "debit_note",
+        "source_id": "debit_bill_two_expense_lines_no_tax"
+      },
+      "lines": [
+        {
+          "account_ref": "acc-2000",
+          "debit": 19134,
+          "credit": 0,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": 19134,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "AP Control: DOC-debit_bill_two_expense_lines_no_tax - REF-debit_bill_two_expense_lines_no_tax",
+          "contact_ref": "con-1"
+        },
+        {
+          "account_ref": "acc-5000",
+          "debit": 0,
+          "credit": 12345,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": -12345,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "Expense credit: DOC-debit_bill_two_expense_lines_no_tax",
+          "contact_ref": "con-1"
+        },
+        {
+          "account_ref": "acc-5100",
+          "debit": 0,
+          "credit": 6789,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": -6789,
+          "dimensions": {
+            "branch": "MG",
+            "cost_centre": "ADMIN"
+          },
+          "description": "Expense credit: DOC-debit_bill_two_expense_lines_no_tax",
+          "contact_ref": "con-1"
+        }
+      ],
+      "totals": {
+        "debit": 19134,
+        "credit": 19134
+      }
+    }
+  },
+  {
+    "name": "debit_bill_with_wht",
+    "input": {
+      "settings": {
+        "posting_accounts": {
+          "ar_control": "acc-1200",
+          "ap_control": "acc-2000",
+          "tax_output": "acc-2100",
+          "tax_input": "acc-2110",
+          "fx_realised": "acc-4900",
+          "fx_unrealised": "acc-4800",
+          "rounding": "acc-9999",
+          "wht_payable": "acc-2120"
+        },
+        "base_currency": "USD"
+      },
+      "debit_note": {
+        "id": "debit_bill_with_wht",
+        "number": "DOC-debit_bill_with_wht",
+        "reference": "REF-debit_bill_with_wht",
+        "memo": "",
+        "contact_id": "con-1",
+        "issue_date": "2026-10-15",
+        "currency": "USD",
+        "fx_rate": 1,
+        "lines": [
+          {
+            "id": "l1",
+            "account_id": "acc-5200",
+            "description": "Consulting",
+            "line_total_fc": 100000,
+            "tax_code_id": "tax-15",
+            "dimensions": {
+              "branch": "MG"
+            }
+          }
+        ],
+        "tax_total_fc": 15000,
+        "tax_total": 0,
+        "total_fc": 115000,
+        "wht_amount_fc": 5000,
+        "kind": "debit_note"
+      }
+    },
+    "expected": {
+      "journal": {
+        "journal_type": "purchase",
+        "journal_date": "2026-10-15",
+        "reference": "DOC-debit_bill_with_wht",
+        "memo": "Debit note DOC-debit_bill_with_wht: ",
+        "source_type": "debit_note",
+        "source_id": "debit_bill_with_wht"
+      },
+      "lines": [
+        {
+          "account_ref": "acc-2000",
+          "debit": 110000,
+          "credit": 0,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": 110000,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "AP Control: DOC-debit_bill_with_wht - REF-debit_bill_with_wht",
+          "contact_ref": "con-1"
+        },
+        {
+          "account_ref": "acc-2120",
+          "debit": 5000,
+          "credit": 0,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": 5000,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "WHT Withheld on Bill reversed: DOC-debit_bill_with_wht",
+          "contact_ref": "con-1"
+        },
+        {
+          "account_ref": "acc-5200",
+          "debit": 0,
+          "credit": 100000,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": -100000,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "Consulting",
+          "contact_ref": "con-1",
+          "tax_code_ref": "tax-15"
+        },
+        {
+          "account_ref": "acc-2110",
+          "debit": 0,
+          "credit": 15000,
+          "currency": "USD",
+          "fx_rate": 1,
+          "amount_fc": -15000,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "Input VAT Recoverable reversed: DOC-debit_bill_with_wht",
+          "contact_ref": "con-1"
+        }
+      ],
+      "totals": {
+        "debit": 115000,
+        "credit": 115000
+      }
+    }
+  },
+  {
+    "name": "debit_bill_foreign_currency_with_wht_rounding",
+    "input": {
+      "settings": {
+        "posting_accounts": {
+          "ar_control": "acc-1200",
+          "ap_control": "acc-2000",
+          "tax_output": "acc-2100",
+          "tax_input": "acc-2110",
+          "fx_realised": "acc-4900",
+          "fx_unrealised": "acc-4800",
+          "rounding": "acc-9999",
+          "wht_payable": "acc-2120"
+        },
+        "base_currency": "USD"
+      },
+      "debit_note": {
+        "id": "debit_bill_foreign_currency_with_wht_rounding",
+        "number": "DOC-debit_bill_foreign_currency_with_wht_rounding",
+        "reference": "REF-debit_bill_foreign_currency_with_wht_rounding",
+        "memo": "",
+        "contact_id": "con-1",
+        "issue_date": "2026-10-15",
+        "currency": "EUR",
+        "fx_rate": 1.0725,
+        "lines": [
+          {
+            "id": "l1",
+            "account_id": "acc-5200",
+            "description": "",
+            "line_total_fc": 20001,
+            "tax_code_id": "tax-5",
+            "dimensions": {
+              "branch": "MG"
+            }
+          },
+          {
+            "id": "l2",
+            "account_id": "acc-5000",
+            "description": "",
+            "line_total_fc": 3333,
+            "tax_code_id": "tax-15",
+            "dimensions": {
+              "branch": "MG"
+            }
+          }
+        ],
+        "tax_total_fc": 1500,
+        "tax_total": 0,
+        "total_fc": 24834,
+        "wht_amount_fc": 1001,
+        "kind": "debit_note"
+      }
+    },
+    "expected": {
+      "journal": {
+        "journal_type": "purchase",
+        "journal_date": "2026-10-15",
+        "reference": "DOC-debit_bill_foreign_currency_with_wht_rounding",
+        "memo": "Debit note DOC-debit_bill_foreign_currency_with_wht_rounding: ",
+        "source_type": "debit_note",
+        "source_id": "debit_bill_foreign_currency_with_wht_rounding"
+      },
+      "lines": [
+        {
+          "account_ref": "acc-2000",
+          "debit": 25560,
+          "credit": 0,
+          "currency": "EUR",
+          "fx_rate": 1.0725,
+          "amount_fc": 23833,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "AP Control: DOC-debit_bill_foreign_currency_with_wht_rounding - REF-debit_bill_foreign_currency_with_wht_rounding",
+          "contact_ref": "con-1"
+        },
+        {
+          "account_ref": "acc-2120",
+          "debit": 1074,
+          "credit": 0,
+          "currency": "EUR",
+          "fx_rate": 1.0725,
+          "amount_fc": 1001,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "WHT Withheld on Bill reversed: DOC-debit_bill_foreign_currency_with_wht_rounding",
+          "contact_ref": "con-1"
+        },
+        {
+          "account_ref": "acc-5200",
+          "debit": 0,
+          "credit": 21451,
+          "currency": "EUR",
+          "fx_rate": 1.0725,
+          "amount_fc": -20001,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "Expense credit: DOC-debit_bill_foreign_currency_with_wht_rounding",
+          "contact_ref": "con-1",
+          "tax_code_ref": "tax-5"
+        },
+        {
+          "account_ref": "acc-5000",
+          "debit": 0,
+          "credit": 3575,
+          "currency": "EUR",
+          "fx_rate": 1.0725,
+          "amount_fc": -3333,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "Expense credit: DOC-debit_bill_foreign_currency_with_wht_rounding",
+          "contact_ref": "con-1",
+          "tax_code_ref": "tax-15"
+        },
+        {
+          "account_ref": "acc-2110",
+          "debit": 0,
+          "credit": 1609,
+          "currency": "EUR",
+          "fx_rate": 1.0725,
+          "amount_fc": -1500,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "Input VAT Recoverable reversed: DOC-debit_bill_foreign_currency_with_wht_rounding",
+          "contact_ref": "con-1"
+        },
+        {
+          "account_ref": "acc-9999",
+          "debit": 1,
+          "credit": 0,
+          "currency": "EUR",
+          "fx_rate": 1.0725,
+          "amount_fc": 0,
+          "dimensions": {
+            "branch": "MG"
+          },
+          "description": "FX Rounding adjustment: DOC-debit_bill_foreign_currency_with_wht_rounding"
+        }
+      ],
+      "totals": {
+        "debit": 26635,
+        "credit": 26635
+      }
+    }
+  }
+]

@@ -18,11 +18,15 @@ use App\Actions\Ledger\Inputs\PostJournalInput;
 use App\Actions\Ledger\Inputs\ReverseJournalInput;
 use App\Actions\Ledger\PostJournal;
 use App\Actions\Ledger\ReverseJournal;
+use App\Actions\Trade\Inputs\ReverseInvoiceInput;
+use App\Actions\Trade\ReverseInvoice;
 use App\Actions\Workflow\ApproveDocument;
 use App\Actions\Workflow\Inputs\DocumentRef;
 use App\Actions\Workflow\Inputs\ReturnDocumentInput;
+use App\Actions\Workflow\Inputs\VoidDocumentInput;
 use App\Actions\Workflow\ReturnDocument;
 use App\Actions\Workflow\SubmitDocument;
+use App\Actions\Workflow\VoidDocument;
 use App\Contracts\PermissionChecker;
 use App\Contracts\RoleChecker;
 use App\Domain\Shared\DomainRuleViolation;
@@ -42,7 +46,7 @@ $spec = json_decode($argv[1], true, flags: JSON_THROW_ON_ERROR);
 
 // Roles and permissions are not what a race test is about: grant everything, keep the real locking.
 $app->instance(PermissionChecker::class, new GrantedPermissions([
-    'journals.submit', 'journals.approve', 'journals.reverse', 'periods.close', 'periods.reopen.request',
+    'journals.submit', 'journals.approve', 'journals.reverse', 'invoices.submit', 'invoices.approve', 'invoices.reverse', 'invoices.void', 'periods.close', 'periods.reopen.request',
     'periods.reopen.approve', 'periods.year_end', 'periods.post_adjustment', 'periods.post_soft_closed',
 ]));
 $app->instance(RoleChecker::class, new AllowAllRoles);
@@ -66,6 +70,10 @@ foreach ($spec['ops'] as $op) {
             'approve' => $app->make(ApproveDocument::class)->handle($actor, new DocumentRef('journal', $op['id'])),
             'return' => $app->make(ReturnDocument::class)->handle($actor, new ReturnDocumentInput(new DocumentRef('journal', $op['id']), 'race')),
             'reverse' => $app->make(ReverseJournal::class)->handle($actor, new ReverseJournalInput($op['id'])),
+            'submit_invoice' => $app->make(SubmitDocument::class)->handle($actor, new DocumentRef('invoice', $op['id'])),
+            'approve_invoice' => $app->make(ApproveDocument::class)->handle($actor, new DocumentRef('invoice', $op['id'])),
+            'void_invoice' => $app->make(VoidDocument::class)->handle($actor, new VoidDocumentInput(new DocumentRef('invoice', $op['id']), 'race')),
+            'reverse_invoice' => $app->make(ReverseInvoice::class)->handle($actor, new ReverseInvoiceInput($op['id'])),
             'close' => $app->make(ClosePeriod::class)->handle($actor, new ClosePeriodInput($op['id'], $op['waivers'] ?? [])),
             'year_end' => $app->make(YearEndClose::class)->handle($actor, $op['id']),
             'reopen_approve' => $app->make(DecidePeriodReopen::class)->approve($actor, $op['id']),

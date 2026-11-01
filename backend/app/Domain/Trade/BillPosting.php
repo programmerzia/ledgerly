@@ -6,7 +6,10 @@ namespace App\Domain\Trade;
 
 use App\Domain\Ledger\JournalType;
 
-/** Purchase bill to journal: Cr AP net of WHT, Cr WHT payable, Dr expense per line, Dr input tax, residue to rounding. */
+/**
+ * Purchase bill to journal: Cr AP net of WHT, Cr WHT payable, Dr expense per line, Dr input tax, residue to rounding.
+ * A debit note is its mirror: Dr AP net of WHT, Dr WHT payable, Cr expense per line, Cr input tax.
+ */
 final class BillPosting
 {
     public static function journal(BillDocument $bill, PostingAccounts $accounts): ProposedJournal
@@ -55,6 +58,55 @@ final class BillPosting
             JournalType::Purchase, $bill->issueDate, PostingSupport::orDefault($bill->number, $bill->reference),
             'Purchase bill '.PostingSupport::orDefault($bill->number, 'Draft').': '.($bill->memo ?? ''),
             'purchase_bill', $bill->id, $lines,
+        );
+    }
+
+    public static function debitNote(BillDocument $note, PostingAccounts $accounts): ProposedJournal
+    {
+        $number = PostingSupport::orDefault($note->number, 'Debit note');
+        $firstDims = $note->lines[0]->dimensions ?? [];
+        $rate = $note->fxRate;
+        $cur = $note->currency;
+
+        $whtBase = $note->whtAmountFc !== 0 ? PostingSupport::toBase($note->whtAmountFc, $rate) : 0;
+        $netAp = PostingSupport::toBase($note->totalFc, $rate) - $whtBase;
+
+        $lines = [new ProposedLine(
+            $accounts->apControl, $netAp, 0, $cur, $rate, $note->totalFc - $note->whtAmountFc,
+            $firstDims, "AP Control: {$number} - {$note->reference}", $note->contactRef,
+        )];
+
+        if ($whtBase > 0) {
+            $lines[] = new ProposedLine(
+                $accounts->whtPayable, $whtBase, 0, $cur, $rate, $note->whtAmountFc,
+                $firstDims, "WHT Withheld on Bill reversed: {$number}", $note->contactRef,
+            );
+        }
+
+        foreach ($note->lines as $l) {
+            $lines[] = new ProposedLine(
+                $l->accountRef, 0, PostingSupport::toBase($l->lineTotalFc, $rate), $cur, $rate, -$l->lineTotalFc,
+                $l->dimensions, PostingSupport::orDefault($l->description, "Expense credit: {$number}"), $note->contactRef, $l->taxCodeRef,
+            );
+        }
+
+        $taxFc = PostingSupport::documentTaxFc($note->taxTotalFc, $note->taxTotal, $rate);
+        if ($taxFc > 0) {
+            $lines[] = new ProposedLine(
+                $accounts->taxInput, 0, PostingSupport::toBase($taxFc, $rate), $cur, $rate, -$taxFc,
+                $firstDims, "Input VAT Recoverable reversed: {$number}", $note->contactRef,
+            );
+        }
+
+        $residue = PostingSupport::residue($lines, $accounts->rounding, $cur, $rate, $firstDims, "FX Rounding adjustment: {$number}");
+        if ($residue !== null) {
+            $lines[] = $residue;
+        }
+
+        return new ProposedJournal(
+            JournalType::Purchase, $note->issueDate, PostingSupport::orDefault($note->number, $note->reference),
+            'Debit note '.PostingSupport::orDefault($note->number, 'Draft').': '.($note->memo ?? ''),
+            'debit_note', $note->id, $lines,
         );
     }
 }

@@ -12,7 +12,8 @@ use Illuminate\Http\Resources\Json\JsonResource;
 /**
  * @mixin Contact
  *
- * Receivable and payable balances are not part of this resource yet: they come with the sub-ledger (R1 later steps).
+ * `balances` (on the list and on one contact) are the open receivable and payable from posted documents, in base currency
+ * (Queries\Trade\ContactBalances). They are absent where the resource is rendered without them (after a write).
  */
 final class ContactResource extends JsonResource
 {
@@ -43,6 +44,10 @@ final class ContactResource extends JsonResource
             'default_dims' => (object) ($this->default_dims ?? []),
             'is_active' => $this->is_active,
             'notes' => $this->notes,
+            'balances' => $this->when(array_key_exists('open_balances', $this->resource->getAttributes()), fn (): array => [
+                'receivable' => Json::money((int) $this->resource->getAttributes()['open_balances']['receivable'], Json::baseCurrency($request)),
+                'payable' => Json::money((int) $this->resource->getAttributes()['open_balances']['payable'], Json::baseCurrency($request)),
+            ]),
             'version' => $this->lock_version,
             'can' => Json::can($request, $this->resource, ['update' => 'update', 'deactivate' => 'deactivate']),
         ];

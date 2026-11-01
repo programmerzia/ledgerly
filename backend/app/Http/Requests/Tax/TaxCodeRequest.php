@@ -49,7 +49,7 @@ final class TaxCodeRequest extends CompanyRequest
             kind: (string) $v['kind'],
             collectAccountId: $v['collect_account_id'] ?? null,
             payAccountId: $v['pay_account_id'] ?? null,
-            isRecoverable: (bool) ($v['is_recoverable'] ?? false),
+            isRecoverable: (bool) ($v['is_recoverable'] ?? true),
         );
     }
 

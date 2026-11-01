@@ -13,6 +13,8 @@ use App\Http\Resources\DimensionValueResource;
 use App\Http\Resources\FiscalPeriodResource;
 use App\Http\Resources\FiscalYearResource;
 use App\Http\Resources\InvitationResource;
+use App\Http\Resources\InvoiceResource;
+use App\Http\Resources\ItemResource;
 use App\Http\Resources\JournalResource;
 use App\Http\Resources\ReopenRequestResource;
 use App\Http\Resources\TaxCodeResource;
@@ -29,6 +31,8 @@ use App\Models\Organisation\Invitation;
 use App\Models\Tax\TaxCode;
 use App\Models\Tax\TaxGroup;
 use App\Models\Trade\Contact;
+use App\Models\Trade\Invoice;
+use App\Models\Trade\Item;
 use App\Models\Workflow\ApprovalWorkflow;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
@@ -56,6 +60,8 @@ final class SubjectRepresenter
         'contacts' => [Contact::class, ContactResource::class, []],
         'tax_codes' => [TaxCode::class, TaxCodeResource::class, ['rates']],
         'tax_groups' => [TaxGroup::class, TaxGroupResource::class, ['items']],
+        'invoices' => [Invoice::class, InvoiceResource::class, ['lines']],
+        'items' => [Item::class, ItemResource::class, []],
     ];
 
     public function represent(?string $subjectType, ?string $subjectId): JsonResponse

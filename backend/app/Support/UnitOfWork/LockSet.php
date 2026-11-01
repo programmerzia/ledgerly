@@ -45,6 +45,9 @@ final class LockSet
     /** @var array<string, FiscalPeriod> */
     private array $periods = [];
 
+    /** @var array<string, true> companies whose balance projection this transaction changed */
+    private array $changedCompanies = [];
+
     public function __construct(
         private readonly Connection $db,
         private readonly SequenceAllocator $sequences,
@@ -142,6 +145,7 @@ final class LockSet
         if ($deltas === []) {
             return;
         }
+        $this->changedCompanies[$companyId] = true;
         usort($deltas, fn (BalanceDelta $a, BalanceDelta $b) => strcmp($a->accountId.bin2hex($a->dimKey()), $b->accountId.bin2hex($b->dimKey())));
 
         $rows = [];
@@ -164,6 +168,16 @@ final class LockSet
             .'debit = account_period_balances.debit + EXCLUDED.debit, credit = account_period_balances.credit + EXCLUDED.credit',
             $bindings,
         );
+    }
+
+    /**
+     * Companies whose balances this transaction posted into: their report caches go stale at commit (13 §13).
+     *
+     * @return list<string>
+     */
+    public function changedCompanies(): array
+    {
+        return array_keys($this->changedCompanies);
     }
 
     /** Level 5: only the pre-commit audit flush calls this. */

@@ -32,26 +32,32 @@ final class ListApprovalInbox
         return ApprovalRequest::query()
             ->from('approval_requests')
             ->select('approval_requests.*')
-            ->selectSub(
-                fn (QueryBuilder $q) => $q->from('journal_lines')->selectRaw('GREATEST(COALESCE(SUM(debit), 0), COALESCE(SUM(credit), 0))')
-                    ->whereColumn('journal_lines.journal_id', 'approval_requests.document_id'),
-                'document_amount',
-            )
+            // Base-currency amount: a journal's lines, or the invoice or bill's total.
+            ->selectRaw("CASE WHEN approval_requests.document_type = 'journal'
+                THEN (SELECT GREATEST(COALESCE(SUM(l.debit), 0), COALESCE(SUM(l.credit), 0)) FROM journal_lines l WHERE l.journal_id = approval_requests.document_id)
+                ELSE (SELECT i.total FROM invoices i WHERE i.id = approval_requests.document_id) END AS document_amount")
             ->where('approval_requests.company_id', $companyId)
             ->where('approval_requests.status', 'pending')
             ->whereIn('approval_requests.role', $held)
             // Current step: the lowest step with a pending slot; next slot: the lowest pending slot in it.
             ->whereRaw('approval_requests.step = (SELECT MIN(p.step) FROM approval_requests p WHERE p.document_type = approval_requests.document_type AND p.document_id = approval_requests.document_id AND p.status = \'pending\')')
             ->whereRaw('approval_requests.slot = (SELECT MIN(p.slot) FROM approval_requests p WHERE p.document_type = approval_requests.document_type AND p.document_id = approval_requests.document_id AND p.step = approval_requests.step AND p.status = \'pending\')')
-            ->whereExists(fn (QueryBuilder $q) => $q->from('journals')->selectRaw('1')
-                ->whereColumn('journals.id', 'approval_requests.document_id')
-                ->where('journals.status', 'pending_approval')
-                ->whereRaw('journals.created_by IS DISTINCT FROM ?', [$me])
-                ->whereRaw('journals.submitted_by IS DISTINCT FROM ?', [$me]))
+            // Waiting for approval, and neither created nor submitted by the actor (maker ≠ checker).
+            ->where(fn (Builder $any) => $any
+                ->whereExists(fn (QueryBuilder $q) => $q->from('journals')->selectRaw('1')
+                    ->whereColumn('journals.id', 'approval_requests.document_id')
+                    ->where('journals.status', 'pending_approval')
+                    ->whereRaw('journals.created_by IS DISTINCT FROM ?', [$me])
+                    ->whereRaw('journals.submitted_by IS DISTINCT FROM ?', [$me]))
+                ->orWhereExists(fn (QueryBuilder $q) => $q->from('invoices')->selectRaw('1')
+                    ->whereColumn('invoices.id', 'approval_requests.document_id')
+                    ->where('invoices.status', 'pending_approval')
+                    ->whereRaw('invoices.created_by IS DISTINCT FROM ?', [$me])
+                    ->whereRaw('invoices.submitted_by IS DISTINCT FROM ?', [$me])))
             ->whereNotExists(fn (QueryBuilder $q) => $q->from('approval_requests as s')->selectRaw('1')
                 ->whereColumn('s.document_id', 'approval_requests.document_id')
                 ->whereColumn('s.document_type', 'approval_requests.document_type')
                 ->where('s.signed_by', $me))
-            ->with('journal');
+            ->with(['journal', 'invoice']);
     }
 }

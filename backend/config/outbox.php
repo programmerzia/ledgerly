@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use App\Contracts\OutboxHandler;
+use App\Support\Outbox\WebhookOutboxHandler;
+use App\Support\Webhooks\WebhookEvents;
 
 return [
     /*
@@ -11,5 +13,8 @@ return [
      *
      * @var array<string, list<class-string<OutboxHandler>>>
      */
-    'handlers' => [],
+    'handlers' => [
+        // Webhooks (13 §15): every event type integrators can subscribe to.
+        ...WebhookEvents::handlerMap(WebhookOutboxHandler::class),
+    ],
 ];

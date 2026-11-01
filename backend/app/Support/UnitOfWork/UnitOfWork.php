@@ -9,6 +9,7 @@ use App\Services\Ledger\SequenceAllocator;
 use App\Support\Actor;
 use App\Support\Idempotency\IdempotencyScope;
 use App\Support\Idempotency\IdempotencyStore;
+use App\Support\Reports\LedgerVersion;
 use App\Support\Tenancy\TenantContext;
 use Closure;
 use Illuminate\Database\Connection;
@@ -50,6 +51,7 @@ final class UnitOfWork
         private readonly IdempotencyStore $idempotency,
         private readonly bool $strictLockOrder = true,
         private readonly int $maxAttempts = 3,
+        private readonly ?LedgerVersion $ledgerVersion = null,
     ) {}
 
     /**
@@ -132,6 +134,11 @@ final class UnitOfWork
         try {
             return $connection->transaction(function () use ($connection, $tenantId, $actor, $work, $locks, $audit, $outbox) {
                 $result = $work($locks, $audit, $outbox);
+
+                // A posting makes this company's cached reports stale; bump once the commit is durable (13 §13).
+                foreach ($locks->changedCompanies() as $companyId) {
+                    $this->afterCommit[] = fn () => $this->ledgerVersion?->bump($tenantId, $companyId);
+                }
 
                 // Pre-commit, in order (13 §8 step 2): outbox rows, the idempotency key, then the
                 // audit head, which is the last lock.

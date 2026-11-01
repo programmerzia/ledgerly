@@ -31,6 +31,8 @@ import {
 import {
   buildJournalFromInvoice,
   buildJournalFromBill,
+  buildJournalFromCreditNote,
+  buildJournalFromDebitNote,
   buildJournalFromSettlement,
   executePostJournal,
   PostingError,
@@ -219,7 +221,7 @@ export const createDocumentsSlice: StateCreator<any, [], [], DocumentsSlice> = (
     };
 
     // Build and post journal directly through central PostingRules
-    const journalDraft = buildJournalFromInvoice(readyInvoice, settings, state.currentPeriod?.id || 'per-2026-10', approver);
+    const journalDraft = (readyInvoice.kind === 'credit_note' ? buildJournalFromCreditNote : buildJournalFromInvoice)(readyInvoice, settings, state.currentPeriod?.id || 'per-2026-10', approver);
     const { journal, auditEvent } = state.postJournalDirect(journalDraft, approver, settings, state.auditEvents?.[0]);
 
     readyInvoice.journal_id = journal.id;
@@ -595,7 +597,7 @@ export const createDocumentsSlice: StateCreator<any, [], [], DocumentsSlice> = (
       updated_at: now,
     };
 
-    const journalDraft = buildJournalFromBill(readyBill, settings, state.currentPeriod?.id || 'per-2026-10', approver);
+    const journalDraft = (readyBill.kind === 'debit_note' ? buildJournalFromDebitNote : buildJournalFromBill)(readyBill, settings, state.currentPeriod?.id || 'per-2026-10', approver);
     const { journal } = state.postJournalDirect(journalDraft, approver, settings, state.auditEvents?.[0]);
 
     readyBill.journal_id = journal.id;

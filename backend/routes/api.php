@@ -15,12 +15,19 @@ use App\Http\Controllers\Ledger\JournalController;
 use App\Http\Controllers\Organisation\CompanyController;
 use App\Http\Controllers\Organisation\InvitationController;
 use App\Http\Controllers\Organisation\InvitationTokenController;
+use App\Http\Controllers\Reports\ReportController;
+use App\Http\Controllers\Reports\ReportExportController;
 use App\Http\Controllers\Signing\SigningController;
 use App\Http\Controllers\Tax\TaxCodeController;
 use App\Http\Controllers\Tax\TaxGroupController;
+use App\Http\Controllers\Trade\BillController;
 use App\Http\Controllers\Trade\ContactController;
+use App\Http\Controllers\Trade\InvoiceController;
+use App\Http\Controllers\Trade\ItemController;
+use App\Http\Controllers\Webhooks\WebhookEndpointController;
 use App\Http\Controllers\Workflow\ApprovalInboxController;
 use App\Http\Controllers\Workflow\ApprovalWorkflowController;
+use App\Services\Reports\ReportExport;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Http\Controllers\RegisteredUserController;
 
@@ -48,6 +55,16 @@ Route::middleware(['auth:sanctum', 'tenant', 'tenant.writable', 'idempotent'])->
     Route::get('invitations', [InvitationController::class, 'index'])->name('invitations.index');
     Route::post('invitations', [InvitationController::class, 'store'])->name('invitations.store');
     Route::delete('invitations/{invitation}', [InvitationController::class, 'destroy'])->whereUuid('invitation')->name('invitations.destroy');
+
+    // Webhook endpoints are organisation-level (13 §15, §7): owners and admins, people only.
+    Route::get('webhook-endpoints', [WebhookEndpointController::class, 'index'])->name('webhook-endpoints.index');
+    Route::post('webhook-endpoints', [WebhookEndpointController::class, 'store'])->name('webhook-endpoints.store');
+    Route::put('webhook-endpoints/{webhook}', [WebhookEndpointController::class, 'update'])->whereUuid('webhook')->name('webhook-endpoints.update');
+    Route::post('webhook-endpoints/{webhook}/rotate-secret', [WebhookEndpointController::class, 'rotateSecret'])->whereUuid('webhook')->name('webhook-endpoints.rotate-secret');
+    Route::post('webhook-endpoints/{webhook}/disable', [WebhookEndpointController::class, 'disable'])->whereUuid('webhook')->name('webhook-endpoints.disable');
+    Route::post('webhook-endpoints/{webhook}/enable', [WebhookEndpointController::class, 'enable'])->whereUuid('webhook')->name('webhook-endpoints.enable');
+    Route::get('webhook-endpoints/{webhook}/deliveries', [WebhookEndpointController::class, 'deliveries'])->whereUuid('webhook')->name('webhook-endpoints.deliveries');
+    Route::post('webhook-endpoints/{webhook}/deliveries/{delivery}/redeliver', [WebhookEndpointController::class, 'redeliver'])->whereUuid(['webhook', 'delivery'])->name('webhook-endpoints.redeliver');
 
     // Signing PIN (ADR-0004): grants are per user and session, so these need the SPA session.
     Route::put('signing/pin', [SigningController::class, 'setPin'])->name('signing.pin');
@@ -128,6 +145,37 @@ Route::middleware(['auth:sanctum', 'tenant', 'tenant.writable', 'idempotent', 'c
         Route::post('journals/{journal}/return', [JournalController::class, 'return'])->whereUuid('journal')->name('journals.return');
         Route::post('journals/{journal}/void', [JournalController::class, 'void'])->whereUuid('journal')->name('journals.void');
         Route::post('journals/{journal}/reverse', [JournalController::class, 'reverse'])->whereUuid('journal')->name('journals.reverse');
+
+        // Reports (13 §13): statements and ledger detail from the reporting connection, the drill behind every cell, exports.
+        Route::get('reports/trial-balance', [ReportController::class, 'trialBalance'])->name('reports.trial-balance');
+        Route::get('reports/profit-and-loss', [ReportController::class, 'profitAndLoss'])->name('reports.profit-and-loss');
+        Route::get('reports/balance-sheet', [ReportController::class, 'balanceSheet'])->name('reports.balance-sheet');
+        Route::get('reports/cash-flow', [ReportController::class, 'cashFlow'])->name('reports.cash-flow');
+        Route::get('reports/general-ledger', [ReportController::class, 'generalLedger'])->name('reports.general-ledger');
+        Route::get('reports/drill', [ReportController::class, 'drill'])->name('reports.drill');
+        Route::get('reports/exports/{exportId}', [ReportExportController::class, 'show'])->whereUuid('exportId')->name('reports.exports.show');
+        Route::get('reports/{report}/export', [ReportExportController::class, 'export'])->whereIn('report', ReportExport::REPORTS)->middleware('throttle:report-exports')->name('reports.export');
+
+        // Items: defaults for document lines
+        Route::get('items', [ItemController::class, 'index'])->name('items.index');
+        Route::post('items', [ItemController::class, 'store'])->name('items.store');
+        Route::get('items/{item}', [ItemController::class, 'show'])->whereUuid('item')->name('items.show');
+        Route::put('items/{item}', [ItemController::class, 'update'])->whereUuid('item')->name('items.update');
+        Route::post('items/{item}/deactivate', [ItemController::class, 'deactivate'])->whereUuid('item')->name('items.deactivate');
+
+        // Invoices and credit notes; bills and debit notes: same document lifecycle as journals (13 §16)
+        foreach (['invoices' => [InvoiceController::class, 'invoice'], 'bills' => [BillController::class, 'bill']] as $path => [$controller, $param]) {
+            Route::get($path, [$controller, 'index'])->name("{$path}.index");
+            Route::post($path, [$controller, 'store'])->name("{$path}.store");
+            Route::get("{$path}/{{$param}}", [$controller, 'show'])->whereUuid($param)->name("{$path}.show");
+            Route::put("{$path}/{{$param}}", [$controller, 'update'])->whereUuid($param)->name("{$path}.update");
+            Route::post("{$path}/{{$param}}/posting-preview", [$controller, 'preview'])->whereUuid($param)->name("{$path}.preview");
+            Route::post("{$path}/{{$param}}/submit", [$controller, 'submit'])->whereUuid($param)->name("{$path}.submit");
+            Route::post("{$path}/{{$param}}/approve", [$controller, 'approve'])->whereUuid($param)->name("{$path}.approve");
+            Route::post("{$path}/{{$param}}/return", [$controller, 'return'])->whereUuid($param)->name("{$path}.return");
+            Route::post("{$path}/{{$param}}/void", [$controller, 'void'])->whereUuid($param)->name("{$path}.void");
+            Route::post("{$path}/{{$param}}/reverse", [$controller, 'reverse'])->whereUuid($param)->name("{$path}.reverse");
+        }
 
         // Approvals: the inbox, and the workflows that feed it (settings.manage)
         Route::get('approvals', [ApprovalInboxController::class, 'index'])->name('approvals.index');

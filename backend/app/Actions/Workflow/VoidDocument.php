@@ -44,6 +44,7 @@ final class VoidDocument
             }
 
             $doc = $this->documents->lock($locks, $unlocked, $ref->lockVersion);
+            $this->documents->authorizeVoid($actor, $doc);
             if (! $doc->documentStatus()->canBecome(DocumentStatus::Void)) {
                 throw DomainRuleViolation::single('document_not_voidable', "A {$doc->documentStatus()->value} {$ref->type} cannot be voided; reverse it instead.");
             }

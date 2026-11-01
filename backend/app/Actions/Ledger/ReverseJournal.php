@@ -15,6 +15,7 @@ use App\Domain\Ledger\JournalType;
 use App\Domain\Ledger\PostingRejected;
 use App\Domain\Shared\DomainRuleViolation;
 use App\Domain\Shared\Violation;
+use App\Domain\Trade\InvoiceKind;
 use App\Events\Ledger\JournalPosted;
 use App\Events\Ledger\JournalReversed;
 use App\Models\Fiscal\FiscalPeriod;
@@ -52,12 +53,12 @@ final class ReverseJournal
 
         return $this->uow->run($actor, function (LockSet $locks, AuditBuffer $audit, Outbox $outbox) use ($actor, $in) {
             $original = Journal::query()->findOrFail($in->journalId);                       // unlocked
-            $this->assertReversible($original);
+            $this->assertReversible($original, $in->whileLocked !== null);
             // Reversing posts (ADR-0004): a person needs the permission and a signing grant. Only the
             // system (auto-reversing runs) acts without one; the Action checks even though the policy did.
             if ($actor->type !== ActorType::System) {
-                if (! $this->permissions->allows($actor, 'journals.reverse', $original->company_id)) {
-                    throw DomainRuleViolation::single('forbidden', 'This needs the journals.reverse permission.');
+                if (! $this->permissions->allows($actor, $in->permission, $original->company_id)) {
+                    throw DomainRuleViolation::single('forbidden', "This needs the {$in->permission} permission.");
                 }
                 if (! $actor->hasSigningGrant) {
                     throw DomainRuleViolation::single('signature_required', 'Reversing needs your signing PIN.');
@@ -79,6 +80,9 @@ final class ReverseJournal
             $doc = $locks->document($original, $in->lockVersion);                            // 2
             if ($doc->status !== JournalStatus::Posted || $doc->fiscal_period_id !== $original->fiscal_period_id) {
                 throw new RetryUnitOfWork('Journal changed while locking.');
+            }
+            if ($in->whileLocked !== null) {
+                ($in->whileLocked)($locks);
             }
 
             $company = Company::query()->findOrFail($doc->company_id);
@@ -126,7 +130,7 @@ final class ReverseJournal
         });
     }
 
-    private function assertReversible(Journal $journal): void
+    private function assertReversible(Journal $journal, bool $viaDocument): void
     {
         if ($journal->status === JournalStatus::Reversed) {
             throw DomainRuleViolation::single('journal_already_reversed', 'The journal has already been reversed.');
@@ -136,6 +140,10 @@ final class ReverseJournal
         }
         if ($journal->reversal_of_id !== null) {
             throw DomainRuleViolation::single('journal_not_reversible', 'A reversal cannot itself be reversed; post a new journal.');
+        }
+        // An invoice's or bill's journal is undone through the document, which keeps the sub-ledger and the ledger in step.
+        if ($viaDocument === false && in_array($journal->source_type, InvoiceKind::values(...InvoiceKind::cases()), true)) {
+            throw DomainRuleViolation::single('journal_not_reversible', 'This journal belongs to a document; reverse the document instead.');
         }
     }
 
