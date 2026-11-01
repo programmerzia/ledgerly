@@ -90,7 +90,7 @@ it('closes only with a signing grant and passing or waived checks, storing each 
     $closed = closeMonth($this->f, '2026-03-15', ['DRAFTS' => 'Duplicate of JNL-12, will be voided']);
     expect($closed->status)->toBe(PeriodStatus::Closed)->and($closed->closed_by)->toBe($this->f->userId)
         ->and(DB::table('period_close_checks')->where('fiscal_period_id', $march)->orderBy('check_code')->pluck('status', 'check_code')->all())
-        ->toBe(['APPROVALS' => 'pass', 'DRAFTS' => 'waived'])
+        ->toBe(['APPROVALS' => 'pass', 'DRAFTS' => 'waived', 'FX_REVAL' => 'pass'])
         ->and(DB::table('period_close_checks')->where('check_code', 'DRAFTS')->value('waived_reason'))->toBe('Duplicate of JNL-12, will be voided');
 
     expect(fn () => postJournal($this->f, $draft))->toThrow(PostingRejected::class);

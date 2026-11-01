@@ -7,6 +7,7 @@ namespace App\Http\Support;
 use App\Http\Resources\AccountResource;
 use App\Http\Resources\ApprovalWorkflowResource;
 use App\Http\Resources\CompanyResource;
+use App\Http\Resources\ContactResource;
 use App\Http\Resources\DimensionResource;
 use App\Http\Resources\DimensionValueResource;
 use App\Http\Resources\FiscalPeriodResource;
@@ -14,6 +15,8 @@ use App\Http\Resources\FiscalYearResource;
 use App\Http\Resources\InvitationResource;
 use App\Http\Resources\JournalResource;
 use App\Http\Resources\ReopenRequestResource;
+use App\Http\Resources\TaxCodeResource;
+use App\Http\Resources\TaxGroupResource;
 use App\Models\Fiscal\FiscalPeriod;
 use App\Models\Fiscal\FiscalYear;
 use App\Models\Fiscal\PeriodReopenRequest;
@@ -23,6 +26,9 @@ use App\Models\Ledger\DimensionValue;
 use App\Models\Ledger\Journal;
 use App\Models\Organisation\Company;
 use App\Models\Organisation\Invitation;
+use App\Models\Tax\TaxCode;
+use App\Models\Tax\TaxGroup;
+use App\Models\Trade\Contact;
 use App\Models\Workflow\ApprovalWorkflow;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
@@ -47,6 +53,9 @@ final class SubjectRepresenter
         'fiscal_periods' => [FiscalPeriod::class, FiscalPeriodResource::class, ['pendingReopenRequest']],
         'period_reopen_requests' => [PeriodReopenRequest::class, ReopenRequestResource::class, []],
         'approval_workflows' => [ApprovalWorkflow::class, ApprovalWorkflowResource::class, []],
+        'contacts' => [Contact::class, ContactResource::class, []],
+        'tax_codes' => [TaxCode::class, TaxCodeResource::class, ['rates']],
+        'tax_groups' => [TaxGroup::class, TaxGroupResource::class, ['items']],
     ];
 
     public function represent(?string $subjectType, ?string $subjectId): JsonResponse

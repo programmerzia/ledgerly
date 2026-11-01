@@ -8,3 +8,5 @@ use Illuminate\Support\Facades\Schedule;
 Schedule::command('outbox:sweep')->everyTenSeconds()->withoutOverlapping()->onOneServer();
 Schedule::command('idempotency:purge')->hourly()->onOneServer();
 Schedule::command('audit:seal')->dailyAt('01:30')->timezone('UTC')->onOneServer();
+// ECB publishes around 16:00 CET; fetch after that, then retry pending FX revaluation reversals.
+Schedule::command('fx:fetch-rates')->dailyAt('17:30')->timezone('Europe/Berlin')->onOneServer();

@@ -14,5 +14,7 @@ final readonly class RevaluationItem
         public int $amountFc,
         public string $currentRate,
         public int $unrealisedGainLoss,
+        /** AR/AP lines are revalued per customer or supplier. */
+        public ?string $contactRef = null,
     ) {}
 }

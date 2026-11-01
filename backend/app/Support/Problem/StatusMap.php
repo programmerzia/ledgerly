@@ -45,6 +45,7 @@ final class StatusMap
         'membership_disabled' => 403,
         'entitlement_exceeded' => 402,
         'rate_limited' => 429,
+        'fx_provider_unavailable' => 502,
     ];
 
     public static function status(string $code): int

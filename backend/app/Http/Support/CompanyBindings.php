@@ -13,6 +13,9 @@ use App\Models\Ledger\Account;
 use App\Models\Ledger\Dimension;
 use App\Models\Ledger\DimensionValue;
 use App\Models\Ledger\Journal;
+use App\Models\Tax\TaxCode;
+use App\Models\Tax\TaxGroup;
+use App\Models\Trade\Contact;
 use App\Models\Workflow\ApprovalWorkflow;
 use App\Support\Tenancy\CompanyContext;
 use Illuminate\Routing\Route as RoutedRequest;
@@ -36,6 +39,9 @@ final class CompanyBindings
         'fiscalPeriod' => FiscalPeriod::class,
         'reopenRequest' => PeriodReopenRequest::class,
         'workflow' => ApprovalWorkflow::class,
+        'contact' => Contact::class,
+        'taxCode' => TaxCode::class,
+        'taxGroup' => TaxGroup::class,
     ];
 
     public static function register(): void

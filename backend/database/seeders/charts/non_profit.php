@@ -32,7 +32,7 @@ return [
         L::make('1200', 'Accounts receivable (AR control)', 'asset', 'Current Assets', '12', control: 'ar', currency: 'any', description: 'Control account for amounts due from customers and service users. Posted by sales documents and receipts, not by manual journals.'),
         L::make('1210', 'Grants receivable', 'asset', 'Current Assets', '12', currency: 'any', description: 'Grant income earned but not yet received.'),
         L::make('1220', 'Pledges and donations receivable', 'asset', 'Current Assets', '12', currency: 'any'),
-        L::make('1230', 'Prepayments and deposits', 'asset', 'Current Assets', '12', currency: 'any'),
+        L::make('1230', 'Prepayments and deposits', 'asset', 'Prepayments', '12', currency: 'any'),
         L::make('1250', 'Input tax recoverable (VAT/GST)', 'asset', 'Tax Receivable', '12', control: 'tax', currency: 'any', description: 'Tax paid on purchases that can be recovered from the tax authority.'),
 
         L::make('15', 'Non-current assets', 'asset', 'Non-current Assets'),
@@ -52,7 +52,7 @@ return [
         L::make('2120', 'Withholding tax payable', 'liability', 'Tax Payable', '21', control: 'tax', currency: 'any', description: 'Tax withheld from supplier payments and owed to the tax authority.'),
 
         L::make('22', 'Deferred grants and loans', 'liability', 'Current Liabilities'),
-        L::make('2200', 'Deferred grant income', 'liability', 'Current Liabilities', '22', currency: 'any', description: 'Grant money received in advance of the period or conditions it relates to.'),
+        L::make('2200', 'Deferred grant income', 'liability', 'Deferred Income', '22', currency: 'any', description: 'Grant money received in advance of the period or conditions it relates to.'),
         L::make('2210', 'Loans payable', 'liability', 'Non-current Liabilities', '22'),
 
         L::make('9999', 'Suspense account', 'liability', 'Clearing', control: 'suspense', description: 'Holds unidentified items until they are investigated and reclassified. Should be zero at period end.'),

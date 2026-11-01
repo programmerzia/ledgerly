@@ -22,7 +22,7 @@ final class RevaluationPosting
 
             $lines[] = new ProposedLine(
                 $item->accountRef, $isGain ? $diff : 0, $isGain ? 0 : $diff, $item->currency, $item->currentRate, $item->amountFc,
-                $r->dimensions, "FX Revaluation as of {$r->asOf} ({$item->accountName})",
+                $r->dimensions, "FX Revaluation as of {$r->asOf} ({$item->accountName})", contactRef: $item->contactRef,
             );
             $lines[] = new ProposedLine(
                 $accounts->fxUnrealised, $isGain ? 0 : $diff, $isGain ? $diff : 0, $baseCurrency, '1', -$item->unrealisedGainLoss,

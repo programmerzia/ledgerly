@@ -143,7 +143,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Attempt to authenticate a new session */
+        /** Sign in with email and password */
         post: operations["login.store"];
         delete?: never;
         options?: never;
@@ -267,6 +267,54 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/companies/{company}/contacts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["contacts.index"];
+        put?: never;
+        post: operations["contacts.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/contacts/{contact}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["contacts.show"];
+        put: operations["contacts.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/contacts/{contact}/deactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["contacts.deactivate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/companies/{company}/dimensions": {
         parameters: {
             query?: never;
@@ -357,6 +405,40 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["dimensions.values.deactivate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/fx-rates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["fx-rates.index"];
+        put?: never;
+        /** One manual rate per pair and day; entering it again corrects it unless a revaluation may have used it */
+        post: operations["fx-rates.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/fx-rates/fetch": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Pulls today's provider rates for the currencies this company uses. A provider outage is a 502 and changes nothing */
+        post: operations["fx-rates.fetch"];
         delete?: never;
         options?: never;
         head?: never;
@@ -472,6 +554,40 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["fiscal-years.lock"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/fx-revaluations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["fx-revaluations.index"];
+        put?: never;
+        /** Needs `fx.manage` and a signing grant. One run per period; the reversal next period follows automatically */
+        post: operations["fx-revaluations.run"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/fx-revaluations/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** What running now would post, and what would stop it. Writes nothing and takes no lock */
+        get: operations["fx-revaluations.preview"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -683,7 +799,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Reset the user's password */
+        /** Reset the password with the emailed token */
         post: operations["password.update"];
         delete?: never;
         options?: never;
@@ -885,6 +1001,118 @@ export interface paths {
         put?: never;
         post?: never;
         delete: operations["signing.revoke"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/tax-codes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["tax-codes.index"];
+        put?: never;
+        post: operations["tax-codes.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/tax-codes/{taxCode}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["tax-codes.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/tax-codes/{taxCode}/rates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["tax-codes.rates.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/tax-codes/{taxCode}/deactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["tax-codes.deactivate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/tax-groups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["tax-groups.index"];
+        put?: never;
+        post: operations["tax-groups.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/tax-groups/{taxGroup}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["tax-groups.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/tax-groups/{taxGroup}/deactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["tax-groups.deactivate"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -1131,6 +1359,80 @@ export interface components {
             };
         };
         /**
+         * ContactRequest
+         * @description Create (POST) and replace (PUT, with the `version` it was based on) a contact.
+         */
+        ContactRequest: {
+            /** @enum {string} */
+            kind: "customer" | "supplier" | "both";
+            code: string;
+            name: string;
+            legal_name?: string | null;
+            tax_id?: string | null;
+            /** Format: email */
+            email?: string | null;
+            phone?: string | null;
+            billing_address?: string[] | null;
+            shipping_address?: string[] | null;
+            default_currency: string;
+            payment_terms_days?: number | null;
+            credit_limit?: {
+                amount?: number;
+                currency?: string;
+            } | null;
+            /** Format: uuid */
+            ar_account_id?: string | null;
+            /** Format: uuid */
+            ap_account_id?: string | null;
+            /** Format: uuid */
+            wht_code_id?: string | null;
+            /** Format: uuid */
+            default_account_id?: string | null;
+            /** Format: uuid */
+            default_tax_code_id?: string | null;
+            default_branch?: string | null;
+            default_dims?: string[] | null;
+            notes?: string | null;
+            version?: number;
+        };
+        /** ContactResource */
+        ContactResource: {
+            id: string;
+            kind: string;
+            code: string;
+            name: string;
+            legal_name: string | null;
+            tax_id: string | null;
+            email: string | null;
+            phone: string | null;
+            billing_address: {
+                [key: string]: unknown;
+            } | null;
+            shipping_address: {
+                [key: string]: unknown;
+            } | null;
+            default_currency: string;
+            payment_terms_days: number;
+            credit_limit: {
+                amount: number | null;
+                currency: string;
+            } | null;
+            ar_account_id: string | null;
+            ap_account_id: string | null;
+            wht_code_id: string | null;
+            default_account_id: string | null;
+            default_tax_code_id: string | null;
+            default_branch: string | null;
+            /** @description dimension id → dimension value id */
+            default_dims: {
+                [key: string]: string;
+            };
+            is_active: boolean;
+            notes: string | null;
+            version: number;
+            can: unknown[];
+        };
+        /**
          * ControlType
          * @enum {string}
          */
@@ -1205,6 +1507,28 @@ export interface components {
             is_active: boolean;
             version: number;
         };
+        /**
+         * ExchangeRateRequest
+         * @description A manual rate: 1 `from_currency` = `rate` `to_currency` on `rate_date`. The rate is a decimal string (D1: up to 8 decimals).
+         */
+        ExchangeRateRequest: {
+            from_currency: string;
+            to_currency: string;
+            /** Format: date */
+            rate_date: string;
+            rate: string;
+        };
+        /** ExchangeRateResource */
+        ExchangeRateResource: {
+            id: string;
+            from_currency: string;
+            to_currency: string;
+            rate_date: string | null;
+            rate: string;
+            source: string;
+            created_by: string | null;
+            created_at: string | null;
+        };
         /** FiscalPeriodResource */
         FiscalPeriodResource: {
             id: string;
@@ -1232,6 +1556,60 @@ export interface components {
             status: string;
             periods?: components["schemas"]["FiscalPeriodResource"][];
             can: unknown[];
+        };
+        /** FxRevaluationPreviewResource */
+        FxRevaluationPreviewResource: {
+            fiscal_period_id: string;
+            as_of: string;
+            can_run: boolean;
+            blockers: string[];
+            existing_revaluation_id: string | null;
+            total_unrealised: {
+                amount: number;
+                currency: string;
+            };
+            items: unknown[];
+            residuals: unknown[];
+            missing_rates: string[];
+        };
+        /**
+         * FxRevaluationRequest
+         * @description `period_id` (a period of this company; another company's is a 404 from the Action) and an optional `as_of` inside it. Also the preview's query.
+         */
+        FxRevaluationRequest: {
+            /** Format: uuid */
+            period_id: string;
+            /** Format: date */
+            as_of?: string | null;
+        };
+        /** FxRevaluationResource */
+        FxRevaluationResource: {
+            id: string;
+            fiscal_period_id: string;
+            as_of: string | null;
+            status: string;
+            journal_id: string | null;
+            reversal_journal_id: string | null;
+            /** @description True while the automatic reversal is waiting for the next period to exist and be open. */
+            reversal_pending: boolean;
+            total_unrealised: {
+                amount: number;
+                currency: string;
+            };
+            items: unknown[];
+            residuals: unknown[];
+            created_by: string | null;
+        };
+        /** InvitationPreviewResource */
+        InvitationPreviewResource: {
+            organisation: string;
+            email: string;
+            role: string;
+            company_role: string | null;
+            /** @enum {string} */
+            status: "open" | "accepted" | "revoked" | "expired";
+            expires_at: string;
+            account_exists: boolean;
         };
         /** InvitationResource */
         InvitationResource: {
@@ -1427,11 +1805,120 @@ export interface components {
             /** Format: email */
             email: string;
         };
+        /** SessionResource */
+        SessionResource: {
+            id: string;
+            name: string;
+            email: string;
+            two_factor_enabled: boolean;
+            signing_pin_set: boolean;
+            tenants: {
+                id: string;
+                name: string;
+                slug: string;
+                lifecycle: string;
+                role: string;
+                current: boolean;
+                can: {
+                    manage_members: boolean;
+                    create_companies: boolean;
+                };
+            }[];
+        };
         /** SetSigningPinRequest */
         SetSigningPinRequest: {
             /** @description Changing the signing PIN re-proves the password; the PIN itself is checked by PinPolicy. */
             current_password: string;
             pin: string;
+        };
+        /** SigningGrantResource */
+        SigningGrantResource: {
+            granted: boolean;
+            expires_at: string;
+        };
+        /**
+         * TaxCodeRequest
+         * @description Create (POST: the code, and optionally its first rate) and replace (PUT: everything but the code, with the
+         *     `version` it was based on) a tax code. Rates are fractions as strings: "0.05" is 5%.
+         */
+        TaxCodeRequest: {
+            code: string;
+            name: string;
+            /** @enum {string} */
+            kind: "vat" | "gst" | "sales" | "wht" | "compound" | "exempt" | "zero" | "reverse_charge";
+            /** Format: uuid */
+            collect_account_id?: string | null;
+            /** Format: uuid */
+            pay_account_id?: string | null;
+            is_recoverable?: boolean | null;
+            rate?: string | null;
+            /** Format: date */
+            effective_from?: string | null;
+            version?: number;
+        };
+        /** TaxCodeResource */
+        TaxCodeResource: {
+            id: string;
+            code: string;
+            name: string;
+            kind: string;
+            /** @description The rate in force today as a fraction ("0.050000" is 5%); null when none is. */
+            rate?: string | null;
+            rates?: components["schemas"]["TaxRateResource"][];
+            collect_account_id: string | null;
+            pay_account_id: string | null;
+            is_recoverable: boolean;
+            is_active: boolean;
+            version: number;
+            can: unknown[];
+        };
+        /**
+         * TaxGroupRequest
+         * @description Create (POST) and replace (PUT: name and items, with the `version` it was based on) a tax group. Items are in sequence.
+         */
+        TaxGroupRequest: {
+            code: string;
+            name: string;
+            items: {
+                /** Format: uuid */
+                tax_code_id: string;
+                compound?: boolean | null;
+            }[];
+            version?: number;
+        };
+        /** TaxGroupResource */
+        TaxGroupResource: {
+            id: string;
+            code: string;
+            name: string;
+            is_active: boolean;
+            items?: {
+                tax_code_id: string;
+                sequence: number;
+                compound: boolean;
+            }[];
+            version: number;
+            can: unknown[];
+        };
+        /**
+         * TaxRateRequest
+         * @description A new rate of a tax code from a date (inclusive), with the code's `version` it was based on.
+         */
+        TaxRateRequest: {
+            rate: string;
+            /** Format: date */
+            effective_from: string;
+            /** Format: date */
+            effective_to?: string | null;
+            version: number;
+        };
+        /** TaxRateResource */
+        TaxRateResource: {
+            id: string;
+            /** @description A fraction: "0.050000" is 5%. */
+            rate: string;
+            effective_from: string | null;
+            effective_to: string | null;
         };
         /**
          * TransitionRequest
@@ -1899,16 +2386,26 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["LoginRequest"];
+                "application/json": {
+                    /** Format: email */
+                    email: string;
+                    password: string;
+                    /** @description Keep the session beyond the browser being closed. */
+                    remember?: boolean;
+                };
             };
         };
         responses: {
+            /** @description Signed in (`two_factor: false`), or the password was right and a TOTP code is still needed (`two_factor: true`; then call two-factor-challenge). */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": {
+                        /** @description True when the second step is still pending; the session is not signed in yet. */
+                        two_factor: boolean;
+                    };
                 };
             };
             422: components["responses"]["ValidationException"];
@@ -2120,6 +2617,177 @@ export interface operations {
                 };
             };
             401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "contacts.index": {
+        parameters: {
+            query?: {
+                kind?: "customer" | "supplier" | "both" | null;
+                active?: "true" | "false" | "1" | "0" | null;
+                search?: string | null;
+            };
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `ContactResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ContactResource"][];
+                        meta: {
+                            next_cursor: string | null;
+                            prev_cursor: string | null;
+                            limit: number;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "contacts.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContactRequest"];
+            };
+        };
+        responses: {
+            /** @description `ContactResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ContactResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "contacts.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The contact ID */
+                contact: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `ContactResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ContactResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "contacts.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The contact ID */
+                contact: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContactRequest"];
+            };
+        };
+        responses: {
+            /** @description `ContactResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ContactResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "contacts.deactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The contact ID */
+                contact: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VersionRequest"];
+            };
+        };
+        responses: {
+            /** @description `ContactResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ContactResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
         };
     };
     "dimensions.index": {
@@ -2360,6 +3028,111 @@ export interface operations {
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             422: components["responses"]["ValidationException"];
+        };
+    };
+    "fx-rates.index": {
+        parameters: {
+            query?: {
+                from?: string | null;
+                to?: string | null;
+                source?: "manual" | "provider" | "document" | null;
+                date_from?: string | null;
+                date_to?: string | null;
+            };
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `ExchangeRateResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ExchangeRateResource"][];
+                        meta: {
+                            next_cursor: string | null;
+                            prev_cursor: string | null;
+                            limit: number;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "fx-rates.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExchangeRateRequest"];
+            };
+        };
+        responses: {
+            /** @description `ExchangeRateResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ExchangeRateResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "fx-rates.fetch": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            provider: string;
+                            rate_date: string | null;
+                            inserted: number;
+                            skipped_currencies: string[];
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
         };
     };
     "fiscal-periods.soft-close": {
@@ -2616,6 +3389,107 @@ export interface operations {
             404: components["responses"]["ModelNotFoundException"];
         };
     };
+    "fx-revaluations.index": {
+        parameters: {
+            query?: {
+                period_id?: string | null;
+            };
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `FxRevaluationResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["FxRevaluationResource"][];
+                        meta: {
+                            next_cursor: string | null;
+                            prev_cursor: string | null;
+                            limit: number;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "fx-revaluations.run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FxRevaluationRequest"];
+            };
+        };
+        responses: {
+            /** @description `FxRevaluationResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["FxRevaluationResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "fx-revaluations.preview": {
+        parameters: {
+            query: {
+                period_id: string;
+                as_of?: string | null;
+            };
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `FxRevaluationPreviewResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["FxRevaluationPreviewResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
     "invitations.index": {
         parameters: {
             query?: never;
@@ -2704,23 +3578,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description `InvitationPreviewResource` */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        data: {
-                            organisation: string;
-                            email: string;
-                            role: string;
-                            company_role: string;
-                            /** @enum {string} */
-                            status: "accepted" | "revoked" | "expired";
-                            expires_at: string;
-                            /** @description The SPA asks for a password (new account) or a sign-in (existing account). */
-                            account_exists: boolean;
-                        };
+                        data: components["schemas"]["InvitationPreviewResource"];
                     };
                 };
             };
@@ -3120,16 +3985,20 @@ export interface operations {
                     /** Format: email */
                     email: string;
                     password: string;
+                    password_confirmation: string;
                 };
             };
         };
         responses: {
+            /** @description Password changed. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": {
+                        message: string;
+                    };
                 };
             };
             422: components["responses"]["ValidationException"];
@@ -3339,32 +4208,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description `SessionResource` */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        data: {
-                            id: string;
-                            name: string;
-                            email: string;
-                            two_factor_enabled: boolean;
-                            signing_pin_set: boolean;
-                            tenants: {
-                                id: string;
-                                name: string;
-                                slug: string;
-                                lifecycle: string;
-                                role: string;
-                                current: boolean;
-                                /** @description Org-level rights follow the org role (13 §7); company rights come per company. */
-                                can: {
-                                    manage_members: boolean;
-                                    create_companies: boolean;
-                                };
-                            }[];
-                        };
+                        data: components["schemas"]["SessionResource"];
                     };
                 };
             };
@@ -3387,32 +4238,14 @@ export interface operations {
             };
         };
         responses: {
+            /** @description `SessionResource` */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        data: {
-                            id: string;
-                            name: string;
-                            email: string;
-                            two_factor_enabled: boolean;
-                            signing_pin_set: boolean;
-                            tenants: {
-                                id: string;
-                                name: string;
-                                slug: string;
-                                lifecycle: string;
-                                role: string;
-                                current: boolean;
-                                /** @description Org-level rights follow the org role (13 §7); company rights come per company. */
-                                can: {
-                                    manage_members: boolean;
-                                    create_companies: boolean;
-                                };
-                            }[];
-                        };
+                        data: components["schemas"]["SessionResource"];
                     };
                 };
             };
@@ -3465,16 +4298,14 @@ export interface operations {
             };
         };
         responses: {
+            /** @description `SigningGrantResource` */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": {
-                        data: {
-                            granted: boolean;
-                            expires_at: string;
-                        };
+                        data: components["schemas"]["SigningGrantResource"];
                     };
                 };
             };
@@ -3506,6 +4337,320 @@ export interface operations {
             };
             401: components["responses"]["AuthenticationException"];
             403: components["responses"]["AuthorizationException"];
+        };
+    };
+    "tax-codes.index": {
+        parameters: {
+            query?: {
+                kind?: "vat" | "gst" | "sales" | "wht" | "compound" | "exempt" | "zero" | "reverse_charge" | null;
+                active?: "true" | "false" | "1" | "0" | null;
+            };
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `TaxCodeResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["TaxCodeResource"][];
+                        meta: {
+                            next_cursor: string | null;
+                            prev_cursor: string | null;
+                            limit: number;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "tax-codes.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaxCodeRequest"];
+            };
+        };
+        responses: {
+            /** @description `TaxCodeResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["TaxCodeResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "tax-codes.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The tax code ID */
+                taxCode: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaxCodeRequest"];
+            };
+        };
+        responses: {
+            /** @description `TaxCodeResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["TaxCodeResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "tax-codes.rates.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The tax code ID */
+                taxCode: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaxRateRequest"];
+            };
+        };
+        responses: {
+            /** @description `TaxCodeResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["TaxCodeResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "tax-codes.deactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The tax code ID */
+                taxCode: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VersionRequest"];
+            };
+        };
+        responses: {
+            /** @description `TaxCodeResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["TaxCodeResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "tax-groups.index": {
+        parameters: {
+            query?: {
+                active?: "true" | "false" | "1" | "0" | null;
+            };
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `TaxGroupResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["TaxGroupResource"][];
+                        meta: {
+                            next_cursor: string | null;
+                            prev_cursor: string | null;
+                            limit: number;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "tax-groups.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaxGroupRequest"];
+            };
+        };
+        responses: {
+            /** @description `TaxGroupResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["TaxGroupResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "tax-groups.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The tax group ID */
+                taxGroup: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaxGroupRequest"];
+            };
+        };
+        responses: {
+            /** @description `TaxGroupResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["TaxGroupResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "tax-groups.deactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The tax group ID */
+                taxGroup: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VersionRequest"];
+            };
+        };
+        responses: {
+            /** @description `TaxGroupResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["TaxGroupResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
         };
     };
     "two-factor.login.store": {

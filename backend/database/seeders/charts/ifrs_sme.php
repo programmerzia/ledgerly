@@ -25,7 +25,7 @@ return [
         L::make('12', 'Receivables and prepayments', 'asset', 'Current Assets'),
         L::make('1200', 'Accounts receivable (AR control)', 'asset', 'Current Assets', '12', control: 'ar', currency: 'any', description: 'Control account for customer balances. Posted by sales documents and receipts, not by manual journals.'),
         L::make('1210', 'Allowance for doubtful accounts', 'asset', 'Contra Asset', '12', normal: 'credit', description: 'Estimated uncollectible receivables. Carries a credit balance.'),
-        L::make('1220', 'Prepayments and deposits', 'asset', 'Current Assets', '12', currency: 'any'),
+        L::make('1220', 'Prepayments and deposits', 'asset', 'Prepayments', '12', currency: 'any'),
         L::make('1250', 'Input tax recoverable (VAT/GST)', 'asset', 'Tax Receivable', '12', control: 'tax', currency: 'any', description: 'Tax paid on purchases that can be recovered from the tax authority.'),
 
         L::make('13', 'Inventories', 'asset', 'Inventory'),
@@ -41,7 +41,7 @@ return [
         L::make('20', 'Payables and accruals', 'liability', 'Current Liabilities'),
         L::make('2000', 'Accounts payable (AP control)', 'liability', 'Current Liabilities', '20', control: 'ap', currency: 'any', description: 'Control account for supplier balances. Posted by purchase documents and payments, not by manual journals.'),
         L::make('2010', 'Accrued expenses', 'liability', 'Current Liabilities', '20'),
-        L::make('2020', 'Deferred income', 'liability', 'Current Liabilities', '20', currency: 'any', description: 'Customer deposits and amounts billed before the goods or services are delivered.'),
+        L::make('2020', 'Deferred income', 'liability', 'Deferred Income', '20', currency: 'any', description: 'Customer deposits and amounts billed before the goods or services are delivered.'),
         L::make('2030', 'Payroll liabilities', 'liability', 'Payroll Liabilities', '20', description: 'Wages, social security and payroll taxes owed to employees and authorities.'),
 
         L::make('21', 'Tax liabilities', 'liability', 'Tax Payable'),

@@ -25,7 +25,7 @@ return [
         L::make('12', 'Receivables and other current assets', 'asset', 'Current Assets'),
         L::make('1200', 'Accounts receivable (AR control)', 'asset', 'Current Assets', '12', control: 'ar', currency: 'any', description: 'Control account for customer balances. Posted by sales documents and receipts, not by manual journals.'),
         L::make('1210', 'Allowance for doubtful accounts', 'asset', 'Contra Asset', '12', normal: 'credit', description: 'Estimated uncollectible receivables. Carries a credit balance.'),
-        L::make('1220', 'Prepaid expenses', 'asset', 'Current Assets', '12', currency: 'any'),
+        L::make('1220', 'Prepaid expenses', 'asset', 'Prepayments', '12', currency: 'any'),
         L::make('1300', 'Inventory', 'asset', 'Inventory', '12', currency: 'any', description: 'Goods held for sale.'),
 
         L::make('15', 'Property and equipment', 'asset', 'Property, Plant & Equipment'),
@@ -39,7 +39,7 @@ return [
         L::make('2000', 'Accounts payable (AP control)', 'liability', 'Current Liabilities', '20', control: 'ap', currency: 'any', description: 'Control account for supplier balances. Posted by purchase documents and payments, not by manual journals.'),
         L::make('2010', 'Credit card payable', 'liability', 'Current Liabilities', '20'),
         L::make('2020', 'Accrued expenses', 'liability', 'Current Liabilities', '20'),
-        L::make('2030', 'Customer deposits', 'liability', 'Current Liabilities', '20', currency: 'any', description: 'Deposits and payments received before the goods or services are delivered.'),
+        L::make('2030', 'Customer deposits', 'liability', 'Deferred Income', '20', currency: 'any', description: 'Deposits and payments received before the goods or services are delivered.'),
         L::make('2040', 'Wages payable', 'liability', 'Payroll Liabilities', '20'),
         L::make('2050', 'Payroll taxes payable', 'liability', 'Payroll Liabilities', '20', description: 'Federal and state income tax withheld, FICA and unemployment taxes.'),
 

@@ -6,6 +6,8 @@ use App\Http\Controllers\Auth\SessionController;
 use App\Http\Controllers\Fiscal\FiscalPeriodController;
 use App\Http\Controllers\Fiscal\FiscalYearController;
 use App\Http\Controllers\Fiscal\ReopenRequestController;
+use App\Http\Controllers\Fx\ExchangeRateController;
+use App\Http\Controllers\Fx\FxRevaluationController;
 use App\Http\Controllers\Ledger\AccountController;
 use App\Http\Controllers\Ledger\ChartTemplateController;
 use App\Http\Controllers\Ledger\DimensionController;
@@ -14,6 +16,9 @@ use App\Http\Controllers\Organisation\CompanyController;
 use App\Http\Controllers\Organisation\InvitationController;
 use App\Http\Controllers\Organisation\InvitationTokenController;
 use App\Http\Controllers\Signing\SigningController;
+use App\Http\Controllers\Tax\TaxCodeController;
+use App\Http\Controllers\Tax\TaxGroupController;
+use App\Http\Controllers\Trade\ContactController;
 use App\Http\Controllers\Workflow\ApprovalInboxController;
 use App\Http\Controllers\Workflow\ApprovalWorkflowController;
 use Illuminate\Support\Facades\Route;
@@ -73,6 +78,32 @@ Route::middleware(['auth:sanctum', 'tenant', 'tenant.writable', 'idempotent', 'c
         Route::post('dimensions/{dimension}/values', [DimensionController::class, 'storeValue'])->whereUuid('dimension')->name('dimensions.values.store');
         Route::put('dimensions/{dimension}/values/{dimensionValue}', [DimensionController::class, 'updateValue'])->whereUuid(['dimension', 'dimensionValue'])->name('dimensions.values.update');
         Route::post('dimensions/{dimension}/values/{dimensionValue}/deactivate', [DimensionController::class, 'deactivateValue'])->whereUuid(['dimension', 'dimensionValue'])->name('dimensions.values.deactivate');
+
+        // Contacts (customers and suppliers)
+        Route::get('contacts', [ContactController::class, 'index'])->name('contacts.index');
+        Route::post('contacts', [ContactController::class, 'store'])->name('contacts.store');
+        Route::get('contacts/{contact}', [ContactController::class, 'show'])->whereUuid('contact')->name('contacts.show');
+        Route::put('contacts/{contact}', [ContactController::class, 'update'])->whereUuid('contact')->name('contacts.update');
+        Route::post('contacts/{contact}/deactivate', [ContactController::class, 'deactivate'])->whereUuid('contact')->name('contacts.deactivate');
+
+        // Tax codes with their dated rates, and tax groups
+        Route::get('tax-codes', [TaxCodeController::class, 'index'])->name('tax-codes.index');
+        Route::post('tax-codes', [TaxCodeController::class, 'store'])->name('tax-codes.store');
+        Route::put('tax-codes/{taxCode}', [TaxCodeController::class, 'update'])->whereUuid('taxCode')->name('tax-codes.update');
+        Route::post('tax-codes/{taxCode}/rates', [TaxCodeController::class, 'addRate'])->whereUuid('taxCode')->name('tax-codes.rates.store');
+        Route::post('tax-codes/{taxCode}/deactivate', [TaxCodeController::class, 'deactivate'])->whereUuid('taxCode')->name('tax-codes.deactivate');
+        Route::get('tax-groups', [TaxGroupController::class, 'index'])->name('tax-groups.index');
+        Route::post('tax-groups', [TaxGroupController::class, 'store'])->name('tax-groups.store');
+        Route::put('tax-groups/{taxGroup}', [TaxGroupController::class, 'update'])->whereUuid('taxGroup')->name('tax-groups.update');
+        Route::post('tax-groups/{taxGroup}/deactivate', [TaxGroupController::class, 'deactivate'])->whereUuid('taxGroup')->name('tax-groups.deactivate');
+
+        // Exchange rates and unrealised-FX revaluation runs
+        Route::get('fx-rates', [ExchangeRateController::class, 'index'])->name('fx-rates.index');
+        Route::post('fx-rates', [ExchangeRateController::class, 'store'])->name('fx-rates.store');
+        Route::post('fx-rates/fetch', [ExchangeRateController::class, 'fetch'])->name('fx-rates.fetch');
+        Route::get('fx-revaluations', [FxRevaluationController::class, 'index'])->name('fx-revaluations.index');
+        Route::get('fx-revaluations/preview', [FxRevaluationController::class, 'preview'])->name('fx-revaluations.preview');
+        Route::post('fx-revaluations', [FxRevaluationController::class, 'run'])->name('fx-revaluations.run');
 
         // Fiscal years and periods
         Route::get('fiscal-years', [FiscalYearController::class, 'index'])->name('fiscal-years.index');

@@ -842,7 +842,7 @@
         "/v1/auth/login": {
             "post": {
                 "operationId": "login.store",
-                "summary": "Attempt to authenticate a new session",
+                "summary": "Sign in with email and password",
                 "tags": [
                     "AuthenticatedSession"
                 ],
@@ -851,17 +851,45 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/LoginRequest"
+                                "type": "object",
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email"
+                                    },
+                                    "password": {
+                                        "type": "string"
+                                    },
+                                    "remember": {
+                                        "type": "boolean",
+                                        "description": "Keep the session beyond the browser being closed."
+                                    }
+                                },
+                                "required": [
+                                    "email",
+                                    "password"
+                                ]
                             }
                         }
                     }
                 },
                 "responses": {
                     "200": {
-                        "description": "",
+                        "description": "Signed in (`two_factor: false`), or the password was right and a TOTP code is still needed (`two_factor: true`; then call two-factor-challenge).",
                         "content": {
                             "application/json": {
-                                "schema": {}
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "two_factor": {
+                                            "type": "boolean",
+                                            "description": "True when the second step is still pending; the session is not signed in yet."
+                                        }
+                                    },
+                                    "required": [
+                                        "two_factor"
+                                    ]
+                                }
                             }
                         }
                     },
@@ -1201,6 +1229,384 @@
                     },
                     "401": {
                         "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/v1/companies/{company}/contacts": {
+            "get": {
+                "operationId": "contacts.index",
+                "tags": [
+                    "Contact"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "kind",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "enum": [
+                                "customer",
+                                "supplier",
+                                "both",
+                                null
+                            ]
+                        }
+                    },
+                    {
+                        "name": "active",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "enum": [
+                                "true",
+                                "false",
+                                "1",
+                                "0",
+                                null
+                            ]
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "maxLength": 100
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of `ContactResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/ContactResource"
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "next_cursor": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "prev_cursor": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "limit": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "required": [
+                                                "next_cursor",
+                                                "prev_cursor",
+                                                "limit"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            },
+            "post": {
+                "operationId": "contacts.store",
+                "tags": [
+                    "Contact"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ContactRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "`ContactResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/ContactResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/v1/companies/{company}/contacts/{contact}": {
+            "get": {
+                "operationId": "contacts.show",
+                "tags": [
+                    "Contact"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "contact",
+                        "in": "path",
+                        "required": true,
+                        "description": "The contact ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`ContactResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/ContactResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            },
+            "put": {
+                "operationId": "contacts.update",
+                "tags": [
+                    "Contact"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "contact",
+                        "in": "path",
+                        "required": true,
+                        "description": "The contact ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ContactRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`ContactResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/ContactResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/v1/companies/{company}/contacts/{contact}/deactivate": {
+            "post": {
+                "operationId": "contacts.deactivate",
+                "tags": [
+                    "Contact"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "contact",
+                        "in": "path",
+                        "required": true,
+                        "description": "The contact ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/VersionRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`ContactResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/ContactResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
                     }
                 }
             }
@@ -1719,6 +2125,281 @@
                     },
                     "422": {
                         "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/v1/companies/{company}/fx-rates": {
+            "get": {
+                "operationId": "fx-rates.index",
+                "tags": [
+                    "ExchangeRate"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "from",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "pattern": "^[A-Z]{3}$"
+                        }
+                    },
+                    {
+                        "name": "to",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "pattern": "^[A-Z]{3}$"
+                        }
+                    },
+                    {
+                        "name": "source",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "enum": [
+                                "manual",
+                                "provider",
+                                "document",
+                                null
+                            ]
+                        }
+                    },
+                    {
+                        "name": "date_from",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "date_to",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "format": "date"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of `ExchangeRateResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/ExchangeRateResource"
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "next_cursor": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "prev_cursor": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "limit": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "required": [
+                                                "next_cursor",
+                                                "prev_cursor",
+                                                "limit"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            },
+            "post": {
+                "operationId": "fx-rates.store",
+                "summary": "One manual rate per pair and day; entering it again corrects it unless a revaluation may have used it",
+                "tags": [
+                    "ExchangeRate"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ExchangeRateRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "`ExchangeRateResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/ExchangeRateResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/v1/companies/{company}/fx-rates/fetch": {
+            "post": {
+                "operationId": "fx-rates.fetch",
+                "summary": "Pulls today's provider rates for the currencies this company uses. A provider outage is a 502 and changes nothing",
+                "tags": [
+                    "ExchangeRate"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "provider": {
+                                                    "type": "string"
+                                                },
+                                                "rate_date": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "inserted": {
+                                                    "type": "integer"
+                                                },
+                                                "skipped_currencies": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            },
+                                            "required": [
+                                                "provider",
+                                                "rate_date",
+                                                "inserted",
+                                                "skipped_currencies"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
                     }
                 }
             }
@@ -2280,6 +2961,229 @@
                 }
             }
         },
+        "/v1/companies/{company}/fx-revaluations": {
+            "get": {
+                "operationId": "fx-revaluations.index",
+                "tags": [
+                    "FxRevaluation"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "period_id",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of `FxRevaluationResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/FxRevaluationResource"
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "next_cursor": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "prev_cursor": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "limit": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "required": [
+                                                "next_cursor",
+                                                "prev_cursor",
+                                                "limit"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            },
+            "post": {
+                "operationId": "fx-revaluations.run",
+                "summary": "Needs `fx.manage` and a signing grant. One run per period; the reversal next period follows automatically",
+                "tags": [
+                    "FxRevaluation"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/FxRevaluationRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "`FxRevaluationResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/FxRevaluationResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/v1/companies/{company}/fx-revaluations/preview": {
+            "get": {
+                "operationId": "fx-revaluations.preview",
+                "summary": "What running now would post, and what would stop it. Writes nothing and takes no lock",
+                "tags": [
+                    "FxRevaluation"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "period_id",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "as_of",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "format": "date"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`FxRevaluationPreviewResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/FxRevaluationPreviewResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
         "/v1/invitations": {
             "get": {
                 "operationId": "invitations.index",
@@ -2413,52 +3317,14 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "",
+                        "description": "`InvitationPreviewResource`",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "type": "object",
-                                            "properties": {
-                                                "organisation": {
-                                                    "type": "string"
-                                                },
-                                                "email": {
-                                                    "type": "string"
-                                                },
-                                                "role": {
-                                                    "type": "string"
-                                                },
-                                                "company_role": {
-                                                    "type": "string"
-                                                },
-                                                "status": {
-                                                    "type": "string",
-                                                    "enum": [
-                                                        "accepted",
-                                                        "revoked",
-                                                        "expired"
-                                                    ]
-                                                },
-                                                "expires_at": {
-                                                    "type": "string"
-                                                },
-                                                "account_exists": {
-                                                    "type": "boolean",
-                                                    "description": "The SPA asks for a password (new account) or a sign-in (existing account)."
-                                                }
-                                            },
-                                            "required": [
-                                                "organisation",
-                                                "email",
-                                                "role",
-                                                "company_role",
-                                                "status",
-                                                "expires_at",
-                                                "account_exists"
-                                            ]
+                                            "$ref": "#/components/schemas/InvitationPreviewResource"
                                         }
                                     },
                                     "required": [
@@ -3380,7 +4246,7 @@
         "/v1/auth/reset-password": {
             "post": {
                 "operationId": "password.update",
-                "summary": "Reset the user's password",
+                "summary": "Reset the password with the emailed token",
                 "tags": [
                     "NewPassword"
                 ],
@@ -3400,12 +4266,16 @@
                                     },
                                     "password": {
                                         "type": "string"
+                                    },
+                                    "password_confirmation": {
+                                        "type": "string"
                                     }
                                 },
                                 "required": [
                                     "token",
                                     "email",
-                                    "password"
+                                    "password",
+                                    "password_confirmation"
                                 ]
                             }
                         }
@@ -3413,11 +4283,19 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "",
+                        "description": "Password changed.",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object"
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
                                 }
                             }
                         }
@@ -3736,90 +4614,14 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "",
+                        "description": "`SessionResource`",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "type": "object",
-                                            "properties": {
-                                                "id": {
-                                                    "type": "string"
-                                                },
-                                                "name": {
-                                                    "type": "string"
-                                                },
-                                                "email": {
-                                                    "type": "string"
-                                                },
-                                                "two_factor_enabled": {
-                                                    "type": "boolean"
-                                                },
-                                                "signing_pin_set": {
-                                                    "type": "boolean"
-                                                },
-                                                "tenants": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "object",
-                                                        "properties": {
-                                                            "id": {
-                                                                "type": "string"
-                                                            },
-                                                            "name": {
-                                                                "type": "string"
-                                                            },
-                                                            "slug": {
-                                                                "type": "string"
-                                                            },
-                                                            "lifecycle": {
-                                                                "type": "string"
-                                                            },
-                                                            "role": {
-                                                                "type": "string"
-                                                            },
-                                                            "current": {
-                                                                "type": "boolean"
-                                                            },
-                                                            "can": {
-                                                                "type": "object",
-                                                                "description": "Org-level rights follow the org role (13 \u00a77); company rights come per company.",
-                                                                "properties": {
-                                                                    "manage_members": {
-                                                                        "type": "boolean"
-                                                                    },
-                                                                    "create_companies": {
-                                                                        "type": "boolean"
-                                                                    }
-                                                                },
-                                                                "required": [
-                                                                    "manage_members",
-                                                                    "create_companies"
-                                                                ]
-                                                            }
-                                                        },
-                                                        "required": [
-                                                            "id",
-                                                            "name",
-                                                            "slug",
-                                                            "lifecycle",
-                                                            "role",
-                                                            "current",
-                                                            "can"
-                                                        ]
-                                                    }
-                                                }
-                                            },
-                                            "required": [
-                                                "id",
-                                                "name",
-                                                "email",
-                                                "two_factor_enabled",
-                                                "signing_pin_set",
-                                                "tenants"
-                                            ]
+                                            "$ref": "#/components/schemas/SessionResource"
                                         }
                                     },
                                     "required": [
@@ -3863,90 +4665,14 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "",
+                        "description": "`SessionResource`",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "type": "object",
-                                            "properties": {
-                                                "id": {
-                                                    "type": "string"
-                                                },
-                                                "name": {
-                                                    "type": "string"
-                                                },
-                                                "email": {
-                                                    "type": "string"
-                                                },
-                                                "two_factor_enabled": {
-                                                    "type": "boolean"
-                                                },
-                                                "signing_pin_set": {
-                                                    "type": "boolean"
-                                                },
-                                                "tenants": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "object",
-                                                        "properties": {
-                                                            "id": {
-                                                                "type": "string"
-                                                            },
-                                                            "name": {
-                                                                "type": "string"
-                                                            },
-                                                            "slug": {
-                                                                "type": "string"
-                                                            },
-                                                            "lifecycle": {
-                                                                "type": "string"
-                                                            },
-                                                            "role": {
-                                                                "type": "string"
-                                                            },
-                                                            "current": {
-                                                                "type": "boolean"
-                                                            },
-                                                            "can": {
-                                                                "type": "object",
-                                                                "description": "Org-level rights follow the org role (13 \u00a77); company rights come per company.",
-                                                                "properties": {
-                                                                    "manage_members": {
-                                                                        "type": "boolean"
-                                                                    },
-                                                                    "create_companies": {
-                                                                        "type": "boolean"
-                                                                    }
-                                                                },
-                                                                "required": [
-                                                                    "manage_members",
-                                                                    "create_companies"
-                                                                ]
-                                                            }
-                                                        },
-                                                        "required": [
-                                                            "id",
-                                                            "name",
-                                                            "slug",
-                                                            "lifecycle",
-                                                            "role",
-                                                            "current",
-                                                            "can"
-                                                        ]
-                                                    }
-                                                }
-                                            },
-                                            "required": [
-                                                "id",
-                                                "name",
-                                                "email",
-                                                "two_factor_enabled",
-                                                "signing_pin_set",
-                                                "tenants"
-                                            ]
+                                            "$ref": "#/components/schemas/SessionResource"
                                         }
                                     },
                                     "required": [
@@ -4046,26 +4772,14 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "",
+                        "description": "`SigningGrantResource`",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "type": "object",
-                                            "properties": {
-                                                "granted": {
-                                                    "type": "boolean"
-                                                },
-                                                "expires_at": {
-                                                    "type": "string"
-                                                }
-                                            },
-                                            "required": [
-                                                "granted",
-                                                "expires_at"
-                                            ]
+                                            "$ref": "#/components/schemas/SigningGrantResource"
                                         }
                                     },
                                     "required": [
@@ -4125,6 +4839,733 @@
                     },
                     "401": {
                         "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/v1/companies/{company}/tax-codes": {
+            "get": {
+                "operationId": "tax-codes.index",
+                "tags": [
+                    "TaxCode"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "kind",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "enum": [
+                                "vat",
+                                "gst",
+                                "sales",
+                                "wht",
+                                "compound",
+                                "exempt",
+                                "zero",
+                                "reverse_charge",
+                                null
+                            ]
+                        }
+                    },
+                    {
+                        "name": "active",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "enum": [
+                                "true",
+                                "false",
+                                "1",
+                                "0",
+                                null
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of `TaxCodeResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/TaxCodeResource"
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "next_cursor": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "prev_cursor": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "limit": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "required": [
+                                                "next_cursor",
+                                                "prev_cursor",
+                                                "limit"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            },
+            "post": {
+                "operationId": "tax-codes.store",
+                "tags": [
+                    "TaxCode"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TaxCodeRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "`TaxCodeResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/components/schemas/TaxCodeResource"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "rate",
+                                                        "rates"
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/v1/companies/{company}/tax-codes/{taxCode}": {
+            "put": {
+                "operationId": "tax-codes.update",
+                "tags": [
+                    "TaxCode"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "taxCode",
+                        "in": "path",
+                        "required": true,
+                        "description": "The tax code ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TaxCodeRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`TaxCodeResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/components/schemas/TaxCodeResource"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "rate",
+                                                        "rates"
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/v1/companies/{company}/tax-codes/{taxCode}/rates": {
+            "post": {
+                "operationId": "tax-codes.rates.store",
+                "tags": [
+                    "TaxCode"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "taxCode",
+                        "in": "path",
+                        "required": true,
+                        "description": "The tax code ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TaxRateRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "`TaxCodeResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/components/schemas/TaxCodeResource"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "rate",
+                                                        "rates"
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/v1/companies/{company}/tax-codes/{taxCode}/deactivate": {
+            "post": {
+                "operationId": "tax-codes.deactivate",
+                "tags": [
+                    "TaxCode"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "taxCode",
+                        "in": "path",
+                        "required": true,
+                        "description": "The tax code ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/VersionRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`TaxCodeResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/components/schemas/TaxCodeResource"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "rate",
+                                                        "rates"
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/v1/companies/{company}/tax-groups": {
+            "get": {
+                "operationId": "tax-groups.index",
+                "tags": [
+                    "TaxGroup"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "active",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "enum": [
+                                "true",
+                                "false",
+                                "1",
+                                "0",
+                                null
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of `TaxGroupResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/TaxGroupResource"
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "next_cursor": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "prev_cursor": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "limit": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "required": [
+                                                "next_cursor",
+                                                "prev_cursor",
+                                                "limit"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            },
+            "post": {
+                "operationId": "tax-groups.store",
+                "tags": [
+                    "TaxGroup"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TaxGroupRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "`TaxGroupResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/TaxGroupResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/v1/companies/{company}/tax-groups/{taxGroup}": {
+            "put": {
+                "operationId": "tax-groups.update",
+                "tags": [
+                    "TaxGroup"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "taxGroup",
+                        "in": "path",
+                        "required": true,
+                        "description": "The tax group ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TaxGroupRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`TaxGroupResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/TaxGroupResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/v1/companies/{company}/tax-groups/{taxGroup}/deactivate": {
+            "post": {
+                "operationId": "tax-groups.deactivate",
+                "tags": [
+                    "TaxGroup"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "taxGroup",
+                        "in": "path",
+                        "required": true,
+                        "description": "The tax group ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/VersionRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`TaxGroupResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/TaxGroupResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
                     }
                 }
             }
@@ -4991,6 +6432,341 @@
                 ],
                 "title": "CompanyResource"
             },
+            "ContactRequest": {
+                "type": "object",
+                "description": "Create (POST) and replace (PUT, with the `version` it was based on) a contact.",
+                "properties": {
+                    "kind": {
+                        "type": "string",
+                        "enum": [
+                            "customer",
+                            "supplier",
+                            "both"
+                        ]
+                    },
+                    "code": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z0-9._-]+$",
+                        "maxLength": 32
+                    },
+                    "name": {
+                        "type": "string",
+                        "maxLength": 255
+                    },
+                    "legal_name": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 255
+                    },
+                    "tax_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 64
+                    },
+                    "email": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "email",
+                        "maxLength": 255
+                    },
+                    "phone": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 64
+                    },
+                    "billing_address": {
+                        "type": [
+                            "array",
+                            "null"
+                        ],
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "shipping_address": {
+                        "type": [
+                            "array",
+                            "null"
+                        ],
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "default_currency": {
+                        "type": "string",
+                        "minLength": 3,
+                        "maxLength": 3
+                    },
+                    "payment_terms_days": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
+                        "minimum": 0,
+                        "maximum": 3650
+                    },
+                    "credit_limit": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "properties": {
+                            "amount": {
+                                "type": "integer",
+                                "minimum": 0
+                            },
+                            "currency": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "ar_account_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "uuid"
+                    },
+                    "ap_account_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "uuid"
+                    },
+                    "wht_code_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "uuid"
+                    },
+                    "default_account_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "uuid"
+                    },
+                    "default_tax_code_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "uuid"
+                    },
+                    "default_branch": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 64
+                    },
+                    "default_dims": {
+                        "type": [
+                            "array",
+                            "null"
+                        ],
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "notes": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 5000
+                    },
+                    "version": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                },
+                "required": [
+                    "kind",
+                    "code",
+                    "name",
+                    "default_currency"
+                ],
+                "title": "ContactRequest"
+            },
+            "ContactResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "kind": {
+                        "type": "string"
+                    },
+                    "code": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "legal_name": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "tax_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "email": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "phone": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "billing_address": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "additionalProperties": {}
+                    },
+                    "shipping_address": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "additionalProperties": {}
+                    },
+                    "default_currency": {
+                        "type": "string"
+                    },
+                    "payment_terms_days": {
+                        "type": "integer"
+                    },
+                    "credit_limit": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "properties": {
+                            "amount": {
+                                "type": [
+                                    "integer",
+                                    "null"
+                                ]
+                            },
+                            "currency": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "amount",
+                            "currency"
+                        ]
+                    },
+                    "ar_account_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "ap_account_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "wht_code_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "default_account_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "default_tax_code_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "default_branch": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "default_dims": {
+                        "type": "object",
+                        "description": "dimension id \u2192 dimension value id",
+                        "additionalProperties": {
+                            "type": "string"
+                        }
+                    },
+                    "is_active": {
+                        "type": "boolean"
+                    },
+                    "notes": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "version": {
+                        "type": "integer"
+                    },
+                    "can": {
+                        "type": "array",
+                        "items": {}
+                    }
+                },
+                "required": [
+                    "id",
+                    "kind",
+                    "code",
+                    "name",
+                    "legal_name",
+                    "tax_id",
+                    "email",
+                    "phone",
+                    "billing_address",
+                    "shipping_address",
+                    "default_currency",
+                    "payment_terms_days",
+                    "credit_limit",
+                    "ar_account_id",
+                    "ap_account_id",
+                    "wht_code_id",
+                    "default_account_id",
+                    "default_tax_code_id",
+                    "default_branch",
+                    "default_dims",
+                    "is_active",
+                    "notes",
+                    "version",
+                    "can"
+                ],
+                "title": "ContactResource"
+            },
             "ControlType": {
                 "type": "string",
                 "enum": [
@@ -5232,6 +7008,84 @@
                 ],
                 "title": "DimensionValueResource"
             },
+            "ExchangeRateRequest": {
+                "type": "object",
+                "description": "A manual rate: 1 `from_currency` = `rate` `to_currency` on `rate_date`. The rate is a decimal string (D1: up to 8 decimals).",
+                "properties": {
+                    "from_currency": {
+                        "type": "string",
+                        "pattern": "^[A-Z]{3}$"
+                    },
+                    "to_currency": {
+                        "type": "string",
+                        "pattern": "^[A-Z]{3}$"
+                    },
+                    "rate_date": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "rate": {
+                        "type": "string",
+                        "pattern": "^\\d{1,12}(\\.\\d{1,8})?$"
+                    }
+                },
+                "required": [
+                    "from_currency",
+                    "to_currency",
+                    "rate_date",
+                    "rate"
+                ],
+                "title": "ExchangeRateRequest"
+            },
+            "ExchangeRateResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "from_currency": {
+                        "type": "string"
+                    },
+                    "to_currency": {
+                        "type": "string"
+                    },
+                    "rate_date": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "rate": {
+                        "type": "string"
+                    },
+                    "source": {
+                        "type": "string"
+                    },
+                    "created_by": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "created_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    }
+                },
+                "required": [
+                    "id",
+                    "from_currency",
+                    "to_currency",
+                    "rate_date",
+                    "rate",
+                    "source",
+                    "created_by",
+                    "created_at"
+                ],
+                "title": "ExchangeRateResource"
+            },
             "FiscalPeriodResource": {
                 "type": "object",
                 "properties": {
@@ -5369,6 +7223,218 @@
                     "can"
                 ],
                 "title": "FiscalYearResource"
+            },
+            "FxRevaluationPreviewResource": {
+                "type": "object",
+                "properties": {
+                    "fiscal_period_id": {
+                        "type": "string"
+                    },
+                    "as_of": {
+                        "type": "string"
+                    },
+                    "can_run": {
+                        "type": "boolean"
+                    },
+                    "blockers": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "existing_revaluation_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "total_unrealised": {
+                        "type": "object",
+                        "properties": {
+                            "amount": {
+                                "type": "integer"
+                            },
+                            "currency": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "amount",
+                            "currency"
+                        ]
+                    },
+                    "items": {
+                        "type": "array",
+                        "items": {}
+                    },
+                    "residuals": {
+                        "type": "array",
+                        "items": {}
+                    },
+                    "missing_rates": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "required": [
+                    "fiscal_period_id",
+                    "as_of",
+                    "can_run",
+                    "blockers",
+                    "existing_revaluation_id",
+                    "total_unrealised",
+                    "items",
+                    "residuals",
+                    "missing_rates"
+                ],
+                "title": "FxRevaluationPreviewResource"
+            },
+            "FxRevaluationRequest": {
+                "type": "object",
+                "description": "`period_id` (a period of this company; another company's is a 404 from the Action) and an optional `as_of` inside it. Also the preview's query.",
+                "properties": {
+                    "period_id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "as_of": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date"
+                    }
+                },
+                "required": [
+                    "period_id"
+                ],
+                "title": "FxRevaluationRequest"
+            },
+            "FxRevaluationResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "fiscal_period_id": {
+                        "type": "string"
+                    },
+                    "as_of": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "journal_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "reversal_journal_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "reversal_pending": {
+                        "type": "boolean",
+                        "description": "True while the automatic reversal is waiting for the next period to exist and be open."
+                    },
+                    "total_unrealised": {
+                        "type": "object",
+                        "properties": {
+                            "amount": {
+                                "type": "integer"
+                            },
+                            "currency": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "amount",
+                            "currency"
+                        ]
+                    },
+                    "items": {
+                        "type": "array",
+                        "items": {}
+                    },
+                    "residuals": {
+                        "type": "array",
+                        "items": {}
+                    },
+                    "created_by": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    }
+                },
+                "required": [
+                    "id",
+                    "fiscal_period_id",
+                    "as_of",
+                    "status",
+                    "journal_id",
+                    "reversal_journal_id",
+                    "reversal_pending",
+                    "total_unrealised",
+                    "items",
+                    "residuals",
+                    "created_by"
+                ],
+                "title": "FxRevaluationResource"
+            },
+            "InvitationPreviewResource": {
+                "type": "object",
+                "properties": {
+                    "organisation": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "string"
+                    },
+                    "role": {
+                        "type": "string"
+                    },
+                    "company_role": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "open",
+                            "accepted",
+                            "revoked",
+                            "expired"
+                        ]
+                    },
+                    "expires_at": {
+                        "type": "string"
+                    },
+                    "account_exists": {
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "organisation",
+                    "email",
+                    "role",
+                    "company_role",
+                    "status",
+                    "expires_at",
+                    "account_exists"
+                ],
+                "title": "InvitationPreviewResource"
             },
             "InvitationResource": {
                 "type": "object",
@@ -6178,6 +8244,85 @@
                 ],
                 "title": "SendPasswordResetLinkRequest"
             },
+            "SessionResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "string"
+                    },
+                    "two_factor_enabled": {
+                        "type": "boolean"
+                    },
+                    "signing_pin_set": {
+                        "type": "boolean"
+                    },
+                    "tenants": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "id": {
+                                    "type": "string"
+                                },
+                                "name": {
+                                    "type": "string"
+                                },
+                                "slug": {
+                                    "type": "string"
+                                },
+                                "lifecycle": {
+                                    "type": "string"
+                                },
+                                "role": {
+                                    "type": "string"
+                                },
+                                "current": {
+                                    "type": "boolean"
+                                },
+                                "can": {
+                                    "type": "object",
+                                    "properties": {
+                                        "manage_members": {
+                                            "type": "boolean"
+                                        },
+                                        "create_companies": {
+                                            "type": "boolean"
+                                        }
+                                    },
+                                    "required": [
+                                        "manage_members",
+                                        "create_companies"
+                                    ]
+                                }
+                            },
+                            "required": [
+                                "id",
+                                "name",
+                                "slug",
+                                "lifecycle",
+                                "role",
+                                "current",
+                                "can"
+                            ]
+                        }
+                    }
+                },
+                "required": [
+                    "id",
+                    "name",
+                    "email",
+                    "two_factor_enabled",
+                    "signing_pin_set",
+                    "tenants"
+                ],
+                "title": "SessionResource"
+            },
             "SetSigningPinRequest": {
                 "type": "object",
                 "properties": {
@@ -6194,6 +8339,327 @@
                     "pin"
                 ],
                 "title": "SetSigningPinRequest"
+            },
+            "SigningGrantResource": {
+                "type": "object",
+                "properties": {
+                    "granted": {
+                        "type": "boolean"
+                    },
+                    "expires_at": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "granted",
+                    "expires_at"
+                ],
+                "title": "SigningGrantResource"
+            },
+            "TaxCodeRequest": {
+                "type": "object",
+                "description": "Create (POST: the code, and optionally its first rate) and replace (PUT: everything but the code, with the\n`version` it was based on) a tax code. Rates are fractions as strings: \"0.05\" is 5%.",
+                "properties": {
+                    "code": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z0-9._-]+$",
+                        "maxLength": 32
+                    },
+                    "name": {
+                        "type": "string",
+                        "maxLength": 255
+                    },
+                    "kind": {
+                        "type": "string",
+                        "enum": [
+                            "vat",
+                            "gst",
+                            "sales",
+                            "wht",
+                            "compound",
+                            "exempt",
+                            "zero",
+                            "reverse_charge"
+                        ]
+                    },
+                    "collect_account_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "uuid"
+                    },
+                    "pay_account_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "uuid"
+                    },
+                    "is_recoverable": {
+                        "type": [
+                            "boolean",
+                            "null"
+                        ]
+                    },
+                    "rate": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "pattern": "^(0(\\.\\d{1,6})?|1(\\.0{1,6})?)$"
+                    },
+                    "effective_from": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date"
+                    },
+                    "version": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                },
+                "required": [
+                    "code",
+                    "name",
+                    "kind"
+                ],
+                "title": "TaxCodeRequest"
+            },
+            "TaxCodeResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "code": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "kind": {
+                        "type": "string"
+                    },
+                    "rate": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "The rate in force today as a fraction (\"0.050000\" is 5%); null when none is."
+                    },
+                    "rates": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/TaxRateResource"
+                        }
+                    },
+                    "collect_account_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "pay_account_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "is_recoverable": {
+                        "type": "boolean"
+                    },
+                    "is_active": {
+                        "type": "boolean"
+                    },
+                    "version": {
+                        "type": "integer"
+                    },
+                    "can": {
+                        "type": "array",
+                        "items": {}
+                    }
+                },
+                "required": [
+                    "id",
+                    "code",
+                    "name",
+                    "kind",
+                    "collect_account_id",
+                    "pay_account_id",
+                    "is_recoverable",
+                    "is_active",
+                    "version",
+                    "can"
+                ],
+                "title": "TaxCodeResource"
+            },
+            "TaxGroupRequest": {
+                "type": "object",
+                "description": "Create (POST) and replace (PUT: name and items, with the `version` it was based on) a tax group. Items are in sequence.",
+                "properties": {
+                    "code": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z0-9._-]+$",
+                        "maxLength": 32
+                    },
+                    "name": {
+                        "type": "string",
+                        "maxLength": 255
+                    },
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "tax_code_id": {
+                                    "type": "string",
+                                    "format": "uuid"
+                                },
+                                "compound": {
+                                    "type": [
+                                        "boolean",
+                                        "null"
+                                    ]
+                                }
+                            },
+                            "required": [
+                                "tax_code_id"
+                            ]
+                        },
+                        "minItems": 1,
+                        "maxItems": 10
+                    },
+                    "version": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                },
+                "required": [
+                    "code",
+                    "name",
+                    "items"
+                ],
+                "title": "TaxGroupRequest"
+            },
+            "TaxGroupResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "code": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "is_active": {
+                        "type": "boolean"
+                    },
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "tax_code_id": {
+                                    "type": "string"
+                                },
+                                "sequence": {
+                                    "type": "integer"
+                                },
+                                "compound": {
+                                    "type": "boolean"
+                                }
+                            },
+                            "required": [
+                                "tax_code_id",
+                                "sequence",
+                                "compound"
+                            ]
+                        }
+                    },
+                    "version": {
+                        "type": "integer"
+                    },
+                    "can": {
+                        "type": "array",
+                        "items": {}
+                    }
+                },
+                "required": [
+                    "id",
+                    "code",
+                    "name",
+                    "is_active",
+                    "version",
+                    "can"
+                ],
+                "title": "TaxGroupResource"
+            },
+            "TaxRateRequest": {
+                "type": "object",
+                "description": "A new rate of a tax code from a date (inclusive), with the code's `version` it was based on.",
+                "properties": {
+                    "rate": {
+                        "type": "string",
+                        "pattern": "^(0(\\.\\d{1,6})?|1(\\.0{1,6})?)$"
+                    },
+                    "effective_from": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "effective_to": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date"
+                    },
+                    "version": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                },
+                "required": [
+                    "rate",
+                    "effective_from",
+                    "version"
+                ],
+                "title": "TaxRateRequest"
+            },
+            "TaxRateResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "rate": {
+                        "type": "string",
+                        "description": "A fraction: \"0.050000\" is 5%."
+                    },
+                    "effective_from": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "effective_to": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    }
+                },
+                "required": [
+                    "id",
+                    "rate",
+                    "effective_from",
+                    "effective_to"
+                ],
+                "title": "TaxRateResource"
             },
             "TransitionRequest": {
                 "type": "object",
