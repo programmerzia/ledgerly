@@ -40,7 +40,14 @@
         ]
       },
       "depreciation_expense_account": "acc-6500",
-      "accumulated_depreciation_account": "acc-1590"
+      "accumulated_depreciation_account": "acc-1590",
+      "context": {
+        "base_currency": "USD",
+        "dimensions": {
+          "branch": "MG",
+          "cost_centre": "ADMIN"
+        }
+      }
     },
     "expected": {
       "journal": {
@@ -178,7 +185,14 @@
         ]
       },
       "depreciation_expense_account": "acc-6500",
-      "accumulated_depreciation_account": "acc-1590"
+      "accumulated_depreciation_account": "acc-1590",
+      "context": {
+        "base_currency": "USD",
+        "dimensions": {
+          "branch": "MG",
+          "cost_centre": "ADMIN"
+        }
+      }
     },
     "expected": {
       "journal": {

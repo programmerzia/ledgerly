@@ -12,7 +12,8 @@
           "fx_unrealised": "acc-4800",
           "rounding": "acc-9999",
           "wht_payable": "acc-2120"
-        }
+        },
+        "base_currency": "USD"
       },
       "revaluation": {
         "id": "revaluation_gain",
@@ -31,7 +32,10 @@
             "revalued_amount_base": 0,
             "unrealised_gain_loss": 4000
           }
-        ]
+        ],
+        "dimensions": {
+          "branch": "MG"
+        }
       }
     },
     "expected": {
@@ -62,10 +66,9 @@
           "credit": 4000,
           "currency": "USD",
           "fx_rate": 1,
-          "amount_fc": 4000,
+          "amount_fc": -4000,
           "dimensions": {
-            "branch": "MG",
-            "cost_centre": "FIN"
+            "branch": "MG"
           },
           "description": "Unrealised FX Gain on 1200"
         }
@@ -89,7 +92,8 @@
           "fx_unrealised": "acc-4800",
           "rounding": "acc-9999",
           "wht_payable": "acc-2120"
-        }
+        },
+        "base_currency": "USD"
       },
       "revaluation": {
         "id": "revaluation_loss",
@@ -108,7 +112,10 @@
             "revalued_amount_base": 0,
             "unrealised_gain_loss": -3200
           }
-        ]
+        ],
+        "dimensions": {
+          "branch": "MG"
+        }
       }
     },
     "expected": {
@@ -139,10 +146,9 @@
           "credit": 0,
           "currency": "USD",
           "fx_rate": 1,
-          "amount_fc": -3200,
+          "amount_fc": 3200,
           "dimensions": {
-            "branch": "MG",
-            "cost_centre": "FIN"
+            "branch": "MG"
           },
           "description": "Unrealised FX Loss on 2000"
         }
@@ -166,7 +172,8 @@
           "fx_unrealised": "acc-4800",
           "rounding": "acc-9999",
           "wht_payable": "acc-2120"
-        }
+        },
+        "base_currency": "USD"
       },
       "revaluation": {
         "id": "revaluation_mixed_with_zero_skipped",
@@ -209,7 +216,10 @@
             "revalued_amount_base": 0,
             "unrealised_gain_loss": -1250
           }
-        ]
+        ],
+        "dimensions": {
+          "branch": "MG"
+        }
       }
     },
     "expected": {
@@ -240,10 +250,9 @@
           "credit": 4000,
           "currency": "USD",
           "fx_rate": 1,
-          "amount_fc": 4000,
+          "amount_fc": -4000,
           "dimensions": {
-            "branch": "MG",
-            "cost_centre": "FIN"
+            "branch": "MG"
           },
           "description": "Unrealised FX Gain on 1200"
         },
@@ -265,10 +274,9 @@
           "credit": 0,
           "currency": "USD",
           "fx_rate": 1,
-          "amount_fc": -1250,
+          "amount_fc": 1250,
           "dimensions": {
-            "branch": "MG",
-            "cost_centre": "FIN"
+            "branch": "MG"
           },
           "description": "Unrealised FX Loss on 1030"
         }

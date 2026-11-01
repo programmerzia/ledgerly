@@ -100,6 +100,8 @@ export const mockUsers: User[] = [
 export const mockCompanySettings: CompanySettings = {
   company_id: 'co-1',
   tax_rounding: 'document_per_code',
+  base_currency: 'USD',
+  default_dimensions: { branch: 'MG' },
   posting_accounts: {
     ar_control: 'acc-1200',
     ap_control: 'acc-2000',

@@ -1,0 +1,121 @@
+[
+  {
+    "name": "receipt_partial_gain",
+    "input": {
+      "cash_in": true,
+      "allocated_fc": 50000,
+      "settlement_rate": 1.1,
+      "invoice_rate": 1.08,
+      "document_total_fc": 100000,
+      "document_total_base": 108000,
+      "settled_fc": 0,
+      "settled_base": 0
+    },
+    "expected": {
+      "carried_base": 54000,
+      "fx_gain_loss": 1000
+    }
+  },
+  {
+    "name": "receipt_final_takes_remaining_base",
+    "input": {
+      "cash_in": true,
+      "allocated_fc": 50000,
+      "settlement_rate": 1.1,
+      "invoice_rate": 1.08,
+      "document_total_fc": 100000,
+      "document_total_base": 108000,
+      "settled_fc": 50000,
+      "settled_base": 54001
+    },
+    "expected": {
+      "carried_base": 53999,
+      "fx_gain_loss": 1001
+    }
+  },
+  {
+    "name": "receipt_loss",
+    "input": {
+      "cash_in": true,
+      "allocated_fc": 100000,
+      "settlement_rate": 1.05,
+      "invoice_rate": 1.08,
+      "document_total_fc": 100000,
+      "document_total_base": 108000,
+      "settled_fc": 0,
+      "settled_base": 0
+    },
+    "expected": {
+      "carried_base": 108000,
+      "fx_gain_loss": -3000
+    }
+  },
+  {
+    "name": "payment_paid_more_is_a_loss",
+    "input": {
+      "cash_in": false,
+      "allocated_fc": 100000,
+      "settlement_rate": 1.1,
+      "invoice_rate": 1.08,
+      "document_total_fc": 100000,
+      "document_total_base": 108000,
+      "settled_fc": 0,
+      "settled_base": 0
+    },
+    "expected": {
+      "carried_base": 108000,
+      "fx_gain_loss": -2000
+    }
+  },
+  {
+    "name": "payment_paid_less_is_a_gain",
+    "input": {
+      "cash_in": false,
+      "allocated_fc": 100000,
+      "settlement_rate": 1.05,
+      "invoice_rate": 1.08,
+      "document_total_fc": 100000,
+      "document_total_base": 108000,
+      "settled_fc": 0,
+      "settled_base": 0
+    },
+    "expected": {
+      "carried_base": 108000,
+      "fx_gain_loss": 3000
+    }
+  },
+  {
+    "name": "half_up_on_settlement_conversion",
+    "input": {
+      "cash_in": true,
+      "allocated_fc": 333,
+      "settlement_rate": 1.005,
+      "invoice_rate": 1,
+      "document_total_fc": 1000,
+      "document_total_base": 1000,
+      "settled_fc": 0,
+      "settled_base": 0
+    },
+    "expected": {
+      "carried_base": 333,
+      "fx_gain_loss": 2
+    }
+  },
+  {
+    "name": "same_rate_no_fx",
+    "input": {
+      "cash_in": true,
+      "allocated_fc": 1000,
+      "settlement_rate": 1.2,
+      "invoice_rate": 1.2,
+      "document_total_fc": 5000,
+      "document_total_base": 6000,
+      "settled_fc": 0,
+      "settled_base": 0
+    },
+    "expected": {
+      "carried_base": 1200,
+      "fx_gain_loss": 0
+    }
+  }
+]

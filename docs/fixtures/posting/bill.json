@@ -12,7 +12,8 @@
           "fx_unrealised": "acc-4800",
           "rounding": "acc-9999",
           "wht_payable": "acc-2120"
-        }
+        },
+        "base_currency": "USD"
       },
       "bill": {
         "id": "plain_bill_input_vat",
@@ -110,7 +111,8 @@
           "fx_unrealised": "acc-4800",
           "rounding": "acc-9999",
           "wht_payable": "acc-2120"
-        }
+        },
+        "base_currency": "USD"
       },
       "bill": {
         "id": "bill_two_expense_lines_no_tax",
@@ -217,7 +219,8 @@
           "fx_unrealised": "acc-4800",
           "rounding": "acc-9999",
           "wht_payable": "acc-2120"
-        }
+        },
+        "base_currency": "USD"
       },
       "bill": {
         "id": "bill_with_wht",
@@ -329,7 +332,8 @@
           "fx_unrealised": "acc-4800",
           "rounding": "acc-9999",
           "wht_payable": "acc-2120"
-        }
+        },
+        "base_currency": "USD"
       },
       "bill": {
         "id": "bill_foreign_currency_with_wht_rounding",

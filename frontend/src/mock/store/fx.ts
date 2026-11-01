@@ -3,6 +3,7 @@
  * with automatic next-period reversal journals per 08_Mock_Refactor_Prompt.md Block F.2.
  */
 
+import { BUSINESS_TODAY } from '@/lib/docStatus';
 import { StateCreator } from 'zustand';
 import { ExchangeRate, FxRevaluation, FxRevaluationItem, User, CompanySettings } from '@/types';
 import { mockExchangeRates } from '@/mock/data';
@@ -35,7 +36,7 @@ export const createFxSlice: StateCreator<any, [], [], FxSlice> = (set, get) => (
   },
 
   syncRatesWithProvider: () => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = BUSINESS_TODAY;
     const updatedRates: ExchangeRate[] = [
       { id: `fx-${Date.now()}-1`, company_id: 'co-1', from_currency: 'USD', to_currency: 'SOS', rate_date: today, rate: 26150, source: 'provider' },
       { id: `fx-${Date.now()}-2`, company_id: 'co-1', from_currency: 'USD', to_currency: 'KES', rate_date: today, rate: 129.80, source: 'provider' },

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Shared\DomainRuleViolation;
 use App\Domain\Trade\BillDocument;
 use App\Domain\Trade\BillPosting;
 use App\Domain\Trade\DepreciationInput;
@@ -12,6 +13,7 @@ use App\Domain\Trade\InvoiceDocument;
 use App\Domain\Trade\InvoicePosting;
 use App\Domain\Trade\PostingAccounts;
 use App\Domain\Trade\ProposedJournal;
+use App\Domain\Trade\RealisedFx;
 use App\Domain\Trade\RevaluationInput;
 use App\Domain\Trade\RevaluationItem;
 use App\Domain\Trade\RevaluationPosting;
@@ -91,13 +93,27 @@ function assertParity(ProposedJournal $j, array $case): void
     ])->toEqual($e['journal']);
 }
 
+/**
+ * @param  Closure(): ProposedJournal  $build
+ * @param  array<string, mixed>  $case
+ */
+function assertOutcome(Closure $build, array $case): void
+{
+    if (isset($case['expected']['error'])) {
+        expect($build)->toThrow(fn (DomainRuleViolation $e) => expect($e->errorCode)->toBe($case['expected']['error']));
+
+        return;
+    }
+    assertParity($build(), $case);
+}
+
 it('posts a sales invoice identically to the mock', function (array $case): void {
     $d = $case['input']['invoice'];
     $doc = new InvoiceDocument(
         $d['id'], $d['number'], $d['reference'], $d['memo'] ?? null, $d['contact_id'], $d['issue_date'], $d['currency'],
         rate($d['fx_rate']), docLines($d), $d['tax_total_fc'], $d['tax_total'], $d['total_fc'],
     );
-    assertParity(InvoicePosting::journal($doc, postingAccounts($case['input']['settings'])), $case);
+    assertOutcome(fn () => InvoicePosting::journal($doc, postingAccounts($case['input']['settings'])), $case);
 })->with(postingFixtures('invoice.json'));
 
 it('posts a purchase bill identically to the mock', function (array $case): void {
@@ -106,19 +122,20 @@ it('posts a purchase bill identically to the mock', function (array $case): void
         $d['id'], $d['number'], $d['reference'], $d['memo'] ?? null, $d['contact_id'], $d['issue_date'], $d['currency'],
         rate($d['fx_rate']), docLines($d), $d['tax_total_fc'], $d['tax_total'], $d['total_fc'], $d['wht_amount_fc'] ?? 0,
     );
-    assertParity(BillPosting::journal($doc, postingAccounts($case['input']['settings'])), $case);
+    assertOutcome(fn () => BillPosting::journal($doc, postingAccounts($case['input']['settings'])), $case);
 })->with(postingFixtures('bill.json'));
 
 it('posts a settlement identically to the mock', function (array $case): void {
     $d = $case['input']['settlement'];
     $allocs = array_map(static fn (array $a): SettlementAllocation => new SettlementAllocation(
         $a['id'], $a['invoice_number'], $a['allocated_amount_fc'], $a['allocated_amount_base'], $a['fx_gain_loss'],
+        isset($a['invoice_fx_rate']) ? rate($a['invoice_fx_rate']) : null,
     ), $d['allocations']);
     $doc = new SettlementDocument(
         $d['id'], $d['kind'], $d['number'], $d['reference'], $d['memo'] ?? null, $d['contact_id'], $case['input']['bank_account_id'],
-        $d['settlement_date'], $d['currency'], rate($d['fx_rate']), $d['amount_fc'], $d['amount'], $allocs,
+        $d['settlement_date'], $d['currency'], rate($d['fx_rate']), $d['amount_fc'], $d['amount'], $allocs, $d['dimensions'],
     );
-    assertParity(SettlementPosting::journal($doc, postingAccounts($case['input']['settings'])), $case);
+    assertOutcome(fn () => SettlementPosting::journal($doc, postingAccounts($case['input']['settings']), $case['input']['settings']['base_currency']), $case);
 })->with(postingFixtures('settlement.json'));
 
 it('posts an fx revaluation identically to the mock', function (array $case): void {
@@ -126,7 +143,7 @@ it('posts an fx revaluation identically to the mock', function (array $case): vo
     $items = array_map(static fn (array $i): RevaluationItem => new RevaluationItem(
         $i['account_id'], $i['account_code'], $i['account_name'], $i['currency'], $i['amount_fc'], rate($i['current_rate']), $i['unrealised_gain_loss'],
     ), $d['items']);
-    assertParity(RevaluationPosting::journal(new RevaluationInput($d['id'], $d['as_of'], $items), postingAccounts($case['input']['settings'])), $case);
+    assertParity(RevaluationPosting::journal(new RevaluationInput($d['id'], $d['as_of'], $items, $d['dimensions']), postingAccounts($case['input']['settings']), $case['input']['settings']['base_currency']), $case);
 })->with(postingFixtures('revaluation.json'));
 
 it('posts a depreciation run identically to the mock', function (array $case): void {
@@ -134,17 +151,26 @@ it('posts a depreciation run identically to the mock', function (array $case): v
     $lines = array_map(static fn (array $l): DepreciationLine => new DepreciationLine(
         $l['asset_id'], $l['asset_number'], $l['asset_name'], $l['amount'],
     ), $d['lines']);
-    $in = new DepreciationInput($d['id'], $d['as_of'], $case['input']['depreciation_expense_account'], $case['input']['accumulated_depreciation_account'], $lines);
+    $in = new DepreciationInput($d['id'], $d['as_of'], $case['input']['depreciation_expense_account'], $case['input']['accumulated_depreciation_account'], $lines, $case['input']['context']['base_currency'], $case['input']['context']['dimensions']);
     assertParity(DepreciationPosting::journal($in), $case);
 })->with(postingFixtures('depreciation.json'));
 
 it('every fixture journal balances unless flagged', function (): void {
     foreach (['invoice', 'bill', 'settlement', 'revaluation', 'depreciation'] as $f) {
         foreach (postingFixtures($f.'.json') as $name => [$case]) {
-            if (str_starts_with((string) ($case['note'] ?? ''), 'FLAGGED')) {
+            if (isset($case['expected']['error'])) {
                 continue;
             }
             expect($case['expected']['totals']['debit'])->toBe($case['expected']['totals']['credit'], $name);
         }
     }
 });
+
+it('computes realised FX by hand-checked numbers (D4)', function (array $case): void {
+    $i = $case['input'];
+    $fx = RealisedFx::of(
+        $i['cash_in'], $i['allocated_fc'], rate($i['settlement_rate']), rate($i['invoice_rate']),
+        $i['document_total_fc'], $i['document_total_base'], $i['settled_fc'], $i['settled_base'],
+    );
+    expect(['carried_base' => $fx->carriedBase, 'fx_gain_loss' => $fx->gainLoss])->toEqual($case['expected']);
+})->with(postingFixtures('realised_fx.json'));

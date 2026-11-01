@@ -11,18 +11,18 @@ final class DepreciationPosting
 {
     public static function journal(DepreciationInput $run): ProposedJournal
     {
-        $dims = ['branch' => 'MG', 'cost_centre' => 'ADMIN'];
+        $dims = $run->dimensions;
         $lines = [];
         foreach ($run->lines as $item) {
             if ($item->amount <= 0) {
                 continue;
             }
             $lines[] = new ProposedLine(
-                $run->expenseAccountRef, $item->amount, 0, 'USD', '1', $item->amount, $dims,
+                $run->expenseAccountRef, $item->amount, 0, $run->baseCurrency, '1', $item->amount, $dims,
                 "Depreciation: {$item->assetNumber} - {$item->assetName}",
             );
             $lines[] = new ProposedLine(
-                $run->accumulatedAccountRef, 0, $item->amount, 'USD', '1', -$item->amount, $dims,
+                $run->accumulatedAccountRef, 0, $item->amount, $run->baseCurrency, '1', -$item->amount, $dims,
                 "Accum. Depr: {$item->assetNumber} - {$item->assetName}",
             );
         }

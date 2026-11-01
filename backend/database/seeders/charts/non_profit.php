@@ -7,12 +7,17 @@ use Database\Seeders\ChartLine as L;
 /**
  * Non-profit starter chart (plan 2.1): fund balances (designated, restricted, endowment), donations
  * and grants split by restriction, deferred grant income, grants and pledges receivable, and costs
- * split into program, management and fundraising. The year-end close posts the whole result to the
- * single retained-earnings account (accumulated surplus); moving results between funds is a journal.
+ * split into program, management and fundraising. The Fund dimension tags restricted income and spending;
+ * no fund means unrestricted. The year-end close posts the result to the accumulated surplus with the
+ * same fund on each line, so each fund's balance survives the close (D13). Transfers between funds and
+ * releases from restriction are journals.
  * Two-digit lines are group headers; see Database\Seeders\ChartLine for the line format.
  */
 return [
     'code' => 'non_profit',
+    'dimensions' => [
+        ['code' => 'FUND', 'name' => 'Fund', 'values' => [['RESTRICTED', 'With donor restrictions'], ['DESIGNATED', 'Board designated'], ['ENDOWMENT', 'Endowment']]],
+    ],
     'name' => 'Non-profit',
     'country' => null,
     'standard' => 'Fund accounting (not-for-profit)',

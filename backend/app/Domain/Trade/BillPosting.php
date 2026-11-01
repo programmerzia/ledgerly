@@ -38,7 +38,7 @@ final class BillPosting
             );
         }
 
-        $taxFc = $bill->taxTotalFc !== 0 ? $bill->taxTotalFc : $bill->taxTotal;
+        $taxFc = PostingSupport::documentTaxFc($bill->taxTotalFc, $bill->taxTotal, $rate);
         if ($taxFc > 0) {
             $lines[] = new ProposedLine(
                 $accounts->taxInput, PostingSupport::toBase($taxFc, $rate), 0, $cur, $rate, $taxFc,

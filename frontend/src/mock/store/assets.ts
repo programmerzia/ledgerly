@@ -75,7 +75,10 @@ export const createAssetsSlice: StateCreator<any, [], [], AssetsSlice> = (set, g
     const deprExpenseAccountId = 'acc-6500';
     const accumDeprAccountId = 'acc-1510';
 
-    const jDraft = buildJournalFromDepreciation(run, deprExpenseAccountId, accumDeprAccountId, periodId, actor);
+    const jDraft = buildJournalFromDepreciation(run, deprExpenseAccountId, accumDeprAccountId, periodId, actor, {
+      base_currency: settings.base_currency ?? 'USD',
+      dimensions: { ...settings.default_dimensions, cost_centre: 'ADMIN' },
+    });
     const { journal } = state.postJournalDirect(jDraft, actor, settings, state.auditEvents?.[0]);
     run.journal_id = journal.id;
 

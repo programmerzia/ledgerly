@@ -218,3 +218,20 @@ it('builds accounts the posting engine accepts, and refuses a group header', fun
         expect(array_map(fn ($v) => $v->code, $e->violations))->toBe(['account_not_postable']);
     }
 });
+
+it('brings the Fund dimension with the non-profit chart only', function (): void {
+    $this->grant('accounts.manage');
+    $codes = fn (string $company) => DB::table('dimensions')->where('company_id', $company)->pluck('code')->all();
+
+    $nonProfit = LedgerFixture::create(slug: 'charity');
+    $company = (string) Str::uuid7();
+    DB::table('companies')->insert(['id' => $company, 'tenant_id' => $nonProfit->tenantId, 'name' => 'Charity', 'slug' => 'charity-2', 'country' => 'GB', 'base_currency' => 'GBP']);
+    $business = (string) Str::uuid7();
+    DB::table('companies')->insert(['id' => $business, 'tenant_id' => $nonProfit->tenantId, 'name' => 'Trading', 'slug' => 'trading', 'country' => 'GB', 'base_currency' => 'GBP']);
+
+    app(ApplyChartTemplate::class)->handle($nonProfit->actor, new ApplyChartTemplateInput($company, 'non_profit'));
+    app(ApplyChartTemplate::class)->handle($nonProfit->actor, new ApplyChartTemplateInput($business, 'ifrs_sme'));
+
+    expect($codes($company))->toBe(['FUND'])->and($codes($business))->toBe([])
+        ->and(DB::table('dimension_values')->where('company_id', $company)->pluck('code')->sort()->values()->all())->toBe(['DESIGNATED', 'ENDOWMENT', 'RESTRICTED']);
+});

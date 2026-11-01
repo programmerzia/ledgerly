@@ -11,7 +11,6 @@ Each is an array of cases:
 ```jsonc
 {
   "name": "plain_sale_usd",          // unique per file; used as the test name
-  "note": "FLAGGED: ...",            // optional; FLAGGED cases need not balance and await a human decision
   "input": {
     "settings": { "posting_accounts": { "ar_control": "...", "ap_control": "...", "tax_output": "...",
       "tax_input": "...", "fx_realised": "...", "fx_unrealised": "...", "rounding": "...", "wht_payable": "..." } },
@@ -27,9 +26,13 @@ Each is an array of cases:
 }
 ```
 
+A refused case has `"expected": { "error": "<code>" }`: both sides must refuse with that code.
+`realised_fx.json` is hand-calculated (not generated) and has its own shape, input and
+`{ carried_base, fx_gain_loss }`.
+
 Conventions: money is integer minor units (assumes base and foreign currencies share 2 decimals);
 `fx_rate` is base units per foreign unit; account, contact and tax-code refs are opaque strings;
 `amount_fc` is signed (debit positive); `-0` is normalised to `0`.
 Document totals (`line_total_fc`, `tax_total_fc`, `total_fc`, `wht_amount_fc`, allocation base amounts and FX
-gain/loss) are inputs: the posting rules do not compute tax or allocations. Tax in the generated inputs came
+gain/loss) are inputs: the posting rules do not compute tax or allocations; `realisedFx` computes the last two. Tax in the generated inputs came
 from `calculateDocumentTax` (D2).

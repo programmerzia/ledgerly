@@ -4,6 +4,7 @@
  * Invariant: Four-Eyes Principle: Maker can never approve or sign their own document.
  */
 
+import { BUSINESS_TODAY } from '@/lib/docStatus';
 import { seedJournalIdByDocument } from '@/mock/seedLedger';
 import { StateCreator } from 'zustand';
 import {
@@ -33,6 +34,7 @@ import {
   buildJournalFromSettlement,
   executePostJournal,
   PostingError,
+  realisedFx,
 } from '@/mock/PostingRules';
 import { roundHalfUp } from '@/lib/format';
 import { generateSignatureHash } from '@/lib/hash';
@@ -124,8 +126,8 @@ export const createDocumentsSlice: StateCreator<any, [], [], DocumentsSlice> = (
       number: num,
       status: data.status || 'draft',
       contact_id: data.contact_id || '',
-      issue_date: data.issue_date || new Date().toISOString().split('T')[0],
-      due_date: data.due_date || new Date().toISOString().split('T')[0],
+      issue_date: data.issue_date || BUSINESS_TODAY,
+      due_date: data.due_date || BUSINESS_TODAY,
       currency: data.currency || 'USD',
       fx_rate: data.fx_rate || 1.0,
       reference: data.reference || '',
@@ -338,7 +340,7 @@ export const createDocumentsSlice: StateCreator<any, [], [], DocumentsSlice> = (
           : []),
       ];
       const jDraft = {
-        journal_date: new Date().toISOString().split('T')[0],
+        journal_date: BUSINESS_TODAY,
         fiscal_period_id: state.currentPeriod?.id || 'per-2026-10',
         source_type: 'sales_invoice',
         reference: `REV-${inv.number}`,
@@ -406,8 +408,8 @@ export const createDocumentsSlice: StateCreator<any, [], [], DocumentsSlice> = (
       id: `inv-dup-${Date.now()}`,
       number: `DRAFT-${String(seq).padStart(4, '0')}`,
       status: 'draft',
-      issue_date: new Date().toISOString().split('T')[0],
-      due_date: new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0],
+      issue_date: BUSINESS_TODAY,
+      due_date: new Date(new Date(BUSINESS_TODAY).getTime() + 30 * 86400000).toISOString().split('T')[0],
       reference: `Copy of ${inv.number || 'Draft'}`,
       created_by: actor.id,
       submitted_by: undefined,
@@ -443,8 +445,8 @@ export const createDocumentsSlice: StateCreator<any, [], [], DocumentsSlice> = (
       number: `CN-DRAFT-${String(seq).padStart(4, '0')}`,
       status: 'draft',
       related_invoice_id: inv.id,
-      issue_date: new Date().toISOString().split('T')[0],
-      due_date: new Date().toISOString().split('T')[0],
+      issue_date: BUSINESS_TODAY,
+      due_date: BUSINESS_TODAY,
       reference: `Credit Note against ${inv.number || 'Invoice'}`,
       memo: `Credit Note referencing ${inv.number || 'Invoice'}`,
       created_by: actor.id,
@@ -501,8 +503,8 @@ export const createDocumentsSlice: StateCreator<any, [], [], DocumentsSlice> = (
       number: num,
       status: data.status || 'draft',
       contact_id: data.contact_id || '',
-      issue_date: data.issue_date || new Date().toISOString().split('T')[0],
-      due_date: data.due_date || new Date().toISOString().split('T')[0],
+      issue_date: data.issue_date || BUSINESS_TODAY,
+      due_date: data.due_date || BUSINESS_TODAY,
       currency: data.currency || 'USD',
       fx_rate: data.fx_rate || 1.0,
       reference: data.reference || '',
@@ -690,7 +692,7 @@ export const createDocumentsSlice: StateCreator<any, [], [], DocumentsSlice> = (
           : []),
       ];
       const jDraft = {
-        journal_date: new Date().toISOString().split('T')[0],
+        journal_date: BUSINESS_TODAY,
         fiscal_period_id: state.currentPeriod?.id || 'per-2026-10',
         source_type: 'purchase_bill',
         reference: `REV-${bill.number}`,
@@ -758,8 +760,8 @@ export const createDocumentsSlice: StateCreator<any, [], [], DocumentsSlice> = (
       id: `bill-dup-${Date.now()}`,
       number: `DRAFT-BILL-${String(seq).padStart(4, '0')}`,
       status: 'draft',
-      issue_date: new Date().toISOString().split('T')[0],
-      due_date: new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0],
+      issue_date: BUSINESS_TODAY,
+      due_date: new Date(new Date(BUSINESS_TODAY).getTime() + 30 * 86400000).toISOString().split('T')[0],
       reference: `Copy of ${bill.number || 'Draft'}`,
       created_by: actor.id,
       submitted_by: undefined,
@@ -795,8 +797,8 @@ export const createDocumentsSlice: StateCreator<any, [], [], DocumentsSlice> = (
       number: `DN-DRAFT-${String(seq).padStart(4, '0')}`,
       status: 'draft',
       related_invoice_id: bill.id,
-      issue_date: new Date().toISOString().split('T')[0],
-      due_date: new Date().toISOString().split('T')[0],
+      issue_date: BUSINESS_TODAY,
+      due_date: BUSINESS_TODAY,
       reference: `Debit Note against ${bill.number || 'Bill'}`,
       memo: `Debit Note referencing ${bill.number || 'Bill'}`,
       created_by: actor.id,
@@ -852,21 +854,12 @@ export const createDocumentsSlice: StateCreator<any, [], [], DocumentsSlice> = (
       const settlementRate = data.fx_rate || 1.0;
       const allocFc = alloc.allocated_amount_fc || 0;
 
-      // Settlement gain/loss = round(alloc_fc * settlement_rate) - round(alloc_fc * invoice_rate)
-      const fxGainLoss =
-        roundHalfUp(allocFc * settlementRate) - roundHalfUp(allocFc * invoiceRate);
-
-      // Final allocation that fully settles uses remaining base
-      let allocBase = roundHalfUp(allocFc * invoiceRate);
-      if (inv && inv.settled_fc + allocFc >= inv.total_fc) {
-        allocBase = inv.total - inv.settled;
-      }
-
-      return {
-        ...alloc,
-        allocated_amount_base: allocBase,
-        fx_gain_loss: fxGainLoss,
-      };
+      const fx = realisedFx({
+        cash_in: true, allocated_fc: allocFc, settlement_rate: settlementRate, invoice_rate: invoiceRate,
+        document_total_fc: inv?.total_fc ?? Number.POSITIVE_INFINITY, document_total_base: inv?.total ?? 0,
+        settled_fc: inv?.settled_fc ?? 0, settled_base: inv?.settled ?? 0,
+      });
+      return { ...alloc, allocated_amount_base: fx.carried_base, fx_gain_loss: fx.fx_gain_loss, invoice_fx_rate: invoiceRate };
     });
 
     const settlement: Settlement = {
@@ -878,7 +871,7 @@ export const createDocumentsSlice: StateCreator<any, [], [], DocumentsSlice> = (
       status: 'posted',
       contact_id: data.contact_id || '',
       bank_account_id: data.bank_account_id || 'bnk-1',
-      settlement_date: data.settlement_date || new Date().toISOString().split('T')[0],
+      settlement_date: data.settlement_date || BUSINESS_TODAY,
       currency: data.currency || 'USD',
       fx_rate: data.fx_rate || 1.0,
       amount_fc: data.amount_fc || 0,
@@ -956,21 +949,12 @@ export const createDocumentsSlice: StateCreator<any, [], [], DocumentsSlice> = (
       const settlementRate = data.fx_rate || 1.0;
       const allocFc = alloc.allocated_amount_fc || 0;
 
-      // Settlement gain/loss = round(alloc_fc * settlement_rate) - round(alloc_fc * invoice_rate)
-      const fxGainLoss =
-        roundHalfUp(allocFc * settlementRate) - roundHalfUp(allocFc * billRate);
-
-      // Final allocation that fully settles uses remaining base
-      let allocBase = roundHalfUp(allocFc * billRate);
-      if (bill && bill.settled_fc + allocFc >= bill.total_fc) {
-        allocBase = bill.total - bill.settled;
-      }
-
-      return {
-        ...alloc,
-        allocated_amount_base: allocBase,
-        fx_gain_loss: fxGainLoss,
-      };
+      const fx = realisedFx({
+        cash_in: false, allocated_fc: allocFc, settlement_rate: settlementRate, invoice_rate: billRate,
+        document_total_fc: bill?.total_fc ?? Number.POSITIVE_INFINITY, document_total_base: bill?.total ?? 0,
+        settled_fc: bill?.settled_fc ?? 0, settled_base: bill?.settled ?? 0,
+      });
+      return { ...alloc, allocated_amount_base: fx.carried_base, fx_gain_loss: fx.fx_gain_loss, invoice_fx_rate: billRate };
     });
 
     const settlement: Settlement = {
@@ -982,7 +966,7 @@ export const createDocumentsSlice: StateCreator<any, [], [], DocumentsSlice> = (
       status: 'posted',
       contact_id: data.contact_id || '',
       bank_account_id: data.bank_account_id || 'bnk-1',
-      settlement_date: data.settlement_date || new Date().toISOString().split('T')[0],
+      settlement_date: data.settlement_date || BUSINESS_TODAY,
       currency: data.currency || 'USD',
       fx_rate: data.fx_rate || 1.0,
       amount_fc: data.amount_fc || 0,
@@ -1040,7 +1024,7 @@ export const createDocumentsSlice: StateCreator<any, [], [], DocumentsSlice> = (
       number: num,
       status: 'draft',
       bank_account_id: data.bank_account_id || 'bnk-1',
-      run_date: data.run_date || new Date().toISOString().split('T')[0],
+      run_date: data.run_date || BUSINESS_TODAY,
       currency: data.currency || 'USD',
       total_gross: data.total_gross || 0,
       total_wht: data.total_wht || 0,

@@ -18,12 +18,13 @@ use App\Models\BaseModel;
  * @property string|null $country
  * @property string $standard
  * @property list<TemplateLine> $lines
+ * @property list<array{code: string, name: string, values: list<array{0: string, 1: string}>}> $dimensions
  */
 class ChartTemplate extends BaseModel
 {
     /** @return array<string, string> */
     protected function casts(): array
     {
-        return ['lines' => 'array'];
+        return ['lines' => 'array', 'dimensions' => 'array'];
     }
 }

@@ -1,3 +1,4 @@
+import { BUSINESS_TODAY } from '@/lib/docStatus';
 import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { ChevronDown, ChevronUp, FileText, Mail, Paperclip, RotateCcw, Upload, Wrench } from 'lucide-react';
@@ -242,7 +243,7 @@ export const AttachmentsDialog: React.FC<AttachProps> = ({ open, onOpenChange })
     const f = {
       name: `Contract_Annex_${Date.now().toString().slice(-4)}.pdf`,
       size: '190 KB',
-      date: new Date().toISOString().split('T')[0],
+      date: BUSINESS_TODAY,
     };
     setAttachments((prev) => [f, ...prev]);
     toast.success(`Attached ${f.name} to invoice.`);

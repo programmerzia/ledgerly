@@ -4,6 +4,7 @@
  * reduce over posted journal lines dynamically with a linesVersion memoisation counter.
  */
 
+import { BUSINESS_TODAY } from '@/lib/docStatus';
 import { seedJournals } from '@/mock/seedLedger';
 import { StateCreator } from 'zustand';
 import {
@@ -301,7 +302,7 @@ export const createLedgerSlice: StateCreator<any, [], [], LedgerSlice> = (set, g
 
   contactOverdueBalance: (contactId, asOf) => {
     const { invoices } = get();
-    const targetDate = asOf || new Date().toISOString().split('T')[0];
+    const targetDate = asOf || BUSINESS_TODAY;
 
     return (invoices || [])
       .filter(

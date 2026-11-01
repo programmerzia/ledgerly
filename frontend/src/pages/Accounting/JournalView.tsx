@@ -1,3 +1,4 @@
+import { BUSINESS_TODAY } from '@/lib/docStatus';
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '@/mock/api';
@@ -123,7 +124,7 @@ export const JournalView: React.FC = () => {
     const mockFile = {
       name: `Supporting_Schedule_${Date.now().toString().slice(-4)}.pdf`,
       size: '180 KB',
-      date: new Date().toISOString().split('T')[0],
+      date: BUSINESS_TODAY,
     };
     setAttachments((prev) => [mockFile, ...prev]);
     toast.success(`Attached ${mockFile.name} to journal entry.`);

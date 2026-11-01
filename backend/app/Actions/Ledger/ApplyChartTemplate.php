@@ -10,6 +10,8 @@ use App\Contracts\IdGenerator;
 use App\Contracts\PermissionChecker;
 use App\Domain\Shared\DomainRuleViolation;
 use App\Models\Ledger\Account;
+use App\Models\Ledger\Dimension;
+use App\Models\Ledger\DimensionValue;
 use App\Models\Organisation\Company;
 use App\Models\Platform\ChartTemplate;
 use App\Support\Actor;
@@ -60,11 +62,31 @@ final class ApplyChartTemplate
 
             $rows = $this->accountRows($actor, $company, $template);
             Account::query()->insert($rows);
+            $this->createDimensions($actor, $company, $template);
 
             $audit->add('chart.applied', $company, context: ['template' => $template->code, 'accounts' => count($rows)]);
 
             return count($rows);
         });
+    }
+
+    /** Dimensions the template brings, placed after any the company already has. */
+    private function createDimensions(Actor $actor, Company $company, ChartTemplate $template): void
+    {
+        $position = (int) Dimension::query()->where('company_id', $company->id)->max('position');
+        foreach ($template->dimensions as $definition) {
+            $dimension = new Dimension;
+            $dimension->forceFill([
+                'id' => $this->ids->next(), 'tenant_id' => $actor->tenantId, 'company_id' => $company->id,
+                'code' => $definition['code'], 'name' => $definition['name'], 'position' => ++$position,
+            ])->save();
+            foreach ($definition['values'] as [$code, $name]) {
+                (new DimensionValue)->forceFill([
+                    'id' => $this->ids->next(), 'tenant_id' => $actor->tenantId, 'company_id' => $company->id,
+                    'dimension_id' => $dimension->id, 'code' => $code, 'name' => $name,
+                ])->save();
+            }
+        }
     }
 
     /**

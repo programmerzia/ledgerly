@@ -1,3 +1,4 @@
+import { BUSINESS_TODAY } from '@/lib/docStatus';
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '@/mock/api';
@@ -273,7 +274,7 @@ export const BillView: React.FC = () => {
     const mockFile = {
       name: `Supplier_Receipt_${Date.now().toString().slice(-4)}.pdf`,
       size: '175 KB',
-      date: new Date().toISOString().split('T')[0],
+      date: BUSINESS_TODAY,
     };
     setAttachments((prev) => [mockFile, ...prev]);
     toast.success(`Attached ${mockFile.name} to bill.`);

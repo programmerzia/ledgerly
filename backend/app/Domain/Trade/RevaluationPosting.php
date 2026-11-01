@@ -6,10 +6,10 @@ namespace App\Domain\Trade;
 
 use App\Domain\Ledger\JournalType;
 
-/** Month-end FX revaluation: adjusts each balance-sheet account against unrealised FX (hard-coded 'USD' and dimensions as in the mock). */
+/** Month-end FX revaluation: adjusts each balance-sheet account against unrealised FX. */
 final class RevaluationPosting
 {
-    public static function journal(RevaluationInput $r, PostingAccounts $accounts): ProposedJournal
+    public static function journal(RevaluationInput $r, PostingAccounts $accounts, string $baseCurrency): ProposedJournal
     {
         $lines = [];
         foreach ($r->items as $item) {
@@ -22,11 +22,11 @@ final class RevaluationPosting
 
             $lines[] = new ProposedLine(
                 $item->accountRef, $isGain ? $diff : 0, $isGain ? 0 : $diff, $item->currency, $item->currentRate, $item->amountFc,
-                ['branch' => 'MG'], "FX Revaluation as of {$r->asOf} ({$item->accountName})",
+                $r->dimensions, "FX Revaluation as of {$r->asOf} ({$item->accountName})",
             );
             $lines[] = new ProposedLine(
-                $accounts->fxUnrealised, $isGain ? 0 : $diff, $isGain ? $diff : 0, 'USD', '1', $item->unrealisedGainLoss,
-                ['branch' => 'MG', 'cost_centre' => 'FIN'], "Unrealised FX {$kind} on {$item->accountCode}",
+                $accounts->fxUnrealised, $isGain ? 0 : $diff, $isGain ? $diff : 0, $baseCurrency, '1', -$item->unrealisedGainLoss,
+                $r->dimensions, "Unrealised FX {$kind} on {$item->accountCode}",
             );
         }
 

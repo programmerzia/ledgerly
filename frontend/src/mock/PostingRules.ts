@@ -495,7 +495,7 @@ export function buildJournalFromInvoice(
   }
 
   // 3. Tax Output (Credit) = roundHalfUp(tax_fc * rate)
-  const taxFc = invoice.tax_total_fc || invoice.tax_total || 0;
+  const taxFc = documentTaxFc(invoice);
   if (taxFc > 0) {
     const baseTaxTotal = roundHalfUp(taxFc * invoice.fx_rate);
     lines.push({
@@ -518,6 +518,7 @@ export function buildJournalFromInvoice(
   const totalCredits = lines.reduce((s, l) => s + l.credit, 0);
   if (totalDebits !== totalCredits) {
     const diff = totalDebits - totalCredits;
+    assertResidueBounded(diff, lines.length);
     lines.push({
       id: `jl-inv-${invoice.id}-round`,
       line_no: lineNo++,
@@ -623,7 +624,7 @@ export function buildJournalFromBill(
   }
 
   // 4. Tax Input (Debit) if recoverable
-  const taxFc = bill.tax_total_fc || bill.tax_total || 0;
+  const taxFc = documentTaxFc(bill);
   if (taxFc > 0) {
     const baseTaxTotal = roundHalfUp(taxFc * bill.fx_rate);
     lines.push({
@@ -646,6 +647,7 @@ export function buildJournalFromBill(
   const totalCredits = lines.reduce((s, l) => s + l.credit, 0);
   if (totalDebits !== totalCredits) {
     const diff = totalDebits - totalCredits;
+    assertResidueBounded(diff, lines.length);
     lines.push({
       id: `jl-bill-${bill.id}-round`,
       line_no: lineNo++,
@@ -682,6 +684,48 @@ export function buildJournalFromBill(
 /**
  * Builds the balanced journal draft for a settlement (Receipt or Payment) (0.8, D4).
  */
+/**
+ * Tax in document currency (D10). A base-currency document may only state tax_total; on a
+ * foreign-currency document the base amount must never be read as foreign currency.
+ */
+export function documentTaxFc(doc: { tax_total_fc?: number; tax_total?: number; fx_rate: number }): number {
+  if (doc.tax_total_fc) return doc.tax_total_fc;
+  if (!doc.tax_total) return 0;
+  if (doc.fx_rate === 1) return doc.tax_total;
+  throw new PostingError('A foreign-currency document must state its tax in the document currency.', 'tax_total_fc_missing');
+}
+
+/** Realised FX per allocation (D4). A gain means more cash came in, or less went out, than carried. */
+export function realisedFx(a: {
+  cash_in: boolean;
+  allocated_fc: number;
+  settlement_rate: number;
+  invoice_rate: number;
+  document_total_fc: number;
+  document_total_base: number;
+  settled_fc: number;
+  settled_base: number;
+}): { carried_base: number; fx_gain_loss: number } {
+  const carried_base =
+    a.settled_fc + a.allocated_fc >= a.document_total_fc
+      ? a.document_total_base - a.settled_base
+      : roundHalfUp(a.allocated_fc * a.invoice_rate);
+  const settled = roundHalfUp(a.allocated_fc * a.settlement_rate);
+  return { carried_base, fx_gain_loss: (a.cash_in ? settled - carried_base : carried_base - settled) || 0 };
+}
+
+/** Rounding only ever absorbs conversion residue, bounded by half a minor unit per line (D1). */
+function assertResidueBounded(diff: number, lineCount: number): void {
+  if (Math.abs(diff) * 2 > lineCount) {
+    throw new PostingError('The difference is larger than currency rounding can explain.', 'rounding_residue_too_large');
+  }
+}
+
+/**
+ * Settlement to journal (D4, D9, D11). Cash direction and control account come from the kind: a customer
+ * refund debits AR, a supplier refund credits AP. Any unallocated part stays on the contact's control
+ * account as credit on account, at the settlement rate.
+ */
 export function buildJournalFromSettlement(
   settlement: Settlement,
   bankAccountId: string,
@@ -690,44 +734,48 @@ export function buildJournalFromSettlement(
   user: User
 ): Omit<Journal, 'id' | 'number' | 'status' | 'posted_at' | 'posted_by'> {
   const isReceipt = settlement.kind === 'receipt';
-  const controlAccountId = isReceipt ? settings.posting_accounts.ar_control : settings.posting_accounts.ap_control;
+  const onAr = settlement.kind === 'receipt' || settlement.kind === 'refund';
+  const cashIn = settlement.kind === 'receipt' || settlement.kind === 'supplier_refund';
+  const label = { receipt: 'Receipt', payment: 'Payment', refund: 'Customer refund', supplier_refund: 'Supplier refund' }[settlement.kind];
+  const controlAccountId = onAr ? settings.posting_accounts.ar_control : settings.posting_accounts.ap_control;
   const fxRealisedAccountId = settings.posting_accounts.fx_realised;
+  const baseCurrency = settings.base_currency ?? 'USD';
+  const dimensions = settlement.dimensions ?? settings.default_dimensions ?? {};
 
   const lines: JournalLine[] = [];
   let lineNo = 1;
 
-  // 1. Bank Account entry
   lines.push({
     id: `jl-set-${settlement.id}-bank`,
     line_no: lineNo++,
     account_id: bankAccountId,
-    debit: isReceipt ? settlement.amount : 0,
-    credit: isReceipt ? 0 : settlement.amount,
+    debit: cashIn ? settlement.amount : 0,
+    credit: cashIn ? 0 : settlement.amount,
     currency: settlement.currency,
     fx_rate: settlement.fx_rate,
-    amount_fc: isReceipt ? settlement.amount_fc : -settlement.amount_fc,
-    dimensions: { branch: 'MG' },
-    description: `${isReceipt ? 'Receipt' : 'Payment'} ${settlement.number} - Ref: ${settlement.reference}`,
+    amount_fc: cashIn ? settlement.amount_fc : -settlement.amount_fc,
+    dimensions,
+    description: `${label} ${settlement.number} - Ref: ${settlement.reference}`,
     contact_id: settlement.contact_id,
   });
 
-  // 2. Control Account entries from allocations
+  let allocatedFc = 0;
   for (const alloc of settlement.allocations) {
+    allocatedFc += alloc.allocated_amount_fc;
     lines.push({
       id: `jl-set-${settlement.id}-alloc-${alloc.id}`,
       line_no: lineNo++,
       account_id: controlAccountId,
-      debit: isReceipt ? 0 : alloc.allocated_amount_base,
-      credit: isReceipt ? alloc.allocated_amount_base : 0,
+      debit: cashIn ? 0 : alloc.allocated_amount_base,
+      credit: cashIn ? alloc.allocated_amount_base : 0,
       currency: settlement.currency,
-      fx_rate: settlement.fx_rate,
-      amount_fc: isReceipt ? -alloc.allocated_amount_fc : alloc.allocated_amount_fc,
-      dimensions: { branch: 'MG' },
+      fx_rate: alloc.invoice_fx_rate ?? settlement.fx_rate,
+      amount_fc: cashIn ? -alloc.allocated_amount_fc : alloc.allocated_amount_fc,
+      dimensions,
       description: `Settlement for ${alloc.invoice_number}`,
       contact_id: settlement.contact_id,
     });
 
-    // Realised FX Gain / Loss if any (0.8, D4)
     if (alloc.fx_gain_loss !== 0) {
       const isGain = alloc.fx_gain_loss > 0;
       lines.push({
@@ -736,20 +784,41 @@ export function buildJournalFromSettlement(
         account_id: fxRealisedAccountId,
         debit: isGain ? 0 : Math.abs(alloc.fx_gain_loss),
         credit: isGain ? alloc.fx_gain_loss : 0,
-        currency: 'USD',
-        fx_rate: 1.0,
-        amount_fc: alloc.fx_gain_loss,
-        dimensions: { branch: 'MG', cost_centre: 'FIN' },
+        currency: baseCurrency,
+        fx_rate: 1,
+        amount_fc: -alloc.fx_gain_loss,
+        dimensions,
         description: `Realised FX ${isGain ? 'Gain' : 'Loss'} on ${alloc.invoice_number}`,
       });
     }
   }
 
-  // Ensure settlement journal balances in base currency
+  const unallocatedFc = settlement.amount_fc - allocatedFc;
+  if (unallocatedFc < 0) {
+    throw new PostingError('The allocations exceed the settlement amount.', 'allocation_exceeds_settlement');
+  }
+  if (unallocatedFc > 0) {
+    const unallocatedBase = roundHalfUp(unallocatedFc * settlement.fx_rate);
+    lines.push({
+      id: `jl-set-${settlement.id}-on-account`,
+      line_no: lineNo++,
+      account_id: controlAccountId,
+      debit: cashIn ? 0 : unallocatedBase,
+      credit: cashIn ? unallocatedBase : 0,
+      currency: settlement.currency,
+      fx_rate: settlement.fx_rate,
+      amount_fc: cashIn ? -unallocatedFc : unallocatedFc,
+      dimensions,
+      description: `On account: ${settlement.number}`,
+      contact_id: settlement.contact_id,
+    });
+  }
+
   const totalDebits = lines.reduce((s, l) => s + l.debit, 0);
   const totalCredits = lines.reduce((s, l) => s + l.credit, 0);
   if (totalDebits !== totalCredits) {
     const diff = totalDebits - totalCredits;
+    assertResidueBounded(diff, lines.length);
     lines.push({
       id: `jl-set-${settlement.id}-round`,
       line_no: lineNo++,
@@ -759,7 +828,7 @@ export function buildJournalFromSettlement(
       currency: settlement.currency,
       fx_rate: settlement.fx_rate,
       amount_fc: 0,
-      dimensions: { branch: 'MG' },
+      dimensions,
       description: `Settlement rounding adjustment`,
     });
   }
@@ -768,10 +837,10 @@ export function buildJournalFromSettlement(
     tenant_id: settlement.tenant_id,
     company_id: settlement.company_id,
     fiscal_period_id: periodId,
-    journal_type: isReceipt ? 'receipt' : 'payment',
+    journal_type: cashIn ? 'receipt' : 'payment',
     journal_date: settlement.settlement_date,
     reference: settlement.number,
-    memo: settlement.memo || `${isReceipt ? 'Customer Receipt' : 'Supplier Payment'} ${settlement.number}`,
+    memo: settlement.memo || `${isReceipt ? 'Customer Receipt' : settlement.kind === 'payment' ? 'Supplier Payment' : label} ${settlement.number}`,
     source_type: 'settlement',
     source_id: settlement.id,
     total_debit: lines.reduce((s, l) => s + l.debit, 0),
@@ -793,6 +862,8 @@ export function buildJournalFromRevaluation(
   user: User
 ): Omit<Journal, 'id' | 'number' | 'status' | 'posted_at' | 'posted_by'> {
   const fxUnrealisedAccountId = settings.posting_accounts.fx_unrealised;
+  const baseCurrency = settings.base_currency ?? 'USD';
+  const dimensions = reval.dimensions ?? settings.default_dimensions ?? {};
   const lines: JournalLine[] = [];
   let lineNo = 1;
 
@@ -812,7 +883,7 @@ export function buildJournalFromRevaluation(
       currency: item.currency,
       fx_rate: item.current_rate,
       amount_fc: item.amount_fc,
-      dimensions: { branch: 'MG' },
+      dimensions,
       description: `FX Revaluation as of ${reval.as_of} (${item.account_name})`,
     });
 
@@ -823,16 +894,16 @@ export function buildJournalFromRevaluation(
       account_id: fxUnrealisedAccountId,
       debit: isGain ? 0 : diff,
       credit: isGain ? diff : 0,
-      currency: 'USD',
-      fx_rate: 1.0,
-      amount_fc: item.unrealised_gain_loss,
-      dimensions: { branch: 'MG', cost_centre: 'FIN' },
+      currency: baseCurrency,
+      fx_rate: 1,
+      amount_fc: -item.unrealised_gain_loss,
+      dimensions,
       description: `Unrealised FX ${isGain ? 'Gain' : 'Loss'} on ${item.account_code}`,
     });
   }
 
   return {
-    tenant_id: 'ten-acme',
+    tenant_id: reval.tenant_id ?? 'ten-acme',
     company_id: reval.company_id,
     fiscal_period_id: periodId,
     journal_type: 'fx',
@@ -858,8 +929,10 @@ export function buildJournalFromDepreciation(
   deprExpenseAccountId: string,
   accumDeprAccountId: string,
   periodId: string,
-  user: User
+  user: User,
+  context: { base_currency: string; dimensions: Record<string, string> }
 ): Omit<Journal, 'id' | 'number' | 'status' | 'posted_at' | 'posted_by'> {
+  const { base_currency: baseCurrency, dimensions } = context;
   const lines: JournalLine[] = [];
   let lineNo = 1;
 
@@ -873,10 +946,10 @@ export function buildJournalFromDepreciation(
       account_id: deprExpenseAccountId,
       debit: item.amount,
       credit: 0,
-      currency: 'USD',
-      fx_rate: 1.0,
+      currency: baseCurrency,
+      fx_rate: 1,
       amount_fc: item.amount,
-      dimensions: { branch: 'MG', cost_centre: 'ADMIN' },
+      dimensions,
       description: `Depreciation: ${item.asset_number} - ${item.asset_name}`,
     });
 
@@ -887,10 +960,10 @@ export function buildJournalFromDepreciation(
       account_id: accumDeprAccountId,
       debit: 0,
       credit: item.amount,
-      currency: 'USD',
-      fx_rate: 1.0,
+      currency: baseCurrency,
+      fx_rate: 1,
       amount_fc: -item.amount,
-      dimensions: { branch: 'MG', cost_centre: 'ADMIN' },
+      dimensions,
       description: `Accum. Depr: ${item.asset_number} - ${item.asset_name}`,
     });
   }

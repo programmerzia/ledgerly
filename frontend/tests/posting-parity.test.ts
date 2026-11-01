@@ -38,7 +38,7 @@ const rules: Record<string, (i: any) => any> = {
   'settlement.json': (i) => R.buildJournalFromSettlement(i.settlement, i.bank_account_id, i.settings, 'p', user),
   'revaluation.json': (i) => R.buildJournalFromRevaluation(i.revaluation, i.settings, 'p', user),
   'depreciation.json': (i) =>
-    R.buildJournalFromDepreciation(i.depreciation, i.depreciation_expense_account, i.accumulated_depreciation_account, 'p', user),
+    R.buildJournalFromDepreciation(i.depreciation, i.depreciation_expense_account, i.accumulated_depreciation_account, 'p', user, i.context),
 };
 
 describe('posting parity fixtures (docs/fixtures/posting)', () => {
@@ -46,9 +46,19 @@ describe('posting parity fixtures (docs/fixtures/posting)', () => {
     describe(file, () => {
       for (const c of load(file)) {
         it(c.name, () => {
-          expect(actual(rule(c.input))).toEqual(c.expected);
+          if (c.expected.error) {
+            expect(() => rule(c.input)).toThrowError(expect.objectContaining({ code: c.expected.error }));
+          } else {
+            expect(actual(rule(c.input))).toEqual(c.expected);
+          }
         });
       }
     });
+  }
+});
+
+describe('realised_fx.json (hand-calculated, D4)', () => {
+  for (const c of load('realised_fx.json')) {
+    it(c.name, () => expect(R.realisedFx(c.input)).toEqual(c.expected));
   }
 });

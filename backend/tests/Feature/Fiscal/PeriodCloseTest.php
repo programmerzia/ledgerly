@@ -170,6 +170,24 @@ it('closes the year into retained earnings, per account, and re-runs by reversin
     expect([$net('4000'), $net('5000'), $net('3000')])->toBe([0, 0, 5000]);
 });
 
+it('keeps each fund separate through the year-end close, per dimension', function (): void {
+    $dimension = (string) Str::uuid7();
+    $fund = (string) Str::uuid7();
+    DB::table('dimensions')->insert(['id' => $dimension, 'tenant_id' => $this->f->tenantId, 'company_id' => $this->f->companyId, 'code' => 'FUND', 'name' => 'Fund', 'position' => 1]);
+    DB::table('dimension_values')->insert(['id' => $fund, 'tenant_id' => $this->f->tenantId, 'company_id' => $this->f->companyId, 'dimension_id' => $dimension, 'code' => 'RESTRICTED', 'name' => 'Restricted']);
+
+    postJournal($this->f, draftJournal($this->f, [new DraftLine($this->f->account('1000'), debit: 7000), new DraftLine($this->f->account('4000'), credit: 7000, dims: [1 => $fund])], '2026-02-10'));
+    cashSale($this->f, 3000, '2026-02-11'); // no fund: unrestricted
+    closeAllMonths($this->f);
+
+    $closing = app(YearEndClose::class)->handle(signer($this->f), $this->f->period('2026-01-15')->fiscal_year_id);
+
+    $byFund = fn (string $code) => $closing?->lines()->where('account_id', $this->f->account($code))->get()
+        ->mapWithKeys(fn ($l) => [$l->getAttribute('dim1_value_id') ?? 'none' => [$l->debit, $l->credit]])->all();
+    expect($byFund('4000'))->toEqual([$fund => [7000, 0], 'none' => [3000, 0]])
+        ->and($byFund('3000'))->toEqual([$fund => [0, 7000], 'none' => [0, 3000]]);
+});
+
 it('locks the year only after the year-end close with every period closed, and then nothing posts', function (): void {
     cashSale($this->f, 10000, '2026-02-10');
     closeAllMonths($this->f);

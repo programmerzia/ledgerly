@@ -28,7 +28,7 @@ final class InvoicePosting
             );
         }
 
-        $taxFc = $invoice->taxTotalFc !== 0 ? $invoice->taxTotalFc : $invoice->taxTotal;
+        $taxFc = PostingSupport::documentTaxFc($invoice->taxTotalFc, $invoice->taxTotal, $rate);
         if ($taxFc > 0) {
             $lines[] = new ProposedLine(
                 $accounts->taxOutput, 0, PostingSupport::toBase($taxFc, $rate), $cur, $rate, -$taxFc,

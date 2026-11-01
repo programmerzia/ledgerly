@@ -6,12 +6,17 @@ namespace App\Domain\Trade;
 
 final readonly class DepreciationInput
 {
-    /** @param  list<DepreciationLine>  $lines */
+    /**
+     * @param  list<DepreciationLine>  $lines
+     * @param  array<string, string>  $dimensions
+     */
     public function __construct(
         public string $id,
         public string $asOf,
         public string $expenseAccountRef,
         public string $accumulatedAccountRef,
         public array $lines,
+        public string $baseCurrency,
+        public array $dimensions = [],
     ) {}
 }

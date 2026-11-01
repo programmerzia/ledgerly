@@ -37,6 +37,9 @@ export interface PostingAccounts {
 
 export interface CompanySettings {
   company_id: string;
+  base_currency?: string;
+  /** Used for system lines when the document names no dimensions. */
+  default_dimensions?: Record<string, string>;
   tax_rounding?: 'document_per_code' | 'line';
   posting_accounts: PostingAccounts;
   numbering: {
@@ -356,13 +359,17 @@ export interface SettlementAllocation {
   allocated_amount_fc: number;
   allocated_amount_base: number;
   fx_gain_loss: number;
+  /** The rate the document was carried at; the base amount above is at this rate (D4). */
+  invoice_fx_rate?: number;
 }
 
 export interface Settlement {
   id: string;
   tenant_id: string;
   company_id: string;
-  kind: 'receipt' | 'payment' | 'refund';
+  /** refund = customer refund (AR, cash out); supplier_refund = AP, cash in (D11). */
+  kind: 'receipt' | 'payment' | 'refund' | 'supplier_refund';
+  dimensions?: Record<string, string>;
   number: string;
   status: DocumentStatus;
   contact_id: string;
@@ -491,6 +498,8 @@ export interface FxRevaluationItem {
 
 export interface FxRevaluation {
   id: string;
+  tenant_id?: string;
+  dimensions?: Record<string, string>;
   company_id: string;
   period_id: string;
   as_of: string;

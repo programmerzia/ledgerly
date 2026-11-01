@@ -12,7 +12,8 @@
           "fx_unrealised": "acc-4800",
           "rounding": "acc-9999",
           "wht_payable": "acc-2120"
-        }
+        },
+        "base_currency": "USD"
       },
       "invoice": {
         "id": "plain_sale_usd",
@@ -110,7 +111,8 @@
           "fx_unrealised": "acc-4800",
           "rounding": "acc-9999",
           "wht_payable": "acc-2120"
-        }
+        },
+        "base_currency": "USD"
       },
       "invoice": {
         "id": "plain_sale_no_tax_no_number",
@@ -193,7 +195,8 @@
           "fx_unrealised": "acc-4800",
           "rounding": "acc-9999",
           "wht_payable": "acc-2120"
-        }
+        },
+        "base_currency": "USD"
       },
       "invoice": {
         "id": "multi_line_two_tax_codes",
@@ -363,7 +366,8 @@
           "fx_unrealised": "acc-4800",
           "rounding": "acc-9999",
           "wht_payable": "acc-2120"
-        }
+        },
+        "base_currency": "USD"
       },
       "invoice": {
         "id": "rounding_edge_tax_per_code",
@@ -509,7 +513,8 @@
           "fx_unrealised": "acc-4800",
           "rounding": "acc-9999",
           "wht_payable": "acc-2120"
-        }
+        },
+        "base_currency": "USD"
       },
       "invoice": {
         "id": "rounding_edge_tax_per_line_mode",
@@ -655,7 +660,8 @@
           "fx_unrealised": "acc-4800",
           "rounding": "acc-9999",
           "wht_payable": "acc-2120"
-        }
+        },
+        "base_currency": "USD"
       },
       "invoice": {
         "id": "discount_applied_line_total",
@@ -753,7 +759,8 @@
           "fx_unrealised": "acc-4800",
           "rounding": "acc-9999",
           "wht_payable": "acc-2120"
-        }
+        },
+        "base_currency": "USD"
       },
       "invoice": {
         "id": "foreign_currency_eur",
@@ -851,7 +858,8 @@
           "fx_unrealised": "acc-4800",
           "rounding": "acc-9999",
           "wht_payable": "acc-2120"
-        }
+        },
+        "base_currency": "USD"
       },
       "invoice": {
         "id": "foreign_currency_rounding_residue_to_rounding_account",
@@ -1007,7 +1015,8 @@
           "fx_unrealised": "acc-4800",
           "rounding": "acc-9999",
           "wht_payable": "acc-2120"
-        }
+        },
+        "base_currency": "USD"
       },
       "invoice": {
         "id": "half_up_tie_on_base_conversion",
@@ -1078,8 +1087,7 @@
     }
   },
   {
-    "name": "tax_total_fc_zero_falls_back_to_base_tax_total",
-    "note": "FLAGGED: the builder falls back to the base-currency tax_total when tax_total_fc is 0 and treats it as foreign currency. Journal need not balance on its own terms; residue goes to rounding.",
+    "name": "foreign_document_without_fc_tax_is_refused",
     "input": {
       "settings": {
         "posting_accounts": {
@@ -1091,10 +1099,11 @@
           "fx_unrealised": "acc-4800",
           "rounding": "acc-9999",
           "wht_payable": "acc-2120"
-        }
+        },
+        "base_currency": "USD"
       },
       "invoice": {
-        "id": "tax_total_fc_zero_falls_back_to_base_tax_total",
+        "id": "foreign_document_without_fc_tax_is_refused",
         "number": "DOC-tax_total_fc_zero_falls_back_to_base_tax_total",
         "reference": "REF-tax_total_fc_zero_falls_back_to_base_tax_total",
         "memo": "",
@@ -1119,71 +1128,7 @@
       }
     },
     "expected": {
-      "journal": {
-        "journal_type": "sales",
-        "journal_date": "2026-10-15",
-        "reference": "DOC-tax_total_fc_zero_falls_back_to_base_tax_total",
-        "memo": "Sales invoice DOC-tax_total_fc_zero_falls_back_to_base_tax_total: ",
-        "source_type": "sales_invoice",
-        "source_id": "tax_total_fc_zero_falls_back_to_base_tax_total"
-      },
-      "lines": [
-        {
-          "account_ref": "acc-1200",
-          "debit": 20000,
-          "credit": 0,
-          "currency": "EUR",
-          "fx_rate": 2,
-          "amount_fc": 10000,
-          "dimensions": {
-            "branch": "MG"
-          },
-          "description": "AR Control: DOC-tax_total_fc_zero_falls_back_to_base_tax_total - Contact Ref #REF-tax_total_fc_zero_falls_back_to_base_tax_total",
-          "contact_ref": "con-1"
-        },
-        {
-          "account_ref": "acc-4000",
-          "debit": 0,
-          "credit": 20000,
-          "currency": "EUR",
-          "fx_rate": 2,
-          "amount_fc": -10000,
-          "dimensions": {
-            "branch": "MG"
-          },
-          "description": "Revenue: DOC-tax_total_fc_zero_falls_back_to_base_tax_total",
-          "contact_ref": "con-1"
-        },
-        {
-          "account_ref": "acc-2100",
-          "debit": 0,
-          "credit": 3000,
-          "currency": "EUR",
-          "fx_rate": 2,
-          "amount_fc": -1500,
-          "dimensions": {
-            "branch": "MG"
-          },
-          "description": "Sales Tax Output: DOC-tax_total_fc_zero_falls_back_to_base_tax_total",
-          "contact_ref": "con-1"
-        },
-        {
-          "account_ref": "acc-9999",
-          "debit": 3000,
-          "credit": 0,
-          "currency": "EUR",
-          "fx_rate": 2,
-          "amount_fc": 0,
-          "dimensions": {
-            "branch": "MG"
-          },
-          "description": "FX Rounding adjustment: DOC-tax_total_fc_zero_falls_back_to_base_tax_total"
-        }
-      ],
-      "totals": {
-        "debit": 23000,
-        "credit": 23000
-      }
+      "error": "tax_total_fc_missing"
     }
   }
 ]

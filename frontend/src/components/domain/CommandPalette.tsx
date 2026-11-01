@@ -1,3 +1,4 @@
+import { BUSINESS_TODAY } from '@/lib/docStatus';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLedgerStore } from '@/mock/store';
@@ -46,7 +47,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
   );
   const runVerb = (v: VerbMatch) => () => {
     if (v.action.type === 'runRecurring') {
-      const created = runRecurringSchedules(new Date().toISOString().slice(0, 10));
+      const created = runRecurringSchedules(BUSINESS_TODAY);
       toast.success(created.length ? `Created ${created.length} invoice${created.length === 1 ? '' : 's'} waiting for approval` : 'Nothing is due yet');
       onClose();
       return;
