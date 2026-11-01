@@ -10,7 +10,7 @@ it('allocates unique, gapless numbers under parallel posting from separate proce
     $workers = 5;
     $perWorker = 10;
 
-    $env = [...getenv(), 'APP_ENV' => 'testing', 'DB_DATABASE' => 'ledgerly_test', 'DB_CONNECTION' => 'pgsql'];
+    $env = [...getenv(), 'APP_ENV' => 'testing', 'DB_DATABASE' => (string) config('database.connections.pgsql.database'), 'DB_CONNECTION' => 'pgsql'];
     $procs = [];
     for ($w = 0; $w < $workers; $w++) {
         $cmd = [PHP_BINARY, base_path('tests/Concurrency/bin/post-journals.php'), $f->tenantId, $f->companyId, $f->userId, $f->account('1000'), $f->account('4000'), (string) $perWorker];

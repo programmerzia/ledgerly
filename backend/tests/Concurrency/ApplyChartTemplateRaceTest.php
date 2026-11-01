@@ -19,7 +19,7 @@ it('makes a second apply wait for the first and then refuses it, instead of fail
     try {
         $inFlight->selectOne('SELECT id FROM companies WHERE id = ? FOR UPDATE', [$company->id]);
 
-        $env = [...getenv(), 'APP_ENV' => 'testing', 'DB_DATABASE' => 'ledgerly_test', 'DB_CONNECTION' => 'pgsql'];
+        $env = [...getenv(), 'APP_ENV' => 'testing', 'DB_DATABASE' => (string) config('database.connections.pgsql.database'), 'DB_CONNECTION' => 'pgsql'];
         $cmd = [PHP_BINARY, base_path('tests/Concurrency/bin/apply-chart-template.php'), $f->tenantId, $company->id, $f->userId, 'ifrs_sme'];
         $worker = proc_open($cmd, [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, base_path(), $env);
         expect($worker)->not->toBeFalse();
