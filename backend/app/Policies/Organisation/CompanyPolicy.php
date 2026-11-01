@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Policies\Organisation;
 
 use App\Contracts\CompanyAccess;
+use App\Models\Organisation\ApiClient;
 use App\Models\Organisation\Company;
 use App\Models\Platform\User;
 use App\Policies\PolicyContext;
 use App\Support\Tenancy\TenantContext;
+use Illuminate\Contracts\Auth\Authenticatable;
 
 /** Companies of the current organisation (13 §7). */
 final class CompanyPolicy
@@ -20,26 +22,27 @@ final class CompanyPolicy
     ) {}
 
     /** Any active member lists the companies; the list itself is filtered to those they can open. */
-    public function viewAny(User $user): bool
+    public function viewAny(Authenticatable $user): bool
     {
-        return $this->context->orgRole($user) !== null;
+        // A token may list the companies it was issued for; the list is filtered to those.
+        return $user instanceof ApiClient || ($user instanceof User && $this->context->orgRole($user) !== null);
     }
 
-    public function view(User $user, Company $company): bool
+    public function view(Authenticatable $user, Company $company): bool
     {
         $tenantId = $this->tenant->id();
 
         return $tenantId !== null && $this->access->allows($user, $tenantId, $company->id);
     }
 
-    public function create(User $user): bool
+    public function create(Authenticatable $user): bool
     {
-        return $this->context->isOrgAdmin($user);
+        return $user instanceof User && $this->context->isOrgAdmin($user);
     }
 
     /** Company settings (numbering, posting accounts, workflows, thresholds). */
-    public function update(User $user, Company $company): bool
+    public function update(Authenticatable $user, Company $company): bool
     {
-        return $this->context->allows($user, 'settings.manage', $company->id);
+        return $user instanceof User && $this->context->allows($user, 'settings.manage', $company->id);
     }
 }
