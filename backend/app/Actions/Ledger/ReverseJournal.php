@@ -142,7 +142,7 @@ final class ReverseJournal
             throw DomainRuleViolation::single('journal_not_reversible', 'A reversal cannot itself be reversed; post a new journal.');
         }
         // An invoice's or bill's journal is undone through the document, which keeps the sub-ledger and the ledger in step.
-        if ($viaDocument === false && in_array($journal->source_type, InvoiceKind::values(...InvoiceKind::cases()), true)) {
+        if ($viaDocument === false && in_array($journal->source_type, [...InvoiceKind::values(...InvoiceKind::cases()), 'settlement', 'credit_application'], true)) {
             throw DomainRuleViolation::single('journal_not_reversible', 'This journal belongs to a document; reverse the document instead.');
         }
     }

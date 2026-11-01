@@ -52,7 +52,7 @@ final class ApproveDocument
         return $this->uow->run($actor, function (LockSet $locks, AuditBuffer $audit, Outbox $outbox) use ($actor, $ref, $comment) {
             $unlocked = $this->documents->find($ref);
             $companyId = $unlocked->documentCompanyId();
-            if (! $this->permissions->allows($actor, "{$ref->type}s.approve", $companyId)) {
+            if (! $this->permissions->allows($actor, $this->documents->permission($unlocked, 'approve'), $companyId)) {
                 throw DomainRuleViolation::single('forbidden', "You cannot approve {$ref->type}s in this company.");
             }
 

@@ -37,6 +37,7 @@ final class TradeFixture
             ['2110', 'VAT input', 'asset', 'debit', 'tax', 'base_only'],
             ['2120', 'WHT payable', 'liability', 'credit', 'tax', 'base_only'],
             ['9999', 'Rounding', 'expense', 'debit', 'none', 'base_only'],
+            ['7100', 'Realised FX', 'expense', 'debit', 'none', 'base_only'],
             ['4010', 'Export sales', 'income', 'credit', 'none', 'any'],
             ['5010', 'Imported goods', 'expense', 'debit', 'none', 'any'],
         ] as [$code, $name, $type, $normal, $control, $policy]) {
@@ -50,7 +51,7 @@ final class TradeFixture
             'tenant_id' => $f->tenantId,
             'posting_accounts' => json_encode([
                 'ar_control' => $f->account('1100'), 'ap_control' => '2000', 'tax_output' => $f->account('2100'),
-                'tax_input' => $f->account('2110'), 'wht_payable' => $f->account('2120'), 'rounding' => $f->account('9999'),
+                'tax_input' => $f->account('2110'), 'wht_payable' => $f->account('2120'), 'rounding' => $f->account('9999'), 'fx_realised' => $f->account('7100'),
             ], JSON_THROW_ON_ERROR),
         ]);
 

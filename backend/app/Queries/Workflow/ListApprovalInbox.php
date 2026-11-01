@@ -35,6 +35,8 @@ final class ListApprovalInbox
             // Base-currency amount: a journal's lines, or the invoice or bill's total.
             ->selectRaw("CASE WHEN approval_requests.document_type = 'journal'
                 THEN (SELECT GREATEST(COALESCE(SUM(l.debit), 0), COALESCE(SUM(l.credit), 0)) FROM journal_lines l WHERE l.journal_id = approval_requests.document_id)
+                WHEN approval_requests.document_type = 'settlement' THEN (SELECT s.amount FROM settlements s WHERE s.id = approval_requests.document_id)
+                WHEN approval_requests.document_type = 'payment_run' THEN (SELECT r.total FROM payment_runs r WHERE r.id = approval_requests.document_id)
                 ELSE (SELECT i.total FROM invoices i WHERE i.id = approval_requests.document_id) END AS document_amount")
             ->where('approval_requests.company_id', $companyId)
             ->where('approval_requests.status', 'pending')
@@ -53,11 +55,21 @@ final class ListApprovalInbox
                     ->whereColumn('invoices.id', 'approval_requests.document_id')
                     ->where('invoices.status', 'pending_approval')
                     ->whereRaw('invoices.created_by IS DISTINCT FROM ?', [$me])
-                    ->whereRaw('invoices.submitted_by IS DISTINCT FROM ?', [$me])))
+                    ->whereRaw('invoices.submitted_by IS DISTINCT FROM ?', [$me]))
+                ->orWhereExists(fn (QueryBuilder $q) => $q->from('settlements')->selectRaw('1')
+                    ->whereColumn('settlements.id', 'approval_requests.document_id')
+                    ->where('settlements.status', 'pending_approval')
+                    ->whereRaw('settlements.created_by IS DISTINCT FROM ?', [$me])
+                    ->whereRaw('settlements.submitted_by IS DISTINCT FROM ?', [$me]))
+                ->orWhereExists(fn (QueryBuilder $q) => $q->from('payment_runs')->selectRaw('1')
+                    ->whereColumn('payment_runs.id', 'approval_requests.document_id')
+                    ->where('payment_runs.status', 'pending_approval')
+                    ->whereRaw('payment_runs.created_by IS DISTINCT FROM ?', [$me])
+                    ->whereRaw('payment_runs.submitted_by IS DISTINCT FROM ?', [$me])))
             ->whereNotExists(fn (QueryBuilder $q) => $q->from('approval_requests as s')->selectRaw('1')
                 ->whereColumn('s.document_id', 'approval_requests.document_id')
                 ->whereColumn('s.document_type', 'approval_requests.document_type')
                 ->where('s.signed_by', $me))
-            ->with(['journal', 'invoice']);
+            ->with(['journal', 'invoice', 'settlement', 'paymentRun']);
     }
 }

@@ -19,6 +19,9 @@ final class ReportTables
             'profit_and_loss' => self::profitAndLoss($data, $company, $decimals),
             'balance_sheet' => self::balanceSheet($data, $company, $decimals),
             'cash_flow' => self::cashFlow($data, $company, $decimals),
+            'ar_aging', 'ap_aging' => self::aging($data, $company, $decimals),
+            'customer_statement', 'supplier_statement' => self::statement($data, $company, $decimals),
+            'tax_return' => self::taxReturn($data, $company, $decimals),
             default => throw new InvalidArgumentException("No table for report {$report}."),
         };
     }
@@ -111,6 +114,64 @@ final class ReportTables
 
         return new ReportTable('Cash flow statement', "{$company} · {$d['from']} to {$d['to']}", [
             ['label' => 'Activity', 'numeric' => false], ['label' => 'Amount', 'numeric' => true],
+        ], $rows, $decimals);
+    }
+
+    /** @param array<string, mixed> $d */
+    private static function aging(array $d, string $company, int $decimals): ReportTable
+    {
+        $rows = [];
+        foreach ($d['rows'] as $r) {
+            $rows[] = new ReportRow([$r['contact']['name'], $r['current'], $r['days_1_30'], $r['days_31_60'], $r['days_61_90'], $r['days_over_90'], $r['open'], $r['credits'], $r['net']]);
+        }
+        $t = $d['totals'];
+        $rows[] = new ReportRow(['Total', $t['current'], $t['days_1_30'], $t['days_31_60'], $t['days_61_90'], $t['days_over_90'], $t['open'], $t['credits'], $t['net']], 'grand_total');
+        if ($d['credits'] !== []) {
+            $rows[] = new ReportRow(['Credits (not netted above)'], 'heading');
+            foreach ($d['credits'] as $c) {
+                $rows[] = new ReportRow(["{$c['contact']['name']} · {$c['number']} · {$c['date']}", null, null, null, null, null, null, $c['amount'], null]);
+            }
+        }
+        $title = $d['report'] === 'ar_aging' ? 'Accounts receivable aging' : 'Accounts payable aging';
+
+        return new ReportTable($title, "{$company} · As of {$d['as_of']}", [
+            ['label' => 'Contact', 'numeric' => false], ['label' => 'Current', 'numeric' => true], ['label' => '1-30', 'numeric' => true],
+            ['label' => '31-60', 'numeric' => true], ['label' => '61-90', 'numeric' => true], ['label' => '90+', 'numeric' => true],
+            ['label' => 'Open', 'numeric' => true], ['label' => 'Credits', 'numeric' => true], ['label' => 'Net', 'numeric' => true],
+        ], $rows, $decimals);
+    }
+
+    /** @param array<string, mixed> $d */
+    private static function statement(array $d, string $company, int $decimals): ReportTable
+    {
+        $rows = [new ReportRow(['', '', 'Opening balance', null, null, $d['opening_balance']], 'heading')];
+        foreach ($d['rows'] as $r) {
+            $rows[] = new ReportRow([$r['date'], str_replace('_', ' ', (string) $r['type']), trim($r['document']['number'].' '.$r['description']), $r['debit'], $r['credit'], $r['balance']]);
+        }
+        $rows[] = new ReportRow(['', '', 'Closing balance', $d['totals']['debit'], $d['totals']['credit'], $d['closing_balance']], 'grand_total');
+        $title = $d['report'] === 'customer_statement' ? 'Customer statement' : 'Supplier statement';
+
+        return new ReportTable($title, "{$company} · {$d['contact']['code']} {$d['contact']['name']} · {$d['from']} to {$d['to']}", [
+            ['label' => 'Date', 'numeric' => false], ['label' => 'Type', 'numeric' => false], ['label' => 'Document', 'numeric' => false],
+            ['label' => 'Debit', 'numeric' => true], ['label' => 'Credit', 'numeric' => true], ['label' => 'Balance', 'numeric' => true],
+        ], $rows, $decimals);
+    }
+
+    /** @param array<string, mixed> $d */
+    private static function taxReturn(array $d, string $company, int $decimals): ReportTable
+    {
+        $rows = [];
+        foreach (['sales' => 'Sales (output tax)', 'purchases' => 'Purchases (input tax)'] as $side => $title) {
+            $rows[] = new ReportRow([$title], 'heading');
+            foreach ($d[$side]['rows'] as $r) {
+                $rows[] = new ReportRow([$r['tax_code'] === null ? 'No tax code' : "{$r['tax_code']['code']} {$r['tax_code']['name']}", $r['net'], $r['tax']]);
+            }
+            $rows[] = new ReportRow(["Total {$side}", $d[$side]['totals']['net'], $d[$side]['totals']['tax']], 'total');
+        }
+        $rows[] = new ReportRow(['Net tax payable', null, $d['net_tax_payable']], 'grand_total');
+
+        return new ReportTable('Tax return', "{$company} · {$d['from']} to {$d['to']}", [
+            ['label' => 'Tax code', 'numeric' => false], ['label' => 'Net amount', 'numeric' => true], ['label' => 'Tax', 'numeric' => true],
         ], $rows, $decimals);
     }
 }

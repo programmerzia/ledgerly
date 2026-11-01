@@ -22,6 +22,8 @@ final class LedgerChecks
             'numbering' => self::numberingProblems(),
             'maker_checker' => self::makerCheckerBreaches(),
             'trade_documents' => self::tradeProblems(),
+            'settlements' => self::settlementProblems(),
+            'control_accounts' => self::controlAccountProblems(),
             'posted_after_close' => self::postedAfterClose(),
             'trial_balance' => (int) DB::table('account_period_balances')->sum(DB::raw('debit - credit')) === 0 ? [] : ['trial balance does not net to zero'],
             'audit_chain' => self::auditChainProblems(),
@@ -68,7 +70,9 @@ final class LedgerChecks
         $problems = [];
         $byPrefix = [];
         // Journals and trade documents (invoices, credit notes, bills, debit notes) number from sequences of their own.
-        $numbers = [...DB::table('journals')->whereNotNull('number')->pluck('number')->all(), ...DB::table('invoices')->whereNotNull('number')->pluck('number')->all()];
+        $numbers = [...DB::table('journals')->whereNotNull('number')->pluck('number')->all(), ...DB::table('invoices')->whereNotNull('number')->pluck('number')->all(),
+            ...DB::table('settlements')->whereNotNull('number')->pluck('number')->all(), ...DB::table('payment_runs')->whereNotNull('number')->pluck('number')->all(),
+            ...DB::table('wht_certificates')->pluck('number')->all()];
         foreach ($numbers as $number) {
             preg_match('/^(.*-)(\d+)$/', (string) $number, $m);
             $byPrefix[$m[1]][] = (int) $m[2];
@@ -115,6 +119,73 @@ final class LedgerChecks
             ...DB::select("SELECT id, number, 'maker-checker' AS problem FROM invoices WHERE approved_by IS NOT NULL AND (approved_by = created_by OR approved_by = submitted_by)"),
             ...DB::select("SELECT id, number, 'settled beyond total' AS problem FROM invoices WHERE settled_fc > total_fc OR settled > total"),
         ];
+    }
+
+    /**
+     * Settlements (13 §9, D4, D9): a posted settlement has a journal that names it, whose cash line is its base amount; what each
+     * document and each credit says is settled equals the allocations and applications behind it, nothing was over-allocated.
+     *
+     * @return list<mixed>
+     */
+    public static function settlementProblems(): array
+    {
+        return [
+            ...DB::select(<<<'SQL'
+                SELECT s.id, s.number, 'journal link or cash line' AS problem FROM settlements s
+                LEFT JOIN journals j ON j.id = s.journal_id
+                WHERE s.status IN ('posted', 'reversed') AND (j.id IS NULL OR j.source_id <> s.id OR j.source_type <> 'settlement'
+                  OR NOT EXISTS (SELECT 1 FROM journal_lines l WHERE l.journal_id = j.id AND l.account_id = s.cash_account_id AND GREATEST(l.debit, l.credit) = s.amount))
+            SQL),
+            // settled = allocations of posted settlements + active applications to it + active applications of it as a note
+            ...DB::select(<<<'SQL'
+                SELECT i.id, i.number, 'settled differs from allocations' AS problem FROM invoices i
+                WHERE i.status IN ('posted', 'reversed') AND (i.settled_fc, i.settled) IS DISTINCT FROM (
+                  (SELECT COALESCE(SUM(a.amount_fc), 0) FROM settlement_allocations a JOIN settlements s ON s.id = a.settlement_id WHERE a.invoice_id = i.id AND s.status = 'posted')
+                  + (SELECT COALESCE(SUM(c.amount_fc), 0) FROM credit_applications c WHERE c.invoice_id = i.id AND c.reversed_at IS NULL)
+                  + (SELECT COALESCE(SUM(c.amount_fc), 0) FROM credit_applications c WHERE c.note_id = i.id AND c.reversed_at IS NULL),
+                  (SELECT COALESCE(SUM(a.amount), 0) FROM settlement_allocations a JOIN settlements s ON s.id = a.settlement_id WHERE a.invoice_id = i.id AND s.status = 'posted')
+                  + (SELECT COALESCE(SUM(c.amount), 0) FROM credit_applications c WHERE c.invoice_id = i.id AND c.reversed_at IS NULL)
+                  + (SELECT COALESCE(SUM(c.source_amount), 0) FROM credit_applications c WHERE c.note_id = i.id AND c.reversed_at IS NULL))
+            SQL),
+            ...DB::select(<<<'SQL'
+                SELECT s.id, s.number, 'unallocated differs from allocations' AS problem FROM settlements s
+                WHERE s.status = 'posted' AND s.unallocated_fc <> (
+                  s.amount_fc - (SELECT COALESCE(SUM(a.amount_fc), 0) FROM settlement_allocations a WHERE a.settlement_id = s.id)
+                    - (SELECT COALESCE(SUM(c.amount_fc), 0) FROM credit_applications c WHERE c.settlement_id = s.id AND c.reversed_at IS NULL)
+                    - (SELECT COALESCE(SUM(a.amount_fc), 0) FROM settlement_allocations a JOIN settlements r ON r.id = a.settlement_id WHERE a.source_settlement_id = s.id AND r.status = 'posted'))
+            SQL),
+        ];
+    }
+
+    /**
+     * The sub-ledger ties to the control accounts (D9): per contact, the AR or AP control balance equals the open documents less the
+     * credits (open credit notes, and credit on account of receipts and payments), so credit balances are visible, not netted away.
+     *
+     * @return list<mixed>
+     */
+    public static function controlAccountProblems(): array
+    {
+        return DB::select(<<<'SQL'
+            WITH bal AS (
+              SELECT l.contact_id, a.control_type::text AS ct, SUM(l.debit - l.credit) AS d
+              FROM journal_lines l JOIN accounts a ON a.id = l.account_id
+              WHERE a.control_type IN ('ar', 'ap') AND l.contact_id IS NOT NULL GROUP BY 1, 2
+            ), docs AS (
+              SELECT contact_id, CASE WHEN kind IN ('sales_invoice', 'credit_note') THEN 'ar' ELSE 'ap' END AS ct,
+                SUM(CASE kind WHEN 'sales_invoice' THEN 1 WHEN 'credit_note' THEN -1 WHEN 'purchase_bill' THEN -1 ELSE 1 END * (total - wht_amount - settled)) AS d
+              FROM invoices WHERE status = 'posted' GROUP BY 1, 2
+            ), cr AS (
+              SELECT contact_id, CASE WHEN kind IN ('receipt', 'refund') THEN 'ar' ELSE 'ap' END AS ct,
+                SUM(CASE kind WHEN 'receipt' THEN -1 WHEN 'payment' THEN 1 WHEN 'refund' THEN 1 ELSE -1 END * unallocated) AS d
+              FROM settlements WHERE status = 'posted' GROUP BY 1, 2
+            ), keys AS (SELECT contact_id, ct FROM docs UNION SELECT contact_id, ct FROM cr)
+            SELECT k.contact_id, k.ct, COALESCE(bal.d, 0) AS ledger, COALESCE(docs.d, 0) + COALESCE(cr.d, 0) AS subledger
+            FROM keys k
+            LEFT JOIN bal ON bal.contact_id = k.contact_id AND bal.ct = k.ct
+            LEFT JOIN docs ON docs.contact_id = k.contact_id AND docs.ct = k.ct
+            LEFT JOIN cr ON cr.contact_id = k.contact_id AND cr.ct = k.ct
+            WHERE COALESCE(bal.d, 0) <> COALESCE(docs.d, 0) + COALESCE(cr.d, 0)
+        SQL);
     }
 
     /** @return list<mixed> */

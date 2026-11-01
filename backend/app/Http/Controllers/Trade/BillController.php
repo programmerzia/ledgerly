@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Trade;
 
+use App\Actions\Trade\ApplyCredit;
 use App\Actions\Trade\CreateInvoiceDraft;
 use App\Actions\Trade\ReverseInvoice;
 use App\Actions\Trade\UpdateInvoiceDraft;
@@ -15,6 +16,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Ledger\ReturnJournalRequest;
 use App\Http\Requests\Ledger\ReverseJournalRequest;
 use App\Http\Requests\Ledger\VoidJournalRequest;
+use App\Http\Requests\Trade\ApplyCreditRequest;
 use App\Http\Requests\Trade\InvoiceRequest;
 use App\Http\Requests\Trade\ListInvoicesRequest;
 use App\Http\Requests\TransitionRequest;
@@ -94,5 +96,12 @@ final class BillController extends Controller
     public function reverse(ReverseJournalRequest $request, Company $company, Invoice $bill, ReverseInvoice $action): InvoiceResource
     {
         return $this->reversing($request, $company, $bill, $action);
+    }
+
+    /** Applies this posted debit note to an open bill of the same contact, up to the open amount of both. */
+    #[Authorize('allocate', 'bill')]
+    public function allocate(ApplyCreditRequest $request, Company $company, Invoice $bill, ApplyCredit $action): JsonResponse
+    {
+        return $this->allocating($request, $company, $bill, $action);
     }
 }

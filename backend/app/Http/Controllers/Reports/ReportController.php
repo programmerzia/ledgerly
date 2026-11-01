@@ -53,6 +53,36 @@ final class ReportController extends Controller
         return response()->json(['data' => $report('cash-flow', $company, $request->validated())]);
     }
 
+    #[Authorize('view', Report::class)]
+    public function arAging(ReportRequest $request, Company $company, RunReport $report): JsonResponse
+    {
+        return response()->json(['data' => $report('ar-aging', $company, $request->validated())]);
+    }
+
+    #[Authorize('view', Report::class)]
+    public function apAging(ReportRequest $request, Company $company, RunReport $report): JsonResponse
+    {
+        return response()->json(['data' => $report('ap-aging', $company, $request->validated())]);
+    }
+
+    #[Authorize('view', Report::class)]
+    public function customerStatement(ReportRequest $request, Company $company, RunReport $report): JsonResponse
+    {
+        return response()->json(['data' => $report('customer-statement', $company, $request->validated())]);
+    }
+
+    #[Authorize('view', Report::class)]
+    public function supplierStatement(ReportRequest $request, Company $company, RunReport $report): JsonResponse
+    {
+        return response()->json(['data' => $report('supplier-statement', $company, $request->validated())]);
+    }
+
+    #[Authorize('view', Report::class)]
+    public function taxReturn(ReportRequest $request, Company $company, RunReport $report): JsonResponse
+    {
+        return response()->json(['data' => $report('tax-return', $company, $request->validated())]);
+    }
+
     /** One account's ledger: header with opening and closing balance, then a page of lines with a running balance. */
     #[Authorize('view', Report::class)]
     public function generalLedger(ReportRequest $request, Company $company, ReportParamsResolver $params, GeneralLedger $ledger, LedgerLines $lines, ReportRunner $runner): JsonResponse

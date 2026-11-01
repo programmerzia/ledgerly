@@ -7,6 +7,8 @@ namespace App\Models\Workflow;
 use App\Models\BaseModel;
 use App\Models\Ledger\Journal;
 use App\Models\Trade\Invoice;
+use App\Models\Trade\PaymentRun;
+use App\Models\Trade\Settlement;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -58,5 +60,17 @@ class ApprovalRequest extends BaseModel
     public function invoice(): BelongsTo
     {
         return $this->belongsTo(Invoice::class, 'document_id');
+    }
+
+    /** @return BelongsTo<Settlement, $this> null unless the document is a settlement */
+    public function settlement(): BelongsTo
+    {
+        return $this->belongsTo(Settlement::class, 'document_id');
+    }
+
+    /** @return BelongsTo<PaymentRun, $this> null unless the document is a payment run */
+    public function paymentRun(): BelongsTo
+    {
+        return $this->belongsTo(PaymentRun::class, 'document_id');
     }
 }

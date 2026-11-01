@@ -7,17 +7,23 @@ namespace App\Services\Workflow;
 use App\Actions\Ledger\Inputs\PostJournalInput;
 use App\Actions\Ledger\PostJournal;
 use App\Actions\Trade\PostInvoice;
+use App\Actions\Trade\PostPaymentRun;
+use App\Actions\Trade\PostSettlement;
 use App\Actions\Workflow\Inputs\DocumentRef;
 use App\Contracts\PermissionChecker;
 use App\Contracts\Postable;
+use App\Domain\Ledger\JournalType;
 use App\Domain\Shared\DomainRuleViolation;
 use App\Domain\Shared\Violation;
 use App\Domain\Trade\InvoiceKind;
 use App\Domain\Workflow\DocumentStatus;
 use App\Models\Ledger\Journal;
 use App\Models\Trade\Invoice;
+use App\Models\Trade\PaymentRun;
+use App\Models\Trade\Settlement;
 use App\Queries\Ledger\PreviewJournalPosting;
 use App\Queries\Trade\PreviewInvoicePosting;
+use App\Queries\Trade\PreviewSettlementPosting;
 use App\Services\Ledger\PostingEngine;
 use App\Support\Actor;
 use App\Support\UnitOfWork\LockSet;
@@ -33,7 +39,7 @@ use Illuminate\Database\Eloquent\Model;
  */
 final class Documents
 {
-    public const array TYPES = ['journal', 'invoice', 'bill'];
+    public const array TYPES = ['journal', 'invoice', 'bill', 'settlement', 'payment_run'];
 
     public function __construct(
         private readonly Container $container,
@@ -48,6 +54,8 @@ final class Documents
             'journal' => Journal::query()->with('lines')->find($ref->id),
             'invoice' => Invoice::query()->with('lines')->whereIn('kind', InvoiceKind::values(...InvoiceKind::sales()))->find($ref->id),
             'bill' => Invoice::query()->with('lines')->whereIn('kind', InvoiceKind::values(...InvoiceKind::purchases()))->find($ref->id),
+            'settlement' => Settlement::query()->with('allocations')->find($ref->id),
+            'payment_run' => PaymentRun::query()->with('items')->find($ref->id),
             default => throw DomainRuleViolation::single('document_type_unknown', "Unknown document type {$ref->type}."),
         };
         if ($doc === null) {
@@ -65,6 +73,34 @@ final class Documents
         }
         if ($doc instanceof Invoice) {
             $this->engine->lockPeriod($locks, $doc->company_id, $doc->kind->journalType(), DateTimeImmutable::createFromInterface($doc->issue_date), null);
+            // A note locks together with the document it refers to, by id, so its capacity check sees a stable original.
+            if ($doc->related_invoice_id !== null) {
+                $pair = [$doc->id, $doc->related_invoice_id];
+                sort($pair, SORT_STRING);
+                $locked = [];
+                foreach ($pair as $id) {
+                    $locked[$id] = $locks->document($id === $doc->id ? $doc : Invoice::query()->whereKey($id)->firstOrFail(), $id === $doc->id ? $expectedVersion : null);
+                }
+
+                return $locked[$doc->id]->load('lines');
+            }
+        }
+        if ($doc instanceof Settlement) {
+            $this->engine->lockPeriod($locks, $doc->company_id, $doc->isCashIn() ? JournalType::Receipt : JournalType::Payment, DateTimeImmutable::createFromInterface($doc->settlement_date), null);
+            // The settlement and any settlement whose credit it refunds, by id (13 §8 level 2).
+            $ids = [$doc->id, ...array_values(array_filter($doc->allocations->pluck('source_settlement_id')->all()))];
+            sort($ids, SORT_STRING);
+            $locked = [];
+            foreach ($ids as $id) {
+                $locked[$id] = $locks->document($id === $doc->id ? $doc : Settlement::query()->whereKey($id)->firstOrFail(), $id === $doc->id ? $expectedVersion : null);
+            }
+
+            return $locked[$doc->id]->load('allocations');
+        }
+        if ($doc instanceof PaymentRun) {
+            $this->engine->lockPeriod($locks, $doc->company_id, JournalType::Payment, DateTimeImmutable::createFromInterface($doc->run_date), null);
+
+            return $locks->document($doc, $expectedVersion)->load('items');
         }
 
         return $locks->document($doc, $expectedVersion)->load('lines');
@@ -80,6 +116,8 @@ final class Documents
         return match (true) {
             $doc instanceof Journal => $this->container->make(PreviewJournalPosting::class)->of($actor, $doc->id)->violations,
             $doc instanceof Invoice => $this->container->make(PreviewInvoicePosting::class)->of($actor, $doc->id)->violations,
+            $doc instanceof Settlement => $this->container->make(PreviewSettlementPosting::class)->of($actor, $doc->id)->violations,
+            $doc instanceof PaymentRun => $this->container->make(PreviewSettlementPosting::class)->ofRun($actor, $doc->id)->violations,
             default => throw new \LogicException("No preview for {$doc->documentType()}."),
         };
     }
@@ -90,8 +128,29 @@ final class Documents
         return match (true) {
             $doc instanceof Journal => $this->container->make(PostJournal::class)->handle($actor, new PostJournalInput($doc->documentId())),
             $doc instanceof Invoice => $this->container->make(PostInvoice::class)->handle($actor, $doc->documentId()),
+            $doc instanceof Settlement => $this->container->make(PostSettlement::class)->handle($actor, $doc->documentId()),
+            $doc instanceof PaymentRun => $this->container->make(PostPaymentRun::class)->handle($actor, $doc->documentId()),
             default => throw new \LogicException("No poster for {$doc->documentType()}."),
         };
+    }
+
+    /**
+     * The permission an action needs on this document. Journals, invoices and bills follow `<type>s.<action>`. Settlements
+     * and payment runs have no `.submit` of their own: submitting and returning follow creating (`receipts.create` for a
+     * receipt, `payments.create` for the other settlements and runs) and approving, returning and voiding follow
+     * `payments.approve` (13 §7 has no receipts.approve).
+     */
+    public function permission(Postable&Model $doc, string $action): string
+    {
+        if ($doc instanceof Settlement) {
+            return in_array($action, ['approve', 'return', 'void'], true) ? 'payments.approve' : $doc->module().'.create';
+        }
+        if ($doc instanceof PaymentRun) {
+            return in_array($action, ['approve', 'return', 'void'], true) ? 'payments.approve' : 'payments.create';
+        }
+
+        // Returning and voiding are an approver's act (13 §10): they follow `<type>s.approve`.
+        return "{$doc->documentType()}s.".(in_array($action, ['return', 'void'], true) ? 'approve' : $action);
     }
 
     /**

@@ -50,7 +50,7 @@ final class PostInvoice
             $seen = Invoice::query()->findOrFail($invoiceId);                                          // unlocked read: learn the date
             $date = DateTimeImmutable::createFromInterface($seen->issue_date);
             $period = $this->engine->lockPeriod($locks, $seen->company_id, $seen->kind->journalType(), $date, null); // 1
-            $doc = $locks->document($seen, $lockVersion);                                              // 2
+            $doc = $this->lockWithOriginal($locks, $seen, $lockVersion);                               // 2 (a note: with its original, by id)
 
             if ($doc->issue_date->format('Y-m-d') !== $seen->issue_date->format('Y-m-d')) {
                 throw new RetryUnitOfWork('Document date changed while locking.');
@@ -62,6 +62,7 @@ final class PostInvoice
                 throw PostingRejected::because([new Violation('period_missing', 'No fiscal period covers the issue date.')]);
             }
             $this->assertRelatedPosted($doc);
+            $this->assertWithinOriginal($doc);
 
             $doc->load('lines');                                                                       // the lines this posting sums
             $kind = $doc->kind;
@@ -86,6 +87,42 @@ final class PostInvoice
 
             return $doc;
         });
+    }
+
+    /** A note and the document it refers to are locked together in id order, so the capacity check sees a stable original. */
+    private function lockWithOriginal(LockSet $locks, Invoice $seen, ?int $lockVersion): Invoice
+    {
+        if ($seen->related_invoice_id === null) {
+            return $locks->document($seen, $lockVersion);
+        }
+        $ids = [$seen->id, $seen->related_invoice_id];
+        sort($ids, SORT_STRING);
+        $doc = $seen;
+        foreach ($ids as $id) {
+            $row = $locks->document($id === $seen->id ? $seen : Invoice::query()->findOrFail($id), $id === $seen->id ? $lockVersion : null);
+            $doc = $id === $seen->id ? $row : $doc;
+        }
+
+        return $doc;
+    }
+
+    /**
+     * Notes against one original can never add up to more than the original itself (`credit_exceeds_original`, D9).
+     * They may exceed what is still open: when a paid invoice is credited, the customer holds the credit, which is
+     * applied elsewhere or refunded (D11). Amounts are net of withheld tax. Read under both locks.
+     */
+    private function assertWithinOriginal(Invoice $note): void
+    {
+        if ($note->related_invoice_id === null) {
+            return;
+        }
+        $original = Invoice::query()->findOrFail($note->related_invoice_id);
+        $others = (int) $original->getConnection()->table('invoices')
+            ->where('related_invoice_id', $original->id)->where('status', DocumentStatus::Posted->value)->where('id', '<>', $note->id)
+            ->sum($original->getConnection()->raw('total_fc - wht_amount_fc'));
+        if ($others + $note->total_fc - $note->wht_amount_fc > $original->total_fc - $original->wht_amount_fc) {
+            throw DomainRuleViolation::single('credit_exceeds_original', "The {$note->kind->label()}s against {$original->number} would be more than the document itself.");
+        }
     }
 
     /** A note's original must still be a posted document when the note posts (read after our own lock, never held). */

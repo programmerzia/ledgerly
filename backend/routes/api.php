@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Auth\SessionController;
+use App\Http\Controllers\Files\AttachmentBlobController;
+use App\Http\Controllers\Files\AttachmentController;
 use App\Http\Controllers\Fiscal\FiscalPeriodController;
 use App\Http\Controllers\Fiscal\FiscalYearController;
 use App\Http\Controllers\Fiscal\ReopenRequestController;
@@ -22,12 +24,17 @@ use App\Http\Controllers\Tax\TaxCodeController;
 use App\Http\Controllers\Tax\TaxGroupController;
 use App\Http\Controllers\Trade\BillController;
 use App\Http\Controllers\Trade\ContactController;
+use App\Http\Controllers\Trade\CreditApplicationController;
 use App\Http\Controllers\Trade\InvoiceController;
 use App\Http\Controllers\Trade\ItemController;
+use App\Http\Controllers\Trade\PaymentRunController;
+use App\Http\Controllers\Trade\SettlementController;
+use App\Http\Controllers\Trade\WhtCertificateController;
 use App\Http\Controllers\Webhooks\WebhookEndpointController;
 use App\Http\Controllers\Workflow\ApprovalInboxController;
 use App\Http\Controllers\Workflow\ApprovalWorkflowController;
 use App\Services\Reports\ReportExport;
+use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Http\Controllers\RegisteredUserController;
 
@@ -70,6 +77,12 @@ Route::middleware(['auth:sanctum', 'tenant', 'tenant.writable', 'idempotent'])->
     Route::put('signing/pin', [SigningController::class, 'setPin'])->name('signing.pin');
     Route::post('signing/verify', [SigningController::class, 'verify'])->name('signing.verify');
     Route::delete('signing/grant', [SigningController::class, 'revoke'])->name('signing.revoke');
+});
+
+// Local-disk "presigned" attachment URLs (13 §17): no session or token, the URL signature and expiry are the credential.
+Route::middleware(['signed', 'throttle:120,1'])->withoutMiddleware(ValidateCsrfToken::class)->whereUuid(['tenant', 'file'])->group(function (): void {
+    Route::put('attachment-uploads/{tenant}/{file}', [AttachmentBlobController::class, 'put'])->name('attachment-uploads.put');
+    Route::get('attachment-files/{tenant}/{file}', [AttachmentBlobController::class, 'show'])->name('attachment-files.show');
 });
 
 // Company routes: a person (session) or an API client (bearer token) working inside one company of the tenant.
@@ -146,12 +159,25 @@ Route::middleware(['auth:sanctum', 'tenant', 'tenant.writable', 'idempotent', 'c
         Route::post('journals/{journal}/void', [JournalController::class, 'void'])->whereUuid('journal')->name('journals.void');
         Route::post('journals/{journal}/reverse', [JournalController::class, 'reverse'])->whereUuid('journal')->name('journals.reverse');
 
+        // Attachments: presigned upload → complete → ClamAV scan → signed download (13 §17)
+        Route::get('attachments', [AttachmentController::class, 'index'])->name('attachments.index');
+        Route::post('attachments/uploads', [AttachmentController::class, 'store'])->name('attachments.store');
+        Route::get('attachments/{attachment}', [AttachmentController::class, 'show'])->whereUuid('attachment')->name('attachments.show');
+        Route::post('attachments/{attachment}/complete', [AttachmentController::class, 'complete'])->whereUuid('attachment')->name('attachments.complete');
+        Route::get('attachments/{attachment}/download', [AttachmentController::class, 'download'])->whereUuid('attachment')->name('attachments.download');
+        Route::delete('attachments/{attachment}', [AttachmentController::class, 'destroy'])->whereUuid('attachment')->name('attachments.destroy');
+
         // Reports (13 §13): statements and ledger detail from the reporting connection, the drill behind every cell, exports.
         Route::get('reports/trial-balance', [ReportController::class, 'trialBalance'])->name('reports.trial-balance');
         Route::get('reports/profit-and-loss', [ReportController::class, 'profitAndLoss'])->name('reports.profit-and-loss');
         Route::get('reports/balance-sheet', [ReportController::class, 'balanceSheet'])->name('reports.balance-sheet');
         Route::get('reports/cash-flow', [ReportController::class, 'cashFlow'])->name('reports.cash-flow');
         Route::get('reports/general-ledger', [ReportController::class, 'generalLedger'])->name('reports.general-ledger');
+        Route::get('reports/ar-aging', [ReportController::class, 'arAging'])->name('reports.ar-aging');
+        Route::get('reports/ap-aging', [ReportController::class, 'apAging'])->name('reports.ap-aging');
+        Route::get('reports/customer-statement', [ReportController::class, 'customerStatement'])->name('reports.customer-statement');
+        Route::get('reports/supplier-statement', [ReportController::class, 'supplierStatement'])->name('reports.supplier-statement');
+        Route::get('reports/tax-return', [ReportController::class, 'taxReturn'])->name('reports.tax-return');
         Route::get('reports/drill', [ReportController::class, 'drill'])->name('reports.drill');
         Route::get('reports/exports/{exportId}', [ReportExportController::class, 'show'])->whereUuid('exportId')->name('reports.exports.show');
         Route::get('reports/{report}/export', [ReportExportController::class, 'export'])->whereIn('report', ReportExport::REPORTS)->middleware('throttle:report-exports')->name('reports.export');
@@ -176,6 +202,30 @@ Route::middleware(['auth:sanctum', 'tenant', 'tenant.writable', 'idempotent', 'c
             Route::post("{$path}/{{$param}}/void", [$controller, 'void'])->whereUuid($param)->name("{$path}.void");
             Route::post("{$path}/{{$param}}/reverse", [$controller, 'reverse'])->whereUuid($param)->name("{$path}.reverse");
         }
+
+        foreach (['invoices' => 'invoice', 'bills' => 'bill'] as $path => $param) {
+            Route::post("{$path}/{{$param}}/allocate", [$path === 'invoices' ? InvoiceController::class : BillController::class, 'allocate'])->whereUuid($param)->name("{$path}.allocate");
+        }
+
+        // Settlements (receipts, payments, refunds), credit applications, payment runs, WHT certificates (13 §16)
+        Route::get('settlements', [SettlementController::class, 'index'])->name('settlements.index');
+        Route::post('settlements', [SettlementController::class, 'store'])->name('settlements.store');
+        Route::get('settlements/{settlement}', [SettlementController::class, 'show'])->whereUuid('settlement')->name('settlements.show');
+        Route::put('settlements/{settlement}', [SettlementController::class, 'update'])->whereUuid('settlement')->name('settlements.update');
+        foreach (['posting-preview' => 'preview', 'submit' => 'submit', 'approve' => 'approve', 'return' => 'return', 'void' => 'void', 'reverse' => 'reverse', 'allocate' => 'allocate'] as $verb => $method) {
+            Route::post("settlements/{settlement}/{$verb}", [SettlementController::class, $method])->whereUuid('settlement')->name("settlements.{$method}");
+        }
+        Route::post('credit-applications/{creditApplication}/undo', [CreditApplicationController::class, 'undo'])->whereUuid('creditApplication')->name('credit-applications.undo');
+        Route::get('payment-runs', [PaymentRunController::class, 'index'])->name('payment-runs.index');
+        Route::post('payment-runs', [PaymentRunController::class, 'store'])->name('payment-runs.store');
+        Route::get('payment-runs/{paymentRun}', [PaymentRunController::class, 'show'])->whereUuid('paymentRun')->name('payment-runs.show');
+        Route::put('payment-runs/{paymentRun}', [PaymentRunController::class, 'update'])->whereUuid('paymentRun')->name('payment-runs.update');
+        Route::get('payment-runs/{paymentRun}/export', [PaymentRunController::class, 'export'])->whereUuid('paymentRun')->name('payment-runs.export');
+        foreach (['posting-preview' => 'preview', 'submit' => 'submit', 'approve' => 'approve', 'return' => 'return', 'void' => 'void'] as $verb => $method) {
+            Route::post("payment-runs/{paymentRun}/{$verb}", [PaymentRunController::class, $method])->whereUuid('paymentRun')->name("payment-runs.{$method}");
+        }
+        Route::get('wht-certificates', [WhtCertificateController::class, 'index'])->name('wht-certificates.index');
+        Route::get('wht-certificates/{whtCertificate}', [WhtCertificateController::class, 'show'])->whereUuid('whtCertificate')->name('wht-certificates.show');
 
         // Approvals: the inbox, and the workflows that feed it (settings.manage)
         Route::get('approvals', [ApprovalInboxController::class, 'index'])->name('approvals.index');

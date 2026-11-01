@@ -21,6 +21,8 @@ const EXEMPT_ROUTES = [
     'session.tenant' => 'switch organisation; membership checked in the controller',
     'invitation-tokens.show' => 'the invitation token is the credential',
     'invitation-tokens.accept' => 'the invitation token is the credential; the Action checks the email',
+    'attachment-uploads.put' => 'local-disk presigned upload: the URL signature and expiry are the credential',
+    'attachment-files.show' => 'local-disk signed download: the URL signature and expiry are the credential; only clean files',
 ];
 
 /** @return list<Route> */

@@ -46,6 +46,10 @@ final class StatusMap
         'entitlement_exceeded' => 402,
         'rate_limited' => 429,
         'fx_provider_unavailable' => 502,
+        'upload_too_large' => 413,
+        'attachment_immutable' => 409,
+        'attachment_mismatch' => 409,
+        'attachment_not_uploaded' => 409,
     ];
 
     public static function status(string $code): int

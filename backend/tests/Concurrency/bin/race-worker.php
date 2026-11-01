@@ -14,12 +14,16 @@ use App\Actions\Fiscal\ClosePeriod;
 use App\Actions\Fiscal\DecidePeriodReopen;
 use App\Actions\Fiscal\Inputs\ClosePeriodInput;
 use App\Actions\Fiscal\YearEndClose;
+use App\Actions\Fx\Inputs\RunFxRevaluationInput;
+use App\Actions\Fx\RunFxRevaluation;
 use App\Actions\Ledger\Inputs\PostJournalInput;
 use App\Actions\Ledger\Inputs\ReverseJournalInput;
 use App\Actions\Ledger\PostJournal;
 use App\Actions\Ledger\ReverseJournal;
 use App\Actions\Trade\Inputs\ReverseInvoiceInput;
+use App\Actions\Trade\Inputs\ReverseSettlementInput;
 use App\Actions\Trade\ReverseInvoice;
+use App\Actions\Trade\ReverseSettlement;
 use App\Actions\Workflow\ApproveDocument;
 use App\Actions\Workflow\Inputs\DocumentRef;
 use App\Actions\Workflow\Inputs\ReturnDocumentInput;
@@ -46,7 +50,7 @@ $spec = json_decode($argv[1], true, flags: JSON_THROW_ON_ERROR);
 
 // Roles and permissions are not what a race test is about: grant everything, keep the real locking.
 $app->instance(PermissionChecker::class, new GrantedPermissions([
-    'journals.submit', 'journals.approve', 'journals.reverse', 'invoices.submit', 'invoices.approve', 'invoices.reverse', 'invoices.void', 'periods.close', 'periods.reopen.request',
+    'journals.submit', 'journals.approve', 'journals.reverse', 'invoices.submit', 'invoices.approve', 'invoices.reverse', 'invoices.void', 'receipts.create', 'payments.create', 'payments.approve', 'receipts.reverse', 'payments.reverse', 'periods.close', 'periods.reopen.request',
     'periods.reopen.approve', 'periods.year_end', 'periods.post_adjustment', 'periods.post_soft_closed',
 ]));
 $app->instance(RoleChecker::class, new AllowAllRoles);
@@ -74,6 +78,12 @@ foreach ($spec['ops'] as $op) {
             'approve_invoice' => $app->make(ApproveDocument::class)->handle($actor, new DocumentRef('invoice', $op['id'])),
             'void_invoice' => $app->make(VoidDocument::class)->handle($actor, new VoidDocumentInput(new DocumentRef('invoice', $op['id']), 'race')),
             'reverse_invoice' => $app->make(ReverseInvoice::class)->handle($actor, new ReverseInvoiceInput($op['id'])),
+            'submit_settlement' => $app->make(SubmitDocument::class)->handle($actor, new DocumentRef('settlement', $op['id'])),
+            'approve_settlement' => $app->make(ApproveDocument::class)->handle($actor, new DocumentRef('settlement', $op['id'])),
+            'reverse_settlement' => $app->make(ReverseSettlement::class)->handle($actor, new ReverseSettlementInput($op['id'])),
+            'submit_run' => $app->make(SubmitDocument::class)->handle($actor, new DocumentRef('payment_run', $op['id'])),
+            'approve_run' => $app->make(ApproveDocument::class)->handle($actor, new DocumentRef('payment_run', $op['id'])),
+            'revalue' => $app->make(RunFxRevaluation::class)->handle(Actor::system($spec['tenant'], $spec['company']), new RunFxRevaluationInput($spec['company'], $op['id'])),
             'close' => $app->make(ClosePeriod::class)->handle($actor, new ClosePeriodInput($op['id'], $op['waivers'] ?? [])),
             'year_end' => $app->make(YearEndClose::class)->handle($actor, $op['id']),
             'reopen_approve' => $app->make(DecidePeriodReopen::class)->approve($actor, $op['id']),

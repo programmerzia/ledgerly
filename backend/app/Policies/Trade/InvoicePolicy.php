@@ -99,6 +99,13 @@ final class InvoicePolicy
             && $this->context->personCan($principal, $this->module($invoice).'.reverse', $invoice->company_id);
     }
 
+    /** Apply a posted credit note (`/invoices`) or debit note (`/bills`) to an open document of the same contact. */
+    public function allocate(Authenticatable $principal, Invoice $invoice): bool
+    {
+        return $invoice->status === DocumentStatus::Posted && $invoice->kind->isNote()
+            && $this->context->personCan($principal, ($invoice->kind->isSales() ? 'receipts' : 'payments').'.create', $invoice->company_id);
+    }
+
     private function module(Invoice $invoice): string
     {
         return $invoice->kind->documentType().'s';

@@ -54,7 +54,7 @@ final class PermissionMatrix
 
     private const array APPROVE = ['journals.approve', 'invoices.approve', 'bills.approve', 'payments.approve'];
 
-    private const array REVERSE = ['journals.reverse', 'invoices.reverse', 'bills.reverse'];
+    private const array REVERSE = ['journals.reverse', 'invoices.reverse', 'bills.reverse', 'receipts.reverse', 'payments.reverse'];
 
     private const array MANAGE = [
         'periods.close', 'periods.reopen.approve', 'periods.year_end', 'periods.post_soft_closed', 'periods.post_adjustment',

@@ -7,6 +7,7 @@ namespace App\Http\Support;
 use App\Domain\Shared\DomainRuleViolation;
 use App\Domain\Trade\InvoiceKind;
 use App\Models\BaseModel;
+use App\Models\Files\Attachment;
 use App\Models\Fiscal\FiscalPeriod;
 use App\Models\Fiscal\FiscalYear;
 use App\Models\Fiscal\PeriodReopenRequest;
@@ -17,8 +18,12 @@ use App\Models\Ledger\Journal;
 use App\Models\Tax\TaxCode;
 use App\Models\Tax\TaxGroup;
 use App\Models\Trade\Contact;
+use App\Models\Trade\CreditApplication;
 use App\Models\Trade\Invoice;
 use App\Models\Trade\Item;
+use App\Models\Trade\PaymentRun;
+use App\Models\Trade\Settlement;
+use App\Models\Trade\WhtCertificate;
 use App\Models\Workflow\ApprovalWorkflow;
 use App\Support\Tenancy\CompanyContext;
 use Illuminate\Routing\Route as RoutedRequest;
@@ -46,6 +51,11 @@ final class CompanyBindings
         'taxCode' => TaxCode::class,
         'taxGroup' => TaxGroup::class,
         'item' => Item::class,
+        'settlement' => Settlement::class,
+        'paymentRun' => PaymentRun::class,
+        'whtCertificate' => WhtCertificate::class,
+        'creditApplication' => CreditApplication::class,
+        'attachment' => Attachment::class,
         // /invoices/{invoice} holds invoices and credit notes, /bills/{bill} bills and debit notes: the other family is a 404.
         'invoice' => Invoice::class,
         'bill' => Invoice::class,

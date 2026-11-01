@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Trade;
 
+use App\Actions\Trade\ApplyCredit;
 use App\Actions\Trade\CreateInvoiceDraft;
+use App\Actions\Trade\Inputs\ApplyCreditInput;
 use App\Actions\Trade\Inputs\ReverseInvoiceInput;
 use App\Actions\Trade\Inputs\UpdateInvoiceDraftInput;
 use App\Actions\Trade\ReverseInvoice;
@@ -19,9 +21,11 @@ use App\Actions\Workflow\VoidDocument;
 use App\Http\Requests\Ledger\ReturnJournalRequest;
 use App\Http\Requests\Ledger\ReverseJournalRequest;
 use App\Http\Requests\Ledger\VoidJournalRequest;
+use App\Http\Requests\Trade\ApplyCreditRequest;
 use App\Http\Requests\Trade\InvoiceRequest;
 use App\Http\Requests\Trade\ListInvoicesRequest;
 use App\Http\Requests\TransitionRequest;
+use App\Http\Resources\CreditApplicationResource;
 use App\Http\Resources\InvoicePostingPreviewResource;
 use App\Http\Resources\InvoiceResource;
 use App\Http\Support\CursorPage;
@@ -30,6 +34,7 @@ use App\Models\Organisation\Company;
 use App\Models\Trade\Invoice;
 use App\Queries\Trade\ListInvoices;
 use App\Queries\Trade\PreviewInvoicePosting;
+use DateTimeImmutable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -107,6 +112,19 @@ trait HandlesTradeDocuments
         $action->handle(RequestActor::from($request, $company->id), new ReverseInvoiceInput($invoice->id, $in->date, $in->lockVersion, $in->memo));
 
         return new InvoiceResource($this->fresh($invoice->id));
+    }
+
+    /** Applies a posted credit or debit note to an open document of the same contact and currency (D9). */
+    protected function allocating(ApplyCreditRequest $request, Company $company, Invoice $note, ApplyCredit $action): JsonResponse
+    {
+        $v = $request->validated();
+        $application = $action->handle(RequestActor::from($request, $company->id), new ApplyCreditInput(
+            (string) $v['invoice_id'], (int) $v['amount_fc'], noteId: $note->id,
+            date: isset($v['date']) ? new DateTimeImmutable((string) $v['date']) : null,
+        ));
+        $application->setAttribute('currency', $note->currency);
+
+        return (new CreditApplicationResource($application))->response()->setStatusCode(201);
     }
 
     private function ref(Invoice $invoice, ?int $version): DocumentRef

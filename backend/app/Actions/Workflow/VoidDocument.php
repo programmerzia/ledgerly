@@ -39,7 +39,7 @@ final class VoidDocument
             $unlocked = $this->documents->find($ref);
             $companyId = $unlocked->documentCompanyId();
             $own = $actor->id !== null && $unlocked->documentCreatedBy() === $actor->id;
-            if (! $own && ! $this->permissions->allows($actor, "{$ref->type}s.approve", $companyId)) {
+            if (! $own && ! $this->permissions->allows($actor, $this->documents->permission($unlocked, 'void'), $companyId)) {
                 throw DomainRuleViolation::single('forbidden', 'Only the creator or an approver can void this document.');
             }
 

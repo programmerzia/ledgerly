@@ -22,6 +22,11 @@ final class RunReport
         'profit-and-loss' => 'profit_and_loss',
         'balance-sheet' => 'balance_sheet',
         'cash-flow' => 'cash_flow',
+        'ar-aging' => 'ar_aging',
+        'ap-aging' => 'ap_aging',
+        'customer-statement' => 'customer_statement',
+        'supplier-statement' => 'supplier_statement',
+        'tax-return' => 'tax_return',
     ];
 
     public function __construct(
@@ -31,6 +36,9 @@ final class RunReport
         private readonly ProfitAndLoss $profitAndLoss,
         private readonly BalanceSheet $balanceSheet,
         private readonly CashFlow $cashFlow,
+        private readonly ArApAging $aging,
+        private readonly ContactStatement $statement,
+        private readonly TaxReturn $taxReturn,
     ) {}
 
     /**
@@ -44,6 +52,11 @@ final class RunReport
             'trial-balance' => [$this->params->asOf($company, $input), $this->trialBalance],
             'balance-sheet' => [$this->params->asOf($company, $input), $this->balanceSheet],
             'profit-and-loss' => [$this->params->range($company, $input), $this->profitAndLoss],
+            'ar-aging' => [$this->params->asOf($company, $input), fn (ReportParams $p): array => ($this->aging)($p, true)],
+            'ap-aging' => [$this->params->asOf($company, $input), fn (ReportParams $p): array => ($this->aging)($p, false)],
+            'customer-statement' => [$this->params->range($company, $input), fn (ReportParams $p): array => ($this->statement)($p, true)],
+            'supplier-statement' => [$this->params->range($company, $input), fn (ReportParams $p): array => ($this->statement)($p, false)],
+            'tax-return' => [$this->params->range($company, $input), $this->taxReturn],
             default => [$this->params->range($company, $input), $this->cashFlow],
         };
         if ($name === 'cash-flow' && $p->dims !== []) {

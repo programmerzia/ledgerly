@@ -48,7 +48,7 @@ final class SubmitDocument
         return $this->uow->run($actor, function (LockSet $locks, AuditBuffer $audit, Outbox $outbox) use ($actor, $ref) {
             $unlocked = $this->documents->find($ref);
             $companyId = $unlocked->documentCompanyId();
-            if (! $actor->isApiClient() && ! $this->permissions->allows($actor, "{$ref->type}s.submit", $companyId)) {
+            if (! $actor->isApiClient() && ! $this->permissions->allows($actor, $this->documents->permission($unlocked, 'submit'), $companyId)) {
                 throw DomainRuleViolation::single('forbidden', "You cannot submit {$ref->type}s in this company.");
             }
 

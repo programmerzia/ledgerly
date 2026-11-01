@@ -16,7 +16,9 @@ use App\Http\Resources\InvitationResource;
 use App\Http\Resources\InvoiceResource;
 use App\Http\Resources\ItemResource;
 use App\Http\Resources\JournalResource;
+use App\Http\Resources\PaymentRunResource;
 use App\Http\Resources\ReopenRequestResource;
+use App\Http\Resources\SettlementResource;
 use App\Http\Resources\TaxCodeResource;
 use App\Http\Resources\TaxGroupResource;
 use App\Models\Fiscal\FiscalPeriod;
@@ -33,6 +35,8 @@ use App\Models\Tax\TaxGroup;
 use App\Models\Trade\Contact;
 use App\Models\Trade\Invoice;
 use App\Models\Trade\Item;
+use App\Models\Trade\PaymentRun;
+use App\Models\Trade\Settlement;
 use App\Models\Workflow\ApprovalWorkflow;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
@@ -62,6 +66,8 @@ final class SubjectRepresenter
         'tax_groups' => [TaxGroup::class, TaxGroupResource::class, ['items']],
         'invoices' => [Invoice::class, InvoiceResource::class, ['lines']],
         'items' => [Item::class, ItemResource::class, []],
+        'settlements' => [Settlement::class, SettlementResource::class, ['allocations']],
+        'payment_runs' => [PaymentRun::class, PaymentRunResource::class, ['items']],
     ];
 
     public function represent(?string $subjectType, ?string $subjectId): JsonResponse

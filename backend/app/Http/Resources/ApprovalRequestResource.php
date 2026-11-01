@@ -48,6 +48,36 @@ final class ApprovalRequestResource extends JsonResource
                 'version' => $invoice->lock_version,
             ];
         }
+        $settlement = $this->settlement;
+        if ($settlement !== null) {
+            return [
+                'id' => $settlement->id,
+                'kind' => $settlement->kind,
+                'number' => $settlement->number,
+                'settlement_date' => Json::date($settlement->settlement_date),
+                'contact_id' => $settlement->contact_id,
+                'reference' => $settlement->reference,
+                'memo' => $settlement->memo,
+                'amount' => $amount,
+                'created_by' => $settlement->created_by,
+                'submitted_by' => $settlement->submitted_by,
+                'version' => $settlement->lock_version,
+            ];
+        }
+        $run = $this->paymentRun;
+        if ($run !== null) {
+            return [
+                'id' => $run->id,
+                'number' => $run->number,
+                'run_date' => Json::date($run->run_date),
+                'reference' => $run->reference,
+                'memo' => $run->memo,
+                'amount' => $amount,
+                'created_by' => $run->created_by,
+                'submitted_by' => $run->submitted_by,
+                'version' => $run->lock_version,
+            ];
+        }
         $journal = $this->journal;
 
         return [

@@ -6,6 +6,7 @@ namespace App\Providers;
 
 use App\Actions\Signing\SetSigningPin;
 use App\Actions\Signing\VerifySigningPin;
+use App\Contracts\AttachmentStore;
 use App\Contracts\Clock;
 use App\Contracts\CompanyAccess;
 use App\Contracts\ExchangeRateProvider;
@@ -13,7 +14,9 @@ use App\Contracts\HostResolver;
 use App\Contracts\IdGenerator;
 use App\Contracts\PermissionChecker;
 use App\Contracts\RoleChecker;
+use App\Contracts\VirusScanner;
 use App\Http\Support\CompanyBindings;
+use App\Models\Files\Attachment;
 use App\Models\Fiscal\FiscalPeriod;
 use App\Models\Fiscal\FiscalYear;
 use App\Models\Fiscal\PeriodReopenRequest;
@@ -29,11 +32,16 @@ use App\Models\Platform\PersonalAccessToken;
 use App\Models\Tax\TaxCode;
 use App\Models\Tax\TaxGroup;
 use App\Models\Trade\Contact;
+use App\Models\Trade\CreditApplication;
 use App\Models\Trade\Invoice;
 use App\Models\Trade\Item;
+use App\Models\Trade\PaymentRun;
+use App\Models\Trade\Settlement;
+use App\Models\Trade\WhtCertificate;
 use App\Models\Webhooks\WebhookEndpoint;
 use App\Models\Workflow\ApprovalRequest;
 use App\Models\Workflow\ApprovalWorkflow;
+use App\Policies\Files\AttachmentPolicy;
 use App\Policies\Fiscal\PeriodPolicy;
 use App\Policies\Fx\FxPolicy;
 use App\Policies\Ledger\AccountPolicy;
@@ -46,11 +54,17 @@ use App\Policies\SigningPolicy;
 use App\Policies\Tax\TaxCodePolicy;
 use App\Policies\Tax\TaxGroupPolicy;
 use App\Policies\Trade\ContactPolicy;
+use App\Policies\Trade\CreditApplicationPolicy;
 use App\Policies\Trade\InvoicePolicy;
 use App\Policies\Trade\ItemPolicy;
+use App\Policies\Trade\PaymentRunPolicy;
+use App\Policies\Trade\SettlementPolicy;
+use App\Policies\Trade\WhtCertificatePolicy;
 use App\Policies\Webhooks\WebhookEndpointPolicy;
 use App\Policies\Workflow\ApprovalRequestPolicy;
 use App\Policies\Workflow\ApprovalWorkflowPolicy;
+use App\Services\Files\ClamdScanner;
+use App\Services\Files\LocalAttachmentStore;
 use App\Services\Fx\EcbRateProvider;
 use App\Services\Ledger\SequenceAllocator;
 use App\Services\SystemClock;
@@ -105,6 +119,12 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(ExchangeRateProvider::class, EcbRateProvider::class);
         $this->app->singleton(HostResolver::class, DnsHostResolver::class);
         $this->app->singleton(SsrfGuard::class, fn ($app) => new SsrfGuard($app->make(HostResolver::class), (bool) config('webhooks.allow_http')));
+        // Attachments (13 §17). Local-disk store until an S3 store exists (needs league/flysystem-aws-s3-v3, which 04 §2 does not pin).
+        $this->app->singleton(AttachmentStore::class, LocalAttachmentStore::class);
+        $this->app->singleton(VirusScanner::class, fn () => ClamdScanner::tcp(
+            (string) config('attachments.clamav.host'), (int) config('attachments.clamav.port'),
+            (int) config('attachments.clamav.timeout'), (int) config('attachments.clamav.chunk_bytes'),
+        ));
         $this->app->scoped(CompanyContext::class);
 
         $this->app->scoped(TenantContext::class, function ($app) {
@@ -148,6 +168,11 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Contact::class, ContactPolicy::class);
         Gate::policy(Invoice::class, InvoicePolicy::class);
         Gate::policy(Item::class, ItemPolicy::class);
+        Gate::policy(Settlement::class, SettlementPolicy::class);
+        Gate::policy(PaymentRun::class, PaymentRunPolicy::class);
+        Gate::policy(WhtCertificate::class, WhtCertificatePolicy::class);
+        Gate::policy(CreditApplication::class, CreditApplicationPolicy::class);
+        Gate::policy(Attachment::class, AttachmentPolicy::class);
         Gate::policy(TaxCode::class, TaxCodePolicy::class);
         Gate::policy(TaxGroup::class, TaxGroupPolicy::class);
         Gate::policy(WebhookEndpoint::class, WebhookEndpointPolicy::class);

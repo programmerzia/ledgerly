@@ -22,6 +22,7 @@ final class WebhookEvents
     public const array TYPES = [
         'journal.posted', 'journal.reversed',
         'invoice.posted', 'invoice.reversed', 'bill.posted', 'bill.reversed',
+        'settlement.posted', 'settlement.reversed', 'payment_run.posted', 'credit_application.created', 'credit_application.reversed',
         'document.submitted', 'document.approved', 'document.returned', 'document.voided',
         'period.soft_closed', 'period.closed', 'period.reopened',
         'fiscal_year.closed', 'fiscal_year.locked',

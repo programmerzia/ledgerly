@@ -47,6 +47,14 @@ return [
             'report' => false,
         ],
 
+        // Attachments (config/attachments.php): private, never served by path; reached only through signed routes.
+        'attachments' => [
+            'driver' => 'local',
+            'root' => storage_path('app/private/attachments'),
+            'throw' => false,
+            'report' => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),
