@@ -8,7 +8,10 @@ use App\Http\Auth\CreateNewUser;
 use App\Http\Auth\ResetUserPassword;
 use App\Http\Auth\UpdateUserPassword;
 use App\Http\Auth\UpdateUserProfileInformation;
+use App\Http\Docs\FortifyOperationDocs;
 use App\Models\Platform\User;
+use Dedoc\Scramble\Scramble;
+use Dedoc\Scramble\Support\Generator\OpenApi;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -22,6 +25,11 @@ final class FortifyServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
+        // Fortify's vendor controllers are not readable by Scramble; document them explicitly.
+        Scramble::configure()->withOperationTransformers(FortifyOperationDocs::class);
+        // Scramble still derives a component from Fortify's LoginRequest before the override; nothing refers to it any more.
+        Scramble::afterOpenApiGenerated(fn (OpenApi $openApi) => $openApi->components->removeSchema('LoginRequest'));
+
         Fortify::createUsersUsing(CreateNewUser::class);
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
         // Views are off; the reset link opens the SPA's /reset-password/{token} (02_AppFlow §2).

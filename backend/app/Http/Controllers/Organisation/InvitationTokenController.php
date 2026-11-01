@@ -13,6 +13,7 @@ use App\Http\Auth\PasswordRules;
 use App\Http\Controllers\Controller;
 use App\Http\Middleware\AssignRequestId;
 use App\Http\Middleware\ResolveTenant;
+use App\Http\Resources\InvitationPreviewResource;
 use App\Models\Organisation\Invitation;
 use App\Models\Platform\Tenant;
 use App\Models\Platform\User;
@@ -33,7 +34,7 @@ final class InvitationTokenController extends Controller
 {
     public function __construct(private readonly FindInvitationByToken $find, private readonly TenantContext $tenant) {}
 
-    public function show(string $token, Clock $clock): JsonResponse
+    public function show(string $token, Clock $clock): InvitationPreviewResource
     {
         [$tenant, $invitation] = $this->resolve($token);
 
@@ -48,7 +49,7 @@ final class InvitationTokenController extends Controller
             };
         }
 
-        return response()->json(['data' => [
+        return new InvitationPreviewResource([
             'organisation' => $tenant->name,
             'email' => $invitation->email,
             'role' => $invitation->role,
@@ -57,7 +58,7 @@ final class InvitationTokenController extends Controller
             'expires_at' => $invitation->expires_at->toIso8601String(),
             // The SPA asks for a password (new account) or a sign-in (existing account).
             'account_exists' => User::query()->whereRaw('lower(email) = ?', [mb_strtolower($invitation->email)])->exists(),
-        ]]);
+        ]);
     }
 
     public function accept(Request $request, string $token, AcceptInvitation $action, IdGenerator $ids): JsonResponse

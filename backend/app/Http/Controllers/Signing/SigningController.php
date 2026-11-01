@@ -10,6 +10,7 @@ use App\Actions\Signing\SetSigningPin;
 use App\Actions\Signing\VerifySigningPin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Signing\SetSigningPinRequest;
+use App\Http\Resources\SigningGrantResource;
 use App\Http\Support\RequestActor;
 use App\Support\Signing\SigningGrants;
 use Illuminate\Http\JsonResponse;
@@ -30,12 +31,12 @@ final class SigningController extends Controller
     }
 
     #[Authorize('sign')]
-    public function verify(Request $request, VerifySigningPin $action): JsonResponse
+    public function verify(Request $request, VerifySigningPin $action): SigningGrantResource
     {
         $pin = (string) $request->validate(['pin' => ['required', 'string', 'digits:6']])['pin'];
         $expiresAt = $action->handle(RequestActor::user($request), new VerifySigningPinInput($pin, $request->session()->getId()));
 
-        return new JsonResponse(['data' => ['granted' => true, 'expires_at' => $expiresAt->format(DATE_RFC3339)]]);
+        return new SigningGrantResource(['granted' => true, 'expires_at' => $expiresAt->format(DATE_RFC3339)]);
     }
 
     #[Authorize('sign')]

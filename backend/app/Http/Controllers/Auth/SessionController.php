@@ -7,9 +7,9 @@ namespace App\Http\Controllers\Auth;
 use App\Domain\Shared\DomainRuleViolation;
 use App\Http\Controllers\Controller;
 use App\Http\Middleware\ResolveTenant;
+use App\Http\Resources\SessionResource;
 use App\Models\Platform\User;
 use App\Support\Tenancy\OrganisationRole;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\DB;
  */
 final class SessionController extends Controller
 {
-    public function me(Request $request): JsonResponse
+    public function me(Request $request): SessionResource
     {
         $user = $this->user($request);
         $current = $request->session()->get(ResolveTenant::SESSION_KEY);
@@ -41,18 +41,18 @@ final class SessionController extends Controller
                 ],
             ])->all();
 
-        return new JsonResponse(['data' => [
+        return new SessionResource([
             'id' => $user->id,
             'name' => $user->name,
             'email' => $user->email,
             'two_factor_enabled' => $user->two_factor_confirmed_at !== null,
             'signing_pin_set' => $user->signing_pin_hash !== null,
             'tenants' => $tenants,
-        ]]);
+        ]);
     }
 
     /** Switch the active organisation; regenerates the session id (fixation defence). */
-    public function switchTenant(Request $request): JsonResponse
+    public function switchTenant(Request $request): SessionResource
     {
         $user = $this->user($request);
         $tenantId = $request->validate(['tenant_id' => ['required', 'uuid']])['tenant_id'];
