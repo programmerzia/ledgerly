@@ -155,13 +155,6 @@ export const StatusPill: React.FC<StatusPillProps> = ({
       whoActsNext = explicitWho || 'Two Authorizers';
       break;
 
-    case 'queued':
-      pillClasses = 'bg-warning-soft text-warning border border-dashed border-warning/40';
-      defaultLabel = 'Queued';
-      meaning = 'Will post when online; sequence number assigned then.';
-      whoActsNext = explicitWho || 'Background Sync Engine';
-      break;
-
     default:
       pillClasses = 'bg-surface-neutral text-text-secondary';
       defaultLabel = status;

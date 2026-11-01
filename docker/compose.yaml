@@ -34,5 +34,61 @@ services:
       - "${LEDGERLY_MAILPIT_UI_PORT:-18025}:8025"
       - "${LEDGERLY_MAILPIT_SMTP_PORT:-11025}:1025"
 
+  # --- Application stack: `make up-app` (compose profile "app"). Not started by `make up`. ---
+  php-fpm:
+    profiles: ["app"]
+    build:
+      context: ./php
+    volumes:
+      - ../backend:/var/www/backend
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      REDIS_HOST: redis
+      MAIL_HOST: mailpit
+      MAIL_PORT: 1025
+      AWS_ENDPOINT: http://minio:9000
+      CLAMAV_HOST: clamav
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  nginx:
+    profiles: ["app"]
+    image: nginx:1.27-alpine
+    ports:
+      - "${LEDGERLY_WEB_PORT:-18080}:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ../frontend/dist:/var/www/frontend/dist:ro
+      - ../backend/public:/var/www/backend/public:ro
+    depends_on:
+      - php-fpm
+
+  minio:
+    profiles: ["app"]
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${LEDGERLY_MINIO_USER:-ledgerly_dev}
+      MINIO_ROOT_PASSWORD: ${LEDGERLY_MINIO_PASSWORD:-ledgerly_dev_secret}
+    ports:
+      - "${LEDGERLY_MINIO_PORT:-19000}:9000"
+      - "${LEDGERLY_MINIO_CONSOLE_PORT:-19001}:9001"
+    volumes:
+      - miniodata:/data
+
+  clamav:
+    profiles: ["app"]
+    image: clamav/clamav:stable
+    ports:
+      - "${LEDGERLY_CLAMAV_PORT:-13310}:3310"
+    volumes:
+      - clamdata:/var/lib/clamav
+
 volumes:
   pgdata:
+  miniodata:
+  clamdata:

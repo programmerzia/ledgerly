@@ -1,0 +1,76 @@
+name: contract
+
+# Regenerates the OpenAPI document and the TS types and fails if the committed copies are stale.
+on:
+  push:
+    branches: [main]
+    paths: ['backend/**', 'docs/api/**', 'frontend/src/api/**', 'Makefile', '.github/workflows/contract.yml']
+  pull_request:
+    paths: ['backend/**', 'docs/api/**', 'frontend/src/api/**', 'Makefile', '.github/workflows/contract.yml']
+
+concurrency:
+  group: contract-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      POSTGRES_USER: postgres
+      PGPASSWORD: postgres
+      PGHOST: 127.0.0.1
+      PGPORT: '5432'
+      LEDGERLY_OWNER_PASSWORD: ci_owner
+      LEDGERLY_APP_PASSWORD: ci_app
+      LEDGERLY_REPORT_PASSWORD: ci_report
+      LEDGERLY_PLATFORM_PASSWORD: ci_platform
+    # Scramble introspects the schema while analysing routes, so it needs a migrated database.
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Bootstrap roles, extensions and databases
+        run: sh docker/postgres/init.sh
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: pgsql, pdo_pgsql, redis, intl, bcmath, sodium
+          coverage: none
+          tools: composer:v2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: composer install --no-interaction --prefer-dist --no-progress
+        working-directory: backend
+      - name: Environment
+        working-directory: backend
+        run: |
+          cp .env.example .env
+          php artisan key:generate --ansi
+          {
+            echo "DB_HOST=127.0.0.1"
+            echo "DB_PORT=5432"
+            echo "DB_PASSWORD=${LEDGERLY_APP_PASSWORD}"
+            echo "DB_OWNER_PASSWORD=${LEDGERLY_OWNER_PASSWORD}"
+            echo "DB_REPORT_PASSWORD=${LEDGERLY_REPORT_PASSWORD}"
+            echo "DB_PLATFORM_PASSWORD=${LEDGERLY_PLATFORM_PASSWORD}"
+            echo "CACHE_STORE=array"
+            echo "SESSION_DRIVER=array"
+          } >> .env
+          php artisan migrate --force --database=pgsql_owner
+      - run: make types
+      - name: Fail on drift
+        run: git diff --exit-code docs/api frontend/src/api

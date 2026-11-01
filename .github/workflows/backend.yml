@@ -1,0 +1,101 @@
+name: backend
+
+on:
+  push:
+    branches: [main]
+    paths: ['backend/**', 'docker/postgres/**', '.github/workflows/backend.yml']
+  pull_request:
+    paths: ['backend/**', 'docker/postgres/**', '.github/workflows/backend.yml']
+
+concurrency:
+  group: backend-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      # Throwaway CI credentials for the service container only; same variable names docker/postgres/init.sh reads.
+      POSTGRES_USER: postgres
+      PGPASSWORD: postgres
+      PGHOST: 127.0.0.1
+      PGPORT: '5432'
+      LEDGERLY_OWNER_PASSWORD: ci_owner
+      LEDGERLY_APP_PASSWORD: ci_app
+      LEDGERLY_REPORT_PASSWORD: ci_report
+      LEDGERLY_PLATFORM_PASSWORD: ci_platform
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+      redis:
+        image: redis:7-alpine
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+
+      # A service container cannot mount docker-entrypoint-initdb.d, so run the very same init script
+      # (roles, ledgerly + ledgerly_test databases, extensions, default privileges) against it.
+      - name: Bootstrap roles, extensions and databases
+        working-directory: .
+        run: sh docker/postgres/init.sh
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: pgsql, pdo_pgsql, redis, intl, bcmath, sodium, pcntl
+          coverage: none
+          tools: composer:v2
+
+      - name: Cache composer
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-${{ hashFiles('backend/composer.lock') }}
+          restore-keys: composer-
+
+      - run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate --ansi
+          {
+            echo "DB_HOST=127.0.0.1"
+            echo "DB_PORT=5432"
+            echo "DB_USERNAME=ledgerly_app"
+            echo "DB_PASSWORD=${LEDGERLY_APP_PASSWORD}"
+            echo "DB_OWNER_PASSWORD=${LEDGERLY_OWNER_PASSWORD}"
+            echo "DB_REPORT_PASSWORD=${LEDGERLY_REPORT_PASSWORD}"
+            echo "DB_PLATFORM_PASSWORD=${LEDGERLY_PLATFORM_PASSWORD}"
+            echo "REDIS_HOST=127.0.0.1"
+            echo "REDIS_PORT=6379"
+          } >> .env
+
+      - name: Pint
+        run: vendor/bin/pint --test
+
+      - name: PHPStan
+        run: vendor/bin/phpstan analyse --memory-limit=1G --no-progress
+
+      - name: Pest
+        run: composer test

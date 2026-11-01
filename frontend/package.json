@@ -1,7 +1,7 @@
 {
   "name": "ledgerly",
   "version": "1.0.0",
-  "description": "Controls-grade, multi-tenant general ledger with modern SaaS UX. Laravel 12 · Inertia 2 · React 19 / TypeScript · Tailwind 4 · PostgreSQL 16 (Row-Level Security) · Redis · Horizon.",
+  "description": "Controls-grade, multi-tenant general ledger with modern SaaS UX. Laravel 12 \u00b7 Inertia 2 \u00b7 React 19 / TypeScript \u00b7 Tailwind 4 \u00b7 PostgreSQL 16 (Row-Level Security) \u00b7 Redis \u00b7 Horizon.",
   "type": "module",
   "main": "index.js",
   "directories": {
@@ -11,7 +11,11 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "lint": "tools/lint/node_modules/.bin/eslint --config tools/lint/eslint.config.js src tests",
+    "lint:setup": "npm ci --prefix tools/lint",
+    "format:check": "tools/lint/node_modules/.bin/prettier --config tools/lint/prettierrc.json --check tools/lint/eslint.config.js tools/lint/prettierrc.json",
+    "format": "tools/lint/node_modules/.bin/prettier --config tools/lint/prettierrc.json --write"
   },
   "keywords": [],
   "author": "",

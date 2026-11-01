@@ -90,6 +90,19 @@ export const TenantDetail: React.FC = () => {
     'Met with CFO Kenneth Mwangi; requested SOC-2 Type II audit certificate.',
   ]);
 
+  // Proration Calculation Preview
+  const prorationPreview = useMemo(() => {
+    if (!tenant) return { credit: 0, newCharge: 0, net: 0 };
+    const currentAmount = tenant.subscription.amount;
+    const plan = plans.find((p) => p.code === targetPlanCode);
+    if (!plan) return { credit: 0, newCharge: 0, net: 0 };
+    const newPriceMonthly = plan.currentVersion.prices.USD?.monthly || 4900;
+    const newAmount = targetInterval === 'annual' ? plan.currentVersion.prices.USD?.annual || 49000 : newPriceMonthly;
+    const credit = Math.round(currentAmount * 0.45); // Unused time credit
+    const net = Math.max(0, newAmount - credit);
+    return { credit, newCharge: newAmount, net };
+  }, [tenant, targetPlanCode, targetInterval, plans]);
+
   if (!tenant) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
@@ -111,18 +124,6 @@ export const TenantDetail: React.FC = () => {
 
   // Tenant Audit Events
   const tenantAudit = auditEvents.filter((a) => a.tenantId === tenant.id);
-
-  // Proration Calculation Preview
-  const prorationPreview = useMemo(() => {
-    const currentAmount = tenant.subscription.amount;
-    const plan = plans.find((p) => p.code === targetPlanCode);
-    if (!plan) return { credit: 0, newCharge: 0, net: 0 };
-    const newPriceMonthly = plan.currentVersion.prices.USD?.monthly || 4900;
-    const newAmount = targetInterval === 'annual' ? plan.currentVersion.prices.USD?.annual || 49000 : newPriceMonthly;
-    const credit = Math.round(currentAmount * 0.45); // Unused time credit
-    const net = Math.max(0, newAmount - credit);
-    return { credit, newCharge: newAmount, net };
-  }, [tenant, targetPlanCode, targetInterval, plans]);
 
   // Actions
   const handleConfirmPlanChange = () => {

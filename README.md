@@ -102,3 +102,9 @@ npm run build
 - **[DEMO_SCRIPT.md](DEMO_SCRIPT.md)**: Comprehensive **14-step walkthrough** demonstrating the entire application end-to-end (login, controls validation, independent PIN signing, receipt allocation, bank reconciliation, period close, closed-period blocking, dual-approver reopen, journal reversal, offline sync with 409 conflict dialog, payment run with WHT, FX revaluation run, and Balance Sheet branch pivot).
 - **[MIGRATION_NOTES.md](MIGRATION_NOTES.md)**: Production migration blueprint covering the component readiness matrix, selector-to-SQL mapping, Laravel 11 REST API contract, and PostgreSQL 16 triggers, sequences, and Row-Level Security policies.
 - **Live Usability Tracker**: Press `Ctrl+Shift+U` or append `?usability` to the URL at any time to open the built-in usability telemetry drawer tracking demo step completion, timers, and friction events.
+
+---
+
+## Continuous integration
+
+GitHub Actions (no badges yet) live in `.github/workflows/`: `backend.yml` (Pint, PHPStan, Pest on PostgreSQL 16 + Redis), `frontend.yml` (ESLint, Prettier config check, `tsc`, Vitest, build on Node 22) and `contract.yml` (`make types`, fails if `docs/api` or `frontend/src/api` drift). Each is path-filtered so backend-only pushes skip the frontend jobs. Local equivalents: `make lint`, `make test`, `make types`; `make up-app` starts the full Docker stack. Run `npm install` at the repo root once to enable the Husky pre-commit hook (Pint and ESLint on staged files), and `cd frontend && npm run lint:setup` for the isolated lint toolchain.

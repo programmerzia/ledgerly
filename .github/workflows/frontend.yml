@@ -1,0 +1,45 @@
+name: frontend
+
+on:
+  push:
+    branches: [main]
+    paths: ['frontend/**', '.github/workflows/frontend.yml']
+  pull_request:
+    paths: ['frontend/**', '.github/workflows/frontend.yml']
+
+concurrency:
+  group: frontend-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            frontend/package-lock.json
+            frontend/tools/lint/package-lock.json
+      - run: npm ci
+      # Isolated lint toolchain (own TypeScript 5.9; typescript-eslint has no TS 7 support).
+      - run: npm run lint:setup
+      - name: ESLint
+        run: npm run lint
+      - name: Prettier (config files)
+        run: npm run format:check
+      - name: Typecheck
+        run: npx tsc --noEmit -p .
+      - name: Vitest
+        run: npm test
+      - name: Build
+        run: npm run build

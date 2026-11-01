@@ -1,0 +1,23 @@
+#!/bin/sh
+# Fast pre-commit (plan 0.3): pint and eslint on staged files, checks only. It never rewrites or re-stages
+# files, so hunks left unstaged on purpose stay out of the commit. No tests here; CI runs those.
+set -eu
+cd "$(git rev-parse --show-toplevel)"
+
+php_files=$(git diff --cached --name-only --diff-filter=ACM -- 'backend/*.php' | sed 's#^backend/##')
+if [ -n "$php_files" ]; then
+  echo "pint: staged PHP"
+  # shellcheck disable=SC2086
+  (cd backend && vendor/bin/pint --test $php_files)
+fi
+
+ts_files=$(git diff --cached --name-only --diff-filter=ACM -- 'frontend/*.ts' 'frontend/*.tsx' ':!frontend/src/api/*' | sed 's#^frontend/##')
+if [ -n "$ts_files" ]; then
+  if [ ! -x frontend/tools/lint/node_modules/.bin/eslint ]; then
+    echo "eslint not installed: run 'npm run lint:setup' in frontend/. Skipping." >&2
+    exit 0
+  fi
+  echo "eslint: staged TS"
+  # shellcheck disable=SC2086
+  (cd frontend && tools/lint/node_modules/.bin/eslint --config tools/lint/eslint.config.js --no-warn-ignored $ts_files)
+fi

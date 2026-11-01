@@ -12,3 +12,4 @@ node_modules/
 /.vscode
 *.log
 /frontend/dist
+/node_modules/
