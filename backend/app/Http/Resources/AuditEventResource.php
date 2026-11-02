@@ -20,6 +20,7 @@ final class AuditEventResource extends JsonResource
             'occurred_at' => Json::time($this->occurred_at),
             'actor_type' => $this->actor_type,
             'actor_id' => $this->actor_id,
+            'actor_name' => $this->actor_name,
             'action' => $this->action,
             'subject_type' => $this->subject_type,
             'subject_id' => $this->subject_id,

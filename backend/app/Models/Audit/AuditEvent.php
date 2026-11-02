@@ -15,6 +15,7 @@ use DateTimeImmutable;
  * @property string|null $company_id
  * @property string $actor_type
  * @property string|null $actor_id
+ * @property string|null $actor_name Only on the list query (a subselect); never stored or hashed.
  * @property string $action
  * @property string|null $subject_type
  * @property string|null $subject_id

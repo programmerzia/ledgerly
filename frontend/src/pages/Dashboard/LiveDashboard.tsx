@@ -14,12 +14,15 @@ import { isSetupComplete, loadSkipped } from '@/api/adapters/onboarding';
 import { describeError } from '@/api/messages';
 import { panelState, useLiveDashboard, type PanelState } from '@/data/dashboard';
 import { useSetupState } from '@/data/setup';
+import { useClosingCash, useMonthlyPnl, useRecentActivity, useYearStart } from '@/data/dashboardExtras';
 import { useMe } from '@/data/session';
 import { useCurrentCompany } from '@/data/team';
 import { KeyFigures, type Figure } from './widgets/KeyFigures';
 import { AttentionList, type AttentionRow } from './widgets/AttentionList';
 import { ReceivablesAging } from './widgets/ReceivablesAging';
 import { Card, CardHeader } from './widgets/Card';
+import { LiveIncomeExpense } from './widgets/LiveIncomeExpense';
+import { LiveActivity } from './widgets/LiveActivity';
 import { AGING_BUCKETS } from './useDashboardData';
 
 const plural = (n: string, one: string, many: string) => (n === '1' ? one : many);
@@ -35,6 +38,10 @@ export const LiveDashboard: React.FC = () => {
   const navigate = useNavigate();
   const me = useMe();
   const d = useLiveDashboard(company);
+  const yearStart = useYearStart(company, d.today);
+  const monthly = useMonthlyPnl(company, d.today, yearStart.data);
+  const cash = useClosingCash(company, d.today, yearStart.data);
+  const activity = useRecentActivity(company);
   const setup = useSetupState(company.id, me.data?.id ?? '');
   const [showChecklist, setShowChecklist] = useState(true);
   const co = `/${company.slug}`;
@@ -54,7 +61,14 @@ export const LiveDashboard: React.FC = () => {
     if (state === 'error') return { ...f, value: 'Unavailable', note: 'Could not load', valueClass: 'text-text-muted' };
     return { ...f, value: f.value(), note: f.note() };
   };
+  const cashState = panelState(cash);
   const figures = [
+    // The cash-flow report's closing cash; shown only when the server says it ties to the books.
+    cashState === 'ready' && !cash.data ? null : figure(cashState, {
+      label: 'Cash and bank', to: `${co}/banking`,
+      value: () => (cash.data ? formatMoney(cash.data.amount, cash.data.currency) : 'No data'),
+      note: () => `As of ${formatDate(d.today)}`,
+    }),
     figure(ar, {
       label: 'Owed to you', to: `${co}/invoices`,
       value: () => (d.ar.data ? formatMoney(d.ar.data.net.minor, d.ar.data.net.currency) : 'No data'),
@@ -159,6 +173,22 @@ export const LiveDashboard: React.FC = () => {
             }}
           />
         ))(d.ar.data)}
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+        {(() => {
+          if (yearStart.isError || monthly.error) return panelState({ isPending: false, isError: true, error: monthly.error ?? yearStart.error }) === 'hidden' ? null : (
+            <Card className="lg:col-span-7"><CardHeader title="Income vs expenses" /><Retry error={monthly.error ?? yearStart.error} onRetry={() => { void yearStart.refetch(); monthly.results.forEach((r) => void r.refetch()); }} /></Card>
+          );
+          if (monthly.pending) return <Card className="lg:col-span-7"><CardHeader title="Income vs expenses" /><p role="status" className="px-5 pb-5 text-[13px] text-text-muted">Loading…</p></Card>;
+          const all = monthly.ranges.flatMap((r, i) => { const pnl = monthly.results[i]?.data; return pnl ? [{ label: r.label, pnl }] : []; });
+          // Months before the first posting say nothing; leave them off (a comparison with zero, no arithmetic).
+          const quiet = (m: (typeof all)[number]) => m.pnl.revenue === 0 && m.pnl.otherIncome === 0 && m.pnl.costOfSales === 0 && m.pnl.operatingExpenses === 0 && m.pnl.otherExpenses === 0;
+          const first = all.findIndex((m) => !quiet(m));
+          const bars = first < 0 ? all : all.slice(first);
+          return bars.length > 0 ? <LiveIncomeExpense className="lg:col-span-7" months={bars} currency={bars[0].pnl.currency} to={`${co}/reports/profit-and-loss`} /> : null;
+        })()}
+        {panelState(activity) === 'ready' && <LiveActivity className="lg:col-span-5" rows={activity.data ?? []} co={co} />}
       </div>
 
       {banks !== 'hidden' && (

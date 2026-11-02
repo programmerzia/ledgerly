@@ -183,6 +183,8 @@ export const ApprovalsInboxLive: React.FC = () => {
 
       {inbox.isLoading ? (
         <LoadingLine what="approvals" />
+      ) : inbox.error instanceof ApiError && inbox.error.status === 403 ? (
+        <p role="alert" data-testid="approvals-forbidden" className="rounded-lg border border-border bg-surface p-4 text-[13px] text-text-secondary">Approvals are for people with an approver role.</p>
       ) : inbox.error ? (
         <div className="rounded-lg border border-border bg-surface">
           <ErrorLine error={inbox.error} onRetry={inbox.refetch} />

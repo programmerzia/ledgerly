@@ -4015,6 +4015,7 @@ export interface components {
             occurred_at: string | null;
             actor_type: string;
             actor_id: string | null;
+            actor_name: string | null;
             action: string;
             subject_type: string | null;
             subject_id: string | null;
