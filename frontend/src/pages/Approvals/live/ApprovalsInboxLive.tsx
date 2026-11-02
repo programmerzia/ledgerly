@@ -346,7 +346,13 @@ export const ApprovalsInboxLive: React.FC = () => {
                   <div className="truncate font-medium text-text-primary">{item.title}</div>
                   {row?.ok ? (
                     <div className="text-xs text-text-muted">
-                      {row.status === 'posted' ? 'Approved as' : 'Approval recorded, now'} <span className="font-medium text-text-secondary">{row.number ?? row.status}</span>
+                      {row.status === 'posted' && !row.number ? (
+                        'Approved'
+                      ) : (
+                        <>
+                          {row.status === 'posted' ? 'Approved as' : 'Approval recorded, now'} <span className="font-medium text-text-secondary">{row.number ?? row.status}</span>
+                        </>
+                      )}
                     </div>
                   ) : (
                     <div className="text-xs text-warning">Skipped: {row ? skipText(row) : 'no answer from the server'}</div>
