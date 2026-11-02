@@ -1,3 +1,5 @@
+import { selectByMode } from '@/data/select';
+import { BankAccountsLive } from './live/BankAccountsLive';
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useLedgerStore } from '@/mock/store';
@@ -32,7 +34,7 @@ import {
 } from '@/components/ui/sheet';
 import { toast } from 'sonner';
 
-export const BankAccountsList: React.FC = () => {
+const MockBankAccountsList: React.FC = () => {
   const navigate = useNavigate();
   const { currentCompany, bankAccounts, balanceOf, bankStatementLines, addBankAccount, ruleSuggestionFor } =
     useLedgerStore();
@@ -416,3 +418,5 @@ export const BankAccountsList: React.FC = () => {
     </div>
   );
 };
+
+export const BankAccountsList: React.FC = selectByMode({ mock: MockBankAccountsList, live: BankAccountsLive });

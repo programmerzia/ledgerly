@@ -52,22 +52,20 @@ import { AuditLog } from './pages/Accounting/AuditLog';
 import { BankAccountsList } from './pages/Banking/BankAccountsList';
 import { BankReconcile } from './pages/Banking/BankReconcile';
 import { BankRules } from './pages/Banking/BankRules';
+import { BankImportLive } from './pages/Banking/live/BankImportLive';
 import { RecurringInvoices } from './pages/Sales/RecurringInvoices';
+import { ReceiptViewLive } from './pages/Sales/live/ReceiptViewLive';
+import { InvoicesListLive } from './pages/Sales/live/InvoicesListLive';
+import { NewCreditNoteLive } from './pages/Sales/live/InvoiceFormLive';
 
 // Reports
-import { TrialBalance } from './pages/Reports/TrialBalance';
-import { ProfitAndLoss } from './pages/Reports/ProfitAndLoss';
-import { BalanceSheet } from './pages/Reports/BalanceSheet';
-import { AgingReport } from './pages/Reports/AgingReport';
-import { GeneralLedger } from './pages/Reports/GeneralLedger';
-import { TaxReturn } from './pages/Reports/TaxReturn';
+import { TrialBalanceScreen, ProfitAndLossScreen, BalanceSheetScreen, CashFlowScreen, AgingScreen, GeneralLedgerScreen, TaxReturnScreen, LiveStatement } from './pages/Reports/live/screens';
 
 // Settings
 import { CompanySettings } from './pages/Settings/CompanySettings';
 import { ImportWizard } from './pages/Settings/ImportWizard';
 import { OnboardingWizard } from './pages/Onboarding/OnboardingWizard';
 import { ItemsList } from './pages/Sales/ItemsList';
-import { CashFlow } from './pages/Reports/CashFlow';
 import { ClosePack } from './pages/Accounting/ClosePack';
 import { RecurringJournals } from './pages/Accounting/RecurringJournals';
 import { Toaster } from './components/ui/sonner';
@@ -179,6 +177,9 @@ export default function App() {
           <Route path="customers" element={<CustomersList />} />
           <Route path="customers/:id" element={<CustomerCard />} />
           <Route path="receipts/new" element={<ReceiptForm />} />
+          {IS_LIVE && <Route path="receipts/:id" element={<ReceiptViewLive />} />}
+          {IS_LIVE && <Route path="credit-notes" element={<InvoicesListLive initialTab="credit" />} />}
+          {IS_LIVE && <Route path="credit-notes/new" element={<NewCreditNoteLive />} />}
           <Route path="items" element={<ItemsList />} />
           <Route path="sales/items" element={<ItemsList />} />
 
@@ -212,16 +213,19 @@ export default function App() {
           {/* Banking */}
           <Route path="banking" element={<BankAccountsList />} />
           <Route path="banking/rules" element={<BankRules />} />
+          {IS_LIVE && <Route path="banking/import" element={<BankImportLive />} />}
           <Route path="banking/:id/reconcile" element={<BankReconcile />} />
 
           {/* Reports */}
-          <Route path="reports/trial-balance" element={<TrialBalance />} />
-          <Route path="reports/profit-and-loss" element={<ProfitAndLoss />} />
-          <Route path="reports/balance-sheet" element={<BalanceSheet />} />
-          <Route path="reports/cash-flow" element={<CashFlow />} />
-          <Route path="reports/aging" element={<AgingReport />} />
-          <Route path="reports/general-ledger" element={<GeneralLedger />} />
-          <Route path="reports/tax-return" element={<TaxReturn />} />
+          <Route path="reports/trial-balance" element={<TrialBalanceScreen />} />
+          <Route path="reports/profit-and-loss" element={<ProfitAndLossScreen />} />
+          <Route path="reports/balance-sheet" element={<BalanceSheetScreen />} />
+          <Route path="reports/cash-flow" element={<CashFlowScreen />} />
+          <Route path="reports/aging" element={<AgingScreen />} />
+          <Route path="reports/general-ledger" element={<GeneralLedgerScreen />} />
+          <Route path="reports/tax-return" element={<TaxReturnScreen />} />
+          {IS_LIVE && <Route path="reports/customer-statement" element={<LiveStatement side="customer" />} />}
+          {IS_LIVE && <Route path="reports/supplier-statement" element={<LiveStatement side="supplier" />} />}
 
           {/* Settings & Audit */}
           <Route path="settings" element={IS_LIVE ? <Navigate to="security" replace /> : <CompanySettings />} />

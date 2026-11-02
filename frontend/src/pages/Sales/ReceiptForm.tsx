@@ -1,3 +1,5 @@
+import { selectByMode } from '@/data/select';
+import { ReceiptFormLive } from './live/ReceiptFormLive';
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '@/mock/api';
@@ -11,7 +13,7 @@ import { Send, DollarSign } from 'lucide-react';
 import { toast } from 'sonner';
 import { PageHeader } from '@/components/domain/PageHeader';
 
-export const ReceiptForm: React.FC = () => {
+const MockReceiptForm: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { currentCompany, contacts, bankAccounts, invoices } = useLedgerStore();
@@ -419,3 +421,6 @@ export const ReceiptForm: React.FC = () => {
     </div>
   );
 };
+
+/** The demo keeps its store-backed screen; live mode reads the API (docs/15). */
+export const ReceiptForm: React.FC = selectByMode({ mock: MockReceiptForm, live: ReceiptFormLive });

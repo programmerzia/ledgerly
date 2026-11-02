@@ -1,3 +1,5 @@
+import { selectByMode } from '@/data/select';
+import { InvoiceViewLive } from './live/InvoiceViewLive';
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '@/mock/api';
@@ -23,7 +25,7 @@ import {
 import { BTN_SECONDARY } from './invoice-view/shared';
 
 /** Loads the invoice (store first, then API) and hands it to the detail page. */
-export const InvoiceView: React.FC = () => {
+const MockInvoiceView: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { currentCompany, invoices } = useLedgerStore();
@@ -363,3 +365,6 @@ const InvoiceDetail: React.FC<{ invoice: Invoice; setInvoice: (i: Invoice) => vo
     </div>
   );
 };
+
+/** The demo keeps its store-backed screen; live mode reads the API (docs/15). */
+export const InvoiceView: React.FC = selectByMode({ mock: MockInvoiceView, live: InvoiceViewLive });

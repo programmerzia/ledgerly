@@ -1,3 +1,5 @@
+import { selectByMode } from '@/data/select';
+import { CustomersListLive } from './live/CustomersListLive';
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLedgerStore } from '@/mock/store';
@@ -20,7 +22,7 @@ import {
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 
-export const CustomersList: React.FC = () => {
+const MockCustomersList: React.FC = () => {
   const navigate = useNavigate();
   const { currentCompany, contacts, invoices, contactBalance, contactOverdueBalance, addContact, openTab, uiDensity } =
     useLedgerStore();
@@ -498,3 +500,6 @@ export const CustomersList: React.FC = () => {
     </div>
   );
 };
+
+/** The demo keeps its store-backed screen; live mode reads the API (docs/15). */
+export const CustomersList: React.FC = selectByMode({ mock: MockCustomersList, live: CustomersListLive });

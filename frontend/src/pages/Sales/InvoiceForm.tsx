@@ -1,3 +1,5 @@
+import { selectByMode } from '@/data/select';
+import { InvoiceFormLive } from './live/InvoiceFormLive';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '@/mock/api';
@@ -13,7 +15,7 @@ import { ArrowLeft, Save, Send, AlertTriangle, ShieldCheck, History } from 'luci
 
 import { toast } from 'sonner';
 
-export const InvoiceForm: React.FC = () => {
+const MockInvoiceForm: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { currentCompany, contacts, accounts, dimensions, taxCodes, invoices, items } = useLedgerStore();
@@ -599,3 +601,6 @@ export const InvoiceForm: React.FC = () => {
     </div>
   );
 };
+
+/** The demo keeps its store-backed screen; live mode reads the API (docs/15). */
+export const InvoiceForm: React.FC = selectByMode({ mock: MockInvoiceForm, live: InvoiceFormLive });

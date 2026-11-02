@@ -1,3 +1,5 @@
+import { selectByMode } from '@/data/select';
+import { InvoicesListLive } from './live/InvoicesListLive';
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ColumnDef } from '@tanstack/react-table';
@@ -17,7 +19,7 @@ import { toast } from 'sonner';
 import { api } from '@/mock/api';
 import { StatusSummaryStrip, DueCell } from './StatusSummaryStrip';
 
-export const InvoicesList: React.FC = () => {
+const MockInvoicesList: React.FC = () => {
   const navigate = useNavigate();
   const { invoices, contacts, currentCompany, uiDensity, openTab, recurringSchedules } = useLedgerStore();
   const activeSchedules = recurringSchedules.filter((r) => r.is_active).length;
@@ -470,3 +472,6 @@ export const InvoicesList: React.FC = () => {
     </div>
   );
 };
+
+/** The demo keeps its store-backed screen; live mode reads the API (docs/15). */
+export const InvoicesList: React.FC = selectByMode({ mock: MockInvoicesList, live: InvoicesListLive });

@@ -121,12 +121,16 @@ export class HttpClient {
       if (key) headers[IDEMPOTENCY_HEADER] = key;
     }
     let payload: string | undefined;
-    if (body !== undefined) {
+    let form: FormData | undefined;
+    if (typeof FormData !== 'undefined' && body instanceof FormData) {
+      // Multipart upload: the browser sets the Content-Type with its boundary.
+      form = body;
+    } else if (body !== undefined) {
       headers['Content-Type'] = 'application/json';
       payload = JSON.stringify(body);
     }
     try {
-      return await this.cfg.fetch(url, { method, headers, body: payload, credentials: 'include', signal });
+      return await this.cfg.fetch(url, { method, headers, body: form ?? payload, credentials: 'include', signal });
     } catch (e) {
       if (e instanceof DOMException && e.name === 'AbortError') throw e;
       throw new NetworkError(e);

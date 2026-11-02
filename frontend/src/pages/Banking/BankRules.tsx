@@ -1,3 +1,5 @@
+import { selectByMode } from '@/data/select';
+import { BankRulesLive } from './live/BankRulesLive';
 import React, { useMemo, useState } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import { ArrowDown, ArrowUp, Copy, Pencil, Plus, Trash2 } from 'lucide-react';
@@ -12,7 +14,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import type { BankRule } from '@/types';
 import { RuleDialog } from './reconcile/RuleDialog';
 
-export const BankRules: React.FC = () => {
+const MockBankRules: React.FC = () => {
   const { bankRules, accounts, taxCodes, contacts, currentCompany, updateBankRule, deleteBankRule } = useLedgerStore();
   const [editing, setEditing] = useState<BankRule | undefined>();
   const [template, setTemplate] = useState<Partial<BankRule> | undefined>();
@@ -187,3 +189,5 @@ export const BankRules: React.FC = () => {
     </div>
   );
 };
+
+export const BankRules: React.FC = selectByMode({ mock: MockBankRules, live: BankRulesLive });

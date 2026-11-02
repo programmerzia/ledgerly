@@ -231,7 +231,10 @@ describe('live route allowlist', () => {
     expect(isLiveRoute('/acme/onboarding')).toBe(true);
     expect(isLiveRoute('/acme/settings/security')).toBe(true);
     expect(isLiveRoute('/acme/settings/import')).toBe(false);
-    expect(isLiveRoute('/acme/invoices')).toBe(false);
-    expect(isLiveRoute('/accounts/invoices')).toBe(false);
+    expect(isLiveRoute('/acme/bills')).toBe(false);
+    // sales (3.5)
+    for (const r of ['invoices', 'invoices/new', 'customers', 'credit-notes', 'credit-notes/new', 'receipts/new', 'customers/01a19a52-30f1-70e3-aaea-ff42efaac3b9', 'invoices/01a19a52-30f1-70e3-aaea-ff42efaac3b9', 'receipts/01a19a52-30f1-70e3-aaea-ff42efaac3b9']) expect(isLiveRoute(`/acme/${r}`)).toBe(true);
+    for (const r of ['invoices/recurring', 'receipts', 'sales/items', 'items']) expect(isLiveRoute(`/acme/${r}`)).toBe(false);
+    expect(isLiveRoute('/accounts/bills')).toBe(false);
   });
 });

@@ -1,3 +1,5 @@
+import { selectByMode } from '@/data/select';
+import { BankReconcileLive } from './live/BankReconcileLive';
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { api } from '@/mock/api';
@@ -24,7 +26,7 @@ import {
   TooltipContent,
 } from '@/components/ui/tooltip';
 
-export const BankReconcile: React.FC = () => {
+const MockBankReconcile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const {
@@ -560,3 +562,5 @@ export const BankReconcile: React.FC = () => {
     </div>
   );
 };
+
+export const BankReconcile: React.FC = selectByMode({ mock: MockBankReconcile, live: BankReconcileLive });

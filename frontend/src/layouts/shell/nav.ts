@@ -49,6 +49,10 @@ export const buildNavSections = (coSlug: string, pendingApprovalsCount: number):
       { label: 'Cash flow', to: `/${coSlug}/reports/cash-flow`, icon: BarChart3 },
       { label: 'Aged receivables & payables', to: `/${coSlug}/reports/aging`, icon: BarChart3 },
       { label: 'Trial balance', to: `/${coSlug}/reports/trial-balance`, icon: BarChart3 },
+      ...(IS_LIVE ? [
+        { label: 'Customer statement', to: `/${coSlug}/reports/customer-statement`, icon: FileSpreadsheet },
+        { label: 'Supplier statement', to: `/${coSlug}/reports/supplier-statement`, icon: FileSpreadsheet },
+      ] : []),
       { label: 'General ledger', to: `/${coSlug}/reports/general-ledger`, icon: BookMarked },
       { label: 'VAT return', to: `/${coSlug}/reports/tax-return`, icon: FileSpreadsheet },
     ],
