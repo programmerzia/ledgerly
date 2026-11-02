@@ -6,6 +6,8 @@ import {
   Repeat,
   Wand2,
   Percent,
+  ShoppingCart,
+  PackageCheck,
 } from 'lucide-react';
 
 export type NavIcon = React.ComponentType<{ className?: string }>;
@@ -32,6 +34,11 @@ export const buildNavSections = (coSlug: string, pendingApprovalsCount: number):
   {
     id: 'purchases', title: 'Purchases',
     items: [
+      ...(IS_LIVE ? [
+        { label: 'Requisitions', to: `/${coSlug}/requisitions`, icon: ClipboardList },
+        { label: 'Purchase orders', to: `/${coSlug}/purchase-orders`, icon: ShoppingCart },
+        { label: 'Receipts', to: `/${coSlug}/goods-receipts`, icon: PackageCheck },
+      ] : []),
       { label: 'Bills', to: `/${coSlug}/bills`, icon: FileText },
       { label: 'Suppliers', to: `/${coSlug}/suppliers`, icon: Building },
       { label: 'Pay bills', to: `/${coSlug}/payment-run`, icon: Coins },
@@ -39,6 +46,7 @@ export const buildNavSections = (coSlug: string, pendingApprovalsCount: number):
       ...(IS_LIVE ? [
         { label: 'Debit notes', to: `/${coSlug}/debit-notes`, icon: FileText },
         { label: 'Recurring bills', to: `/${coSlug}/bills/recurring`, icon: Repeat },
+        { label: 'Procurement reports', to: `/${coSlug}/procurement/reports`, icon: BarChart3 },
       ] : []),
     ],
   },

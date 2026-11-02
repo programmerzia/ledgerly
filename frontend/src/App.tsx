@@ -61,6 +61,16 @@ import { NewCreditNoteLive } from './pages/Sales/live/InvoiceFormLive';
 import { BillsListLive, PaymentFormLive, PaymentViewLive, RecurringBillsLive } from './pages/Purchases/live';
 import { PaymentRunFormLive } from './pages/Purchases/live/PaymentRunFormLive';
 import { PaymentRunViewLive } from './pages/Purchases/live/PaymentRunViewLive';
+import { RequisitionsList } from './pages/Procurement/RequisitionsList';
+import { RequisitionForm } from './pages/Procurement/RequisitionForm';
+import { RequisitionView } from './pages/Procurement/RequisitionView';
+import { OrdersList } from './pages/Procurement/OrdersList';
+import { OrderForm, RevisionForm } from './pages/Procurement/OrderForm';
+import { OrderView } from './pages/Procurement/OrderView';
+import { ReceiptForm as GoodsReceiptForm } from './pages/Procurement/ReceiptForm';
+import { ReceiptsList } from './pages/Procurement/ReceiptsList';
+import { ReceiptView } from './pages/Procurement/ReceiptView';
+import { ProcurementReports } from './pages/Procurement/ProcurementReports';
 import { TaxLive } from './pages/Tax/live/TaxLive';
 
 // Reports
@@ -205,6 +215,21 @@ export default function App() {
           {IS_LIVE && <Route path="payment-run/:id" element={<PaymentRunViewLive />} />}
           <Route path="wht-certificates" element={<WhtCertificatesList />} />
           {IS_LIVE && <Route path="tax" element={<TaxLive />} />}
+
+          {/* Procurement (live only) */}
+          {IS_LIVE && <Route path="requisitions" element={<RequisitionsList />} />}
+          {IS_LIVE && <Route path="requisitions/new" element={<RequisitionForm />} />}
+          {IS_LIVE && <Route path="requisitions/:id/edit" element={<RequisitionForm />} />}
+          {IS_LIVE && <Route path="requisitions/:id" element={<RequisitionView />} />}
+          {IS_LIVE && <Route path="purchase-orders" element={<OrdersList />} />}
+          {IS_LIVE && <Route path="purchase-orders/new" element={<OrderForm />} />}
+          {IS_LIVE && <Route path="purchase-orders/:id/edit" element={<OrderForm />} />}
+          {IS_LIVE && <Route path="purchase-orders/:id/revise" element={<RevisionForm />} />}
+          {IS_LIVE && <Route path="purchase-orders/:id/receive" element={<GoodsReceiptForm />} />}
+          {IS_LIVE && <Route path="purchase-orders/:id" element={<OrderView />} />}
+          {IS_LIVE && <Route path="goods-receipts" element={<ReceiptsList />} />}
+          {IS_LIVE && <Route path="goods-receipts/:id" element={<ReceiptView />} />}
+          {IS_LIVE && <Route path="procurement/reports" element={<ProcurementReports />} />}
 
           {/* Approvals */}
           <Route path="approvals" element={<ApprovalsInbox />} />
