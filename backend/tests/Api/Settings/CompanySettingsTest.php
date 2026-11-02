@@ -56,3 +56,18 @@ it('uses the posting accounts that were set when a settlement posts', function (
     $this->postedSettlement('receipt', $this->t->customer, 11000, [[$invoice['id'], 11000]]);
     expect($this->document('invoices', $invoice['id'])['payment_status'])->toBe('paid');
 });
+
+it('sets the bank transaction limit, and answers 409 to a stale version', function (): void {
+    $this->asPerson($this->owner);
+    $version = $this->getJson($this->api('settings'))->assertOk()->assertJsonPath('data.journal_threshold', null)->json('data.version');
+
+    $this->putJson($this->api('settings'), ['journal_threshold' => 500000, 'version' => $version], $this->key())->assertOk()
+        ->assertJsonPath('data.journal_threshold.amount', 500000)->assertJsonPath('data.version', $version + 1);
+    $this->putJson($this->api('settings'), ['name' => 'Stale', 'version' => $version], $this->key())
+        ->assertStatus(409)->assertJson(['code' => 'version_conflict', 'server_version' => $version + 1]);
+
+    // Changing something else leaves it, and null takes it off.
+    $this->putJson($this->api('settings'), ['name' => 'Fresh'], $this->key())->assertOk()->assertJsonPath('data.journal_threshold.amount', 500000);
+    $this->putJson($this->api('settings'), ['journal_threshold' => null], $this->key())->assertOk()->assertJsonPath('data.journal_threshold', null);
+    $this->putJson($this->api('settings'), ['journal_threshold' => -1], $this->key())->assertStatus(422)->assertJsonValidationErrors(['journal_threshold']);
+});

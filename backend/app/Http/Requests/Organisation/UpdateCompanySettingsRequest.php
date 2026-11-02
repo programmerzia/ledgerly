@@ -6,6 +6,7 @@ namespace App\Http\Requests\Organisation;
 
 use App\Actions\Organisation\Inputs\CompanySettingsInput;
 use App\Actions\Organisation\UpdateCompanySettings;
+use App\Domain\Ledger\PostingValidator;
 use App\Http\Requests\CompanyRequest;
 use Illuminate\Validation\Rule;
 
@@ -22,6 +23,10 @@ final class UpdateCompanySettingsRequest extends CompanyRequest
             'timezone' => ['sometimes', 'required', 'string', 'timezone:all'],
             'locale' => ['sometimes', 'required', 'string', 'max:16', 'regex:/^[a-z]{2}([_-][A-Za-z]{2,4})?$/'],
             'tax_rounding' => ['sometimes', 'required', 'string', Rule::in(['document_per_code', 'line'])],
+            /** Whole minor units of the base currency. Above it a bank transaction needs a covering journal workflow; null: no limit. */
+            'journal_threshold' => ['sometimes', 'nullable', 'integer', 'min:0', 'max:'.PostingValidator::MAX_AMOUNT],
+            /** Send what you loaded: a stale value answers 409. */
+            'version' => ['sometimes', 'integer', 'min:0'],
             'posting_accounts' => ['sometimes', 'array:'.implode(',', array_keys(UpdateCompanySettings::POSTING_KEYS))],
             'country' => ['prohibited'],
             'base_currency' => ['prohibited'],
@@ -43,6 +48,10 @@ final class UpdateCompanySettingsRequest extends CompanyRequest
             $posting[(string) $key] = $id === null ? null : (string) $id;
         }
 
-        return new CompanySettingsInput($this->company()->id, $profile, isset($v['tax_rounding']) ? (string) $v['tax_rounding'] : null, $posting);
+        return new CompanySettingsInput(
+            $this->company()->id, $profile, isset($v['tax_rounding']) ? (string) $v['tax_rounding'] : null, $posting,
+            isset($v['version']) ? (int) $v['version'] : null,
+            array_key_exists('journal_threshold', $v), isset($v['journal_threshold']) ? (int) $v['journal_threshold'] : null,
+        );
     }
 }

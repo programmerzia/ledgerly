@@ -15,6 +15,7 @@ use App\Support\UnitOfWork\AuditBuffer;
 use App\Support\UnitOfWork\LockSet;
 use App\Support\UnitOfWork\Outbox;
 use App\Support\UnitOfWork\UnitOfWork;
+use App\Support\UnitOfWork\VersionConflict;
 
 /**
  * Company profile, tax rounding and posting accounts (`settings.manage`, people only). Country and base currency are set
@@ -45,6 +46,10 @@ final class UpdateCompanySettings
             $company = Company::query()->whereKey($in->companyId)->lockForUpdate()->firstOrFail();
             $settings = CompanySettings::query()->where('company_id', $in->companyId)->lockForUpdate()->first()
                 ?? (new CompanySettings)->forceFill(['tenant_id' => $actor->tenantId, 'company_id' => $in->companyId]);
+            $server = (int) ($settings->getAttribute('lock_version') ?? 0);
+            if ($in->version !== null && $in->version !== $server) {
+                throw new VersionConflict($server, $in->version);
+            }
             $before = ['company' => $company->only(array_keys($in->profile)), 'settings' => $settings->only(['tax_rounding', 'posting_accounts'])];
 
             if ($in->profile !== []) {
@@ -67,7 +72,12 @@ final class UpdateCompanySettings
             if ($in->taxRounding !== null) {
                 $settings->forceFill(['tax_rounding' => $in->taxRounding]);
             }
-            $settings->save();
+            if ($in->setsJournalThreshold) {
+                $defaults = $settings->getAttribute('approval_defaults');
+                $defaults = is_array($defaults) ? $defaults : [];
+                $settings->forceFill(['approval_defaults' => array_filter(['journal_threshold' => $in->journalThreshold] + $defaults, fn ($v) => $v !== null)]);
+            }
+            $settings->forceFill(['lock_version' => $server + 1])->save();
             $settings->refresh();
 
             $audit->add('company_settings.updated', $company, before: $before, after: ['company' => $company->only(array_keys($in->profile)), 'settings' => $settings->only(['tax_rounding', 'posting_accounts'])]);

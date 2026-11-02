@@ -16,5 +16,8 @@ final readonly class CompanySettingsInput
         public array $profile = [],
         public ?string $taxRounding = null,
         public array $postingAccounts = [],
+        public ?int $version = null,
+        public bool $setsJournalThreshold = false,
+        public ?int $journalThreshold = null,
     ) {}
 }

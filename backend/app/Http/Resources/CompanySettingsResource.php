@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Resources;
 
 use App\Actions\Organisation\UpdateCompanySettings;
+use App\Http\Support\Json;
 use App\Models\Ledger\Account;
 use App\Models\Organisation\Company;
 use App\Models\Organisation\CompanySettings;
@@ -29,6 +30,8 @@ final class CompanySettingsResource extends JsonResource
             ->where(fn ($q) => $q->whereIn('id', array_filter($stored, fn ($v) => preg_match('/^[0-9a-f-]{36}$/', (string) $v) === 1))->orWhereIn('code', array_values($stored)))->get();
 
         $posting = $this->postingAccounts($stored, $accounts);
+        $defaults = $settings === null ? [] : $settings->getAttribute('approval_defaults');
+        $threshold = is_array($defaults) && isset($defaults['journal_threshold']) ? (int) $defaults['journal_threshold'] : null;
 
         return [
             'company_id' => $this->id,
@@ -42,6 +45,9 @@ final class CompanySettingsResource extends JsonResource
             'fiscal_year_start_month' => $this->fiscal_year_start_month,
             'tax_rounding' => $settings === null ? 'document_per_code' : $settings->tax_rounding,
             'posting_accounts' => $posting,
+            /** Above it a bank transaction needs a covering journal workflow; null: no limit. */
+            'journal_threshold' => $threshold === null ? null : Json::money($threshold, $this->base_currency),
+            'version' => $settings === null ? 0 : (int) $settings->getAttribute('lock_version'),
             'can' => ['update' => (bool) $request->user()?->can('update', $this->resource)],
         ];
     }

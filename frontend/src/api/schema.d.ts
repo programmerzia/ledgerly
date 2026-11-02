@@ -3786,6 +3786,12 @@ export interface components {
                     name: string;
                 } | null;
             };
+            /** @description Above it a bank transaction needs a covering journal workflow; null: no limit. */
+            journal_threshold: {
+                amount: number | null;
+                currency: string;
+            } | null;
+            version: number;
             can: {
                 [key: string]: boolean;
             };

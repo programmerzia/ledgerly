@@ -21182,6 +21182,31 @@
                             ]
                         }
                     },
+                    "journal_threshold": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "description": "Above it a bank transaction needs a covering journal workflow; null: no limit.",
+                        "properties": {
+                            "amount": {
+                                "type": [
+                                    "integer",
+                                    "null"
+                                ]
+                            },
+                            "currency": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "amount",
+                            "currency"
+                        ]
+                    },
+                    "version": {
+                        "type": "integer"
+                    },
                     "can": {
                         "type": "object",
                         "additionalProperties": {
@@ -21201,6 +21226,8 @@
                     "fiscal_year_start_month",
                     "tax_rounding",
                     "posting_accounts",
+                    "journal_threshold",
+                    "version",
                     "can"
                 ],
                 "title": "CompanySettingsResource"
