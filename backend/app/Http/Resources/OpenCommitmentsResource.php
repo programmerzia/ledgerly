@@ -11,8 +11,6 @@ use Illuminate\Http\Resources\Json\JsonResource;
 /**
  * Open commitments by supplier and account: what is ordered and not yet billed, net of tax, in the order's currency
  * and in base currency. Reporting only; nothing is posted for it.
- *
- * @mixin \stdClass
  */
 final class OpenCommitmentsResource extends JsonResource
 {
@@ -38,7 +36,7 @@ final class OpenCommitmentsResource extends JsonResource
                 'open_fc' => Json::money((int) $row['open_fc'], (string) $row['currency']),
                 'open_base' => Json::money((int) $row['open_base'], $base),
             ], $r['rows']),
-            'meta' => ['total_base' => Json::money($r['total_base'], $base)],
+            'meta' => ['total_base' => Json::money((int) $r['total_base'], $base)],
         ];
     }
 }

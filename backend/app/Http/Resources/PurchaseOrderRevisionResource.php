@@ -26,11 +26,8 @@ final class PurchaseOrderRevisionResource extends JsonResource
             'revision_no' => $this->revision_no,
             'status' => $this->status->value,
             'reason' => $this->reason,
-            /** @var array<string, mixed> */
             'proposed' => $this->proposed,
-            /** @var array<string, mixed>|null */
             'before' => $this->before,
-            /** @var array<string, mixed>|null */
             'after' => $this->after,
             'total' => Json::money($this->total, Json::baseCurrency($request)),
             'created_by' => $this->created_by,

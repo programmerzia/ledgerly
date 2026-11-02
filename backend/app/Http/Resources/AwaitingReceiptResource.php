@@ -10,8 +10,6 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
  * Order lines with goods still to come, soonest expected first. Quantities are decimal strings.
- *
- * @mixin \stdClass
  */
 final class AwaitingReceiptResource extends JsonResource
 {
@@ -37,7 +35,7 @@ final class AwaitingReceiptResource extends JsonResource
                 'open_fc' => Json::money((int) $row['open_fc'], (string) $row['currency']),
                 'open_base' => Json::money((int) $row['open_base'], $base),
             ], $r['rows']),
-            'meta' => ['total_base' => Json::money($r['total_base'], $base)],
+            'meta' => ['total_base' => Json::money((int) $r['total_base'], $base)],
         ];
     }
 }

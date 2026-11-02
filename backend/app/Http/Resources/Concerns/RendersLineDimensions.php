@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Resources\Concerns;
 
 use App\Http\Support\Json;
+use App\Models\Procurement\PurchaseOrderLine;
+use App\Models\Procurement\PurchaseRequisitionLine;
 use App\Queries\Ledger\DimensionPositions;
 use Illuminate\Http\Request;
 
@@ -12,7 +14,7 @@ use Illuminate\Http\Request;
 trait RendersLineDimensions
 {
     /** @return array<string, string> */
-    private function lineDimensions(Request $request, object $line): array
+    private function lineDimensions(Request $request, PurchaseOrderLine|PurchaseRequisitionLine $line): array
     {
         /** @var array<int, string>|null $positions */
         $positions = $request->attributes->get('dimension_positions');

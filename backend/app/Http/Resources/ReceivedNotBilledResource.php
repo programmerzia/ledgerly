@@ -11,8 +11,6 @@ use Illuminate\Http\Resources\Json\JsonResource;
 /**
  * Goods received and not yet on a posted bill, as of a date: what a manual month-end accrual is worked out from.
  * Valued net of tax at the order price, in the order's currency and in base currency at the order's rate.
- *
- * @mixin \stdClass
  */
 final class ReceivedNotBilledResource extends JsonResource
 {
@@ -38,7 +36,7 @@ final class ReceivedNotBilledResource extends JsonResource
                 'unbilled_fc' => Json::money((int) $row['unbilled_fc'], (string) $row['currency']),
                 'unbilled_base' => Json::money((int) $row['unbilled_base'], $base),
             ], $r['rows']),
-            'meta' => ['as_of' => $r['as_of'], 'total_base' => Json::money($r['total_base'], $base)],
+            'meta' => ['as_of' => (string) $r['as_of'], 'total_base' => Json::money((int) $r['total_base'], $base)],
         ];
     }
 }

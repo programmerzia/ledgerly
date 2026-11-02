@@ -57,7 +57,11 @@ final class ListPurchaseDocuments
         return PurchaseOrderRevision::query()->where('purchase_order_id', $orderId);
     }
 
-    /** Bills with a line on this order. @return Builder<Invoice> */
+    /**
+     * Bills with a line on this order.
+     *
+     * @return Builder<Invoice>
+     */
     public function billsOf(string $orderId): Builder
     {
         return Invoice::query()->whereHas('lines', fn ($q) => $q->whereIn('purchase_order_line_id', fn ($s) => $s->select('id')->from('purchase_order_lines')->where('purchase_order_id', $orderId)));

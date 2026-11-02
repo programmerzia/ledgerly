@@ -32,7 +32,7 @@ final class PurchaseRequisitionLineResource extends JsonResource
             /** @var array<string, string> dimension id → dimension value id */
             'dimensions' => (object) $this->lineDimensions($request, $this->resource),
             'needed_by' => Json::date($this->needed_by),
-            /** The live (not cancelled) order this line is on, if any. */
+            /** @var array{id: string, number: string|null}|null the live (not cancelled) order this line is on, if any */
             'purchase_order' => $this->resource->getRelation('liveOrder'),
         ];
     }
