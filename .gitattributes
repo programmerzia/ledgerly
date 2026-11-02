@@ -1,0 +1,2 @@
+# Bank statement fixtures keep their exact bytes: parsers must cope with CRLF files as banks send them.
+backend/tests/fixtures/bank/* -text
