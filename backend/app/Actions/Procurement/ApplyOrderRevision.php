@@ -62,13 +62,11 @@ final class ApplyOrderRevision
             $kept = array_values(array_filter(array_map(fn ($l) => $l->id, $in->lines)));
             PurchaseOrderLine::query()->where('purchase_order_id', $order->id)->whereNotIn('id', $kept)->delete();
             $next = (int) ($order->lines->max('line_no') ?? 0);
-            $lineNos = [];
             foreach ($computed->lines as $i => $line) {
                 $id = $in->lines[$i]->id;
                 $columns = $this->writer->lineColumns($line);
                 if ($id !== null) {
                     PurchaseOrderLine::query()->whereKey($id)->update($columns);
-                    $lineNos[] = $id;
 
                     continue;
                 }
