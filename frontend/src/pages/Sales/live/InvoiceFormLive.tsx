@@ -32,7 +32,7 @@ import {
   type DocPreview,
   type LiveDoc,
 } from '@/api/adapters/invoice';
-import { isMatchOverrideForbidden, matchRefusal, type MatchRefusal } from '@/api/adapters/procurement';
+import { matchOverrideRefusal, matchRefusal, type MatchRefusal } from '@/api/adapters/procurement';
 import { MatchRefusalNotice } from '@/pages/Purchases/live/MatchPanels';
 import type { InvoiceKind } from '@/types';
 import type { Violation } from '@/api/errors';
@@ -296,8 +296,9 @@ const InvoiceFormInner: React.FC<{ side: Side }> = ({ side }) => {
       setHeaderErrors([]);
       return;
     }
-    if (isMatchOverrideForbidden(e)) {
-      setHeaderErrors([describeV({ code: 'match_override_forbidden', message: '' })]);
+    const overrideRefused = matchOverrideRefusal(e);
+    if (overrideRefused) {
+      setHeaderErrors([describeV({ code: overrideRefused, message: '' })]);
       return;
     }
     if (e instanceof ApiError && e.violations?.length) showViolations(e.violations);

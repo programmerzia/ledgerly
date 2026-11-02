@@ -484,12 +484,13 @@ describe('bill match', () => {
   it('knows the 403 for a person without the override permission', () => {
     expect(isMatchOverrideForbidden(new ApiError({ status: 403, code: 'match_override_forbidden', detail: '', requestId: null }))).toBe(true);
     expect(isMatchOverrideForbidden(refused([{ code: 'match_override_forbidden', message: 'x' }], 403))).toBe(true);
+    expect(isMatchOverrideForbidden(refused([{ code: 'match_override_self_forbidden', message: 'x' }], 403))).toBe(true);
     expect(isMatchOverrideForbidden(new ApiError({ status: 403, code: 'forbidden', detail: '', requestId: null }))).toBe(false);
   });
 });
 
 describe('plain words for the refusals', () => {
-  const codes = ['match_price_mismatch', 'match_quantity_exceeds_received', 'purchase_order_required', 'bill_order_supplier_mismatch', 'bill_order_currency_mismatch', 'bill_order_not_open', 'match_override_forbidden', 'receipt_quantity_exceeds_open', 'order_has_open_revision', 'order_not_cancellable', 'order_has_unbilled_receipts', 'requisition_not_approved'];
+  const codes = ['match_price_mismatch', 'match_quantity_exceeds_received', 'purchase_order_required', 'bill_order_supplier_mismatch', 'bill_order_currency_mismatch', 'bill_order_not_open', 'match_override_forbidden', 'match_override_self_forbidden', 'receipt_quantity_exceeds_open', 'order_has_open_revision', 'order_not_cancellable', 'order_has_unbilled_receipts', 'requisition_not_approved'];
 
   it('has a sentence for each code, never the code itself', () => {
     for (const code of codes) {

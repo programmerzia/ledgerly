@@ -93,7 +93,7 @@ function tradeText(v: Violation): string | null {
  */
 export const MATCH_OVERRIDABLE_CODES: readonly string[] = ['match_price_mismatch', 'match_quantity_exceeds_received', 'purchase_order_required'];
 export const MATCH_FIXED_CODES: readonly string[] = ['bill_order_supplier_mismatch', 'bill_order_currency_mismatch', 'bill_order_not_open'];
-export const isMatchCode = (code: string): boolean => MATCH_OVERRIDABLE_CODES.includes(code) || MATCH_FIXED_CODES.includes(code) || code === 'match_override_forbidden';
+export const isMatchCode = (code: string): boolean => MATCH_OVERRIDABLE_CODES.includes(code) || MATCH_FIXED_CODES.includes(code) || code === 'match_override_forbidden' || code === 'match_override_self_forbidden';
 
 function procurementText(v: Violation): string | null {
   switch (v.code) {
@@ -111,6 +111,8 @@ function procurementText(v: Violation): string | null {
       return 'The purchase order is no longer open for bills.';
     case 'match_override_forbidden':
       return 'You do not have permission to pass a bill that does not match its order. Ask someone with the override permission.';
+    case 'match_override_self_forbidden':
+      return 'You made this bill, so someone else has to pass it. Ask a colleague with the override permission.';
     case 'order_not_open':
       return 'This order is no longer open for that.';
     case 'order_has_open_revision':

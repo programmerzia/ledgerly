@@ -934,5 +934,13 @@ export function matchRefusal(e: unknown): MatchRefusal | null {
   return { violations: e.violations, overridable: e.violations.every((v) => MATCH_OVERRIDABLE_CODES.includes(v.code)) };
 }
 
-export const isMatchOverrideForbidden = (e: unknown): boolean => e instanceof ApiError && (e.code === 'match_override_forbidden' || Boolean(e.violations?.some((v) => v.code === 'match_override_forbidden')));
+/** Which override refusal came back: no permission, or the person made the bill themselves. */
+export const matchOverrideRefusal = (e: unknown): 'match_override_forbidden' | 'match_override_self_forbidden' | null => {
+  if (!(e instanceof ApiError)) return null;
+  for (const code of ['match_override_self_forbidden', 'match_override_forbidden'] as const) {
+    if (e.code === code || e.violations?.some((v) => v.code === code)) return code;
+  }
+  return null;
+};
+export const isMatchOverrideForbidden = (e: unknown): boolean => matchOverrideRefusal(e) !== null;
 export { MATCH_FIXED_CODES };

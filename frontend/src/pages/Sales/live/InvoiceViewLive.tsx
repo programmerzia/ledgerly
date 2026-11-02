@@ -23,7 +23,7 @@ import { ApiError } from '@/api/errors';
 import { IntentSlot } from '@/api/intentSlot';
 import { rateForDisplay } from '@/api/adapters/money';
 import type { LiveDoc } from '@/api/adapters/invoice';
-import { isMatchOverrideForbidden, matchLineFor, matchRefusal, type MatchRefusal } from '@/api/adapters/procurement';
+import { matchOverrideRefusal, matchLineFor, matchRefusal, type MatchRefusal } from '@/api/adapters/procurement';
 import { describePurchaseViolation } from '@/api/tradeViolations';
 import { BillMatchPanel, MatchRefusalNotice } from '@/pages/Purchases/live/MatchPanels';
 import type { LiveDocPayment } from '@/api/adapters/settlement';
@@ -115,8 +115,9 @@ export const InvoiceViewLive: React.FC<{ side?: Side }> = ({ side = 'sales' }) =
       setRefusal(refused);
       return;
     }
-    if (isMatchOverrideForbidden(e)) {
-      toast.error(describePurchaseViolation({ code: 'match_override_forbidden', message: '' }));
+    const overrideRefused = matchOverrideRefusal(e);
+    if (overrideRefused) {
+      toast.error(describePurchaseViolation({ code: overrideRefused, message: '' }));
       return;
     }
     const msg = tradeVerdictText(e, side === 'purchases');
