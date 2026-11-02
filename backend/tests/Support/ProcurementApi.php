@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Tests\Support;
 
 use App\Models\Platform\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Testing\TestResponse;
 
 /** HTTP helpers for the procurement tests; used with MakesApiCalls and TradeApi. */
 trait ProcurementApi
@@ -79,7 +81,7 @@ trait ProcurementApi
      *
      * @param  list<array{0: string, 1: string}>  $lines
      * @param  array<string, mixed>  $extra
-     * @return \Illuminate\Testing\TestResponse<\Illuminate\Http\JsonResponse>
+     * @return TestResponse<JsonResponse>
      */
     protected function receive(string $orderId, array $lines, string $date = '2026-03-20', array $extra = [], ?User $by = null)
     {

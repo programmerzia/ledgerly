@@ -36,7 +36,7 @@ use Tests\Support\TradeFixture;
  */
 function procurementDocsIn(string $tenantId, string $companyId, string $accountId, string $supplierId, Actor $actor): array
 {
-    return app(TenantContext::class)->run($tenantId, function () use ($tenantId, $companyId, $accountId, $supplierId, $actor): array {
+    return app(TenantContext::class)->run($tenantId, function () use ($companyId, $accountId, $supplierId, $actor): array {
         $pr = app(CreateRequisitionDraft::class)->handle($actor, new RequisitionDraftInput($companyId, new DateTimeImmutable('2026-03-10'), [new RequisitionLineInput('1', 1000, description: 'Paper', accountId: $accountId)]));
         $line = new OrderLineInput('5', description: 'Widget', accountId: $accountId, unitPriceFc: 1000);
         $po = app(CreatePurchaseOrderDraft::class)->handle($actor, new OrderDraftInput($companyId, $supplierId, new DateTimeImmutable('2026-03-12'), [$line]));
