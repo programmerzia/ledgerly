@@ -10,7 +10,7 @@ export { ErrorLine, LoadingLine, inputClass } from '@/pages/Accounting/live/part
 /** A server verdict as text for a toast or banner: the message plus each violation in plain language. */
 export function tradeVerdictText(e: unknown, purchases = false): string {
   const describe = purchases ? describePurchaseViolation : describeTradeViolation;
-  if (e instanceof ApiError && e.violations?.length) return e.violations.map((v) => describe(v)).join(' ');
+  if (e instanceof ApiError && e.violations?.length) return [...new Set(e.violations.map((v) => describe(v)))].join(' ');
   return describeError(e);
 }
 
