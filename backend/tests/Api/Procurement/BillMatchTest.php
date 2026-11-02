@@ -108,6 +108,17 @@ it('posts a matched bill and records the outcome matched', function (): void {
     $this->getJson($this->api("purchase-orders/{$this->order['id']}"))->assertJsonPath('data.lines.0.billed', '10.000000')->assertJsonPath('data.lines.0.received_not_billed', '0.000000');
 });
 
+it('offers to bill a receipt only while something it brought in is not billed', function (): void {
+    $receipt = $this->receive($this->order['id'], [[$this->line1, '10']])->assertCreated()->assertJsonPath('data.can.bill', true)->json('data');
+    $bill = $this->asPerson($this->accountant)->postJson($this->api("goods-receipts/{$receipt['id']}/bill"), ['issue_date' => '2026-03-26'], $this->key())->assertCreated()->json('data');
+
+    // A draft claims nothing, so the receipt can still be billed; a posted bill takes it all.
+    $this->getJson($this->api("goods-receipts/{$receipt['id']}"))->assertJsonPath('data.can.bill', true);
+    $this->submitBill($bill['id'])->assertOk()->assertJsonPath('data.status', 'posted');
+    $this->getJson($this->api("goods-receipts/{$receipt['id']}"))->assertOk()->assertJsonPath('data.can.bill', false)->assertJsonPath('data.can.reverse', true);
+    $this->getJson($this->api("purchase-orders/{$this->order['id']}/receipts"))->assertJsonPath('data.0.can.bill', false);
+});
+
 it('refuses a price mismatch with the line, posts nothing and consumes no number', function (): void {
     $this->receive($this->order['id'], [[$this->line1, '10']])->assertCreated();
     $bill = $this->billOf($this->order['id']);
@@ -144,6 +155,25 @@ it('lets an owner override a mismatch with a reason, writing the result and an a
         ->and($rows[0]->decided_by)->toBe($this->owner->id)->and(json_decode((string) $rows[0]->violations, true)[0]['code'])->toBe('match_price_mismatch');
     $event = $this->inTenant(fn () => DB::table('audit_events')->where('action', 'bill.match_overridden')->first());
     expect($event)->not->toBeNull()->and($event->subject_id)->toBe($bill['id'])->and(json_decode((string) $event->context, true)['reason'])->toBe('Supplier surcharge agreed by phone');
+});
+
+it('does not let the maker of a bill override its mismatch, but another permitted person can, and the audit says who', function (): void {
+    $this->receive($this->order['id'], [[$this->line1, '10']])->assertCreated();
+    $bill = $this->asPerson($this->owner)->postJson($this->api("purchase-orders/{$this->order['id']}/bill"), ['issue_date' => '2026-03-25'], $this->key())->assertCreated()->json('data');
+    $this->putJson($this->api("bills/{$bill['id']}"), procPutBill($this, $bill, ['unit_price_fc' => 11000]), $this->key())->assertOk()
+        ->assertJsonPath('data.can.override_match', false);
+
+    $this->submitBill($bill['id'], 'My own bill', $this->owner)->assertStatus(403)->assertJsonPath('code', 'match_override_self_forbidden');
+    expect(procMatchRows($this))->toBe([]);
+    $this->getJson($this->api("bills/{$bill['id']}"))->assertJsonPath('data.status', 'draft')->assertJsonPath('data.can.override_match', false);
+
+    $other = $this->person('Otto Owner', ['Owner']);
+    $this->asPerson($other)->getJson($this->api("bills/{$bill['id']}"))->assertJsonPath('data.can.override_match', true);
+    $this->submitBill($bill['id'], 'Supplier surcharge agreed by phone', $other)->assertOk()->assertJsonPath('data.status', 'posted');
+    $rows = procMatchRows($this);
+    expect($rows)->toHaveCount(1)->and($rows[0]->outcome)->toBe('overridden')->and($rows[0]->decided_by)->toBe($other->id);
+    $event = $this->inTenant(fn () => DB::table('audit_events')->where('action', 'bill.match_overridden')->first());
+    expect($event)->not->toBeNull()->and($event->actor_id)->toBe($other->id);
 });
 
 it('does not let an accountant, a blank reason or a token override', function (): void {

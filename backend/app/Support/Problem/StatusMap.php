@@ -15,6 +15,7 @@ final class StatusMap
         'idempotency_key_invalid' => 400,
         'forbidden' => 403,
         'match_override_forbidden' => 403,
+        'match_override_self_forbidden' => 403,
         'not_found' => 404,
         'self_approval_forbidden' => 403,
         'approver_role_required' => 403,

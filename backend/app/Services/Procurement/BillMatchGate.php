@@ -66,6 +66,11 @@ final class BillMatchGate
             throw DomainRuleViolation::single('match_override_forbidden', 'You cannot override a purchase order mismatch.');
         }
 
+        // Maker and checker differ: whoever created or submitted the bill may not wave its mismatch through.
+        if (in_array($actor->id, [$bill->created_by, $bill->submitted_by], true)) {
+            throw DomainRuleViolation::single('match_override_self_forbidden', 'You made this bill, so someone else has to override its purchase order mismatch.');
+        }
+
         $violations = array_map(fn (Violation $v) => $v->toArray(), $found->mismatches);
         $this->record($actor, $bill, 'overridden', $violations, $reason);
         $audit->add('bill.match_overridden', $bill, after: $bill, context: ['reason' => $reason, 'violations' => $violations]);

@@ -100,10 +100,11 @@ final class InvoicePolicy
             && $this->context->personCan($principal, $this->module($invoice).'.reverse', $invoice->company_id);
     }
 
-    /** Submit this draft bill past a purchase order mismatch, with a reason (13 §10). People only. */
+    /** Submit this draft bill past a purchase order mismatch, with a reason (13 §10). People only, and never its own maker. */
     public function overrideMatch(Authenticatable $principal, Invoice $invoice): bool
     {
         return $invoice->status === DocumentStatus::Draft && $invoice->kind === InvoiceKind::PurchaseBill
+            && ! in_array($principal->getAuthIdentifier(), [$invoice->created_by, $invoice->submitted_by], true)
             && $this->context->personCan($principal, 'bills.match_override', $invoice->company_id);
     }
 

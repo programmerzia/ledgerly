@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Resources;
 
+use App\Domain\Procurement\Quantity;
 use App\Http\Support\Json;
 use App\Models\Procurement\GoodsReceipt;
+use App\Queries\Procurement\OrderLineFigures;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -35,7 +37,20 @@ final class GoodsReceiptResource extends JsonResource
             'reversed_at' => Json::time($this->reversed_at),
             'version' => $this->lock_version,
             'lines' => $this->whenLoaded('lines', fn () => GoodsReceiptLineResource::collection($this->lines)),
-            'can' => Json::can($request, $this->resource, ['reverse' => 'reverse', 'bill' => 'bill']),
+            'can' => $this->can($request),
         ];
+    }
+
+    /** `bill` is true only while something this receipt brought in is not on a pending or posted bill yet. */
+    /** @return array<string, bool> */
+    private function can(Request $request): array
+    {
+        $can = Json::can($request, $this->resource, ['reverse' => 'reverse', 'bill' => 'bill']);
+        if ($can['bill']) {
+            $figures = app(OrderLineFigures::class)->forOrder($this->purchase_order_id);
+            $can['bill'] = $this->lines->contains(fn ($line): bool => isset($figures[$line->purchase_order_line_id]) && ! Quantity::isZero($figures[$line->purchase_order_line_id]->receivedNotBilled()));
+        }
+
+        return $can;
     }
 }
