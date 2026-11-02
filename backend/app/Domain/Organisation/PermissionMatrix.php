@@ -35,6 +35,7 @@ final class PermissionMatrix
     private const array MODULES = [
         'journals', 'invoices', 'bills', 'receipts', 'payments', 'contacts', 'items', 'banking', 'recurring',
         'periods', 'accounts', 'dimensions', 'tax', 'fx', 'settings', 'reports',
+        'purchase_requisitions', 'purchase_orders', 'goods_receipts',
     ];
 
     private const array SALES_VIEWS = ['contacts.view', 'invoices.view', 'items.view', 'receipts.view'];
@@ -50,11 +51,12 @@ final class PermissionMatrix
         'recurring.manage',
         'invoices.void', 'invoices.void_own', 'bills.void',
         'periods.reopen.request',
+        'purchase_requisitions.create', 'purchase_requisitions.submit', 'purchase_orders.create', 'purchase_orders.submit', 'goods_receipts.create',
     ];
 
-    private const array APPROVE = ['journals.approve', 'invoices.approve', 'bills.approve', 'payments.approve'];
+    private const array APPROVE = ['journals.approve', 'invoices.approve', 'bills.approve', 'payments.approve', 'purchase_requisitions.approve', 'purchase_orders.approve'];
 
-    private const array REVERSE = ['journals.reverse', 'invoices.reverse', 'bills.reverse', 'receipts.reverse', 'payments.reverse'];
+    private const array REVERSE = ['journals.reverse', 'invoices.reverse', 'bills.reverse', 'receipts.reverse', 'payments.reverse', 'purchase_orders.cancel', 'goods_receipts.reverse', 'bills.match_override'];
 
     private const array MANAGE = [
         'periods.close', 'periods.reopen.approve', 'periods.year_end', 'periods.post_soft_closed', 'periods.post_adjustment',
@@ -69,6 +71,13 @@ final class PermissionMatrix
             ...self::views(), ...self::EXPORT, ...self::DAILY, ...self::APPROVE, ...self::REVERSE,
             ...self::MANAGE, 'audit.view', 'audit.verify',
         ]));
+    }
+
+    /** Added with procurement; existing companies got these from a backfill migration. */
+    public static function isProcurement(string $permission): bool
+    {
+        return str_starts_with($permission, 'purchase_requisitions.') || str_starts_with($permission, 'purchase_orders.')
+            || str_starts_with($permission, 'goods_receipts.') || $permission === 'bills.match_override';
     }
 
     /** @return list<string> */

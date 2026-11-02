@@ -17,7 +17,8 @@ final class ApiTokenAbilities
         'bills:read', 'bills:write', 'bills:submit', 'contacts:read', 'contacts:write', 'dimensions:read', 'dimensions:write',
         'fx:read', 'fx:write', 'invoices:read', 'invoices:write', 'invoices:submit', 'items:read', 'items:write',
         'journals:read', 'journals:write', 'journals:submit', 'periods:read', 'recurring:read', 'recurring:write',
-        'reports:read', 'settlements:read', 'settlements:write', 'settlements:submit', 'tax:read',
+        'purchase_orders:read', 'purchase_orders:write', 'purchase_orders:submit', 'purchase_requisitions:read', 'purchase_requisitions:write', 'purchase_requisitions:submit',
+        'goods_receipts:read', 'goods_receipts:write', 'reports:read', 'settlements:read', 'settlements:write', 'settlements:submit', 'tax:read',
     ];
 
     /**

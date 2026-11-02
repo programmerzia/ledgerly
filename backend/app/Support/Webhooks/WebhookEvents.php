@@ -30,6 +30,9 @@ final class WebhookEvents
         'bank_reconciliation.finished', 'bank_reconciliation.reopened',
         'recurring.occurrence_created',
         'import.created', 'import.applied', 'import.failed',
+        'purchase_requisition.approved', 'purchase_requisition.rejected',
+        'purchase_order.approved', 'purchase_order.revised', 'purchase_order.cancelled', 'purchase_order.closed',
+        'goods_receipt.recorded', 'goods_receipt.reversed', 'bill.match_overridden',
     ];
 
     /** @return list<string> what the API accepts in an endpoint's `events` */
