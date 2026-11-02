@@ -9,8 +9,7 @@ use App\Actions\Trade\Inputs\InvoiceLineInput;
 use App\Domain\Ledger\PostingValidator;
 use App\Domain\Trade\InvoiceKind;
 use App\Http\Requests\CompanyRequest;
-use App\Models\Ledger\DimensionValue;
-use App\Queries\Ledger\DimensionPositions;
+use App\Http\Requests\Concerns\ChecksLineDimensions;
 use Brick\Math\BigDecimal;
 use DateTimeImmutable;
 use Illuminate\Contracts\Validation\Validator;
@@ -27,6 +26,8 @@ use Illuminate\Validation\Rule;
  */
 final class InvoiceRequest extends CompanyRequest
 {
+    use ChecksLineDimensions;
+
     /** @return array<string, mixed> */
     public function rules(): array
     {
@@ -76,14 +77,9 @@ final class InvoiceRequest extends CompanyRequest
     {
         $v = $this->validated();
         $kind = $fixedKind ?? InvoiceKind::from((string) ($v['kind'] ?? ($this->sales() ? 'sales_invoice' : 'purchase_bill')));
-        $slots = array_flip((new DimensionPositions)($this->company()->id));
+        $slots = $this->dimensionSlots();
 
         $lines = array_map(function (array $line) use ($slots): InvoiceLineInput {
-            $dims = [];
-            foreach ((array) ($line['dimensions'] ?? []) as $dimensionId => $valueId) {
-                $dims[$slots[(string) $dimensionId]] = (string) $valueId;
-            }
-
             return new InvoiceLineInput(
                 quantity: (string) $line['quantity'],
                 itemId: isset($line['item_id']) ? (string) $line['item_id'] : null,
@@ -93,7 +89,7 @@ final class InvoiceRequest extends CompanyRequest
                 discountPct: isset($line['discount_pct']) ? (string) $line['discount_pct'] : '0',
                 taxCodeId: isset($line['tax_code_id']) ? (string) $line['tax_code_id'] : null,
                 taxCodeGiven: array_key_exists('tax_code_id', $line),
-                dims: $dims,
+                dims: $this->slotted($line, $slots),
                 purchaseOrderLineId: isset($line['purchase_order_line_id']) ? (string) $line['purchase_order_line_id'] : null,
                 goodsReceiptLineId: isset($line['goods_receipt_line_id']) ? (string) $line['goods_receipt_line_id'] : null,
             );
@@ -136,34 +132,6 @@ final class InvoiceRequest extends CompanyRequest
             }
             if (isset($line['discount_pct']) && BigDecimal::of((string) $line['discount_pct'])->isGreaterThan(100)) {
                 $validator->errors()->add("lines.{$i}.discount_pct", 'The discount cannot be more than 100%.');
-            }
-        }
-    }
-
-    private function checkDimensions(Validator $validator): void
-    {
-        /** @var list<array<string, mixed>> $lines */
-        $lines = array_values((array) $this->input('lines'));
-        $known = array_flip((new DimensionPositions)($this->company()->id));
-
-        $valueIds = [];
-        foreach ($lines as $i => $line) {
-            foreach ((array) ($line['dimensions'] ?? []) as $dimensionId => $valueId) {
-                if (! isset($known[(string) $dimensionId])) {
-                    $validator->errors()->add("lines.{$i}.dimensions", "Dimension {$dimensionId} does not exist in this company.");
-                } elseif (! is_string($valueId)) {
-                    $validator->errors()->add("lines.{$i}.dimensions.{$dimensionId}", 'Name a dimension value id.');
-                } else {
-                    $valueIds[$valueId] = true;
-                }
-            }
-        }
-        $found = $valueIds === [] ? [] : DimensionValue::query()->where('company_id', $this->company()->id)->whereIn('id', array_keys($valueIds))->pluck('dimension_id', 'id')->all();
-        foreach ($lines as $i => $line) {
-            foreach ((array) ($line['dimensions'] ?? []) as $dimensionId => $valueId) {
-                if (isset($known[(string) $dimensionId]) && is_string($valueId) && ($found[$valueId] ?? null) !== (string) $dimensionId) {
-                    $validator->errors()->add("lines.{$i}.dimensions.{$dimensionId}", 'This value does not belong to the dimension in this company.');
-                }
             }
         }
     }
