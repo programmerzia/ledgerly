@@ -29366,14 +29366,10 @@
                                     "format": "uuid"
                                 },
                                 "dimensions": {
-                                    "type": [
-                                        "array",
-                                        "null"
-                                    ],
-                                    "items": {
+                                    "type": "object",
+                                    "additionalProperties": {
                                         "type": "string"
-                                    },
-                                    "maxItems": 8
+                                    }
                                 }
                             },
                             "required": [
@@ -30560,14 +30556,10 @@
                                     "format": "date"
                                 },
                                 "dimensions": {
-                                    "type": [
-                                        "array",
-                                        "null"
-                                    ],
-                                    "items": {
+                                    "type": "object",
+                                    "additionalProperties": {
                                         "type": "string"
-                                    },
-                                    "maxItems": 8
+                                    }
                                 }
                             },
                             "required": [
@@ -30723,14 +30715,10 @@
                                     "format": "uuid"
                                 },
                                 "dimensions": {
-                                    "type": [
-                                        "array",
-                                        "null"
-                                    ],
-                                    "items": {
+                                    "type": "object",
+                                    "additionalProperties": {
                                         "type": "string"
-                                    },
-                                    "maxItems": 8
+                                    }
                                 }
                             },
                             "required": [

@@ -21,7 +21,8 @@ final class SchemaCorrections
                 $schema->type->addProperty('can', (new ObjectType)->additionalProperties(new BooleanType));
             }
             // `lines.*.dimensions` reads as a list; it is dimension id → value id.
-            if ($schema->type instanceof ObjectType && str_ends_with((string) $name, 'JournalRequest') && $schema->type->hasProperty('lines')) {
+            if ($schema->type instanceof ObjectType && str_ends_with((string) $name, 'JournalRequest') && $schema->type->hasProperty('lines')
+                || $schema->type instanceof ObjectType && preg_match('/(?<![A-Za-z])(RequisitionRequest|PurchaseOrderRequest|RevisionRequest)$/', (string) $name) === 1 && $schema->type->hasProperty('lines')) {
                 $lines = $schema->type->getProperty('lines');
                 if ($lines instanceof ArrayType && $lines->items instanceof ObjectType) {
                     $lines->items->addProperty('dimensions', (new ObjectType)->additionalProperties(new StringType));

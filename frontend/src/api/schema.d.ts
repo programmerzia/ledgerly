@@ -5595,7 +5595,9 @@ export interface components {
                 unit_price_fc?: number | null;
                 /** Format: uuid */
                 tax_code_id?: string | null;
-                dimensions?: string[] | null;
+                dimensions?: {
+                    [key: string]: string;
+                };
             }[];
         };
         /** PurchaseOrderResource */
@@ -5892,7 +5894,9 @@ export interface components {
                 estimated_unit_price: number;
                 /** Format: date */
                 needed_by?: string | null;
-                dimensions?: string[] | null;
+                dimensions?: {
+                    [key: string]: string;
+                };
             }[];
         };
         /** ReturnJournalRequest */
@@ -5938,7 +5942,9 @@ export interface components {
                 unit_price_fc?: number | null;
                 /** Format: uuid */
                 tax_code_id?: string | null;
-                dimensions?: string[] | null;
+                dimensions?: {
+                    [key: string]: string;
+                };
             }[];
         };
         /** RoleResource */
