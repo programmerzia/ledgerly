@@ -69,6 +69,8 @@ export const ApprovalsInboxLive: React.FC = () => {
 
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [signFor, setSignFor] = useState<ApprovalItem[]>([]);
+  /** Requisitions, orders and order revisions post nothing to the books, so the dialog must not say "post". */
+  const postsNothing = signFor.length > 0 && signFor.every((i) => i.api_type.startsWith('purchase_'));
   const [busy, setBusy] = useState(false);
   const [results, setResults] = useState<Array<{ item: ApprovalItem; row: BulkResultRow | null }> | null>(null);
   const [returning, setReturning] = useState<ApprovalItem | null>(null);
@@ -326,8 +328,8 @@ export const ApprovalsInboxLive: React.FC = () => {
         documentNumber={signFor.length === 1 ? signFor[0].document_number || undefined : undefined}
         amount={signFor.length === 1 ? signFor[0].amount : undefined}
         currency={signFor[0]?.currency}
-        actionTitle={signFor.length === 1 ? 'Approve and post' : `Approve ${signFor.length}`}
-        consequenceText="Your PIN is checked once. Each document is then approved and posted on its own, and any that cannot be approved are listed afterwards with the reason."
+        actionTitle={signFor.length === 1 ? (postsNothing ? 'Approve' : 'Approve and post') : `Approve ${signFor.length}`}
+        consequenceText={`Your PIN is checked once. Each document is then approved${postsNothing ? '' : ' and posted'} on its own, and any that cannot be approved are listed afterwards with the reason.`}
       />
 
       <Sheet open={results !== null} onOpenChange={(o) => !o && setResults(null)}>
