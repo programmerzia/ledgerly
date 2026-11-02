@@ -1,3 +1,5 @@
+import { selectByMode } from '@/data/select';
+import { PaymentRunsLive } from './live/PaymentRunsLive';
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLedgerStore } from '@/mock/store';
@@ -10,7 +12,7 @@ import { Check } from 'lucide-react';
 
 import { CheckCircle2, ArrowRight, ArrowLeft, Calendar, CreditCard, Download, ShieldCheck } from 'lucide-react';
 
-export const PaymentRunWizard: React.FC = () => {
+const MockPaymentRunWizard: React.FC = () => {
   const navigate = useNavigate();
   const { currentCompany, currentUser, companySettings, bankAccounts, bills, contacts, recordPayment } = useLedgerStore();
   const coSlug = currentCompany.slug;
@@ -408,3 +410,6 @@ export const PaymentRunWizard: React.FC = () => {
     </div>
   );
 };
+
+/** The demo keeps its store-backed screen; live mode reads the API (docs/15). */
+export const PaymentRunWizard: React.FC = selectByMode({ mock: MockPaymentRunWizard, live: PaymentRunsLive });

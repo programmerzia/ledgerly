@@ -9,6 +9,7 @@ import { IntentSlot } from '@/api/intentSlot';
 import { draftOf, toContactRequest, type ContactDraft, type LiveContact } from '@/api/adapters/contact';
 import { useContactActions } from '@/data/contacts';
 import { inputClass } from './parts';
+import { SIDES } from './side';
 
 const CURRENCIES = ['USD', 'EUR', 'GBP', 'KES', 'SOS', 'JPY'];
 
@@ -24,6 +25,7 @@ interface Props {
 
 /** New and edit contact. Errors from the server land on the field they name; a version conflict opens ConflictDialog. */
 export const ContactDialog: React.FC<Props> = ({ open, onClose, contact, kind = 'customer', baseCurrency, onSaved }) => {
+  const S = SIDES[kind === 'supplier' ? 'purchases' : 'sales'];
   const actions = useContactActions();
   const [draft, setDraft] = useState<ContactDraft>(() =>
     contact
@@ -47,14 +49,14 @@ export const ContactDialog: React.FC<Props> = ({ open, onClose, contact, kind = 
     try {
       const saved = target ? await actions.update(target.id, body, intent) : await actions.create(body, intent);
       slot.clear();
-      toast.success(target ? 'Customer saved' : `Customer ${saved.name} created`);
+      toast.success(target ? `${S.Contact} saved` : `${S.Contact} ${saved.name} created`);
       onSaved?.(saved);
       onClose();
     } catch (e) {
       if (e instanceof ApiError && e.isVersionConflict && contact) {
         const serverVersion = e.serverVersion;
         setConflict({
-          noun: 'customer',
+          noun: S.contact,
           serverVersion,
           localVersion: contact.version,
           busy: false,
@@ -62,7 +64,7 @@ export const ContactDialog: React.FC<Props> = ({ open, onClose, contact, kind = 
           onReload: () => {
             setConflict(null);
             onClose();
-            toast.message('Closed without saving. Open the customer again to see the latest.');
+            toast.message(`Closed without saving. Open the ${S.contact} again to see the latest.`);
           },
           onOverwrite:
             typeof serverVersion === 'number'
@@ -98,7 +100,7 @@ export const ContactDialog: React.FC<Props> = ({ open, onClose, contact, kind = 
       <Dialog open={open} onOpenChange={(o) => !o && !busy && onClose()}>
         <DialogContent className="max-w-xl rounded-lg border border-border bg-surface-elevated p-6 shadow-popover">
           <DialogHeader>
-            <DialogTitle className="text-base font-semibold text-text-primary">{contact ? `Edit ${contact.name}` : 'New customer'}</DialogTitle>
+            <DialogTitle className="text-base font-semibold text-text-primary">{contact ? `Edit ${contact.name}` : `New ${S.contact}`}</DialogTitle>
           </DialogHeader>
           <form
             className="grid grid-cols-2 gap-3"
@@ -112,7 +114,7 @@ export const ContactDialog: React.FC<Props> = ({ open, onClose, contact, kind = 
             }}
           >
             {field('c-name', 'Name', <input id="c-name" value={draft.name} onChange={(e) => set('name', e.target.value)} className={inputClass} autoFocus />, errors.name)}
-            {field('c-code', 'Code', <input id="c-code" value={draft.code} onChange={(e) => set('code', e.target.value)} placeholder="e.g. CUST-001" className={inputClass} disabled={Boolean(contact)} />, errors.code)}
+            {field('c-code', 'Code', <input id="c-code" value={draft.code} onChange={(e) => set('code', e.target.value)} placeholder={kind === 'supplier' ? 'e.g. SUP-001' : 'e.g. CUST-001'} className={inputClass} disabled={Boolean(contact)} />, errors.code)}
             {field('c-email', 'Email', <input id="c-email" type="email" value={draft.email} onChange={(e) => set('email', e.target.value)} className={inputClass} />, errors.email)}
             {field('c-phone', 'Phone', <input id="c-phone" value={draft.phone} onChange={(e) => set('phone', e.target.value)} className={inputClass} />, errors.phone)}
             {field('c-tax', 'Tax ID', <input id="c-tax" value={draft.tax_id} onChange={(e) => set('tax_id', e.target.value)} className={inputClass} />, errors.tax_id)}
@@ -143,7 +145,7 @@ export const ContactDialog: React.FC<Props> = ({ open, onClose, contact, kind = 
             <div className="col-span-2">
               {field(
                 'c-addr',
-                'Billing address',
+                kind === 'supplier' ? 'Address' : 'Billing address',
                 <textarea id="c-addr" rows={3} value={draft.billing_address.join('\n')} onChange={(e) => set('billing_address', e.target.value.split('\n'))} className="rounded-md border border-border bg-surface p-2 text-xs text-text-primary focus:border-accent focus:outline-none" />,
                 errors.billing_address,
               )}
@@ -161,7 +163,7 @@ export const ContactDialog: React.FC<Props> = ({ open, onClose, contact, kind = 
                 Cancel
               </button>
               <button type="submit" disabled={busy} className="h-8 rounded-md bg-accent px-3 text-[13px] font-medium text-white hover:bg-accent-hover disabled:opacity-50">
-                {busy ? 'Saving…' : contact ? 'Save changes' : 'Create customer'}
+                {busy ? 'Saving…' : contact ? 'Save changes' : `Create ${S.contact}`}
               </button>
             </DialogFooter>
           </form>

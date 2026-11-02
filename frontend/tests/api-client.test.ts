@@ -230,11 +230,16 @@ describe('live route allowlist', () => {
     expect(isLiveRoute('/acme/dashboard')).toBe(true);
     expect(isLiveRoute('/acme/onboarding')).toBe(true);
     expect(isLiveRoute('/acme/settings/security')).toBe(true);
+    for (const t of ['general', 'posting', 'workflows', 'team', 'api-clients', 'webhooks']) expect(isLiveRoute(`/acme/settings/${t}`)).toBe(true);
+    expect(isLiveRoute('/acme/audit-log')).toBe(true);
     expect(isLiveRoute('/acme/settings/import')).toBe(false);
-    expect(isLiveRoute('/acme/bills')).toBe(false);
     // sales (3.5)
     for (const r of ['invoices', 'invoices/new', 'customers', 'credit-notes', 'credit-notes/new', 'receipts/new', 'customers/01a19a52-30f1-70e3-aaea-ff42efaac3b9', 'invoices/01a19a52-30f1-70e3-aaea-ff42efaac3b9', 'receipts/01a19a52-30f1-70e3-aaea-ff42efaac3b9']) expect(isLiveRoute(`/acme/${r}`)).toBe(true);
-    for (const r of ['invoices/recurring', 'receipts', 'sales/items', 'items']) expect(isLiveRoute(`/acme/${r}`)).toBe(false);
-    expect(isLiveRoute('/accounts/bills')).toBe(false);
+    expect(isLiveRoute('/acme/receipts')).toBe(false);
+    // purchases, tax, items and recurring documents (3.6)
+    const id = '01a19a52-30f1-70e3-aaea-ff42efaac3b9';
+    for (const r of ['bills', 'bills/new', 'bills/recurring', 'suppliers', 'debit-notes', 'debit-notes/new', 'payments/new', 'payment-run', 'payment-run/new', 'wht-certificates', 'tax', 'items', 'sales/items', 'invoices/recurring', `bills/${id}`, `suppliers/${id}`, `payments/${id}`, `payment-run/${id}`]) expect(isLiveRoute(`/acme/${r}`)).toBe(true);
+    for (const r of ['payments', 'bills/x', 'tax/codes']) expect(isLiveRoute(`/acme/${r}`)).toBe(false);
+    expect(isLiveRoute('/accounts/receipts')).toBe(false);
   });
 });

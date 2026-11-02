@@ -67,10 +67,15 @@ export interface LiveDoc {
   tax_total: number;
   total: number;
   wht_amount_fc: number;
+  /** Base currency. */
+  wht_amount: number;
+  wht_code_id: string | null;
   settled_fc: number;
   /** Base currency. Zero until the document is posted. For a credit note: the credit still left to apply. */
   settled: number;
   amount_due: number;
+  /** What is still open in the document's own currency, when the server sends it (newer backends do; not in openapi.json yet). */
+  amount_due_fc: number | null;
   /** The company's base currency, the currency of `amount_due`, `settled` and the base totals. */
   baseCurrency: string;
   related_invoice_id: string | null;
@@ -87,6 +92,7 @@ export interface LiveDoc {
 }
 
 const money = (m: ApiMoney): number => fromApiMoney(m);
+const moneyOrNull = (m: ApiMoney | undefined | null): number | null => (m && typeof m.amount === 'number' ? fromApiMoney(m) : null);
 
 export function toDocLine(l: ApiInvoiceLine): LiveDocLine {
   return {
@@ -125,9 +131,12 @@ export function toDoc(a: ApiInvoice): LiveDoc {
     tax_total: money(a.tax_total),
     total: money(a.total),
     wht_amount_fc: money(a.wht_amount_fc),
+    wht_amount: money(a.wht_amount),
+    wht_code_id: a.wht_code_id ?? null,
     settled_fc: money(a.settled_fc),
     settled: money(a.settled),
     amount_due: money(a.amount_due),
+    amount_due_fc: moneyOrNull((a as unknown as { amount_due_fc?: ApiMoney }).amount_due_fc),
     baseCurrency: a.amount_due.currency,
     related_invoice_id: a.related_invoice_id,
     journal_id: a.journal_id,
@@ -170,6 +179,8 @@ export interface DocDraftInput {
   reference: string;
   memo: string;
   related_invoice_id?: string;
+  /** Bills only: the withholding tax code. `undefined` leaves the field out (the API refuses it on sales documents); '' clears it. */
+  wht_code_id?: string;
   lines: DocLineInput[];
 }
 
@@ -203,6 +214,7 @@ export function toInvoiceRequest(input: DocDraftInput, baseCurrency: string, ver
     })),
   };
   if (input.currency !== baseCurrency && input.fx_rate.trim()) body.fx_rate = input.fx_rate.trim();
+  if (input.wht_code_id !== undefined) body.wht_code_id = input.wht_code_id || null;
   if (version === undefined) body.kind = input.kind;
   else body.version = version;
   return body;
@@ -220,6 +232,7 @@ export function toDraftInput(d: LiveDoc): DocDraftInput {
     reference: d.reference,
     memo: d.memo,
     related_invoice_id: d.related_invoice_id ?? undefined,
+    ...(d.wht_code_id ? { wht_code_id: d.wht_code_id } : {}),
     lines: d.lines.map((l) => ({
       item_id: l.item_id ?? undefined,
       account_id: l.account_id,

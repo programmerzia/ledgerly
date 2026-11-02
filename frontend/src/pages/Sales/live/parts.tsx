@@ -1,15 +1,16 @@
 import React from 'react';
 import { ApiError, type Violation } from '@/api/errors';
 import { describeError } from '@/api/messages';
-import { describeTradeViolation } from '@/api/tradeViolations';
+import { describePurchaseViolation, describeTradeViolation } from '@/api/tradeViolations';
 import { StatusPill } from '@/components/domain/StatusPill';
 import type { LiveDoc } from '@/api/adapters/invoice';
 
 export { ErrorLine, LoadingLine, inputClass } from '@/pages/Accounting/live/parts';
 
 /** A server verdict as text for a toast or banner: the message plus each violation in plain language. */
-export function tradeVerdictText(e: unknown): string {
-  if (e instanceof ApiError && e.violations?.length) return e.violations.map(describeTradeViolation).join(' ');
+export function tradeVerdictText(e: unknown, purchases = false): string {
+  const describe = purchases ? describePurchaseViolation : describeTradeViolation;
+  if (e instanceof ApiError && e.violations?.length) return e.violations.map((v) => describe(v)).join(' ');
   return describeError(e);
 }
 
@@ -46,7 +47,7 @@ export type { Violation };
 /** The document's state in the server's words. A credit note is not "awaiting payment": it has credit left, or it has been applied. */
 export const DocStatusPill: React.FC<{ doc: Pick<LiveDoc, 'kind' | 'status' | 'paymentStatus'> }> = ({ doc }) => {
   if (doc.status !== 'posted') return <StatusPill status={doc.status} label={doc.status === 'void' ? 'Discarded' : undefined} />;
-  if (doc.kind === 'credit_note') {
+  if (doc.kind === 'credit_note' || doc.kind === 'debit_note') {
     if (doc.paymentStatus === 'paid') return <StatusPill status="paid" label="Applied" />;
     return <StatusPill status={doc.paymentStatus} label={doc.paymentStatus === 'partially_paid' ? 'Partly applied' : 'Credit available'} />;
   }

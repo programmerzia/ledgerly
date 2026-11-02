@@ -1,7 +1,7 @@
 /** Settlements seam, live side: receipts now, payments and refunds for the purchases step (`kind` is data). */
 import { useMemo } from 'react';
 import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
-import { cursorPaging, type CursorPage } from '@/api/cursor';
+import { cursorPaging, fetchAllPages, type CursorPage } from '@/api/cursor';
 import * as live from '@/api/live/trade';
 import type { SettlementQuery } from '@/api/live/trade';
 import { toCreditApplication, toSettlement, type ApiSettlement, type LiveSettlement } from '@/api/adapters/settlement';
@@ -32,6 +32,21 @@ export function useSettlementList(filters: SettlementQuery) {
     loadMore: () => void q.fetchNextPage(),
     isLoadingMore: q.isFetchingNextPage,
   };
+}
+
+/**
+ * Posted payments (or receipts) of one contact that still hold credit on account, by the server's `unallocated_fc`.
+ * A supplier refund pays this credit back.
+ */
+export function useCreditSources(contactId: string | undefined, kind: 'payment' | 'receipt') {
+  const company = useRouteCompany();
+  const q = useQuery({
+    queryKey: [...settlementsKey(company.id), 'credit', contactId, kind],
+    enabled: Boolean(contactId),
+    staleTime: 0,
+    queryFn: async () => (await fetchAllPages((cursor) => live.listSettlements(company.id, { contact_id: contactId, kind, status: 'posted' }, cursor, 100))).map(toSettlement).filter((s) => s.unallocated_fc > 0),
+  });
+  return { sources: q.data ?? [], isLoading: q.isLoading, error: q.error, refetch: () => void q.refetch() };
 }
 
 export function useSettlement(id: string | undefined): DataResult<LiveSettlement | null> {

@@ -1,3 +1,5 @@
+import { selectByMode } from '@/data/select';
+import { BillViewLive } from './live';
 import { BUSINESS_TODAY } from '@/lib/docStatus';
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
@@ -37,7 +39,7 @@ import {
 } from 'lucide-react';
 
 
-export const BillView: React.FC = () => {
+const MockBillView: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
@@ -648,3 +650,6 @@ export const BillView: React.FC = () => {
     </div>
   );
 };
+
+/** The demo keeps its store-backed screen; live mode reads the API (docs/15). */
+export const BillView: React.FC = selectByMode({ mock: MockBillView, live: BillViewLive });

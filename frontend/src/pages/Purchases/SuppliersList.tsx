@@ -1,3 +1,5 @@
+import { selectByMode } from '@/data/select';
+import { SuppliersListLive } from './live';
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLedgerStore } from '@/mock/store';
@@ -20,7 +22,7 @@ import {
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 
-export const SuppliersList: React.FC = () => {
+const MockSuppliersList: React.FC = () => {
   const navigate = useNavigate();
   const { currentCompany, contacts, bills, contactBalance, addContact, openTab, uiDensity } =
     useLedgerStore();
@@ -439,3 +441,6 @@ export const SuppliersList: React.FC = () => {
     </div>
   );
 };
+
+/** The demo keeps its store-backed screen; live mode reads the API (docs/15). */
+export const SuppliersList: React.FC = selectByMode({ mock: MockSuppliersList, live: SuppliersListLive });

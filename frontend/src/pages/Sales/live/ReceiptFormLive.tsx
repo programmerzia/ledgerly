@@ -13,23 +13,26 @@ import { useRouteCompany } from '@/data/session';
 import { useAccounts } from '@/data/accounts';
 import { useContactDirectory } from '@/data/contacts';
 import { useOpenDocs } from '@/data/invoices';
-import { useFetchSettlement, useSettlement, useSettlementActions } from '@/data/settlements';
+import { useCreditSources, useFetchSettlement, useSettlement, useSettlementActions } from '@/data/settlements';
 import { useTradeRefs } from '@/data/tradeRefs';
 import { isSigningCancelled, useSignedRun } from '@/data/signing';
 import { ApiError } from '@/api/errors';
 import { describeError } from '@/api/messages';
-import { describeTradeViolation } from '@/api/tradeViolations';
+import { describePurchaseViolation, describeTradeViolation } from '@/api/tradeViolations';
 import { IntentSlot } from '@/api/intentSlot';
 import { toApiDate } from '@/api/adapters/dates';
 import { toDocPreview, type DocPreview } from '@/api/adapters/invoice';
 import { toSettlementRequest, type LiveSettlement, type SettlementDraftInput } from '@/api/adapters/settlement';
 import { BTN_ACCENT, BTN_GHOST, ErrorLine, LoadingLine, inputClass } from './parts';
+import { SIDES, type Side } from './side';
 
 /**
  * Record money received from a customer and say which invoices it pays. What is left over stays as credit on account.
  * Every amount is typed or comes from the server; the server checks the allocations and works out the rest.
  */
-const ReceiptFormInner: React.FC = () => {
+const ReceiptFormInner: React.FC<{ side: Side }> = ({ side }) => {
+  const S = SIDES[side];
+  const describeV = side === 'purchases' ? describePurchaseViolation : describeTradeViolation;
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const draftParam = params.get('draft') ?? undefined;
@@ -39,13 +42,15 @@ const ReceiptFormInner: React.FC = () => {
   const coSlug = company.slug;
   const base = company.base_currency;
   const accounts = useAccounts();
-  const customers = useContactDirectory('customer');
+  const customers = useContactDirectory(S.contactKind);
   const refs = useTradeRefs();
   const existing = useSettlement(draftParam);
   const fetchSettlement = useFetchSettlement();
   const actions = useSettlementActions();
   const { run, signProps } = useSignedRun();
 
+  // A supplier can also pay money back to us (a refund of a debit note or of credit on account).
+  const [refund, setRefund] = useState(side === 'purchases' && params.get('kind') === 'supplier_refund');
   const [contactId, setContactId] = useState(contactParam ?? '');
   const [bankId, setBankId] = useState('');
   const [date, setDate] = useState(() => toApiDate(new Date()));
@@ -71,12 +76,15 @@ const ReceiptFormInner: React.FC = () => {
   const submitSlot = useRef(new IntentSlot()).current;
   const previewSlot = useRef(new IntentSlot()).current;
 
+  const what = refund ? 'supplier refund' : S.settlement;
   const bank = refs.bankAccounts.find((b) => b.id === bankId);
   const currency = bank?.currency ?? base;
-  const open = useOpenDocs(contactId || undefined, 'sales_invoice');
+  const open = useOpenDocs(contactId || undefined, refund ? S.creditKind : S.mainKind, S.resource);
+  const sources = useCreditSources(refund && contactId ? contactId : undefined, 'payment');
   const contact = customers.byId.get(contactId);
 
   function hydrate(s: LiveSettlement) {
+    setRefund(s.kind === 'supplier_refund');
     setContactId(s.contact_id);
     setBankId(s.bank_account_id ?? '');
     setDate(s.settlement_date);
@@ -84,7 +92,7 @@ const ReceiptFormInner: React.FC = () => {
     setFxRate(s.currency !== base ? s.fx_rate : '');
     setReference(s.reference);
     setMemo(s.memo);
-    setAlloc(Object.fromEntries(s.allocations.filter((a) => a.invoice_id).map((a) => [a.invoice_id as string, a.amount_fc])));
+    setAlloc(Object.fromEntries(s.allocations.filter((a) => a.invoice_id || a.source_settlement_id).map((a) => [a.invoice_id ?? `s:${a.source_settlement_id}`, a.amount_fc])));
     setDraft({ id: s.id, version: s.version });
     setSaved(s);
     setPreview(null);
@@ -119,7 +127,7 @@ const ReceiptFormInner: React.FC = () => {
   }, [refs.bankAccounts, bankId, draftParam]);
 
   const input = (): SettlementDraftInput => ({
-    kind: 'receipt',
+    kind: refund ? 'supplier_refund' : S.settlementKind,
     contact_id: contactId,
     cash_account_id: bank?.account_id ?? '',
     bank_account_id: bankId,
@@ -129,12 +137,12 @@ const ReceiptFormInner: React.FC = () => {
     fx_rate: fxRate,
     reference,
     memo,
-    allocations: Object.entries(alloc).map(([invoice_id, amount_fc]) => ({ invoice_id, amount_fc })),
+    allocations: Object.entries(alloc).map(([key, amount_fc]) => (key.startsWith('s:') ? { source_settlement_id: key.slice(2), amount_fc } : { invoice_id: key, amount_fc })),
   });
   const contentSig = useMemo(
     () => JSON.stringify(toSettlementRequest(input(), base)),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [contactId, bankId, date, amount, currency, fxRate, reference, memo, alloc, bank],
+    [refund, contactId, bankId, date, amount, currency, fxRate, reference, memo, alloc, bank],
   );
   const dirty = draft === null || savedSig !== contentSig;
   useEffect(() => {
@@ -155,7 +163,7 @@ const ReceiptFormInner: React.FC = () => {
   const showError = (e: unknown) => {
     if (isSigningCancelled(e)) return;
     if (e instanceof ApiError && e.isVersionConflict) return openConflict(e);
-    if (e instanceof ApiError && e.violations?.length) setHeaderErrors(e.violations.map(describeTradeViolation));
+    if (e instanceof ApiError && e.violations?.length) setHeaderErrors(e.violations.map((v) => describeV(v)));
     else if (e instanceof ApiError && e.isValidation) {
       const named: Record<string, string> = {};
       const rest: string[] = [];
@@ -170,10 +178,10 @@ const ReceiptFormInner: React.FC = () => {
 
   function localProblems(): boolean {
     const f: Record<string, string> = {};
-    if (!contactId) f.contact_id = 'Choose a customer.';
-    if (!bankId) f.bank_account_id = 'Choose where the money went.';
+    if (!contactId) f.contact_id = `Choose a ${S.contact}.`;
+    if (!bankId) f.bank_account_id = side === 'sales' ? 'Choose where the money went.' : refund ? 'Choose where the money came in.' : 'Choose where the money comes from.';
     if (!date) f.settlement_date = 'Choose a date.';
-    if (amount <= 0) f.amount_fc = 'Enter the amount received.';
+    if (amount <= 0) f.amount_fc = side === 'sales' ? 'Enter the amount received.' : refund ? 'Enter the amount refunded.' : 'Enter the amount paid.';
     setFieldErrors(f);
     return Object.keys(f).length > 0;
   }
@@ -213,7 +221,7 @@ const ReceiptFormInner: React.FC = () => {
       const p = toDocPreview(await actions.preview(current.id, previewSlot.for(`${current.id}:${current.version}`)));
       previewSlot.clear();
       setPreview(p);
-      setHeaderErrors(p.valid ? [] : p.violations.map(describeTradeViolation));
+      setHeaderErrors(p.valid ? [] : p.violations.map((v) => describeV(v)));
       return { preview: p };
     } catch (e) {
       showError(e);
@@ -238,8 +246,8 @@ const ReceiptFormInner: React.FC = () => {
     try {
       const s = await run(() => actions.submit(id, version, intent));
       submitSlot.clear();
-      toast.success(s.status === 'posted' ? `Posted as ${s.number ?? 'a numbered receipt'}` : 'Sent for approval. It posts when an approver signs it.');
-      navigate(`/${coSlug}/receipts/${s.id}`);
+      toast.success(s.status === 'posted' ? `Posted as ${s.number ?? `a numbered ${what}`}` : 'Sent for approval. It posts when an approver signs it.');
+      navigate(`/${coSlug}/${S.settlementPath}/${s.id}`);
     } catch (e) {
       showError(e);
     } finally {
@@ -250,7 +258,7 @@ const ReceiptFormInner: React.FC = () => {
   function openConflict(e: ApiError) {
     const serverVersion = e.serverVersion;
     setConflict({
-      noun: 'receipt',
+      noun: what,
       serverVersion,
       localVersion: draft?.version,
       onClose: () => setConflict(null),
@@ -273,8 +281,8 @@ const ReceiptFormInner: React.FC = () => {
   if (draftParam && existing.data && existing.data.status !== 'draft') {
     return (
       <div className="rounded-lg border border-border bg-surface p-6 text-[13px] text-text-secondary">
-        This receipt is {existing.data.status.replace('_', ' ')}, so it can no longer be edited.{' '}
-        <button type="button" className="text-accent hover:underline" onClick={() => navigate(`/${coSlug}/receipts/${existing.data?.id}`)}>Open it</button>
+        This {what} is {existing.data.status.replace('_', ' ')}, so it can no longer be edited.{' '}
+        <button type="button" className="text-accent hover:underline" onClick={() => navigate(`/${coSlug}/${S.settlementPath}/${existing.data?.id}`)}>Open it</button>
       </div>
     );
   }
@@ -290,8 +298,8 @@ const ReceiptFormInner: React.FC = () => {
   return (
     <div className="flex flex-col gap-5">
       <PageHeader
-        breadcrumb={[{ label: contact ? contact.name : 'Customers', to: contact ? `/${coSlug}/customers/${contact.id}` : `/${coSlug}/customers` }, { label: draft ? 'Edit receipt' : 'New receipt' }]}
-        title={draft ? 'Edit draft receipt' : 'Receive money'}
+        breadcrumb={[{ label: contact ? contact.name : S.Contacts, to: contact ? `/${coSlug}/${S.contactsPath}/${contact.id}` : `/${coSlug}/${S.contactsPath}` }, { label: draft ? `Edit ${what}` : `New ${what}` }]}
+        title={draft ? `Edit draft ${what}` : side === 'sales' ? 'Receive money' : refund ? 'Record a supplier refund' : 'Pay a supplier'}
         subtitle={draft ? (dirty ? 'Draft · unsaved changes' : 'Draft · saved') : 'Not saved yet'}
         actions={
           <div className="flex items-center gap-2">
@@ -302,11 +310,21 @@ const ReceiptFormInner: React.FC = () => {
               <Eye className="size-4 text-text-muted" /> {busy === 'preview' ? 'Checking…' : 'Preview posting'}
             </button>
             <button type="button" onClick={() => void onSubmitClick()} disabled={working} className={BTN_ACCENT}>
-              <Send className="size-4" /> {busy === 'submit' ? 'Submitting…' : 'Submit receipt'}
+              <Send className="size-4" /> {busy === 'submit' ? 'Submitting…' : `Submit ${what}`}
             </button>
           </div>
         }
       />
+
+      {side === 'purchases' && !draft && (
+        <div className="flex items-center gap-1 border-b border-border" role="tablist" aria-label="Kind of payment">
+          {([[false, 'Pay a supplier'], [true, 'Supplier refund']] as const).map(([v, label]) => (
+            <button key={label} type="button" role="tab" aria-selected={refund === v} onClick={() => { setRefund(v); setAlloc({}); setPreview(null); }} className={cn('-mb-px border-b-2 px-3 py-2 text-[13px] font-medium transition-colors', refund === v ? 'border-accent text-accent' : 'border-transparent text-text-muted hover:text-text-primary')}>
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
 
       {attempted && headerErrors.length > 0 && (
         <div role="alert" data-testid="doc-errors" className="flex flex-col gap-1.5 rounded-lg border border-danger/30 bg-danger-soft p-3 text-xs font-medium text-danger">
@@ -318,16 +336,16 @@ const ReceiptFormInner: React.FC = () => {
 
       <div className="grid grid-cols-1 gap-4 rounded-lg border border-border bg-surface p-5 md:grid-cols-4">
         <div className="flex flex-col gap-1 md:col-span-2">
-          <label htmlFor="r-customer" className="text-xs font-medium text-text-secondary">Received from</label>
+          <label htmlFor="r-customer" className="text-xs font-medium text-text-secondary">{side === 'sales' ? 'Received from' : refund ? 'Refunded by' : 'Paid to'}</label>
           <select id="r-customer" value={contactId} disabled={Boolean(draft)} onChange={(e) => { setContactId(e.target.value); setAlloc({}); }} className={inputClass}>
-            <option value="">Choose a customer</option>
+            <option value="">Choose a {S.contact}</option>
             {customers.contacts.map((c) => (<option key={c.id} value={c.id}>{c.name} ({c.code})</option>))}
           </select>
           {fieldErrors.contact_id && <span className="text-[11px] text-danger">{fieldErrors.contact_id}</span>}
         </div>
         <div className="flex flex-col gap-1 md:col-span-2">
-          <label htmlFor="r-bank" className="text-xs font-medium text-text-secondary">Paid into</label>
-          <select id="r-bank" value={bankId} onChange={(e) => { setBankId(e.target.value); setAlloc({}); }} className={inputClass}>
+          <label htmlFor="r-bank" className="text-xs font-medium text-text-secondary">{side === 'sales' || refund ? 'Paid into' : 'Paid from'}</label>
+          <select id="r-bank" value={bankId} onChange={(e) => { const next = refs.bankAccounts.find((x) => x.id === e.target.value); if (next?.currency !== currency) setAlloc({}); setBankId(e.target.value); }} className={inputClass}>
             <option value="">Choose a bank account</option>
             {refs.bankAccounts.map((b) => (<option key={b.id} value={b.id}>{b.name} · {b.currency}</option>))}
           </select>
@@ -335,12 +353,12 @@ const ReceiptFormInner: React.FC = () => {
           {fieldErrors.cash_account_id && <span className="text-[11px] text-danger">{fieldErrors.cash_account_id}</span>}
         </div>
         <div className="flex flex-col gap-1">
-          <label htmlFor="r-date" className="text-xs font-medium text-text-secondary">Date received</label>
+          <label htmlFor="r-date" className="text-xs font-medium text-text-secondary">{side === 'sales' || refund ? 'Date received' : 'Date paid'}</label>
           <input id="r-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} className={inputClass} />
           {fieldErrors.settlement_date && <span className="text-[11px] text-danger">{fieldErrors.settlement_date}</span>}
         </div>
         <div className="flex flex-col gap-1">
-          <label htmlFor="r-amount" className="text-xs font-medium text-text-secondary">Amount received ({currency})</label>
+          <label htmlFor="r-amount" className="text-xs font-medium text-text-secondary">{side === 'sales' ? 'Amount received' : refund ? 'Amount refunded' : 'Amount paid'} ({currency})</label>
           <MoneyInput id="r-amount" value={amount} onChange={setAmount} currency={currency} allowNegative={false} size="sm" />
           {fieldErrors.amount_fc && <span className="text-[11px] text-danger">{fieldErrors.amount_fc}</span>}
         </div>
@@ -362,24 +380,26 @@ const ReceiptFormInner: React.FC = () => {
       </div>
 
       <div className="flex flex-col gap-2">
-        <span className="text-sm font-semibold text-text-primary">Which invoices does this pay?</span>
+        <span className="text-sm font-semibold text-text-primary">{side === 'sales' ? 'Which invoices does this pay?' : refund ? 'Which debit notes or credits does this pay back?' : 'Which bills does this pay?'}</span>
         {!contactId ? (
-          <p className="rounded-lg border border-border bg-surface p-4 text-[13px] text-text-muted">Choose a customer to see what they owe.</p>
+          <p className="rounded-lg border border-border bg-surface p-4 text-[13px] text-text-muted">Choose a {S.contact} to see what {side === 'sales' ? 'they owe' : refund ? 'they owe you' : 'you owe them'}.</p>
         ) : open.isLoading ? (
-          <LoadingLine what="open invoices" />
+          <LoadingLine what={refund ? 'open debit notes' : `open ${S.mains}`} />
         ) : open.error ? (
           <ErrorLine error={open.error} onRetry={open.refetch} />
+        ) : open.docs.length === 0 && !refund ? (
+          <p className="rounded-lg border border-border bg-surface p-4 text-[13px] text-text-muted">This {S.contact} has no open {S.mains}. The whole amount will stay as credit on account.</p>
         ) : open.docs.length === 0 ? (
-          <p className="rounded-lg border border-border bg-surface p-4 text-[13px] text-text-muted">This customer has no open invoices. The whole amount will stay as credit on account.</p>
+          <p className="rounded-lg border border-border bg-surface p-4 text-[13px] text-text-muted" data-testid="no-open-credit">This supplier has no open debit notes.</p>
         ) : (
           <div className="overflow-hidden rounded-lg border border-border bg-surface">
             <table className="w-full text-left text-xs" data-testid="allocation-table">
               <thead>
                 <tr className="border-b border-border bg-surface-neutral text-[11px] font-semibold uppercase tracking-[0.04em] text-text-muted">
-                  <th className="px-3 py-2">Invoice</th>
+                  <th className="px-3 py-2">{refund ? 'Debit note' : S.Main}</th>
                   <th className="px-3 py-2">Due</th>
                   <th className="px-3 py-2 text-right">Total</th>
-                  <th className="px-3 py-2 text-right">Owed</th>
+                  <th className="px-3 py-2 text-right">{refund ? 'Left to refund' : side === 'sales' ? 'Owed' : 'To pay'}</th>
                   <th className="w-56 px-3 py-2 text-right">Apply ({currency})</th>
                 </tr>
               </thead>
@@ -391,19 +411,57 @@ const ReceiptFormInner: React.FC = () => {
                       <td className="px-3 py-2 font-semibold text-text-primary">{d.number}</td>
                       <td className="px-3 py-2 tabular-nums text-text-muted">{d.due_date ? formatDate(d.due_date) : '—'}</td>
                       <td className="px-3 py-2 text-right tabular-nums">{formatMoney(d.total_fc, d.currency)}</td>
-                      <td className="px-3 py-2 text-right tabular-nums">{formatMoney(d.amount_due, d.baseCurrency)}</td>
+                      <td className="px-3 py-2 text-right tabular-nums">{d.currency !== base && d.amount_due_fc != null ? formatMoney(d.amount_due_fc, d.currency) : formatMoney(d.amount_due, d.baseCurrency)}</td>
                       <td className="px-3 py-2">
                         {fits ? (
                           <div className="flex items-center justify-end gap-2">
-                            {d.currency === base && (
-                              <button type="button" onClick={() => setAlloc((a) => ({ ...a, [d.id]: d.amount_due }))} className="rounded border border-border px-2 py-1 text-[11px] hover:bg-surface-neutral">Full</button>
+                            {(d.currency === base || d.amount_due_fc != null) && (
+                              <button type="button" onClick={() => setAlloc((a) => ({ ...a, [d.id]: d.currency === base ? d.amount_due : (d.amount_due_fc as number) }))} className="rounded border border-border px-2 py-1 text-[11px] hover:bg-surface-neutral">Full</button>
                             )}
                             <div className="w-32">
                               <MoneyInput value={alloc[d.id] ?? 0} onChange={(v) => setAlloc((a) => ({ ...a, [d.id]: v }))} currency={currency} allowNegative={false} size="sm" />
                             </div>
                           </div>
                         ) : (
-                          <span className="block text-right text-text-muted">In {d.currency}; this receipt is in {currency}</span>
+                          <span className="block text-right text-text-muted">In {d.currency}; this {what} is in {currency}</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+        {refund && contactId && sources.sources.length > 0 && (
+          <div className="overflow-hidden rounded-lg border border-border bg-surface" data-testid="credit-sources">
+            <table className="w-full text-left text-xs">
+              <thead>
+                <tr className="border-b border-border bg-surface-neutral text-[11px] font-semibold uppercase tracking-[0.04em] text-text-muted">
+                  <th className="px-3 py-2">Payment with credit on account</th>
+                  <th className="px-3 py-2">Date</th>
+                  <th className="px-3 py-2 text-right">Credit left</th>
+                  <th className="w-56 px-3 py-2 text-right">Pay back ({currency})</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {sources.sources.map((p) => {
+                  const fits = p.currency === currency;
+                  return (
+                    <tr key={p.id} className={cn(!fits && 'opacity-60')}>
+                      <td className="px-3 py-2 font-semibold text-text-primary">{p.number}</td>
+                      <td className="px-3 py-2 tabular-nums text-text-muted">{formatDate(p.settlement_date)}</td>
+                      <td className="px-3 py-2 text-right tabular-nums">{formatMoney(p.unallocated_fc, p.currency)}</td>
+                      <td className="px-3 py-2">
+                        {fits ? (
+                          <div className="flex items-center justify-end gap-2">
+                            <button type="button" onClick={() => setAlloc((a) => ({ ...a, [`s:${p.id}`]: p.unallocated_fc }))} className="rounded border border-border px-2 py-1 text-[11px] hover:bg-surface-neutral">Full</button>
+                            <div className="w-32">
+                              <MoneyInput value={alloc[`s:${p.id}`] ?? 0} onChange={(v) => setAlloc((a) => ({ ...a, [`s:${p.id}`]: v }))} currency={currency} allowNegative={false} size="sm" />
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="block text-right text-text-muted">In {p.currency}; this refund is in {currency}</span>
                         )}
                       </td>
                     </tr>
@@ -414,9 +472,9 @@ const ReceiptFormInner: React.FC = () => {
           </div>
         )}
         <div className="flex flex-wrap items-center justify-end gap-2 pt-1 text-xs text-text-secondary">
-          <span>Applied to invoices (as typed) <span className="tabular-nums text-text-primary">{formatMoney(typedAllocated, currency)}</span></span>
+          <span>Applied to {refund ? 'credits' : S.mains} (as typed) <span className="tabular-nums text-text-primary">{formatMoney(typedAllocated, currency)}</span></span>
           <span className="text-text-muted">·</span>
-          <span className="text-text-muted">Whatever is not applied stays as credit on account. The server checks the amounts.</span>
+          <span className="text-text-muted">{refund ? 'A refund must pay back credit in full. The server checks the amounts.' : 'Whatever is not applied stays as credit on account. The server checks the amounts.'}</span>
         </div>
         {saved && !dirty && (
           <p className="text-right text-xs text-text-secondary" data-testid="saved-unallocated">
@@ -460,7 +518,7 @@ const ReceiptFormInner: React.FC = () => {
           )}
           {preview.violations.length > 0 && (
             <ul className="mt-3 flex flex-col gap-1 text-xs text-danger">
-              {preview.violations.map((v, i) => (<li key={i}>{describeTradeViolation(v)}</li>))}
+              {preview.violations.map((v, i) => (<li key={i}>{describeV(v)}</li>))}
             </ul>
           )}
         </section>
@@ -469,38 +527,38 @@ const ReceiptFormInner: React.FC = () => {
       <Dialog open={reviewOpen} onOpenChange={setReviewOpen}>
         <DialogContent className="max-w-md rounded-lg border border-border bg-surface-elevated p-6 shadow-popover">
           <DialogHeader className="gap-1.5 border-b border-border pb-2">
-            <DialogTitle className="text-base font-semibold text-text-primary">Submit this receipt</DialogTitle>
+            <DialogTitle className="text-base font-semibold text-text-primary">Submit this {what}</DialogTitle>
             <DialogDescription className="text-xs text-text-muted">If your company has an approval rule it goes to an approver. Otherwise it posts now and asks for your PIN.</DialogDescription>
           </DialogHeader>
           {saved && (
             <div className="flex flex-col gap-2 text-xs text-text-secondary" data-testid="submit-review">
-              <div className="flex justify-between"><span>From</span><span className="text-text-primary">{contact?.name ?? '—'}</span></div>
-              <div className="flex justify-between"><span>Received</span><span className="tabular-nums text-text-primary">{formatMoney(saved.amount_fc, saved.currency)}</span></div>
+              <div className="flex justify-between"><span>{side === 'sales' || refund ? 'From' : 'To'}</span><span className="text-text-primary">{contact?.name ?? '—'}</span></div>
+              <div className="flex justify-between"><span>{side === 'sales' || refund ? 'Received' : 'Paid'}</span><span className="tabular-nums text-text-primary">{formatMoney(saved.amount_fc, saved.currency)}</span></div>
               <div className="flex justify-between"><span>Left as credit on account</span><span className="tabular-nums text-text-primary">{formatMoney(saved.unallocated_fc, saved.currency)}</span></div>
             </div>
           )}
           <DialogFooter className="mt-2 flex justify-end gap-2">
             <button type="button" onClick={() => setReviewOpen(false)} className="h-8 rounded-md border border-border bg-surface px-3 text-[13px] font-medium hover:bg-surface-neutral">Cancel</button>
-            <button type="button" onClick={() => void confirmSubmit()} className="h-8 rounded-md bg-accent px-3 text-[13px] font-medium text-white hover:bg-accent-hover">Submit receipt</button>
+            <button type="button" onClick={() => void confirmSubmit()} className="h-8 rounded-md bg-accent px-3 text-[13px] font-medium text-white hover:bg-accent-hover">Submit {what}</button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       <SignDialog
         {...signProps}
-        documentTitle={`Receipt: ${contact?.name ?? ''}`}
+        documentTitle={`${refund ? 'Supplier refund' : S.Settlement}: ${contact?.name ?? ''}`}
         amount={saved?.amount}
         currency={base}
         periodName={preview?.period?.name ?? undefined}
         actionTitle="Sign and post"
-        consequenceText="Nobody else needs to approve this receipt under your company rules, so it posts now with the next number and marks the invoices as paid. Mistakes are fixed later with a reversal."
+        consequenceText={`Nobody else needs to approve this ${what} under your company rules, so it posts now with the next number${side === 'sales' ? ' and marks the invoices as paid' : refund ? '' : ' and marks the bills as paid'}. Mistakes are fixed later with a reversal.`}
       />
       <ConflictDialog conflict={conflict} />
     </div>
   );
 };
 
-export const ReceiptFormLive: React.FC = () => {
+export const ReceiptFormLive: React.FC<{ side?: Side }> = ({ side = 'sales' }) => {
   const [params] = useSearchParams();
-  return <ReceiptFormInner key={`${params.get('draft') ?? 'new'}:${params.get('contactId') ?? ''}:${params.get('invoiceId') ?? ''}`} />;
+  return <ReceiptFormInner side={side} key={`${params.get('kind') ?? ''}:${params.get('draft') ?? 'new'}:${params.get('contactId') ?? ''}:${params.get('invoiceId') ?? ''}`} />;
 };

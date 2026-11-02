@@ -47,6 +47,7 @@ import { Dimensions } from './pages/Accounting/Dimensions';
 import { FixedAssets } from './pages/Accounting/FixedAssets';
 import { Budgets } from './pages/Accounting/Budgets';
 import { AuditLog } from './pages/Accounting/AuditLog';
+import { AuditLogLive } from './pages/Accounting/live/AuditLogLive';
 
 // Banking
 import { BankAccountsList } from './pages/Banking/BankAccountsList';
@@ -57,6 +58,10 @@ import { RecurringInvoices } from './pages/Sales/RecurringInvoices';
 import { ReceiptViewLive } from './pages/Sales/live/ReceiptViewLive';
 import { InvoicesListLive } from './pages/Sales/live/InvoicesListLive';
 import { NewCreditNoteLive } from './pages/Sales/live/InvoiceFormLive';
+import { BillsListLive, PaymentFormLive, PaymentViewLive, RecurringBillsLive } from './pages/Purchases/live';
+import { PaymentRunFormLive } from './pages/Purchases/live/PaymentRunFormLive';
+import { PaymentRunViewLive } from './pages/Purchases/live/PaymentRunViewLive';
+import { TaxLive } from './pages/Tax/live/TaxLive';
 
 // Reports
 import { TrialBalanceScreen, ProfitAndLossScreen, BalanceSheetScreen, CashFlowScreen, AgingScreen, GeneralLedgerScreen, TaxReturnScreen, LiveStatement } from './pages/Reports/live/screens';
@@ -185,13 +190,21 @@ export default function App() {
 
           {/* Purchases */}
           <Route path="bills" element={<BillsList />} />
+          {IS_LIVE && <Route path="bills/recurring" element={<RecurringBillsLive />} />}
+          {IS_LIVE && <Route path="debit-notes" element={<BillsListLive initialTab="credit" />} />}
+          {IS_LIVE && <Route path="debit-notes/new" element={<NewCreditNoteLive side="purchases" />} />}
+          {IS_LIVE && <Route path="payments/new" element={<PaymentFormLive />} />}
+          {IS_LIVE && <Route path="payments/:id" element={<PaymentViewLive />} />}
           <Route path="bills/new" element={<BillForm />} />
           <Route path="bills/:id" element={<BillView />} />
           <Route path="bills/:id/edit" element={<BillForm />} />
           <Route path="suppliers" element={<SuppliersList />} />
           <Route path="suppliers/:id" element={<SupplierCard />} />
           <Route path="payment-run" element={<PaymentRunWizard />} />
+          {IS_LIVE && <Route path="payment-run/new" element={<PaymentRunFormLive />} />}
+          {IS_LIVE && <Route path="payment-run/:id" element={<PaymentRunViewLive />} />}
           <Route path="wht-certificates" element={<WhtCertificatesList />} />
+          {IS_LIVE && <Route path="tax" element={<TaxLive />} />}
 
           {/* Approvals */}
           <Route path="approvals" element={<ApprovalsInbox />} />
@@ -228,12 +241,12 @@ export default function App() {
           {IS_LIVE && <Route path="reports/supplier-statement" element={<LiveStatement side="supplier" />} />}
 
           {/* Settings & Audit */}
-          <Route path="settings" element={IS_LIVE ? <Navigate to="security" replace /> : <CompanySettings />} />
+          <Route path="settings" element={IS_LIVE ? <Navigate to="general" replace /> : <CompanySettings />} />
           {IS_LIVE && <Route path="settings/*" element={<LiveSettings />} />}
           <Route path="settings/import" element={<ImportWizard />} />
           <Route path="import" element={<ImportWizard />} />
           <Route path="onboarding" element={IS_LIVE ? <LiveOnboarding /> : <OnboardingWizard />} />
-          <Route path="audit-log" element={<AuditLog />} />
+          <Route path="audit-log" element={IS_LIVE ? <AuditLogLive /> : <AuditLog />} />
 
           {/* Fallback */}
           <Route path="*" element={<Navigate to="dashboard" replace />} />

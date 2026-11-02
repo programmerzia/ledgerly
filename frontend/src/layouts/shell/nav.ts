@@ -5,6 +5,7 @@ import {
   Building, ShieldCheck, Package, Layers, Coins, FileText, Calendar, History, RefreshCw, Upload, ClipboardList,
   Repeat,
   Wand2,
+  Percent,
 } from 'lucide-react';
 
 export type NavIcon = React.ComponentType<{ className?: string }>;
@@ -35,6 +36,10 @@ export const buildNavSections = (coSlug: string, pendingApprovalsCount: number):
       { label: 'Suppliers', to: `/${coSlug}/suppliers`, icon: Building },
       { label: 'Pay bills', to: `/${coSlug}/payment-run`, icon: Coins },
       { label: 'WHT certificates', to: `/${coSlug}/wht-certificates`, icon: ShieldCheck },
+      ...(IS_LIVE ? [
+        { label: 'Debit notes', to: `/${coSlug}/debit-notes`, icon: FileText },
+        { label: 'Recurring bills', to: `/${coSlug}/bills/recurring`, icon: Repeat },
+      ] : []),
     ],
   },
   { id: 'banking', title: 'Banking', items: [
@@ -67,12 +72,13 @@ export const buildNavSections = (coSlug: string, pendingApprovalsCount: number):
       { label: 'Budgets', to: `/${coSlug}/budgets`, icon: BarChart3 },
       { label: 'Exchange rates', to: `/${coSlug}/fx-rates`, icon: Coins },
       { label: 'Periods & close', to: `/${coSlug}/periods`, icon: Calendar },
+      ...(IS_LIVE ? [{ label: 'Tax codes', to: `/${coSlug}/tax`, icon: Percent }] : []),
     ],
   },
   {
     id: 'settings', title: 'Settings', defaultCollapsed: true,
     items: [
-      { label: IS_LIVE ? 'Security & team' : 'Company settings', to: `/${coSlug}/settings`, icon: Settings },
+      { label: IS_LIVE ? 'Settings' : 'Company settings', to: `/${coSlug}/settings`, icon: Settings },
       { label: 'Import data', to: `/${coSlug}/settings/import`, icon: Upload },
       { label: 'Audit log', to: `/${coSlug}/audit-log`, icon: History },
       { label: 'Company setup', to: `/${coSlug}/onboarding`, icon: ClipboardList },

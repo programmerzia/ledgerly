@@ -116,7 +116,10 @@ export function toSettlement(a: ApiSettlement): LiveSettlement {
 }
 
 export interface AllocationInput {
-  invoice_id: string;
+  /** A document (invoice, bill, credit or debit note)... */
+  invoice_id?: string;
+  /** ...or the credit on account of an earlier receipt or payment (a refund pays that back). */
+  source_settlement_id?: string;
   /** Minor units of the settlement currency. */
   amount_fc: number;
 }
@@ -148,7 +151,7 @@ export function toSettlementRequest(input: SettlementDraftInput, baseCurrency: s
     currency: input.currency,
     reference: input.reference.trim() || null,
     memo: input.memo.trim() || null,
-    allocations: input.allocations.filter((a) => a.amount_fc > 0).map((a) => ({ invoice_id: a.invoice_id, amount_fc: a.amount_fc })),
+    allocations: input.allocations.filter((a) => a.amount_fc > 0).map((a) => (a.source_settlement_id ? { source_settlement_id: a.source_settlement_id, amount_fc: a.amount_fc } : { invoice_id: a.invoice_id, amount_fc: a.amount_fc })),
   };
   if (input.currency !== baseCurrency && input.fx_rate.trim()) body.fx_rate = input.fx_rate.trim();
   if (version !== undefined) body.version = version;

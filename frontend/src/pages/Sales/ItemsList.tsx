@@ -1,3 +1,5 @@
+import { selectByMode } from '@/data/select';
+import { ItemsLive } from './live/ItemsLive';
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLedgerStore } from '@/mock/store';
@@ -13,7 +15,7 @@ import type { Item } from '@/types';
 
 export type ItemRecord = Item;
 
-export const ItemsList: React.FC = () => {
+const MockItemsList: React.FC = () => {
   const navigate = useNavigate();
   const { currentCompany, uiDensity, items, updateItem } = useLedgerStore();
   const [newItemOpen, setNewItemOpen] = useState(false);
@@ -267,3 +269,6 @@ export const ItemsList: React.FC = () => {
     </div>
   );
 };
+
+/** The demo keeps its store-backed screen; live mode reads the API (docs/15). */
+export const ItemsList: React.FC = selectByMode({ mock: MockItemsList, live: ItemsLive });

@@ -1,3 +1,5 @@
+import { selectByMode } from '@/data/select';
+import { WhtCertificatesLive } from './live/WhtCertificatesLive';
 import React, { useState, useMemo } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import { useLedgerStore } from '@/mock/store';
@@ -28,7 +30,7 @@ interface WhtCert {
   status: string;
 }
 
-export const WhtCertificatesList: React.FC = () => {
+const MockWhtCertificatesList: React.FC = () => {
   const { currentCompany, contacts, bills, uiDensity } = useLedgerStore();
   const navigate = useNavigate();
   const [selectedCert, setSelectedCert] = useState<WhtCert | null>(null);
@@ -275,3 +277,6 @@ export const WhtCertificatesList: React.FC = () => {
     </div>
   );
 };
+
+/** The demo keeps its store-backed screen; live mode reads the API (docs/15). */
+export const WhtCertificatesList: React.FC = selectByMode({ mock: MockWhtCertificatesList, live: WhtCertificatesLive });

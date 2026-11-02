@@ -1,10 +1,12 @@
+import { selectByMode } from '@/data/select';
+import { SupplierCardLive } from './live';
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useLedgerStore } from '@/mock/store';
 import { AlertCircle, Plus, CreditCard } from 'lucide-react';
 import { ContactAccountCard } from '@/pages/Sales/ContactAccountCard';
 
-export const SupplierCard: React.FC = () => {
+const MockSupplierCard: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { currentCompany, contacts, bills, settlements, contactBalance, contactOverdueBalance } = useLedgerStore();
@@ -50,3 +52,6 @@ export const SupplierCard: React.FC = () => {
     />
   );
 };
+
+/** The demo keeps its store-backed screen; live mode reads the API (docs/15). */
+export const SupplierCard: React.FC = selectByMode({ mock: MockSupplierCard, live: SupplierCardLive });

@@ -1,3 +1,5 @@
+import { selectByMode } from '@/data/select';
+import { RecurringDocsLive } from './live/RecurringDocsLive';
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -16,7 +18,7 @@ import { MakeRecurringDialog } from './MakeRecurringDialog';
 
 const FREQ: Record<string, string> = { monthly: 'Every month', quarterly: 'Every 3 months' };
 
-export const RecurringInvoices: React.FC = () => {
+const MockRecurringInvoices: React.FC = () => {
   const navigate = useNavigate();
   const { recurringSchedules, invoices, contacts, currentCompany, setRecurringActive, runRecurringSchedules } = useLedgerStore();
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -172,3 +174,6 @@ export const RecurringInvoices: React.FC = () => {
     </div>
   );
 };
+
+/** The demo keeps its store-backed screen; live mode reads the API (docs/15). */
+export const RecurringInvoices: React.FC = selectByMode({ mock: MockRecurringInvoices, live: RecurringDocsLive });

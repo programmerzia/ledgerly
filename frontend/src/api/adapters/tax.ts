@@ -3,6 +3,7 @@
  * The conversion is on the decimal text, never through a float, so 7.5 becomes "0.075" exactly.
  */
 import type { TaxCodeBody } from '../live/setup';
+import type { components } from '../schema';
 
 /** "5" -> "0.05", "7.5" -> "0.075", "0" -> "0", "100" -> "1". Returns null for anything else. */
 export function percentToFraction(input: string): string | null {
@@ -57,3 +58,124 @@ export function toTaxCodeBody(f: TaxCodeForm): { body: TaxCodeBody } | { field: 
   if (rate === null) return { field: 'percent', message: 'Enter a rate between 0 and 100, for example 5 or 7.5.' };
   return { body: { code: f.code, name: f.name.trim(), kind: f.kind, rate, effective_from: f.effectiveFrom } };
 }
+
+/* ----------------------------------------------------- the tax codes screen */
+
+export type ApiTaxCodeResource = components['schemas']['TaxCodeResource'];
+export type ApiTaxGroupResource = components['schemas']['TaxGroupResource'];
+
+export interface LiveTaxRate {
+  id: string;
+  /** Fraction string as the server holds it ("0.050000"). Show with `fractionToPercent`. */
+  rate: string;
+  effective_from: string;
+  effective_to: string | null;
+}
+
+export interface LiveTaxCode {
+  id: string;
+  code: string;
+  name: string;
+  kind: string;
+  /** The rate in force today (fraction string), null when none is. */
+  rate: string | null;
+  rates: LiveTaxRate[];
+  collect_account_id: string | null;
+  pay_account_id: string | null;
+  is_recoverable: boolean;
+  is_active: boolean;
+  version: number;
+  can: { update: boolean; deactivate: boolean };
+}
+
+const canOf = (raw: unknown): { update: boolean; deactivate: boolean } => {
+  const r = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
+  return { update: r.update === true, deactivate: r.deactivate === true };
+};
+
+export function toLiveTaxCode(a: ApiTaxCodeResource): LiveTaxCode {
+  return {
+    id: a.id,
+    code: a.code,
+    name: a.name,
+    kind: a.kind,
+    rate: a.rate ?? null,
+    rates: (a.rates ?? []).map((r) => ({ id: r.id, rate: r.rate, effective_from: r.effective_from ?? '', effective_to: r.effective_to ?? null })),
+    collect_account_id: a.collect_account_id,
+    pay_account_id: a.pay_account_id,
+    is_recoverable: a.is_recoverable,
+    is_active: a.is_active,
+    version: a.version,
+    can: canOf(a.can),
+  };
+}
+
+export interface LiveTaxGroup {
+  id: string;
+  code: string;
+  name: string;
+  is_active: boolean;
+  version: number;
+  items: Array<{ tax_code_id: string; sequence: number; compound: boolean }>;
+  can: { update: boolean; deactivate: boolean };
+}
+
+export function toLiveTaxGroup(a: ApiTaxGroupResource): LiveTaxGroup {
+  return {
+    id: a.id,
+    code: a.code,
+    name: a.name,
+    is_active: a.is_active,
+    version: a.version,
+    items: (a.items ?? []).map((i) => ({ tax_code_id: i.tax_code_id, sequence: i.sequence, compound: i.compound })).sort((x, y) => x.sequence - y.sequence),
+    can: canOf(a.can),
+  };
+}
+
+export interface TaxCodeEdit {
+  name: string;
+  kind: string;
+  collect_account_id: string;
+  pay_account_id: string;
+  is_recoverable: boolean;
+}
+
+/** Replace a code: everything but the code and its rates, at the version it was read at. */
+export function toTaxCodeReplace(e: TaxCodeEdit, version: number): Record<string, unknown> {
+  return {
+    name: e.name.trim(),
+    kind: e.kind,
+    collect_account_id: e.collect_account_id || null,
+    pay_account_id: e.pay_account_id || null,
+    is_recoverable: e.is_recoverable,
+    version,
+  };
+}
+
+/** A new rate from a date. `percent` is text such as "7.5"; null when it is not a rate between 0 and 100. */
+export function toRateRequest(percent: string, effectiveFrom: string, version: number): Record<string, unknown> | null {
+  const rate = percentToFraction(percent);
+  if (rate === null || !effectiveFrom) return null;
+  return { rate, effective_from: effectiveFrom, version };
+}
+
+export function toGroupRequest(code: string, name: string, items: Array<{ tax_code_id: string; compound: boolean }>, version?: number): Record<string, unknown> {
+  const body: Record<string, unknown> = {
+    name: name.trim(),
+    items: items.map((i) => ({ tax_code_id: i.tax_code_id, compound: i.compound })),
+  };
+  if (version === undefined) body.code = code.trim();
+  else body.version = version;
+  return body;
+}
+
+export const TAX_KIND_LABEL: Record<string, string> = {
+  vat: 'VAT',
+  gst: 'GST',
+  sales: 'Sales tax',
+  wht: 'Withholding',
+  compound: 'Compound',
+  exempt: 'Exempt',
+  zero: 'Zero-rated',
+  reverse_charge: 'Reverse charge',
+};

@@ -23,26 +23,23 @@ import { IntentSlot } from '@/api/intentSlot';
 import { rateForDisplay } from '@/api/adapters/money';
 import type { LiveDoc } from '@/api/adapters/invoice';
 import { DocStatusPill, ErrorLine, LoadingLine, inputClass, tradeVerdictText } from './parts';
+import { SIDES, isCreditKind, type Side } from './side';
 
 type Pending = 'approve' | 'reverse' | 'submit' | 'apply';
 
-const WORDS: Record<string, { one: string; Title: string }> = {
-  sales_invoice: { one: 'invoice', Title: 'Invoice' },
-  credit_note: { one: 'credit note', Title: 'Credit note' },
-};
-
-export const InvoiceViewLive: React.FC = () => {
+export const InvoiceViewLive: React.FC<{ side?: Side }> = ({ side = 'sales' }) => {
+  const S = SIDES[side];
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const company = useRouteCompany();
   const me = useLedgerStore((s) => s.currentUser);
   const coSlug = company.slug;
-  const docQ = useDoc(id);
+  const docQ = useDoc(id, S.resource);
   const accounts = useAccounts();
-  const customers = useContactDirectory('customer', true);
+  const customers = useContactDirectory(S.contactKind, true);
   const refs = useTradeRefs();
   const names = useMemberNames();
-  const actions = useDocActions();
+  const actions = useDocActions(S.resource);
   const { run, signProps } = useSignedRun();
 
   const [pending, setPending] = useState<Pending | null>(null);
@@ -63,7 +60,7 @@ export const InvoiceViewLive: React.FC = () => {
   };
 
   const doc = docQ.data;
-  const open = useOpenDocs(doc?.status === 'posted' && doc.kind === 'credit_note' ? doc.contact_id : undefined, 'sales_invoice');
+  const open = useOpenDocs(doc?.status === 'posted' && isCreditKind(doc.kind) ? doc.contact_id : undefined, S.mainKind, S.resource);
 
   if (docQ.isLoading || accounts.isLoading) return <LoadingLine what="document" />;
   if (docQ.error || !doc) {
@@ -71,8 +68,8 @@ export const InvoiceViewLive: React.FC = () => {
     return notFound ? (
       <div className="rounded-lg border border-border bg-surface p-6 text-[13px] text-text-secondary">
         This document does not exist in this company.{' '}
-        <button type="button" onClick={() => navigate(`/${coSlug}/invoices`)} className="text-accent hover:underline">
-          Back to invoices
+        <button type="button" onClick={() => navigate(`/${coSlug}/${S.docsPath}`)} className="text-accent hover:underline">
+          Back to {S.mains}
         </button>
       </div>
     ) : (
@@ -80,9 +77,9 @@ export const InvoiceViewLive: React.FC = () => {
     );
   }
 
-  const words = WORDS[doc.kind] ?? WORDS.sales_invoice;
+  const isCredit = isCreditKind(doc.kind);
+  const words = isCredit ? { one: S.credit, Title: S.Credit } : { one: S.main, Title: S.Main };
   const numberLabel = doc.number ?? (doc.status === 'draft' ? 'Draft' : 'No number yet');
-  const isCredit = doc.kind === 'credit_note';
   const customer = customers.byId.get(doc.contact_id);
   const makerName = names.get(doc.submitted_by ?? doc.created_by ?? '');
   const isMine = doc.created_by === me.id || doc.submitted_by === me.id;
@@ -101,7 +98,7 @@ export const InvoiceViewLive: React.FC = () => {
       setConflict({ noun: words.one, serverVersion: e.serverVersion, localVersion: doc.version, onClose: () => setConflict(null), onReload: () => { setConflict(null); docQ.refetch(); } });
       return;
     }
-    const msg = tradeVerdictText(e);
+    const msg = tradeVerdictText(e, side === 'purchases');
     if (dialog) setProblem(msg);
     else toast.error(msg);
   };
@@ -151,7 +148,7 @@ export const InvoiceViewLive: React.FC = () => {
       setDialog(null);
       setText('');
       toast.success('Draft discarded');
-      navigate(`/${coSlug}/invoices`);
+      navigate(`/${coSlug}/${S.docsPath}`);
     }
   };
   const doReverse = async () => {
@@ -174,7 +171,7 @@ export const InvoiceViewLive: React.FC = () => {
       setDialog(null);
       setApplyTo('');
       setApplyAmount(0);
-      toast.success('Credit applied to the invoice');
+      toast.success(`Credit applied to the ${S.main}`);
       docQ.refetch();
     }
   };
@@ -186,9 +183,9 @@ export const InvoiceViewLive: React.FC = () => {
   const sameCurrency = (d: LiveDoc | undefined) => Boolean(d) && d?.currency === base && doc.currency === base;
   const sign =
     pending === 'apply'
-      ? { action: 'Apply credit', text: 'This puts the credit against the invoice you chose. The invoice owes that much less. Undo it later if it was a mistake.' }
+      ? { action: 'Apply credit', text: side === 'sales' ? 'This puts the credit against the invoice you chose. The invoice owes that much less. Undo it later if it was a mistake.' : 'This puts the credit against the bill you chose. You owe that much less on it.' }
       : pending === 'reverse'
-      ? { action: `Reverse ${words.one}`, text: `Reversing adds an equal and opposite entry and gives the invoice back its open amounts.` }
+      ? { action: `Reverse ${words.one}`, text: `Reversing adds an equal and opposite entry and gives the ${S.main} back its open amounts.` }
       : pending === 'submit'
         ? { action: 'Sign and post', text: `Nobody else needs to approve this ${words.one} under your company rules, so it posts now with the next number.` }
         : { action: 'Approve and post', text: `Approving posts this ${words.one} to your books with the next number. Mistakes are fixed later with a reversal.` };
@@ -196,7 +193,7 @@ export const InvoiceViewLive: React.FC = () => {
   return (
     <div className="flex flex-col gap-6 pb-20">
       <PageHeader
-        breadcrumb={[{ label: isCredit ? 'Credit notes' : 'Invoices', to: `/${coSlug}/invoices` }, { label: numberLabel }]}
+        breadcrumb={[{ label: isCredit ? S.Credits : S.Mains, to: `/${coSlug}/${S.docsPath}` }, { label: numberLabel }]}
         title={doc.number || (doc.status === 'draft' ? `Draft ${words.one}` : words.Title)}
         subtitle={customer?.name}
         meta={<DocStatusPill doc={doc} />}
@@ -219,8 +216,8 @@ export const InvoiceViewLive: React.FC = () => {
       )}
       {doc.related_invoice_id && (
         <div className="flex items-center gap-2 rounded-lg border border-border bg-surface-neutral px-4 py-3 text-[13px] font-medium text-text-secondary">
-          <Link2 className="size-4" /> This {words.one} refers to another invoice.{' '}
-          <Link className="underline" to={`/${coSlug}/invoices/${doc.related_invoice_id}`}>
+          <Link2 className="size-4" /> This {words.one} refers to another {S.main}.{' '}
+          <Link className="underline" to={`/${coSlug}/${S.docsPath}/${doc.related_invoice_id}`}>
             View it
           </Link>
         </div>
@@ -240,7 +237,7 @@ export const InvoiceViewLive: React.FC = () => {
           </div>
           <div className="mt-8 grid gap-6 sm:grid-cols-2">
             <div>
-              <div className="text-[11px] font-semibold uppercase tracking-[0.04em] text-text-muted">Bill to</div>
+              <div className="text-[11px] font-semibold uppercase tracking-[0.04em] text-text-muted">{side === 'sales' ? 'Bill to' : 'From'}</div>
               <div className="mt-1 text-[13px] font-semibold text-text-primary">{customer?.name ?? '—'}</div>
               {customer?.billing_address.map((l, i) => (
                 <div key={i} className="text-xs text-text-secondary">
@@ -307,11 +304,14 @@ export const InvoiceViewLive: React.FC = () => {
             <div className="flex justify-between"><dt className="text-text-secondary">Subtotal</dt><dd className="tabular-nums">{formatMoney(doc.subtotal_fc, doc.currency)}</dd></div>
             <div className="flex justify-between"><dt className="text-text-secondary">Tax</dt><dd className="tabular-nums">{formatMoney(doc.tax_total_fc, doc.currency)}</dd></div>
             <div className="flex justify-between border-t border-border pt-1.5 text-sm font-semibold"><dt>Total</dt><dd className="tabular-nums">{formatMoney(doc.total_fc, doc.currency)}</dd></div>
+            {doc.wht_code_id && (
+              <div className="flex justify-between text-text-secondary"><dt>Withheld when paid ({refs.taxCodes.find((t) => t.id === doc.wht_code_id)?.code ?? 'WHT'})</dt><dd className="tabular-nums" data-testid="doc-wht">{formatMoney(doc.wht_amount_fc, doc.currency)}</dd></div>
+            )}
             {foreign && <div className="flex justify-between text-xs text-text-muted"><dt>In {base}</dt><dd className="tabular-nums">{formatMoney(doc.total, base)}</dd></div>}
             {posted && (
               <>
                 <div className="flex justify-between text-text-secondary"><dt>{isCredit ? 'Applied so far' : 'Paid so far'}</dt><dd className="tabular-nums">{formatMoney(doc.settled_fc, doc.currency)}</dd></div>
-                <div className="flex justify-between font-semibold"><dt>{isCredit ? 'Credit left' : 'Still owed'}{foreign ? ` (${base})` : ''}</dt><dd className="tabular-nums" data-testid="doc-amount-due">{formatMoney(doc.amount_due, base)}</dd></div>
+                <div className="flex justify-between font-semibold"><dt>{isCredit ? 'Credit left' : side === 'sales' ? 'Still owed' : 'Still to pay'}{foreign ? ` (${base})` : ''}</dt><dd className="tabular-nums" data-testid="doc-amount-due">{formatMoney(doc.amount_due, base)}</dd></div>
               </>
             )}
           </dl>
@@ -355,7 +355,7 @@ export const InvoiceViewLive: React.FC = () => {
                 )}
                 <div className="grid grid-cols-2 gap-2">
                   {can.update && (
-                    <button type="button" onClick={() => navigate(`/${coSlug}/invoices/new?draft=${doc.id}`)} className={BTN_SECONDARY}>
+                    <button type="button" onClick={() => navigate(`/${coSlug}/${S.docsPath}/new?draft=${doc.id}`)} className={BTN_SECONDARY}>
                       <Pencil className="size-4 text-text-muted" /> Edit draft
                     </button>
                   )}
@@ -371,19 +371,19 @@ export const InvoiceViewLive: React.FC = () => {
             {posted && (
               <div className="flex flex-col gap-2">
                 {!isCredit && doc.amount_due > 0 && (
-                  <button type="button" onClick={() => navigate(`/${coSlug}/receipts/new?contactId=${doc.contact_id}&invoiceId=${doc.id}`)} className="flex h-8 cursor-pointer items-center justify-center gap-1.5 rounded-md bg-accent px-3 text-[13px] font-medium text-white transition hover:bg-accent-hover">
-                    <Receipt className="size-4" /> Record receipt
+                  <button type="button" onClick={() => navigate(`/${coSlug}/${S.settlementPath}/new?contactId=${doc.contact_id}&invoiceId=${doc.id}`)} className="flex h-8 cursor-pointer items-center justify-center gap-1.5 rounded-md bg-accent px-3 text-[13px] font-medium text-white transition hover:bg-accent-hover">
+                    <Receipt className="size-4" /> Record {S.settlement}
                   </button>
                 )}
                 {isCredit && doc.amount_due > 0 && (
                   <button type="button" onClick={() => { setProblem(''); setApplyTo(''); setApplyAmount(0); setDialog('apply'); }} className="flex h-8 cursor-pointer items-center justify-center gap-1.5 rounded-md bg-accent px-3 text-[13px] font-medium text-white transition hover:bg-accent-hover">
-                    <FilePlus className="size-4" /> Apply to an invoice
+                    <FilePlus className="size-4" /> Apply to {side === 'sales' ? 'an invoice' : 'a bill'}
                   </button>
                 )}
                 <div className="grid grid-cols-2 gap-2">
                   {!isCredit && (
-                    <button type="button" onClick={() => navigate(`/${coSlug}/credit-notes/new?invoice=${doc.id}`)} className={BTN_SECONDARY}>
-                      <FilePlus className="size-4 text-text-muted" /> Credit note
+                    <button type="button" onClick={() => navigate(`/${coSlug}/${S.creditsPath}/new?invoice=${doc.id}`)} className={BTN_SECONDARY}>
+                      <FilePlus className="size-4 text-text-muted" /> {S.Credit}
                     </button>
                   )}
                   {can.reverse && (
@@ -440,7 +440,7 @@ export const InvoiceViewLive: React.FC = () => {
             </div>
             <label className="flex flex-col gap-1 font-semibold text-text-primary">
               <span>Why are you reversing it? <span className="text-danger">*</span></span>
-              <input value={text} onChange={(e) => setText(e.target.value)} placeholder="e.g. billed to the wrong customer" className={cn(inputClass, 'w-full font-normal')} />
+              <input value={text} onChange={(e) => setText(e.target.value)} placeholder="e.g. entered against the wrong {S.contact}" className={cn(inputClass, 'w-full font-normal')} />
             </label>
             <label className="flex flex-col gap-1 font-semibold text-text-primary">
               Reversal date (optional)
@@ -459,19 +459,19 @@ export const InvoiceViewLive: React.FC = () => {
 
       <Dialog open={dialog === 'apply'} onOpenChange={(o) => !o && setDialog(null)}>
         <DialogContent className="max-w-lg rounded-lg border border-border bg-surface-elevated p-6 shadow-popover">
-          <DialogHeader><DialogTitle className="text-base font-semibold text-text-primary">Apply {doc.number} to an invoice</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle className="text-base font-semibold text-text-primary">Apply {doc.number} to {side === 'sales' ? 'an invoice' : 'a bill'}</DialogTitle></DialogHeader>
           <div className="flex flex-col gap-3 text-xs text-text-secondary">
             <p>Credit left on this note: <span className="font-semibold tabular-nums text-text-primary">{formatMoney(doc.amount_due, base)}</span></p>
             {open.isLoading ? (
-              <p>Loading this customer’s open invoices…</p>
+              <p>Loading this {S.contact}’s open {S.mains}…</p>
             ) : open.docs.length === 0 ? (
-              <p>This customer has no open invoices to apply it to.</p>
+              <p>This {S.contact} has no open {S.mains} to apply it to.</p>
             ) : (
               <>
                 <label className="flex flex-col gap-1 font-semibold text-text-primary">
-                  Invoice
-                  <select value={applyTo} onChange={(e) => { setApplyTo(e.target.value); setApplyAmount(0); }} className={cn(inputClass, 'w-full font-normal')} aria-label="Invoice to apply to">
-                    <option value="">Choose an invoice</option>
+                  {S.Main}
+                  <select value={applyTo} onChange={(e) => { setApplyTo(e.target.value); setApplyAmount(0); }} className={cn(inputClass, 'w-full font-normal')} aria-label={`${S.Main} to apply to`}>
+                    <option value="">Choose {side === 'sales' ? 'an invoice' : 'a bill'}</option>
                     {open.docs.map((d) => (
                       <option key={d.id} value={d.id}>
                         {d.number} · owed {formatMoney(d.amount_due, d.baseCurrency)}
@@ -486,7 +486,7 @@ export const InvoiceViewLive: React.FC = () => {
                 {sameCurrency(targetInvoice) && targetInvoice && (
                   <div className="flex gap-2">
                     <button type="button" onClick={() => setApplyAmount(doc.amount_due)} className="rounded border border-border px-2 py-1 text-[11px] hover:bg-surface-neutral">Use the credit left</button>
-                    <button type="button" onClick={() => setApplyAmount(targetInvoice.amount_due)} className="rounded border border-border px-2 py-1 text-[11px] hover:bg-surface-neutral">Use what the invoice owes</button>
+                    <button type="button" onClick={() => setApplyAmount(targetInvoice.amount_due)} className="rounded border border-border px-2 py-1 text-[11px] hover:bg-surface-neutral">{side === 'sales' ? 'Use what the invoice owes' : 'Use what is still to pay'}</button>
                   </div>
                 )}
                 <label className="flex flex-col gap-1 font-semibold text-text-primary">

@@ -1,3 +1,5 @@
+import { selectByMode } from '@/data/select';
+import { BillsListLive } from './live';
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ColumnDef } from '@tanstack/react-table';
@@ -17,7 +19,7 @@ import { toast } from 'sonner';
 import { api } from '@/mock/api';
 import { Eye, CreditCard, Bell, Copy, Download, RotateCcw, Plus, ExternalLink, CheckCircle2, AlertCircle, Building, Coins } from 'lucide-react';
 
-export const BillsList: React.FC = () => {
+const MockBillsList: React.FC = () => {
   const navigate = useNavigate();
   const { currentCompany, currentUser, companySettings, bills, contacts, approveBill, openTab, uiDensity } = useLedgerStore();
   const coSlug = currentCompany.slug;
@@ -401,3 +403,6 @@ export const BillsList: React.FC = () => {
     </div>
   );
 };
+
+/** The demo keeps its store-backed screen; live mode reads the API (docs/15). */
+export const BillsList: React.FC = selectByMode({ mock: MockBillsList, live: BillsListLive });

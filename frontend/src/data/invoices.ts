@@ -67,6 +67,20 @@ export function useOpenDocs(contactId: string | undefined, kind: string, resourc
   return { docs: q.data ?? [], isLoading: q.isLoading, error: q.error, refetch: () => void q.refetch() };
 }
 
+/** Every posted document of a kind with something still open, across contacts (the payment run picks from these). */
+export function useAllOpenDocs(kind: string, resource: DocResource = 'bills') {
+  const company = useRouteCompany();
+  const q = useQuery({
+    queryKey: [...docsKey(company.id, resource), 'open-all', kind],
+    staleTime: 0,
+    queryFn: async () => {
+      const rows = await fetchAllPages((cursor) => live.listDocs(company.id, resource, { kind, status: 'posted' }, cursor, 100));
+      return rows.map(toDoc).filter((d) => d.amount_due > 0);
+    },
+  });
+  return { docs: q.data ?? [], isLoading: q.isLoading, error: q.error, refetch: () => void q.refetch() };
+}
+
 export function useDocActions(resource: DocResource = 'invoices') {
   const company = useRouteCompany();
   const qc = useQueryClient();

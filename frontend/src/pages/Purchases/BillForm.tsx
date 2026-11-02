@@ -1,3 +1,5 @@
+import { selectByMode } from '@/data/select';
+import { BillFormLive } from './live';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLedgerStore } from '@/mock/store';
@@ -43,7 +45,7 @@ interface FormLine {
   cost_centre: string;
 }
 
-export const BillForm: React.FC = () => {
+const MockBillForm: React.FC = () => {
   const navigate = useNavigate();
   const { currentCompany, currentUser, contacts, accounts, bills, saveBillDraft, submitBillForApproval, companySettings } = useLedgerStore();
   const coSlug = currentCompany.slug;
@@ -734,3 +736,6 @@ export const BillForm: React.FC = () => {
     </div>
   );
 };
+
+/** The demo keeps its store-backed screen; live mode reads the API (docs/15). */
+export const BillForm: React.FC = selectByMode({ mock: MockBillForm, live: BillFormLive });

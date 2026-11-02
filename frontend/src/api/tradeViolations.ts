@@ -5,7 +5,7 @@ import { describeViolation } from './violations';
  * Plain-language text for the codes sales and purchase documents and settlements add to the ledger's own
  * (`describeViolation`). Switches on `code`; anything unknown falls back to the ledger texts, then the server's message.
  */
-export function describeTradeViolation(v: Violation): string {
+function tradeText(v: Violation): string | null {
   switch (v.code) {
     case 'posting_account_missing':
       // The server names which account (`posting_accounts.rounding`, `ar_control`, ...) in its own message.
@@ -83,8 +83,30 @@ export function describeTradeViolation(v: Violation): string {
     case 'amount_invalid':
       return 'The amount must be more than zero.';
     default:
-      return describeViolation(v);
+      return null;
   }
+}
+
+export function describeTradeViolation(v: Violation): string {
+  return tradeText(v) ?? describeViolation(v);
+}
+
+/** Sales words to purchase words, for the texts written for invoices, credit notes, customers and receipts. */
+const toPurchases = (t: string): string =>
+  t
+    .replace(/credit notes/g, 'debit notes')
+    .replace(/credit note/g, 'debit note')
+    .replace(/invoices/g, 'bills')
+    .replace(/invoice/g, 'bill')
+    .replace(/Invoices/g, 'Bills')
+    .replace(/customer/g, 'supplier')
+    .replace(/receipt/g, 'payment')
+    .replace(/\b(a|an|A|An) (?=(?:bills?|debit notes?|suppliers?|payments?)\b)/g, (m, art: string) => `${/^[A-Z]/.test(art) ? 'A' : 'a'} `);
+
+/** The same verdicts for a purchase document or payment: the words are bills, debit notes, suppliers and payments. */
+export function describePurchaseViolation(v: Violation): string {
+  const t = tradeText(v);
+  return t === null ? describeViolation(v) : toPurchases(t);
 }
 
 /** A 422/409/403 body's violations as one sentence list, in plain language. */

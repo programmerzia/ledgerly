@@ -2,7 +2,10 @@
  * Live contacts, documents (invoices, credit notes; bills and debit notes use the same shapes on /bills), settlements,
  * items, tax codes and bank accounts (13 §10). Transport only: the adapters shape the results.
  */
-import { http } from '../http';
+import { http, buildUrl } from '../http';
+import { API_BASE_URL } from '../config';
+import { NetworkError, problemToError } from '../errors';
+import type { ExportedFile } from './reports';
 import type { Intent } from '../idempotency';
 import type { CursorPage } from '../cursor';
 import type { ApiContact } from '../adapters/contact';
@@ -110,3 +113,99 @@ export const applySettlementCredit = async (company: string, id: string, body: {
 export const listItems = (company: string, cursor: string | undefined) => getPage<ApiItem>(`${base(company)}/items`, { active: 'true', cursor, limit: 200 });
 export const listTaxCodes = (company: string, cursor: string | undefined) => getPage<ApiTaxCode>(`${base(company)}/tax-codes`, { active: 'true', cursor, limit: 200 });
 export const listBankAccounts = async (company: string): Promise<ApiBankAccount[]> => (await http.send<{ data: ApiBankAccount[] }>('GET', `${base(company)}/bank-accounts`)).data;
+
+/* ----------------------------------------------------------- WHT certificates */
+
+export type ApiWhtCertificate = components['schemas']['WhtCertificateResource'];
+export interface WhtQuery {
+  contact_id?: string;
+  status?: string;
+  from?: string;
+  to?: string;
+}
+export const listWhtCertificates = (company: string, q: WhtQuery, cursor: string | undefined, limit = 50) =>
+  getPage<ApiWhtCertificate>(`${base(company)}/wht-certificates`, { ...q, cursor, limit });
+
+/* ------------------------------------------------------------- payment runs */
+
+export type ApiPaymentRun = components['schemas']['PaymentRunResource'];
+
+export const listPaymentRuns = (company: string, q: { status?: string }, cursor: string | undefined, limit = 25) =>
+  getPage<ApiPaymentRun>(`${base(company)}/payment-runs`, { ...q, cursor, limit });
+export const getPaymentRun = (company: string, id: string) => getOne<ApiPaymentRun>(`${base(company)}/payment-runs/${id}`);
+export const createPaymentRun = async (company: string, body: unknown, intent: Intent) => (await post<ApiPaymentRun>(`${base(company)}/payment-runs`, body, intent)).data;
+export const updatePaymentRun = async (company: string, id: string, body: unknown, intent: Intent) =>
+  (await http.send<{ data: ApiPaymentRun }>('PUT', `${base(company)}/payment-runs/${id}`, body, intent)).data;
+export const previewPaymentRun = async (company: string, id: string, intent: Intent) =>
+  (await post<ApiInvoicePreview>(`${base(company)}/payment-runs/${id}/posting-preview`, {}, intent)).data;
+export const transitionPaymentRun = async (company: string, id: string, action: 'submit' | 'approve' | 'return' | 'void', body: Record<string, unknown>, intent: Intent) =>
+  (await post<ApiPaymentRun>(`${base(company)}/payment-runs/${id}/${action}`, body, intent)).data;
+
+/** The bank file of a posted run (CSV, generated on demand). */
+export async function downloadBankFile(company: string, id: string, fallbackName: string): Promise<ExportedFile> {
+  const url = buildUrl(API_BASE_URL, '/v1/companies/{company}/payment-runs/{paymentRun}/export', { company, paymentRun: id });
+  let res: Response;
+  try {
+    res = await fetch(url, { method: 'GET', credentials: 'include', headers: { Accept: 'text/csv, application/json', 'X-Requested-With': 'XMLHttpRequest' } });
+  } catch (e) {
+    throw new NetworkError(e);
+  }
+  if (!res.ok) {
+    let body: unknown = null;
+    try {
+      body = await res.json();
+    } catch {
+      body = null;
+    }
+    throw problemToError(res.status, body, res.headers);
+  }
+  const m = /filename\*?=(?:UTF-8'')?"?([^";]+)"?/i.exec(res.headers.get('Content-Disposition') ?? '');
+  return { blob: await res.blob(), filename: m ? decodeURIComponent(m[1]) : fallbackName };
+}
+
+/* ----------------------------------------------------- tax codes and groups */
+
+export type ApiTaxCodeFull = components['schemas']['TaxCodeResource'];
+export type ApiTaxGroup = components['schemas']['TaxGroupResource'];
+
+export const listAllTaxCodes = (company: string, cursor: string | undefined) => getPage<ApiTaxCodeFull>(`${base(company)}/tax-codes`, { cursor, limit: 200 });
+export const createTaxCodeFull = async (company: string, body: unknown, intent: Intent) => (await post<ApiTaxCodeFull>(`${base(company)}/tax-codes`, body, intent)).data;
+export const updateTaxCode = async (company: string, id: string, body: unknown, intent: Intent) =>
+  (await http.send<{ data: ApiTaxCodeFull }>('PUT', `${base(company)}/tax-codes/${id}`, body, intent)).data;
+export const addTaxRate = async (company: string, id: string, body: unknown, intent: Intent) => (await post<ApiTaxCodeFull>(`${base(company)}/tax-codes/${id}/rates`, body, intent)).data;
+export const deactivateTaxCode = async (company: string, id: string, version: number, intent: Intent) =>
+  (await post<ApiTaxCodeFull>(`${base(company)}/tax-codes/${id}/deactivate`, { version }, intent)).data;
+
+export const listTaxGroups = (company: string, cursor: string | undefined) => getPage<ApiTaxGroup>(`${base(company)}/tax-groups`, { cursor, limit: 200 });
+export const createTaxGroup = async (company: string, body: unknown, intent: Intent) => (await post<ApiTaxGroup>(`${base(company)}/tax-groups`, body, intent)).data;
+export const updateTaxGroup = async (company: string, id: string, body: unknown, intent: Intent) =>
+  (await http.send<{ data: ApiTaxGroup }>('PUT', `${base(company)}/tax-groups/${id}`, body, intent)).data;
+export const deactivateTaxGroup = async (company: string, id: string, version: number, intent: Intent) =>
+  (await post<ApiTaxGroup>(`${base(company)}/tax-groups/${id}/deactivate`, { version }, intent)).data;
+
+/* -------------------------------------------------------------------- items */
+
+export interface ItemQuery {
+  kind?: string;
+  active?: string;
+  search?: string;
+}
+export const listItemsPage = (company: string, q: ItemQuery, cursor: string | undefined, limit = 50) => getPage<ApiItem>(`${base(company)}/items`, { ...q, cursor, limit });
+export const createItem = async (company: string, body: unknown, intent: Intent) => (await post<ApiItem>(`${base(company)}/items`, body, intent)).data;
+export const updateItem = async (company: string, id: string, body: unknown, intent: Intent) =>
+  (await http.send<{ data: ApiItem }>('PUT', `${base(company)}/items/${id}`, body, intent)).data;
+export const deactivateItem = async (company: string, id: string, version: number, intent: Intent) => (await post<ApiItem>(`${base(company)}/items/${id}/deactivate`, { version }, intent)).data;
+
+/* ------------------------------------------------- recurring invoices and bills */
+
+export type ApiSchedule = components['schemas']['RecurringScheduleResource'];
+export type ApiScheduleRun = components['schemas']['RecurringRunResource'];
+
+export const listRecurringDocs = (company: string, cursor: string | undefined) => getPage<ApiSchedule>(`${base(company)}/recurring-invoices`, { cursor, limit: 100 });
+export const createRecurringDoc = async (company: string, body: unknown, intent: Intent) => (await post<ApiSchedule>(`${base(company)}/recurring-invoices`, body, intent)).data;
+export const updateRecurringDoc = async (company: string, id: string, body: unknown, intent: Intent) =>
+  (await http.send<{ data: ApiSchedule }>('PUT', `${base(company)}/recurring-invoices/${id}`, body, intent)).data;
+export const toggleRecurringDoc = async (company: string, id: string, action: 'pause' | 'resume', version: number, intent: Intent) =>
+  (await post<ApiSchedule>(`${base(company)}/recurring-invoices/${id}/${action}`, { version }, intent)).data;
+export const runRecurringDocs = async (company: string, body: { as_of?: string; schedule_id?: string }, intent: Intent) =>
+  (await post<{ created: ApiScheduleRun[]; failures: string[] }>(`${base(company)}/recurring-runs`, body, intent)).data;
