@@ -32,6 +32,8 @@ import {
   type DocPreview,
   type LiveDoc,
 } from '@/api/adapters/invoice';
+import { isMatchOverrideForbidden, matchRefusal, type MatchRefusal } from '@/api/adapters/procurement';
+import { MatchRefusalNotice } from '@/pages/Purchases/live/MatchPanels';
 import type { InvoiceKind } from '@/types';
 import type { Violation } from '@/api/errors';
 import { BTN_ACCENT, BTN_GHOST, ErrorLine, LoadingLine, inputClass } from './parts';
@@ -133,6 +135,8 @@ const InvoiceFormInner: React.FC<{ side: Side }> = ({ side }) => {
   const [conflict, setConflict] = useState<VersionConflict | null>(null);
   const [attempted, setAttempted] = useState(false);
   const [justLoaded, setJustLoaded] = useState(false);
+  // `sig` is the bill as it was submitted: editing it makes the refusal out of date, and it is not shown any more.
+  const [refusal, setRefusal] = useState<(MatchRefusal & { sig: string }) | null>(null);
 
   const saveSlot = useRef(new IntentSlot()).current;
   const submitSlot = useRef(new IntentSlot()).current;
@@ -283,6 +287,17 @@ const InvoiceFormInner: React.FC<{ side: Side }> = ({ side }) => {
       openConflict(e);
       return;
     }
+    const refused = side === 'purchases' ? matchRefusal(e) : null;
+    if (refused) {
+      // Highlight the lines, and say what to do about it: fix the bill, or pass it with a reason if allowed.
+      setRefusal({ ...refused, sig: contentSig });
+      showViolations(refused.violations);
+      return;
+    }
+    if (isMatchOverrideForbidden(e)) {
+      setHeaderErrors([describeV({ code: 'match_override_forbidden', message: '' })]);
+      return;
+    }
     if (e instanceof ApiError && e.violations?.length) showViolations(e.violations);
     else if (e instanceof ApiError && e.isValidation) showFieldErrors(e);
     else setHeaderErrors([describeError(e)]);
@@ -376,15 +391,16 @@ const InvoiceFormInner: React.FC<{ side: Side }> = ({ side }) => {
     if (res?.preview.valid) setReviewOpen(true);
   };
 
-  const confirmSubmit = async () => {
+  const confirmSubmit = async (matchOverrideReason?: string) => {
     if (!draft) return;
     setReviewOpen(false);
     setBusy('submit');
     const { id, version } = draft;
-    const intent = submitSlot.for(`${id}:${version}`);
+    const intent = submitSlot.for(`${id}:${version}:${matchOverrideReason ?? ''}`);
     try {
-      const d = await run(() => actions.submit(id, version, intent));
+      const d = await run(() => actions.submit(id, version, intent, matchOverrideReason));
       submitSlot.clear();
+      setRefusal(null);
       toast.success(d.status === 'posted' ? `Posted as ${d.number ?? `a numbered ${noun.one}`}` : 'Sent for approval. It posts when an approver signs it.');
       navigate(`/${coSlug}/${S.docsPath}/${d.id}`);
     } catch (e) {
@@ -505,6 +521,7 @@ const InvoiceFormInner: React.FC<{ side: Side }> = ({ side }) => {
           ))}
         </div>
       )}
+      {refusal && refusal.sig === contentSig && <MatchRefusalNotice refusal={refusal} canOverride={Boolean(saved?.can.override_match)} busy={working} onSubmitAnyway={(reason) => void confirmSubmit(reason)} />}
       {periodWarning && (
         <div className="rounded-lg border border-danger/40 bg-danger-soft p-3 text-xs text-danger">
           <span className="font-semibold">{periodWarning.name}</span> is {String(periodWarning.status).replace('_', ' ')}. The server will not post to it unless the period is reopened.
@@ -613,6 +630,7 @@ const InvoiceFormInner: React.FC<{ side: Side }> = ({ side }) => {
                         </td>
                         <td className="px-2 py-1.5">
                           <input aria-label={`Description, line ${i + 1}`} value={l.description} onChange={(e) => setLine(l.key, { description: e.target.value })} className={cn(inputClass, 'w-full')} />
+                          {l.purchase_order_line_id && <div className="mt-0.5 text-[11px] text-text-muted">From a purchase order</div>}
                         </td>
                         <td className="px-2 py-1.5">
                           <select aria-label={`Account, line ${i + 1}`} value={l.account_id} onChange={(e) => setLine(l.key, { account_id: e.target.value })} className={cn(inputClass, 'w-full')}>

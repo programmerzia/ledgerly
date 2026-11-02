@@ -94,7 +94,7 @@ describe('toDoc', () => {
   });
   it('only trusts can hints that are exactly true', () => {
     const d = toDoc(apiInvoice({ can: { reverse: true, submit: 'yes', approve: 1 } }));
-    expect(d.can).toEqual({ update: false, submit: false, approve: false, return: false, void: false, reverse: true });
+    expect(d.can).toEqual({ update: false, submit: false, approve: false, return: false, void: false, reverse: true, override_match: false });
   });
   it('refuses a fractional amount (contract break) instead of rounding it', () => {
     expect(() => toDoc(apiInvoice({ total_fc: eur(10.5) }))).toThrow();

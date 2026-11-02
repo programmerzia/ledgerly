@@ -17,11 +17,15 @@ import { useContactDirectory } from '@/data/contacts';
 import { useDoc, useDocActions, useDocPayments, useOpenDocs } from '@/data/invoices';
 import { useTradeRefs } from '@/data/tradeRefs';
 import { useMemberNames } from '@/data/approvals';
+import { useBillMatch } from '@/data/procurement';
 import { isSigningCancelled, useSignedRun } from '@/data/signing';
 import { ApiError } from '@/api/errors';
 import { IntentSlot } from '@/api/intentSlot';
 import { rateForDisplay } from '@/api/adapters/money';
 import type { LiveDoc } from '@/api/adapters/invoice';
+import { isMatchOverrideForbidden, matchLineFor, matchRefusal, type MatchRefusal } from '@/api/adapters/procurement';
+import { describePurchaseViolation } from '@/api/tradeViolations';
+import { BillMatchPanel, MatchRefusalNotice } from '@/pages/Purchases/live/MatchPanels';
 import type { LiveDocPayment } from '@/api/adapters/settlement';
 import { DocPayments, paymentTitle } from './DocPayments';
 import { DocStatusPill, ErrorLine, LoadingLine, inputClass, tradeVerdictText } from './parts';
@@ -55,6 +59,7 @@ export const InvoiceViewLive: React.FC<{ side?: Side }> = ({ side = 'sales' }) =
   const [applyAmount, setApplyAmount] = useState(0);
   const [applyDate, setApplyDate] = useState('');
   const [problem, setProblem] = useState('');
+  const [refusal, setRefusal] = useState<MatchRefusal | null>(null);
   const slots = useRef(new Map<string, IntentSlot>());
   const slotFor = (name: string) => {
     let s = slots.current.get(name);
@@ -66,6 +71,8 @@ export const InvoiceViewLive: React.FC<{ side?: Side }> = ({ side = 'sales' }) =
   const open = useOpenDocs(doc?.status === 'posted' && isCreditKind(doc.kind) ? doc.contact_id : undefined, S.mainKind, S.resource);
 
   const payments = useDocPayments(id, S.resource, docQ.data?.status === 'posted' || docQ.data?.status === 'reversed');
+  // Only a bill can be on an order. Everything else (sales documents, debit notes) never asks.
+  const match = useBillMatch(id, side === 'purchases' && docQ.data?.kind === 'purchase_bill');
 
   if (docQ.isLoading || accounts.isLoading) return <LoadingLine what="document" />;
   if (docQ.error || !doc) {
@@ -103,6 +110,15 @@ export const InvoiceViewLive: React.FC<{ side?: Side }> = ({ side = 'sales' }) =
       setConflict({ noun: words.one, serverVersion: e.serverVersion, localVersion: doc.version, onClose: () => setConflict(null), onReload: () => { setConflict(null); docQ.refetch(); } });
       return;
     }
+    const refused = side === 'purchases' ? matchRefusal(e) : null;
+    if (refused) {
+      setRefusal(refused);
+      return;
+    }
+    if (isMatchOverrideForbidden(e)) {
+      toast.error(describePurchaseViolation({ code: 'match_override_forbidden', message: '' }));
+      return;
+    }
     const msg = tradeVerdictText(e, side === 'purchases');
     if (dialog) setProblem(msg);
     else toast.error(msg);
@@ -128,9 +144,12 @@ export const InvoiceViewLive: React.FC<{ side?: Side }> = ({ side = 'sales' }) =
   }
 
   const sig = `${doc.id}:${doc.version}`;
-  const doSubmit = async () => {
-    const r = await perform('submit', sig, 'submit', (intent) => actions.submit(doc.id, doc.version, intent));
-    if (r) toast.success(r.status === 'posted' ? `Posted as ${r.number}` : 'Sent for approval');
+  const doSubmit = async (matchOverrideReason?: string) => {
+    const r = await perform('submit', `${sig}:${matchOverrideReason ?? ''}`, 'submit', (intent) => actions.submit(doc.id, doc.version, intent, matchOverrideReason));
+    if (r) {
+      setRefusal(null);
+      toast.success(r.status === 'posted' ? `Posted as ${r.number}` : 'Sent for approval');
+    }
   };
   const doApprove = async () => {
     const r = await perform('approve', sig, 'approve', (intent) => actions.approve(doc.id, doc.version, intent));
@@ -242,6 +261,8 @@ export const InvoiceViewLive: React.FC<{ side?: Side }> = ({ side = 'sales' }) =
         </div>
       )}
 
+      {refusal && <MatchRefusalNotice refusal={refusal} canOverride={doc.can.override_match} busy={busy} onSubmitAnyway={(reason) => void doSubmit(reason)} />}
+
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
         <article aria-label={`${words.Title} ${doc.number ?? 'draft'}`} className="rounded-lg border border-border bg-surface px-6 py-8 sm:px-10 sm:py-10" data-testid="doc-paper">
           <div className="flex flex-wrap items-start justify-between gap-6">
@@ -308,6 +329,14 @@ export const InvoiceViewLive: React.FC<{ side?: Side }> = ({ side = 'sales' }) =
                   <td className="py-2 pr-2">
                     <div className="text-text-primary">{l.description || '—'}</div>
                     <div className="text-[11px] text-text-muted">{accountName(l.account_id)}</div>
+                    {matchLineFor(match.data, l.line_no)?.order_number && (
+                      <div className="text-[11px] text-text-muted">
+                        On order{' '}
+                        <Link className="font-medium text-accent hover:underline" to={`/${coSlug}/purchase-orders/${matchLineFor(match.data, l.line_no)?.purchase_order_id}`}>
+                          {matchLineFor(match.data, l.line_no)?.order_number}
+                        </Link>
+                      </div>
+                    )}
                   </td>
                   <td className="px-2 py-2 text-right tabular-nums">{Number(l.quantity)}</td>
                   <td className="px-2 py-2 text-right tabular-nums">{formatMoney(l.unit_price_fc, doc.currency)}</td>
@@ -422,6 +451,8 @@ export const InvoiceViewLive: React.FC<{ side?: Side }> = ({ side = 'sales' }) =
           </section>
         </aside>
       </div>
+
+      {match.data && <BillMatchPanel match={match.data} doc={doc} co={coSlug} />}
 
       <DocPayments
         rows={payments.data}
