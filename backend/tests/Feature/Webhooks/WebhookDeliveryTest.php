@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Actions\Webhooks\Inputs\WebhookEndpointInput;
 use App\Actions\Webhooks\ManageWebhookEndpoint;
 use App\Contracts\HostResolver;
+use App\Events\Procurement\ProcurementEvent;
 use App\Jobs\Webhooks\DeliverWebhook;
 use App\Models\Platform\User;
 use App\Models\Webhooks\WebhookDelivery;
@@ -399,7 +400,9 @@ it('offers every domain event for subscription, so a new event cannot silently n
     $types = [];
     foreach (File::allFiles(app_path('Events')) as $file) {
         $source = (string) file_get_contents($file->getPathname());
-        if (preg_match("/function type\\(\\): string\\s*\\{\\s*return '([a-z_.]+)';/", $source, $m) === 1) {
+        if ($file->getFilename() === 'ProcurementEvent.php') {
+            $types = [...$types, ...ProcurementEvent::TYPES];
+        } elseif (preg_match("/function type\\(\\): string\\s*\\{\\s*return '([a-z_.]+)';/", $source, $m) === 1) {
             $types[] = $m[1];
         } elseif (preg_match("/'document\\.'\\.strtolower\\('(\\w+)'\\)/", $source, $m) === 1) {
             $types[] = 'document.'.strtolower($m[1]);

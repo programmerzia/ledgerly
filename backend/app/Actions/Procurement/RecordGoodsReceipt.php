@@ -96,10 +96,10 @@ final class RecordGoodsReceipt
                 ])->save();
             }
 
-            $before = $order->attributesToArray();
+            $statusBefore = $order->status->value;
             $order->forceFill(['status' => PurchaseOrderStatus::fromQuantities(array_values($this->figures->forOrder($order->id))), 'lock_version' => $order->lock_version + 1])->save();
 
-            $audit->add('goods_receipt.recorded', $receipt, after: $receipt, context: ['purchase_order_id' => $order->id, 'number' => $number, 'order_before' => $before['status'], 'order_after' => $order->status->value]);
+            $audit->add('goods_receipt.recorded', $receipt, after: $receipt, context: ['purchase_order_id' => $order->id, 'number' => $number, 'order_before' => $statusBefore, 'order_after' => $order->status->value]);
             $outbox->add(new ProcurementEvent('goods_receipt.recorded', $receipt->id, $order->company_id, $receipt->lock_version, ['number' => $number, 'purchase_order_id' => $order->id]));
 
             return $receipt;
