@@ -74,7 +74,7 @@ export const BillMatchPanel: React.FC<{ match: BillMatch; doc: LiveDoc; co: stri
   const onBill = (lineNo: number) => doc.lines.find((l) => l.line_no === lineNo);
   const last = match.last_result;
   return (
-    <section className={cn(CARD, 'overflow-hidden')} aria-label="Match with the purchase order" data-testid="match-panel">
+    <section className={cn(CARD, 'no-print overflow-hidden')} aria-label="Match with the purchase order" data-testid="match-panel">
       <h2 className="border-b border-border px-5 py-3 text-sm font-semibold text-text-primary">Match with the purchase order</h2>
       {match.lines.length === 0 ? (
         <p className="px-5 py-3 text-[13px] text-text-muted">No line of this bill is on a purchase order.</p>
