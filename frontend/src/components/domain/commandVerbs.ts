@@ -4,6 +4,7 @@
  * Pure: it never touches the store; the palette decides how to run the result.
  */
 import { amountDue } from '@/lib/docStatus';
+import { isLiveRoute } from '@/data/liveRoutes';
 
 export type VerbEntity = { kind: 'bill' | 'invoice' | 'journal' | 'contact' | 'bank' | 'period'; label: string };
 
@@ -157,4 +158,9 @@ export function parseVerb(input: string, ctx: VerbContext): VerbMatch[] {
   }
 
   return out;
+}
+
+/** Live mode keeps only destinations that read real data; mock mode keeps them all. */
+export function reachableDestinations<T extends { path: string }>(items: T[], coSlug: string, live: boolean): T[] {
+  return live ? items.filter((i) => isLiveRoute(`/${coSlug}${i.path}`)) : items;
 }

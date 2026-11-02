@@ -11,7 +11,8 @@ import {
   History, CreditCard, Layers, LogOut, Zap, ShieldCheck, LayoutDashboard, Rows3, Truck, Receipt, ClipboardList, CornerDownLeft,
 } from 'lucide-react';
 import { formatMoney } from '@/lib/format';
-import { parseVerb, type VerbMatch } from './commandVerbs';
+import { parseVerb, reachableDestinations, type VerbMatch } from './commandVerbs';
+import { IS_LIVE } from '@/api/config';
 
 interface CommandPaletteProps {
   isOpen: boolean;
@@ -41,8 +42,9 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
   useEffect(() => {
     if (!isOpen) setQuery('');
   }, [isOpen]);
+  // Live mode: the verbs, recents and contacts read the mock store, so they stay out.
   const verbs = useMemo(
-    () => parseVerb(query, { invoices, bills, journals, contacts, bankAccounts }),
+    () => (IS_LIVE ? [] : parseVerb(query, { invoices, bills, journals, contacts, bankAccounts })),
     [query, invoices, bills, journals, contacts, bankAccounts]
   );
   const runVerb = (v: VerbMatch) => () => {
@@ -62,7 +64,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
   };
   const run = (fn: () => void) => () => { fn(); onClose(); };
 
-  const nav: { label: string; path: string; icon: React.ComponentType<{ className?: string }>; keys?: string }[] = [
+  const allNav: { label: string; path: string; icon: React.ComponentType<{ className?: string }>; keys?: string }[] = [
     { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard, keys: 'G D' },
     { label: 'Sales invoices', path: '/invoices', icon: FileText, keys: 'G I' },
     { label: 'Supplier bills', path: '/bills', icon: FileText, keys: 'G B' },
@@ -81,13 +83,19 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
     { label: 'Company settings', path: '/settings', icon: Settings, keys: 'Ctrl ,' },
     { label: 'Audit log', path: '/audit-log', icon: History },
   ];
+  const nav = reachableDestinations(allNav, coSlug, IS_LIVE);
+  const actionPaths = reachableDestinations(
+    [{ path: '/invoices/new' }, { path: '/bills/new' }, { path: '/journals/new' }, { path: '/payment-run' }, { path: '/fx-rates' }],
+    coSlug, IS_LIVE,
+  ).map((a) => a.path);
+  const canDo = (path: string) => actionPaths.includes(path);
 
   return (
     <CommandDialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <CommandInput
         value={query}
         onValueChange={setQuery}
-        placeholder='Search, or type a command: "pay BILL-2026-0012", "reconcile premier"'
+        placeholder={IS_LIVE ? 'Search for a screen' : 'Search, or type a command: "pay BILL-2026-0012", "reconcile premier"'}
       />
       <CommandList className="max-h-[420px]">
         {verbs.length === 0 && <CommandEmpty>No matching results found.</CommandEmpty>}
@@ -114,11 +122,13 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
         )}
 
         <CommandGroup heading="Actions">
-          <CommandItem onSelect={go('/invoices/new')}><Tile icon={PlusCircle} /><span>New sales invoice</span><KeyHint keys="N" /></CommandItem>
-          <CommandItem onSelect={go('/bills/new')}><Tile icon={PlusCircle} /><span>New supplier bill</span></CommandItem>
-          <CommandItem onSelect={go('/journals/new')}><Tile icon={PlusCircle} /><span>New manual journal</span><KeyHint keys="G J" /></CommandItem>
-          <CommandItem onSelect={go('/payment-run')}><Tile icon={Coins} /><span>Pay bills (payment run)</span></CommandItem>
-          <CommandItem onSelect={go('/fx-rates')}><Tile icon={Coins} /><span>Run FX month-end revaluation</span></CommandItem>
+          {canDo('/invoices/new') && <CommandItem onSelect={go('/invoices/new')}><Tile icon={PlusCircle} /><span>New sales invoice</span><KeyHint keys="N" /></CommandItem>}
+          {canDo('/bills/new') && <CommandItem onSelect={go('/bills/new')}><Tile icon={PlusCircle} /><span>New supplier bill</span></CommandItem>}
+          {canDo('/journals/new') && <CommandItem onSelect={go('/journals/new')}><Tile icon={PlusCircle} /><span>New manual journal</span><KeyHint keys="G J" /></CommandItem>}
+          {canDo('/payment-run') && <CommandItem onSelect={go('/payment-run')}><Tile icon={Coins} /><span>Pay bills (payment run)</span></CommandItem>}
+          {canDo('/fx-rates') && <CommandItem onSelect={go('/fx-rates')}><Tile icon={Coins} /><span>Run FX month-end revaluation</span></CommandItem>}
+          {!IS_LIVE && (
+            <>
           <CommandItem
             className="h-auto py-1.5"
             value="unpaid invoices hormuud telecom customer open pending"
@@ -161,6 +171,8 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
           >
             <Tile icon={LogOut} /><span className="font-medium">Sign out</span>
           </CommandItem>
+            </>
+          )}
         </CommandGroup>
 
         <CommandGroup heading="Navigation">
@@ -171,6 +183,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
           ))}
         </CommandGroup>
 
+        {!IS_LIVE && (<>
         <CommandGroup heading="Recent documents">
           {invoices.slice(0, 4).map((inv) => (
             <CommandItem key={inv.id} value={`${inv.number} ${inv.reference} ${(inv.total / 100).toFixed(2)}`} onSelect={go(`/invoices/${inv.id}`)}>
@@ -204,6 +217,8 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
             </CommandItem>
           ))}
         </CommandGroup>
+
+        </>)}
 
         <CommandGroup heading="Preferences">
           <CommandItem onSelect={run(() => toggleTheme())}>

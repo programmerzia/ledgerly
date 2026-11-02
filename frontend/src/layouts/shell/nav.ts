@@ -1,5 +1,6 @@
 import type React from 'react';
 import { IS_LIVE } from '@/api/config';
+import { isLiveRoute } from '@/data/liveRoutes';
 import {
   LayoutDashboard, FileSpreadsheet, CreditCard, BookMarked, BarChart3, CheckSquare, Settings,
   Building, ShieldCheck, Package, Layers, Coins, FileText, Calendar, History, RefreshCw, Upload, ClipboardList,
@@ -14,7 +15,7 @@ export type NavIcon = React.ComponentType<{ className?: string }>;
 export interface NavItem { label: string; to: string; icon: NavIcon; badge?: number }
 export interface NavSection { id: string; title?: string; defaultCollapsed?: boolean; items: NavItem[] }
 
-export const buildNavSections = (coSlug: string, pendingApprovalsCount: number): NavSection[] => [
+const allNavSections = (coSlug: string, pendingApprovalsCount: number): NavSection[] => [
   {
     id: 'main',
     items: [
@@ -93,3 +94,12 @@ export const buildNavSections = (coSlug: string, pendingApprovalsCount: number):
     ],
   },
 ];
+
+/** In live mode the menu lists only screens connected to real data, so nobody lands on the not-connected notice. */
+export const buildNavSections = (coSlug: string, pendingApprovalsCount: number): NavSection[] => {
+  const sections = allNavSections(coSlug, pendingApprovalsCount);
+  if (!IS_LIVE) return sections;
+  return sections
+    .map((section) => ({ ...section, items: section.items.filter((item) => isLiveRoute(item.to)) }))
+    .filter((section) => section.items.length > 0);
+};
