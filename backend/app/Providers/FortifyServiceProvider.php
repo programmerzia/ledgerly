@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Http\Auth\CreateNewUser;
+use App\Http\Auth\PasswordResetFailedResponse;
+use App\Http\Auth\PasswordResetLinkResponse;
 use App\Http\Auth\ResetUserPassword;
 use App\Http\Auth\UpdateUserPassword;
 use App\Http\Auth\UpdateUserProfileInformation;
@@ -18,11 +20,21 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use Laravel\Fortify\Contracts\FailedPasswordResetLinkRequestResponse;
+use Laravel\Fortify\Contracts\FailedPasswordResetResponse;
+use Laravel\Fortify\Contracts\SuccessfulPasswordResetLinkRequestResponse;
 use Laravel\Fortify\Fortify;
 
 /** SPA authentication (13 §7): JSON-only Fortify under /api/v1/auth. */
 final class FortifyServiceProvider extends ServiceProvider
 {
+    public function register(): void
+    {
+        $this->app->bind(SuccessfulPasswordResetLinkRequestResponse::class, PasswordResetLinkResponse::class);
+        $this->app->bind(FailedPasswordResetLinkRequestResponse::class, PasswordResetLinkResponse::class);
+        $this->app->bind(FailedPasswordResetResponse::class, PasswordResetFailedResponse::class);
+    }
+
     public function boot(): void
     {
         // Fortify's vendor controllers are not readable by Scramble; document them explicitly.

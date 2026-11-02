@@ -3,6 +3,7 @@
 use App\Domain\Shared\DomainRuleViolation;
 use App\Http\Middleware\AssignRequestId;
 use App\Http\Middleware\EnsureTenantWritable;
+use App\Http\Middleware\RequireConfirmedPassword;
 use App\Http\Middleware\RequireIdempotencyKey;
 use App\Http\Middleware\ResolveCompany;
 use App\Http\Middleware\ResolveTenant;
@@ -46,6 +47,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'company' => ResolveCompany::class,
             'tenant.writable' => EnsureTenantWritable::class,
             'idempotent' => RequireIdempotencyKey::class,
+            'password.confirm' => RequireConfirmedPassword::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
