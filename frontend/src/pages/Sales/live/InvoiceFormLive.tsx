@@ -47,6 +47,9 @@ interface FormLine {
   discount_pct: string;
   tax_code_id: string;
   dimensions: Record<string, string>;
+  /** Carried untouched so a save does not drop the link to an order (a PUT replaces the lines). */
+  purchase_order_line_id: string;
+  goods_receipt_line_id: string;
   errors?: Record<string, string>;
 }
 
@@ -61,6 +64,8 @@ const blankLine = (over: Partial<FormLine> = {}): FormLine => ({
   discount_pct: '',
   tax_code_id: '',
   dimensions: {},
+  purchase_order_line_id: '',
+  goods_receipt_line_id: '',
   ...over,
 });
 
@@ -77,6 +82,8 @@ function fromDraft(d: DocDraftInput): FormLine[] {
       discount_pct: l.discount_pct,
       tax_code_id: l.tax_code_id ?? '',
       dimensions: l.dimensions ?? {},
+      purchase_order_line_id: l.purchase_order_line_id ?? '',
+      goods_receipt_line_id: l.goods_receipt_line_id ?? '',
     }),
   );
 }
@@ -172,7 +179,8 @@ const InvoiceFormInner: React.FC<{ side: Side }> = ({ side }) => {
     const d = related.data;
     if (!d || copied.current || kindParam !== S.creditKind) return;
     copied.current = true;
-    hydrate({ ...d, kind: S.creditKind, due_date: '', reference: '', memo: '', related_invoice_id: d.id, wht_code_id: null }, false);
+    // A credit or debit note is never linked to an order, so the copy starts without the bill's links.
+    hydrate({ ...d, kind: S.creditKind, due_date: '', reference: '', memo: '', related_invoice_id: d.id, wht_code_id: null, lines: d.lines.map((l) => ({ ...l, purchase_order_line_id: null, goods_receipt_line_id: null })) }, false);
     setRelatedId(d.id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [related.data]);
@@ -210,6 +218,8 @@ const InvoiceFormInner: React.FC<{ side: Side }> = ({ side }) => {
       discount_pct: l.discount_pct,
       tax_code_id: l.tax_code_id || undefined,
       dimensions: l.dimensions,
+      purchase_order_line_id: l.purchase_order_line_id || undefined,
+      goods_receipt_line_id: l.goods_receipt_line_id || undefined,
     })),
   });
   const contentSig = useMemo(

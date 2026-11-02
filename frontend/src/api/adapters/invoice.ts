@@ -23,12 +23,14 @@ export interface DocCan {
   return: boolean;
   void: boolean;
   reverse: boolean;
+  /** Bills only: may submit a bill that does not match its order, with a reason. */
+  override_match: boolean;
 }
 
 export function toDocCan(raw: unknown): DocCan {
   const r = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
   const b = (k: string) => r[k] === true;
-  return { update: b('update'), submit: b('submit'), approve: b('approve'), return: b('return'), void: b('void'), reverse: b('reverse') };
+  return { update: b('update'), submit: b('submit'), approve: b('approve'), return: b('return'), void: b('void'), reverse: b('reverse'), override_match: b('override_match') };
 }
 
 export interface LiveDocLine {
@@ -44,6 +46,9 @@ export interface LiveDocLine {
   line_total_fc: number;
   tax_amount_fc: number;
   dimensions: Record<string, string>;
+  /** Bills only: the order line this line bills, and the receipt line it bills. Null for everything else. */
+  purchase_order_line_id: string | null;
+  goods_receipt_line_id: string | null;
 }
 
 export interface LiveDoc {
@@ -107,6 +112,8 @@ export function toDocLine(l: ApiInvoiceLine): LiveDocLine {
     line_total_fc: money(l.line_total_fc),
     tax_amount_fc: money(l.tax_amount_fc),
     dimensions: l.dimensions ?? {},
+    purchase_order_line_id: l.purchase_order_line_id ?? null,
+    goods_receipt_line_id: l.goods_receipt_line_id ?? null,
   };
 }
 
@@ -165,6 +172,12 @@ export interface DocLineInput {
   tax_code_id?: string;
   /** Carried through an edit untouched (the form has no editor for them). */
   dimensions?: Record<string, string>;
+  /**
+   * Bills only. A PUT replaces the lines, so a line that came from an order must send these again or its link to the
+   * order (and the three-way match) is gone. Left out when the line has none, so other documents are unchanged.
+   */
+  purchase_order_line_id?: string;
+  goods_receipt_line_id?: string;
 }
 
 export interface DocDraftInput {
@@ -211,6 +224,8 @@ export function toInvoiceRequest(input: DocDraftInput, baseCurrency: string, ver
       discount_pct: l.discount_pct.trim() || null,
       tax_code_id: l.tax_code_id || null,
       ...(l.dimensions && Object.keys(l.dimensions).length ? { dimensions: l.dimensions } : {}),
+      ...(l.purchase_order_line_id ? { purchase_order_line_id: l.purchase_order_line_id } : {}),
+      ...(l.goods_receipt_line_id ? { goods_receipt_line_id: l.goods_receipt_line_id } : {}),
     })),
   };
   if (input.currency !== baseCurrency && input.fx_rate.trim()) body.fx_rate = input.fx_rate.trim();
@@ -242,6 +257,8 @@ export function toDraftInput(d: LiveDoc): DocDraftInput {
       discount_pct: trimDecimal(l.discount_pct),
       tax_code_id: l.tax_code_id ?? undefined,
       dimensions: l.dimensions,
+      ...(l.purchase_order_line_id ? { purchase_order_line_id: l.purchase_order_line_id } : {}),
+      ...(l.goods_receipt_line_id ? { goods_receipt_line_id: l.goods_receipt_line_id } : {}),
     })),
   };
 }
