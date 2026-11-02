@@ -18621,8 +18621,10 @@
                         }
                     },
                     "can": {
-                        "type": "array",
-                        "items": {}
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "boolean"
+                        }
                     }
                 },
                 "required": [
@@ -18803,8 +18805,10 @@
                         "type": "string"
                     },
                     "can": {
-                        "type": "array",
-                        "items": {}
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "boolean"
+                        }
                     }
                 },
                 "required": [
@@ -19375,8 +19379,10 @@
                         "type": "integer"
                     },
                     "can": {
-                        "type": "array",
-                        "items": {}
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "boolean"
+                        }
                     }
                 },
                 "required": [
@@ -19451,8 +19457,10 @@
                         ]
                     },
                     "can": {
-                        "type": "array",
-                        "items": {}
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "boolean"
+                        }
                     }
                 },
                 "required": [
@@ -19807,8 +19815,10 @@
                         "type": "integer"
                     },
                     "can": {
-                        "type": "array",
-                        "items": {}
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "boolean"
+                        }
                     }
                 },
                 "required": [
@@ -19895,8 +19905,10 @@
                         "description": "Set while a finished reconciliation covers the match; it cannot be removed then."
                     },
                     "can": {
-                        "type": "array",
-                        "items": {}
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "boolean"
+                        }
                     }
                 },
                 "required": [
@@ -19996,8 +20008,10 @@
                         "type": "integer"
                     },
                     "can": {
-                        "type": "array",
-                        "items": {}
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "boolean"
+                        }
                     }
                 },
                 "required": [
@@ -20231,8 +20245,10 @@
                         "type": "integer"
                     },
                     "can": {
-                        "type": "array",
-                        "items": {}
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "boolean"
+                        }
                     }
                 },
                 "required": [
@@ -20371,8 +20387,10 @@
                         "type": "integer"
                     },
                     "can": {
-                        "type": "array",
-                        "items": {}
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "boolean"
+                        }
                     }
                 },
                 "required": [
@@ -20770,18 +20788,14 @@
             },
             "ClosePeriodRequest": {
                 "type": "object",
-                "description": "`{\"waivers\": {\"UNPOSTED_DRAFTS\": \"reason it is acceptable\"}}`: failing checks the closer accepts.",
+                "description": "`{\"waivers\": {\"DRAFTS\": \"reason it is acceptable\"}}`: failing checks the closer accepts.",
                 "properties": {
                     "waivers": {
-                        "type": [
-                            "array",
-                            "null"
-                        ],
-                        "items": {
-                            "type": "string",
-                            "maxLength": 1000
-                        },
-                        "maxItems": 20
+                        "type": "object",
+                        "description": "Check code (DRAFTS, APPROVALS, FX_REVAL, BANK_REC) \u2192 the reason it is acceptable.",
+                        "additionalProperties": {
+                            "type": "string"
+                        }
                     }
                 },
                 "title": "ClosePeriodRequest"
@@ -20827,19 +20841,9 @@
                     },
                     "can": {
                         "type": "object",
-                        "description": "13 \u00a77: the SPA shows actions from these hints and never re-derives permissions.",
-                        "properties": {
-                            "open": {
-                                "type": "boolean"
-                            },
-                            "manage_settings": {
-                                "type": "boolean"
-                            }
-                        },
-                        "required": [
-                            "open",
-                            "manage_settings"
-                        ]
+                        "additionalProperties": {
+                            "type": "boolean"
+                        }
                     }
                 },
                 "required": [
@@ -20923,14 +20927,9 @@
                     },
                     "can": {
                         "type": "object",
-                        "properties": {
-                            "update": {
-                                "type": "boolean"
-                            }
-                        },
-                        "required": [
-                            "update"
-                        ]
+                        "additionalProperties": {
+                            "type": "boolean"
+                        }
                     }
                 },
                 "required": [
@@ -21291,8 +21290,10 @@
                         "type": "integer"
                     },
                     "can": {
-                        "type": "array",
-                        "items": {}
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "boolean"
+                        }
                     }
                 },
                 "required": [
@@ -21596,8 +21597,10 @@
                         }
                     },
                     "can": {
-                        "type": "array",
-                        "items": {}
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "boolean"
+                        }
                     }
                 },
                 "required": [
@@ -21840,8 +21843,10 @@
                         ]
                     },
                     "can": {
-                        "type": "array",
-                        "items": {}
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "boolean"
+                        }
                     }
                 },
                 "required": [
@@ -21892,8 +21897,10 @@
                         }
                     },
                     "can": {
-                        "type": "array",
-                        "items": {}
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "boolean"
+                        }
                     }
                 },
                 "required": [
@@ -22291,8 +22298,10 @@
                         "type": "integer"
                     },
                     "can": {
-                        "type": "array",
-                        "items": {}
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "boolean"
+                        }
                     }
                 },
                 "required": [
@@ -22535,14 +22544,9 @@
                     },
                     "can": {
                         "type": "object",
-                        "properties": {
-                            "revoke": {
-                                "type": "boolean"
-                            }
-                        },
-                        "required": [
-                            "revoke"
-                        ]
+                        "additionalProperties": {
+                            "type": "boolean"
+                        }
                     }
                 },
                 "required": [
@@ -23346,8 +23350,10 @@
                         }
                     },
                     "can": {
-                        "type": "array",
-                        "items": {}
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "boolean"
+                        }
                     }
                 },
                 "required": [
@@ -23549,8 +23555,10 @@
                         "type": "integer"
                     },
                     "can": {
-                        "type": "array",
-                        "items": {}
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "boolean"
+                        }
                     }
                 },
                 "required": [
@@ -23962,8 +23970,10 @@
                         }
                     },
                     "can": {
-                        "type": "array",
-                        "items": {}
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "boolean"
+                        }
                     }
                 },
                 "required": [
@@ -24419,8 +24429,10 @@
                         "items": {}
                     },
                     "can": {
-                        "type": "array",
-                        "items": {}
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "boolean"
+                        }
                     }
                 },
                 "required": [
@@ -24951,8 +24963,10 @@
                         "type": "integer"
                     },
                     "can": {
-                        "type": "array",
-                        "items": {}
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "boolean"
+                        }
                     }
                 },
                 "required": [
@@ -25034,8 +25048,10 @@
                         ]
                     },
                     "can": {
-                        "type": "array",
-                        "items": {}
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "boolean"
+                        }
                     }
                 },
                 "required": [
@@ -25577,8 +25593,10 @@
                         "items": {}
                     },
                     "can": {
-                        "type": "array",
-                        "items": {}
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "boolean"
+                        }
                     }
                 },
                 "required": [
@@ -25749,8 +25767,10 @@
                         "type": "integer"
                     },
                     "can": {
-                        "type": "array",
-                        "items": {}
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "boolean"
+                        }
                     }
                 },
                 "required": [
@@ -25856,8 +25876,10 @@
                         "type": "integer"
                     },
                     "can": {
-                        "type": "array",
-                        "items": {}
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "boolean"
+                        }
                     }
                 },
                 "required": [
@@ -26343,8 +26365,10 @@
                         "type": "string"
                     },
                     "can": {
-                        "type": "array",
-                        "items": {}
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "boolean"
+                        }
                     }
                 },
                 "required": [

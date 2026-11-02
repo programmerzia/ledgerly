@@ -13,7 +13,7 @@ final class ListAccounts
     /** @return Builder<Account> */
     public function __invoke(string $companyId, ?string $type = null, ?bool $active = null, ?string $search = null): Builder
     {
-        $query = Account::query()->where('company_id', $companyId);
+        $query = Account::query()->with('dimensionRules')->where('company_id', $companyId);
         if ($type !== null) {
             $query->where('account_type', $type);
         }

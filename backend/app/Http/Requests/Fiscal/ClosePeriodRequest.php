@@ -6,7 +6,7 @@ namespace App\Http\Requests\Fiscal;
 
 use App\Http\Requests\CompanyRequest;
 
-/** `{"waivers": {"UNPOSTED_DRAFTS": "reason it is acceptable"}}`: failing checks the closer accepts. */
+/** `{"waivers": {"DRAFTS": "reason it is acceptable"}}`: failing checks the closer accepts. */
 final class ClosePeriodRequest extends CompanyRequest
 {
     /** @return array<string, mixed> */

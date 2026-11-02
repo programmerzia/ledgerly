@@ -29,6 +29,18 @@ it('exports the OpenAPI document without unknown types', function (): void {
         ->toHaveKey('two_factor');
 });
 
+it('documents can hints and period waivers as the objects they are', function (): void {
+    $path = tempnam(sys_get_temp_dir(), 'openapi-');
+    Artisan::call('scramble:export', ['--path' => $path]);
+    $doc = json_decode((string) file_get_contents($path), true);
+    @unlink($path);
+
+    expect($doc['components']['schemas']['AccountResource']['properties']['can'])
+        ->toBe(['type' => 'object', 'additionalProperties' => ['type' => 'boolean']])
+        ->and($doc['components']['schemas']['ClosePeriodRequest']['properties']['waivers']['additionalProperties'])
+        ->toBe(['type' => 'string']);
+});
+
 it('documents the sign-up body and the cursor parameters of list routes', function (): void {
     $path = tempnam(sys_get_temp_dir(), 'openapi-');
     Artisan::call('scramble:export', ['--path' => $path]);

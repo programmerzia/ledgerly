@@ -31,7 +31,6 @@ final class AccountResource extends JsonResource
             'is_active' => $this->is_active,
             'description' => $this->description,
             'version' => $this->lock_version,
-            // Dimension rules come with the single-account endpoints, not with the list.
             /** @var array<string, string> dimension id → required|optional|forbidden */
             'dimension_rules' => $this->whenLoaded('dimensionRules', fn () => $this->dimensionRules
                 ->mapWithKeys(fn ($rule) => [$rule->dimension_id => $rule->rule->value])->all()),

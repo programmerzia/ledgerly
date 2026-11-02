@@ -15,6 +15,17 @@ use Illuminate\Validation\Rule;
  */
 final class ReportRequest extends CompanyRequest
 {
+    /** A query string carries `true`/`false` as text, which the boolean rule refuses. */
+    protected function prepareForValidation(): void
+    {
+        foreach (['hide_zero', 'exclude_closing'] as $flag) {
+            $value = $this->query($flag);
+            if ($value === 'true' || $value === 'false') {
+                $this->merge([$flag => $value === 'true']);
+            }
+        }
+    }
+
     /** @return array<string, mixed> */
     public function rules(): array
     {

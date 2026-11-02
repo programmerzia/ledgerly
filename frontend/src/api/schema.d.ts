@@ -3176,7 +3176,9 @@ export interface components {
             dimension_rules?: {
                 [key: string]: string;
             };
-            can: unknown[];
+            can: {
+                [key: string]: boolean;
+            };
         };
         /**
          * ApiClientRequest
@@ -3207,7 +3209,9 @@ export interface components {
                 created_at: string | null;
             }[];
             token?: string;
-            can: unknown[];
+            can: {
+                [key: string]: boolean;
+            };
         };
         /** ApplyChartTemplateRequest */
         ApplyChartTemplateRequest: {
@@ -3329,7 +3333,9 @@ export interface components {
             steps: unknown[];
             is_active: boolean;
             version: number;
-            can: unknown[];
+            can: {
+                [key: string]: boolean;
+            };
         };
         /** AttachmentResource */
         AttachmentResource: {
@@ -3347,7 +3353,9 @@ export interface components {
             added_after_posting: boolean;
             uploaded_by: string | null;
             created_at: string | null;
-            can: unknown[];
+            can: {
+                [key: string]: boolean;
+            };
         };
         /** AuditChainReportResource */
         AuditChainReportResource: {
@@ -3428,7 +3436,9 @@ export interface components {
             unreconciled_count: number | null;
             is_active: boolean;
             version: number;
-            can: unknown[];
+            can: {
+                [key: string]: boolean;
+            };
         };
         /** BankMatchResource */
         BankMatchResource: {
@@ -3446,7 +3456,9 @@ export interface components {
             matched_at: string | null;
             /** @description Set while a finished reconciliation covers the match; it cannot be removed then. */
             reconciliation_id: string | null;
-            can: unknown[];
+            can: {
+                [key: string]: boolean;
+            };
         };
         /** BankReconciliationResource */
         BankReconciliationResource: {
@@ -3468,7 +3480,9 @@ export interface components {
             reopen_reason: string | null;
             reopen_count: number;
             version: number;
-            can: unknown[];
+            can: {
+                [key: string]: boolean;
+            };
         };
         /**
          * BankRuleRequest
@@ -3524,7 +3538,9 @@ export interface components {
             };
             times_applied: number;
             version: number;
-            can: unknown[];
+            can: {
+                [key: string]: boolean;
+            };
         };
         /** BankStatementImportResource */
         BankStatementImportResource: {
@@ -3556,7 +3572,9 @@ export interface components {
             match_id: unknown;
             pending_journal_id: unknown;
             version: number;
-            can: unknown[];
+            can: {
+                [key: string]: boolean;
+            };
         };
         /** BankStatementResource */
         BankStatementResource: {
@@ -3652,10 +3670,13 @@ export interface components {
         };
         /**
          * ClosePeriodRequest
-         * @description `{"waivers": {"UNPOSTED_DRAFTS": "reason it is acceptable"}}`: failing checks the closer accepts.
+         * @description `{"waivers": {"DRAFTS": "reason it is acceptable"}}`: failing checks the closer accepts.
          */
         ClosePeriodRequest: {
-            waivers?: string[] | null;
+            /** @description Check code (DRAFTS, APPROVALS, FX_REVAL, BANK_REC) → the reason it is acceptable. */
+            waivers?: {
+                [key: string]: string;
+            };
         };
         /** CompanyResource */
         CompanyResource: {
@@ -3669,10 +3690,8 @@ export interface components {
             tax_id: string | null;
             timezone: string;
             status: string;
-            /** @description 13 §7: the SPA shows actions from these hints and never re-derives permissions. */
             can: {
-                open: boolean;
-                manage_settings: boolean;
+                [key: string]: boolean;
             };
         };
         /** CompanySettingsResource */
@@ -3695,7 +3714,7 @@ export interface components {
                 } | null;
             };
             can: {
-                update: boolean;
+                [key: string]: boolean;
             };
         };
         /**
@@ -3780,7 +3799,9 @@ export interface components {
                 };
             };
             version: number;
-            can: unknown[];
+            can: {
+                [key: string]: boolean;
+            };
         };
         /**
          * ControlType
@@ -3857,7 +3878,9 @@ export interface components {
             is_active: boolean;
             version: number;
             values?: components["schemas"]["DimensionValueResource"][];
-            can: unknown[];
+            can: {
+                [key: string]: boolean;
+            };
         };
         /**
          * DimensionRule
@@ -3923,7 +3946,9 @@ export interface components {
             closed_by: string | null;
             reopened_count: number;
             reopen_request?: components["schemas"]["ReopenRequestResource"] | null;
-            can: unknown[];
+            can: {
+                [key: string]: boolean;
+            };
         };
         /** FiscalYearResource */
         FiscalYearResource: {
@@ -3933,7 +3958,9 @@ export interface components {
             ends_on: string | null;
             status: string;
             periods?: components["schemas"]["FiscalPeriodResource"][];
-            can: unknown[];
+            can: {
+                [key: string]: boolean;
+            };
         };
         /** FxRevaluationPreviewResource */
         FxRevaluationPreviewResource: {
@@ -4037,7 +4064,9 @@ export interface components {
             rows_purged_at: string | null;
             created_at: string | null;
             version: number;
-            can: unknown[];
+            can: {
+                [key: string]: boolean;
+            };
         };
         /** ImportRowResource */
         ImportRowResource: {
@@ -4097,7 +4126,7 @@ export interface components {
             invited_by: string;
             expires_at: string;
             can: {
-                revoke: boolean;
+                [key: string]: boolean;
             };
         };
         /** InviteMemberRequest */
@@ -4293,7 +4322,9 @@ export interface components {
             version: number;
             /** @description The list answers summaries; one document comes with its lines. */
             lines?: components["schemas"]["InvoiceLineResource"][];
-            can: unknown[];
+            can: {
+                [key: string]: boolean;
+            };
         };
         /**
          * ItemRequest
@@ -4337,7 +4368,9 @@ export interface components {
             tax_code_id: string | null;
             is_active: boolean;
             version: number;
-            can: unknown[];
+            can: {
+                [key: string]: boolean;
+            };
         };
         /** JournalLineResource */
         JournalLineResource: {
@@ -4430,7 +4463,9 @@ export interface components {
             version: number;
             /** @description The list answers summaries; one journal comes with its lines. */
             lines?: components["schemas"]["JournalLineResource"][];
-            can: unknown[];
+            can: {
+                [key: string]: boolean;
+            };
         };
         /**
          * JournalStatus
@@ -4541,7 +4576,9 @@ export interface components {
             posted_at: string | null;
             version: number;
             items?: unknown[];
-            can: unknown[];
+            can: {
+                [key: string]: boolean;
+            };
         };
         /** PostingPreviewResource */
         PostingPreviewResource: {
@@ -4683,7 +4720,9 @@ export interface components {
             last_error: string | null;
             generated_count: number;
             version: number;
-            can: unknown[];
+            can: {
+                [key: string]: boolean;
+            };
         };
         /** ReopenRequestResource */
         ReopenRequestResource: {
@@ -4699,7 +4738,9 @@ export interface components {
             second_signed_at: string | null;
             decided_at: string | null;
             decision_comment: string | null;
-            can: unknown[];
+            can: {
+                [key: string]: boolean;
+            };
         };
         /** ReturnJournalRequest */
         ReturnJournalRequest: {
@@ -4845,7 +4886,9 @@ export interface components {
             posted_at: string | null;
             version: number;
             allocations?: unknown[];
-            can: unknown[];
+            can: {
+                [key: string]: boolean;
+            };
         };
         /** SigningGrantResource */
         SigningGrantResource: {
@@ -4886,7 +4929,9 @@ export interface components {
             is_recoverable: boolean;
             is_active: boolean;
             version: number;
-            can: unknown[];
+            can: {
+                [key: string]: boolean;
+            };
         };
         /**
          * TaxGroupRequest
@@ -4914,7 +4959,9 @@ export interface components {
                 compound: boolean;
             }[];
             version: number;
-            can: unknown[];
+            can: {
+                [key: string]: boolean;
+            };
         };
         /**
          * TaxRateRequest
@@ -5039,7 +5086,9 @@ export interface components {
             created_at: string | null;
             version: number;
             secret?: string;
-            can: unknown[];
+            can: {
+                [key: string]: boolean;
+            };
         };
         /** WhtCertificateResource */
         WhtCertificateResource: {

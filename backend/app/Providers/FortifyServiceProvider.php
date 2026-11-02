@@ -11,6 +11,7 @@ use App\Http\Auth\ResetUserPassword;
 use App\Http\Auth\UpdateUserPassword;
 use App\Http\Auth\UpdateUserProfileInformation;
 use App\Http\Docs\FortifyOperationDocs;
+use App\Http\Docs\SchemaCorrections;
 use App\Models\Platform\User;
 use Dedoc\Scramble\Scramble;
 use Dedoc\Scramble\Support\Generator\OpenApi;
@@ -41,6 +42,7 @@ final class FortifyServiceProvider extends ServiceProvider
         Scramble::configure()->withOperationTransformers(FortifyOperationDocs::class);
         // Scramble still derives a component from Fortify's LoginRequest before the override; nothing refers to it any more.
         Scramble::afterOpenApiGenerated(fn (OpenApi $openApi) => $openApi->components->removeSchema('LoginRequest'));
+        Scramble::afterOpenApiGenerated(new SchemaCorrections);
 
         Fortify::createUsersUsing(CreateNewUser::class);
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);

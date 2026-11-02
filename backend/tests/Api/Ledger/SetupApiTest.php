@@ -81,6 +81,22 @@ it('lists the chart with filters and cursor pagination by code', function (): vo
     expect($first->json('data.2.code'))->toBe('1200')->and($next->json('data.0.code'))->toBe('1300');
 });
 
+it('carries dimension rules on list rows, so a client never saves over rules it did not see', function (): void {
+    $id = $this->asPerson($this->manager)->postJson($this->api('accounts'), NEW_ACCOUNT, $this->key())->assertCreated()->json('data.id');
+    $dimension = $this->postJson($this->api('dimensions'), ['code' => 'DEPT', 'name' => 'Department'], $this->key())->assertCreated()->json('data.id');
+    $this->putJson($this->api("accounts/{$id}/dimension-rules"), ['rules' => [['dimension_id' => $dimension, 'rule' => 'required']]], $this->key())->assertOk();
+
+    $row = collect($this->getJson($this->api('accounts'))->assertOk()->json('data'))->firstWhere('id', $id);
+    expect($row['dimension_rules'])->toBe([$dimension => 'required']);
+});
+
+it('takes true and false as text in report query strings, and nothing looser', function (): void {
+    $this->asPerson($this->manager);
+    $this->getJson($this->api('reports/trial-balance?as_of=2026-01-31&hide_zero=false'))->assertOk();
+    $this->getJson($this->api('reports/trial-balance?as_of=2026-01-31&hide_zero=true'))->assertOk();
+    $this->getJson($this->api('reports/trial-balance?as_of=2026-01-31&hide_zero=maybe'))->assertStatus(422)->assertJsonValidationErrors(['hide_zero']);
+});
+
 it('lets only an account manager change the chart', function (): void {
     $this->asPerson($this->accountant)->getJson($this->api('accounts'))->assertOk();
     $this->postJson($this->api('accounts'), NEW_ACCOUNT, $this->key())->assertForbidden()->assertJson(['code' => 'forbidden']);
