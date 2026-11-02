@@ -19,6 +19,15 @@ final class ListPurchaseDocumentsRequest extends CompanyRequest
         'goods-receipts' => ['recorded', 'reversed'],
     ];
 
+    /** `?filter[status]=x` is accepted as well as `?status=x`. */
+    protected function prepareForValidation(): void
+    {
+        $filter = $this->query('filter');
+        if (is_array($filter)) {
+            $this->merge(array_intersect_key($filter, array_flip(['status', 'contact_id', 'purchase_order_id'])));
+        }
+    }
+
     /** @return array<string, mixed> */
     public function rules(): array
     {

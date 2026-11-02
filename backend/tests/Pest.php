@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Tests\Support\MakesApiCalls;
+use Tests\Support\ProcurementApi;
 use Tests\Support\ResetsDatabase;
 use Tests\Support\TradeApi;
 use Tests\Support\UploadsAttachments;
@@ -13,4 +14,5 @@ pest()->extend(TestCase::class)->use(ResetsDatabase::class)
 
 pest()->use(MakesApiCalls::class)->in('Api/Ledger', 'Api/Trade', 'Api/Files', 'Api/Recurring', 'Api/Settings', 'Api/Workflow', 'Api/Org', 'Api/Audit', 'Api/Procurement');
 pest()->use(TradeApi::class)->in('Api/Trade', 'Api/Files', 'Api/Recurring', 'Api/Settings', 'Api/Workflow', 'Api/Org', 'Api/Audit', 'Api/Procurement');
+pest()->use(ProcurementApi::class)->in('Api/Procurement');
 pest()->use(UploadsAttachments::class)->in('Api/Files');
