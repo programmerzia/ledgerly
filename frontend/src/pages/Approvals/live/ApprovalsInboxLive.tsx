@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '
 import { formatDateTime, formatMoney } from '@/lib/format';
 import { useApprovalInbox, useBulkApprove } from '@/data/approvals';
 import { useJournalActions } from '@/data/journals';
+import { isProcurementApproval, useReturnProcurementDoc } from '@/data/procurement';
 import { isSigningCancelled, useSignedRun } from '@/data/signing';
 import { IntentSlot } from '@/api/intentSlot';
 import { ApiError } from '@/api/errors';
@@ -25,6 +26,9 @@ const GROUPS = [
   { type: 'manual_journal', label: 'Manual journals' },
   { type: 'settlement', label: 'Receipts and payments' },
   { type: 'payment_run', label: 'Payment runs' },
+  { type: 'purchase_requisition', label: 'Purchase requisitions' },
+  { type: 'purchase_order', label: 'Purchase orders' },
+  { type: 'purchase_order_revision', label: 'Purchase order revisions' },
 ] as const;
 
 /** The server's reason codes for a skipped document, in words. Unknown codes fall back to the server's reason. */
@@ -60,6 +64,7 @@ export const ApprovalsInboxLive: React.FC = () => {
   const inbox = useApprovalInbox();
   const bulkApprove = useBulkApprove();
   const journalActions = useJournalActions();
+  const returnProcurement = useReturnProcurementDoc();
   const { run, signProps } = useSignedRun();
 
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -118,7 +123,11 @@ export const ApprovalsInboxLive: React.FC = () => {
     const text = comment.trim();
     setBusy(true);
     try {
-      await run(() => journalActions.sendBack(item.document_id, text, item.version, returnSlot.for(`${item.document_id}:${item.version}:${text}`)));
+      const intent = returnSlot.for(`${item.document_id}:${item.version}:${text}`);
+      await run(async () => {
+        if (isProcurementApproval(item.document_type)) await returnProcurement(item, text, intent);
+        else await journalActions.sendBack(item.document_id, text, item.version, intent);
+      });
       returnSlot.clear();
       toast.success('Sent back to the maker as a draft');
       setReturning(null);
@@ -136,6 +145,10 @@ export const ApprovalsInboxLive: React.FC = () => {
   };
 
   const openDoc = (i: ApprovalItem) => {
+    if (i.link) {
+      navigate(`/${coSlug}/${i.link.path}/${i.link.id}${i.document_type === 'purchase_order_revision' ? '?tab=revisions' : ''}`);
+      return;
+    }
     const path = i.document_type === 'sales_invoice' ? 'invoices' : i.document_type === 'purchase_bill' ? 'bills' : i.document_type === 'manual_journal' ? 'journals' : null;
     if (path) navigate(`/${coSlug}/${path}/${i.document_id}`);
   };
@@ -222,7 +235,7 @@ export const ApprovalsInboxLive: React.FC = () => {
                       <div className="flex items-center justify-between gap-5 md:justify-end">
                         <div className="text-right text-base font-medium tabular-nums text-text-primary">{formatMoney(item.amount, item.currency)}</div>
                         <div className="flex items-center gap-2">
-                          {(item.document_type === 'sales_invoice' || item.document_type === 'purchase_bill' || item.document_type === 'manual_journal') && (
+                          {(item.document_type === 'sales_invoice' || item.document_type === 'purchase_bill' || item.document_type === 'manual_journal' || item.link) && (
                             <button type="button" onClick={() => openDoc(item)} className="flex h-8 items-center gap-1.5 rounded-lg border border-border bg-surface px-3 text-xs font-medium text-text-secondary transition hover:bg-surface-neutral hover:text-text-primary">
                               <ExternalLink className="size-3.5" />
                               Open
@@ -234,7 +247,7 @@ export const ApprovalsInboxLive: React.FC = () => {
                             </span>
                           ) : (
                             <>
-                              {item.document_type === 'manual_journal' && (
+                              {(item.document_type === 'manual_journal' || isProcurementApproval(item.document_type)) && (
                                 <button
                                   type="button"
                                   onClick={() => setReturning(item)}

@@ -592,7 +592,8 @@ export function linesChanged(before: OrderSnapshot | null, after: OrderSnapshot 
   if (!before || !after) return null;
   const was = new Map(before.lines.filter((l) => l.id).map((l) => [l.id as string, l]));
   const now = new Map(after.lines.filter((l) => l.id).map((l) => [l.id as string, l]));
-  let changed = 0;
+  // A line with no id is one the revision adds.
+  let changed = after.lines.filter((l) => !l.id).length;
   for (const [id, line] of now) {
     const prev = was.get(id);
     if (!prev || !sameLine(prev, line)) changed++;

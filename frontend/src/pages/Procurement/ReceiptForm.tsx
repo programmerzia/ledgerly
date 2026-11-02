@@ -44,10 +44,7 @@ const Inner: React.FC<{ order: PurchaseOrder; reload: () => void }> = ({ order, 
   const input = { purchase_order_id: order.id, receipt_date: date, order_version: order.version, reference, memo, lines: rows };
   const setQty = (id: string, quantity: string) => {
     setRows((prev) => prev.map((r) => (r.order_line_id === id ? { ...r, quantity } : r)));
-    setLineErrors((e) => {
-      const { [id]: _drop, ...rest } = e;
-      return rest;
-    });
+    setLineErrors((e) => Object.fromEntries(Object.entries(e).filter(([k]) => k !== id)));
   };
 
   const showError = (e: unknown) => {

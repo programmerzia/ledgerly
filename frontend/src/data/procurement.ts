@@ -26,6 +26,7 @@ import {
   type Requisition,
 } from '@/api/adapters/procurement';
 import { toDoc, type LiveDoc } from '@/api/adapters/invoice';
+import type { ApprovalItem } from '@/api/adapters/journal';
 import type { Intent } from '@/api/idempotency';
 import { approvalsKey } from './journals';
 import { docsKey } from './invoices';
@@ -286,3 +287,21 @@ export function useBillMatch(id: string | undefined, enabled: boolean): DataResu
   const data = useMemo(() => (q.data ? toBillMatch(q.data) : null), [q.data]);
   return { data, isLoading: q.isLoading, error: q.error, refetch: () => void q.refetch() };
 }
+
+/* ------------------------------------------------------------- approvals inbox */
+
+/** Sends a requisition, order or order revision from the approvals inbox back to its maker, by the document's own route. */
+export function useReturnProcurementDoc() {
+  const company = useRouteCompany();
+  const refresh = useRefreshAll();
+  return async (item: ApprovalItem, comment: string, intent: Intent): Promise<void> => {
+    const body = { comment, version: item.version };
+    if (item.api_type === 'purchase_requisition') await live.transitionRequisition(company.id, item.document_id, 'return', body, intent);
+    else if (item.api_type === 'purchase_order') await live.transitionOrder(company.id, item.document_id, 'return', body, intent);
+    else if (item.api_type === 'purchase_order_revision') await live.transitionRevision(company.id, item.document_id, 'return', body, intent);
+    refresh();
+  };
+}
+
+/** The document types the inbox can send back through a procurement route. */
+export const isProcurementApproval = (t: ApprovalItem['document_type']): boolean => t === 'purchase_requisition' || t === 'purchase_order' || t === 'purchase_order_revision';
