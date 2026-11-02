@@ -73,7 +73,7 @@ it('answers received-not-billed as of a date, from what the ledger knew then', f
     // A bill waiting for approval does not reduce it; a posted one does.
     $this->workflow('bill');
     $draft = $this->asPerson($this->accountant)->postJson($this->api("goods-receipts/{$first['id']}/bill"), ['issue_date' => '2026-03-25'], $this->key())->assertCreated()->json('data');
-    $this->putJson($this->api("bills/{$draft['id']}"), putReceiptBill($draft, '5'), $this->key())->assertOk();
+    $this->putJson($this->api("bills/{$draft['id']}"), procPutReceiptBill($draft, '5'), $this->key())->assertOk();
     $this->submitBill($draft['id'])->assertOk()->assertJsonPath('data.status', 'pending_approval');
     expect($unbilled('2026-03-31'))->toBe('8.000000');
 
@@ -96,7 +96,7 @@ it('lets a viewer read the reports and keeps them from a sales assistant', funct
     $this->asPerson($this->viewerUser())->getJson($this->api('procurement/received-not-billed?as_of=15-03-2026'))->assertStatus(422);
 });
 
-function putReceiptBill(array $bill, string $quantity): array
+function procPutReceiptBill(array $bill, string $quantity): array
 {
     return [
         'contact_id' => $bill['contact_id'], 'issue_date' => $bill['issue_date'], 'due_date' => $bill['due_date'], 'reference' => $bill['reference'], 'version' => $bill['version'],

@@ -219,7 +219,7 @@ it('manages approval workflows, only for settings managers', function (): void {
 
     $this->postJson($this->api('approval-workflows'), [...$body, 'steps' => [['role' => 'Wizard']]], $this->key())->assertStatus(422)->assertJsonValidationErrors(['steps.0.role']);
     $this->postJson($this->api('approval-workflows'), [...$body, 'max_amount' => 100], $this->key())->assertStatus(422)->assertJsonValidationErrors(['max_amount']);
-    $this->postJson($this->api('approval-workflows'), [...$body, 'document_type' => 'purchase_order'], $this->key())->assertStatus(422)->assertJsonValidationErrors(['document_type']);
+    $this->postJson($this->api('approval-workflows'), [...$body, 'document_type' => 'purchase_order_revision'], $this->key())->assertStatus(422)->assertJsonValidationErrors(['document_type']);
 
     $this->putJson($this->api("approval-workflows/{$id}"), [...$body, 'name' => 'Renamed', 'version' => 0], $this->key())->assertOk()->assertJsonPath('data.name', 'Renamed')->assertJsonPath('data.version', 1);
     $this->putJson($this->api("approval-workflows/{$id}"), [...$body, 'version' => 0], $this->key())->assertStatus(409);

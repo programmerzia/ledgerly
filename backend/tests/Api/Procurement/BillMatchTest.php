@@ -16,7 +16,7 @@ beforeEach(function (): void {
 });
 
 /** Restates a bill draft as a PUT body, keeping the order links, with $change applied to its first line. */
-function putBill(object $test, array $bill, array $change = [], array $header = []): array
+function procPutBill(object $test, array $bill, array $change = [], array $header = []): array
 {
     return [
         'contact_id' => $bill['contact_id'], 'issue_date' => $bill['issue_date'], 'due_date' => $bill['due_date'], 'reference' => $bill['reference'], 'version' => $bill['version'],
@@ -29,7 +29,7 @@ function putBill(object $test, array $bill, array $change = [], array $header = 
     ];
 }
 
-function matchRows(object $test): array
+function procMatchRows(object $test): array
 {
     return $test->inTenant(fn () => DB::table('bill_match_results')->orderBy('created_at')->get()->all());
 }
@@ -44,14 +44,14 @@ it('posts a bill with no order lines exactly as before and writes no match resul
         '2000' => ['debit' => 0, 'credit' => 40000], '2120' => ['debit' => 0, 'credit' => 4000],
         '5000' => ['debit' => 40000, 'credit' => 0], '2110' => ['debit' => 4000, 'credit' => 0],
     ]);
-    expect(matchRows($this))->toBe([]);
+    expect(procMatchRows($this))->toBe([]);
 });
 
 it('does not touch a debit note, even with a purchase order required', function (): void {
     $this->procurementSettings(['require_purchase_order' => true]);
     $note = $this->postedDoc('bills', $this->t->body($this->t->supplier, [[3000, '1', null, '0', '5000']], '2026-03-15', ['kind' => 'debit_note']));
 
-    expect($note['status'])->toBe('posted')->and(matchRows($this))->toBe([]);
+    expect($note['status'])->toBe('posted')->and(procMatchRows($this))->toBe([]);
 });
 
 it('makes a bill from an order and from a receipt, linking each line and copying price, tax, account and dimensions', function (): void {
@@ -102,7 +102,7 @@ it('posts a matched bill and records the outcome matched', function (): void {
     $bill = $this->billOf($this->order['id']);
 
     $posted = $this->submitBill($bill['id'])->assertOk()->assertJsonPath('data.status', 'posted')->assertJsonPath('data.number', 'BILL-FY2026-00001')->json('data');
-    $rows = matchRows($this);
+    $rows = procMatchRows($this);
     expect($rows)->toHaveCount(1)->and($rows[0]->outcome)->toBe('matched')->and($rows[0]->invoice_id)->toBe($posted['id'])->and($rows[0]->reason)->toBeNull()
         ->and($rows[0]->decided_by)->toBe($this->accountant->id);
     $this->getJson($this->api("purchase-orders/{$this->order['id']}"))->assertJsonPath('data.lines.0.billed', '10.000000')->assertJsonPath('data.lines.0.received_not_billed', '0.000000');
@@ -111,23 +111,23 @@ it('posts a matched bill and records the outcome matched', function (): void {
 it('refuses a price mismatch with the line, posts nothing and consumes no number', function (): void {
     $this->receive($this->order['id'], [[$this->line1, '10']])->assertCreated();
     $bill = $this->billOf($this->order['id']);
-    $this->putJson($this->api("bills/{$bill['id']}"), putBill($this, $bill, ['unit_price_fc' => 11000]), $this->key())->assertOk()
+    $this->putJson($this->api("bills/{$bill['id']}"), procPutBill($this, $bill, ['unit_price_fc' => 11000]), $this->key())->assertOk()
         ->assertJsonPath('data.lines.0.purchase_order_line_id', $this->line1);
     $journals = $this->journalCount();
 
     $this->submitBill($bill['id'])->assertStatus(422)->assertJsonPath('code', 'match_price_mismatch')->assertJsonPath('violations.0.line_no', 1)->assertJsonPath('violations.0.code', 'match_price_mismatch');
-    expect($this->journalCount())->toBe($journals)->and(matchRows($this))->toBe([]);
+    expect($this->journalCount())->toBe($journals)->and(procMatchRows($this))->toBe([]);
     $this->getJson($this->api("bills/{$bill['id']}"))->assertJsonPath('data.status', 'draft')->assertJsonPath('data.number', null);
 
     $fresh = $this->getJson($this->api("bills/{$bill['id']}"))->json('data');
-    $this->putJson($this->api("bills/{$bill['id']}"), putBill($this, $fresh, ['unit_price_fc' => 10000]), $this->key())->assertOk();
+    $this->putJson($this->api("bills/{$bill['id']}"), procPutBill($this, $fresh, ['unit_price_fc' => 10000]), $this->key())->assertOk();
     $this->submitBill($bill['id'])->assertOk()->assertJsonPath('data.number', 'BILL-FY2026-00001');
 });
 
 it('refuses a quantity beyond what was received', function (): void {
     $this->receive($this->order['id'], [[$this->line1, '4']])->assertCreated();
     $bill = $this->billOf($this->order['id']);
-    $this->putJson($this->api("bills/{$bill['id']}"), putBill($this, $bill, ['quantity' => '6']), $this->key())->assertOk();
+    $this->putJson($this->api("bills/{$bill['id']}"), procPutBill($this, $bill, ['quantity' => '6']), $this->key())->assertOk();
 
     $this->submitBill($bill['id'])->assertStatus(422)->assertJsonPath('code', 'match_quantity_exceeds_received')->assertJsonPath('violations.0.line_no', 1);
 });
@@ -135,11 +135,11 @@ it('refuses a quantity beyond what was received', function (): void {
 it('lets an owner override a mismatch with a reason, writing the result and an audit event', function (): void {
     $this->receive($this->order['id'], [[$this->line1, '10']])->assertCreated();
     $bill = $this->billOf($this->order['id']);
-    $this->putJson($this->api("bills/{$bill['id']}"), putBill($this, $bill, ['unit_price_fc' => 11000]), $this->key())->assertOk();
+    $this->putJson($this->api("bills/{$bill['id']}"), procPutBill($this, $bill, ['unit_price_fc' => 11000]), $this->key())->assertOk();
 
     $this->submitBill($bill['id'], 'Supplier surcharge agreed by phone', $this->owner)->assertOk()->assertJsonPath('data.status', 'posted');
 
-    $rows = matchRows($this);
+    $rows = procMatchRows($this);
     expect($rows)->toHaveCount(1)->and($rows[0]->outcome)->toBe('overridden')->and($rows[0]->reason)->toBe('Supplier surcharge agreed by phone')
         ->and($rows[0]->decided_by)->toBe($this->owner->id)->and(json_decode((string) $rows[0]->violations, true)[0]['code'])->toBe('match_price_mismatch');
     $event = $this->inTenant(fn () => DB::table('audit_events')->where('action', 'bill.match_overridden')->first());
@@ -149,14 +149,14 @@ it('lets an owner override a mismatch with a reason, writing the result and an a
 it('does not let an accountant, a blank reason or a token override', function (): void {
     $this->receive($this->order['id'], [[$this->line1, '10']])->assertCreated();
     $bill = $this->billOf($this->order['id']);
-    $this->putJson($this->api("bills/{$bill['id']}"), putBill($this, $bill, ['unit_price_fc' => 11000]), $this->key())->assertOk();
+    $this->putJson($this->api("bills/{$bill['id']}"), procPutBill($this, $bill, ['unit_price_fc' => 11000]), $this->key())->assertOk();
 
     $this->submitBill($bill['id'], 'Please', $this->accountant)->assertStatus(403)->assertJsonPath('code', 'match_override_forbidden');
     $this->submitBill($bill['id'], '   ', $this->owner)->assertStatus(422)->assertJsonPath('code', 'match_price_mismatch');
 
     $token = $this->newToken(['bills:read', 'bills:write', 'bills:submit']);
     $this->asToken($token)->postJson($this->api("bills/{$bill['id']}/submit"), ['match_override_reason' => 'Trust me'], $this->key())->assertStatus(403)->assertJsonPath('code', 'match_override_forbidden');
-    expect(matchRows($this))->toBe([]);
+    expect(procMatchRows($this))->toBe([]);
 });
 
 it('refuses a supplier or currency mismatch at draft time and a closed order at submit, whatever the reason', function (): void {
@@ -172,17 +172,17 @@ it('refuses a supplier or currency mismatch at draft time and a closed order at 
     $bill = $this->billOf($this->order['id']);
     $this->asPerson($this->owner)->postJson($this->api("purchase-orders/{$this->order['id']}/close"), [], $this->key())->assertOk();
     $this->submitBill($bill['id'], 'Close enough', $this->owner)->assertStatus(422)->assertJsonPath('code', 'bill_order_not_open');
-    expect(matchRows($this))->toBe([]);
+    expect(procMatchRows($this))->toBe([]);
 });
 
 it('lets a small difference pass within the tolerances from settings', function (): void {
     $this->procurementSettings(['po_price_tolerance_pct' => '5', 'po_quantity_tolerance_pct' => '10']);
     $this->receive($this->order['id'], [[$this->line1, '10']])->assertCreated();
     $bill = $this->billOf($this->order['id']);
-    $this->putJson($this->api("bills/{$bill['id']}"), putBill($this, $bill, ['unit_price_fc' => 10400, 'quantity' => '10.5']), $this->key())->assertOk();
+    $this->putJson($this->api("bills/{$bill['id']}"), procPutBill($this, $bill, ['unit_price_fc' => 10400, 'quantity' => '10.5']), $this->key())->assertOk();
 
     $this->submitBill($bill['id'])->assertOk()->assertJsonPath('data.status', 'posted');
-    expect(matchRows($this)[0]->outcome)->toBe('matched');
+    expect(procMatchRows($this)[0]->outcome)->toBe('matched');
 });
 
 it('requires a purchase order per line when the company says so, and behaves as before once it is off', function (): void {
@@ -194,15 +194,15 @@ it('requires a purchase order per line when the company says so, and behaves as 
 
     $this->receive($this->order['id'], [[$this->line1, '10']])->assertCreated();
     $mixed = $this->billOf($this->order['id']);
-    $this->putJson($this->api("bills/{$mixed['id']}"), [...putBill($this, $mixed), 'lines' => [...putBill($this, $mixed)['lines'], ['description' => 'Freight', 'account_id' => $this->f->account('5000'), 'quantity' => '1', 'unit_price_fc' => 2000]]], $this->key())->assertOk();
+    $this->putJson($this->api("bills/{$mixed['id']}"), [...procPutBill($this, $mixed), 'lines' => [...procPutBill($this, $mixed)['lines'], ['description' => 'Freight', 'account_id' => $this->f->account('5000'), 'quantity' => '1', 'unit_price_fc' => 2000]]], $this->key())->assertOk();
     $this->submitBill($mixed['id'])->assertStatus(422)->assertJsonPath('code', 'purchase_order_required')->assertJsonPath('violations.0.line_no', 2)->assertJsonCount(1, 'violations');
 
     $this->submitBill($mixed['id'], 'Freight has no order', $this->owner)->assertOk()->assertJsonPath('data.status', 'posted');
-    expect(matchRows($this)[0]->outcome)->toBe('overridden');
+    expect(procMatchRows($this)[0]->outcome)->toBe('overridden');
 
     $this->procurementSettings(['require_purchase_order' => false]);
     $this->submitBill($loose['id'])->assertOk()->assertJsonPath('data.status', 'posted');
-    expect(matchRows($this))->toHaveCount(1);
+    expect(procMatchRows($this))->toHaveCount(1);
 });
 
 it('does not let two bills claim one receipt, and frees it when the first is voided', function (): void {
@@ -224,10 +224,10 @@ it('keeps the order link on a PUT that sends it and drops it on a PUT that does 
     $this->receive($this->order['id'], [[$this->line1, '10']])->assertCreated();
     $bill = $this->billOf($this->order['id']);
 
-    $kept = $this->putJson($this->api("bills/{$bill['id']}"), putBill($this, $bill), $this->key())->assertOk()->json('data');
+    $kept = $this->putJson($this->api("bills/{$bill['id']}"), procPutBill($this, $bill), $this->key())->assertOk()->json('data');
     expect($kept['lines'][0]['purchase_order_line_id'])->toBe($this->line1);
 
-    $body = putBill($this, $kept);
+    $body = procPutBill($this, $kept);
     unset($body['lines'][0]['purchase_order_line_id'], $body['lines'][0]['goods_receipt_line_id']);
     $body['version'] = $kept['version'];
     $dropped = $this->putJson($this->api("bills/{$bill['id']}"), $body, $this->key())->assertOk()->json('data');
@@ -237,25 +237,25 @@ it('keeps the order link on a PUT that sends it and drops it on a PUT that does 
 it('shows how a bill stands against its order without writing anything', function (): void {
     $this->receive($this->order['id'], [[$this->line1, '4']])->assertCreated();
     $bill = $this->billOf($this->order['id']);
-    $this->putJson($this->api("bills/{$bill['id']}"), putBill($this, $bill, ['quantity' => '6', 'unit_price_fc' => 11000]), $this->key())->assertOk();
+    $this->putJson($this->api("bills/{$bill['id']}"), procPutBill($this, $bill, ['quantity' => '6', 'unit_price_fc' => 11000]), $this->key())->assertOk();
 
     $match = $this->getJson($this->api("bills/{$bill['id']}/match"))->assertOk()->assertJsonPath('data.applies', true)
         ->assertJsonPath('data.lines.0.line_no', 1)->assertJsonPath('data.lines.0.order_price_fc.amount', 10000)->assertJsonPath('data.lines.0.received', '4.000000')
         ->assertJsonPath('data.last_result', null)->json('data');
     expect(array_column($match['mismatches'], 'code'))->toContain('match_price_mismatch', 'match_quantity_exceeds_received')
-        ->and(matchRows($this))->toBe([]);
+        ->and(procMatchRows($this))->toBe([]);
 });
 
 it('still needs a second person to approve an overridden bill when a workflow applies', function (): void {
     $this->workflow('bill');
     $this->receive($this->order['id'], [[$this->line1, '10']])->assertCreated();
     $bill = $this->billOf($this->order['id']);
-    $this->putJson($this->api("bills/{$bill['id']}"), putBill($this, $bill, ['unit_price_fc' => 11000]), $this->key())->assertOk();
+    $this->putJson($this->api("bills/{$bill['id']}"), procPutBill($this, $bill, ['unit_price_fc' => 11000]), $this->key())->assertOk();
 
     $this->submitBill($bill['id'], 'Agreed surcharge', $this->owner)->assertOk()->assertJsonPath('data.status', 'pending_approval');
-    expect(matchRows($this)[0]->outcome)->toBe('overridden');
+    expect(procMatchRows($this)[0]->outcome)->toBe('overridden');
 
     $this->asPerson($this->owner, signing: true)->postJson($this->api("bills/{$bill['id']}/approve"), [], $this->key())->assertForbidden();
     $this->asPerson($this->approver, signing: true)->postJson($this->api("bills/{$bill['id']}/approve"), [], $this->key())->assertOk()->assertJsonPath('data.status', 'posted');
-    expect(matchRows($this))->toHaveCount(1);
+    expect(procMatchRows($this))->toHaveCount(1);
 });
