@@ -27,6 +27,11 @@ use App\Http\Controllers\Organisation\InvitationController;
 use App\Http\Controllers\Organisation\InvitationTokenController;
 use App\Http\Controllers\Organisation\MemberController;
 use App\Http\Controllers\Practice\PracticeController;
+use App\Http\Controllers\Procurement\GoodsReceiptController;
+use App\Http\Controllers\Procurement\ProcurementReportController;
+use App\Http\Controllers\Procurement\PurchaseOrderController;
+use App\Http\Controllers\Procurement\PurchaseOrderRevisionController;
+use App\Http\Controllers\Procurement\PurchaseRequisitionController;
 use App\Http\Controllers\Recurring\RecurringInvoiceController;
 use App\Http\Controllers\Recurring\RecurringJournalController;
 use App\Http\Controllers\Recurring\RecurringRunController;
@@ -241,6 +246,43 @@ Route::middleware(['auth:sanctum', 'tenant', 'tenant.writable', 'idempotent', 'c
         foreach (['invoices' => 'invoice', 'bills' => 'bill'] as $path => $param) {
             Route::post("{$path}/{{$param}}/allocate", [$path === 'invoices' ? InvoiceController::class : BillController::class, 'allocate'])->whereUuid($param)->name("{$path}.allocate");
         }
+
+        // Procurement (D14): requisitions, orders, revisions, goods receipts and their reports. Nothing here posts.
+        Route::get('purchase-requisitions', [PurchaseRequisitionController::class, 'index'])->name('purchase-requisitions.index');
+        Route::post('purchase-requisitions', [PurchaseRequisitionController::class, 'store'])->name('purchase-requisitions.store');
+        Route::get('purchase-requisitions/{purchaseRequisition}', [PurchaseRequisitionController::class, 'show'])->whereUuid('purchaseRequisition')->name('purchase-requisitions.show');
+        Route::put('purchase-requisitions/{purchaseRequisition}', [PurchaseRequisitionController::class, 'update'])->whereUuid('purchaseRequisition')->name('purchase-requisitions.update');
+        foreach (['submit', 'approve', 'return', 'void', 'reject', 'convert'] as $verb) {
+            Route::post("purchase-requisitions/{purchaseRequisition}/{$verb}", [PurchaseRequisitionController::class, $verb])->whereUuid('purchaseRequisition')->name("purchase-requisitions.{$verb}");
+        }
+
+        Route::get('purchase-orders', [PurchaseOrderController::class, 'index'])->name('purchase-orders.index');
+        Route::post('purchase-orders', [PurchaseOrderController::class, 'store'])->name('purchase-orders.store');
+        Route::get('purchase-orders/{purchaseOrder}', [PurchaseOrderController::class, 'show'])->whereUuid('purchaseOrder')->name('purchase-orders.show');
+        Route::put('purchase-orders/{purchaseOrder}', [PurchaseOrderController::class, 'update'])->whereUuid('purchaseOrder')->name('purchase-orders.update');
+        foreach (['submit', 'approve', 'return', 'cancel', 'close', 'bill'] as $verb) {
+            Route::post("purchase-orders/{purchaseOrder}/{$verb}", [PurchaseOrderController::class, $verb])->whereUuid('purchaseOrder')->name("purchase-orders.{$verb}");
+        }
+        foreach (['receipts', 'bills', 'revisions'] as $list) {
+            Route::get("purchase-orders/{purchaseOrder}/{$list}", [PurchaseOrderController::class, $list])->whereUuid('purchaseOrder')->name("purchase-orders.{$list}");
+        }
+        Route::post('purchase-orders/{purchaseOrder}/revisions', [PurchaseOrderController::class, 'revise'])->whereUuid('purchaseOrder')->name('purchase-orders.revise');
+
+        Route::get('purchase-order-revisions/{purchaseOrderRevision}', [PurchaseOrderRevisionController::class, 'show'])->whereUuid('purchaseOrderRevision')->name('purchase-order-revisions.show');
+        Route::put('purchase-order-revisions/{purchaseOrderRevision}', [PurchaseOrderRevisionController::class, 'update'])->whereUuid('purchaseOrderRevision')->name('purchase-order-revisions.update');
+        foreach (['submit', 'approve', 'return', 'void'] as $verb) {
+            Route::post("purchase-order-revisions/{purchaseOrderRevision}/{$verb}", [PurchaseOrderRevisionController::class, $verb])->whereUuid('purchaseOrderRevision')->name("purchase-order-revisions.{$verb}");
+        }
+
+        Route::get('goods-receipts', [GoodsReceiptController::class, 'index'])->name('goods-receipts.index');
+        Route::post('goods-receipts', [GoodsReceiptController::class, 'store'])->name('goods-receipts.store');
+        Route::get('goods-receipts/{goodsReceipt}', [GoodsReceiptController::class, 'show'])->whereUuid('goodsReceipt')->name('goods-receipts.show');
+        Route::post('goods-receipts/{goodsReceipt}/reverse', [GoodsReceiptController::class, 'reverse'])->whereUuid('goodsReceipt')->name('goods-receipts.reverse');
+        Route::post('goods-receipts/{goodsReceipt}/bill', [GoodsReceiptController::class, 'bill'])->whereUuid('goodsReceipt')->name('goods-receipts.bill');
+
+        Route::get('procurement/open-commitments', [ProcurementReportController::class, 'openCommitments'])->name('procurement.open-commitments');
+        Route::get('procurement/awaiting-receipt', [ProcurementReportController::class, 'awaitingReceipt'])->name('procurement.awaiting-receipt');
+        Route::get('procurement/received-not-billed', [ProcurementReportController::class, 'receivedNotBilled'])->name('procurement.received-not-billed');
 
         // Settlements (receipts, payments, refunds), credit applications, payment runs, WHT certificates (13 §16)
         Route::get('settlements', [SettlementController::class, 'index'])->name('settlements.index');

@@ -22,6 +22,10 @@ use App\Models\Ledger\Account;
 use App\Models\Ledger\Dimension;
 use App\Models\Ledger\DimensionValue;
 use App\Models\Ledger\Journal;
+use App\Models\Procurement\GoodsReceipt;
+use App\Models\Procurement\PurchaseOrder;
+use App\Models\Procurement\PurchaseOrderRevision;
+use App\Models\Procurement\PurchaseRequisition;
 use App\Models\Recurring\RecurringInvoice;
 use App\Models\Recurring\RecurringJournal;
 use App\Models\Tax\TaxCode;
@@ -77,6 +81,10 @@ final class CompanyBindings
         // /invoices/{invoice} holds invoices and credit notes, /bills/{bill} bills and debit notes: the other family is a 404.
         'invoice' => Invoice::class,
         'bill' => Invoice::class,
+        'purchaseRequisition' => PurchaseRequisition::class,
+        'purchaseOrder' => PurchaseOrder::class,
+        'purchaseOrderRevision' => PurchaseOrderRevision::class,
+        'goodsReceipt' => GoodsReceipt::class,
     ];
 
     public static function register(): void
