@@ -44,7 +44,8 @@ final class ReconciliationCalculator
 
         // Statement side.
         $stmt = $c->selectOne(
-            "SELECT coalesce(sum(sl.amount) FILTER (WHERE cm.id IS NULL), 0) AS unmatched, count(*) FILTER (WHERE cm.id IS NULL) AS unmatched_count,
+            "SELECT coalesce(sum(sl.amount) FILTER (WHERE cm.id IS NULL), 0) AS unmatched, count(*) FILTER (WHERE cm.id IS NULL AND sl.status <> 'excluded') AS unmatched_count,
+                    coalesce(sum(sl.amount) FILTER (WHERE sl.status = 'excluded'), 0) AS excluded, count(*) FILTER (WHERE sl.status = 'excluded') AS excluded_count,
                     coalesce(sum(sl.amount) FILTER (WHERE cm.id IS NOT NULL), 0) AS matched
              FROM bank_statement_lines sl JOIN bank_statements st ON st.id = sl.statement_id
              LEFT JOIN (SELECT i.statement_line_id, m.id FROM bank_match_items i JOIN bank_matches m ON m.id = i.match_id WHERE m.id IN ({$covered})) cm ON cm.statement_line_id = sl.id
@@ -91,7 +92,9 @@ final class ReconciliationCalculator
                 'balance' => $bookBalance, 'opening_position' => $openingPosition, 'matched' => $matchedBook, 'unmatched' => $unmatchedBook,
                 'unmatched_count' => (int) $book->unmatched_count, 'matched_after_as_of' => $late,
             ],
+            // `total` includes the excluded lines: they are on the statement, so the arithmetic needs them. `count` does not.
             'unmatched_statement' => ['total' => $unmatchedStatement, 'count' => (int) $stmt->unmatched_count],
+            'excluded_statement' => ['total' => (int) $stmt->excluded, 'count' => (int) $stmt->excluded_count],
             'adjusted_book_balance' => $adjusted,
             'difference' => $difference,
             'unmatched_book_items' => $this->unmatchedBook($account, $asOf, $covered, $bind),
@@ -130,7 +133,7 @@ final class ReconciliationCalculator
     {
         $rows = $this->db->connection()->select(
             "SELECT sl.id, sl.txn_date, sl.amount, sl.description, sl.status FROM bank_statement_lines sl JOIN bank_statements st ON st.id = sl.statement_id
-             WHERE sl.bank_account_id = :a AND st.period_to <= :to
+             WHERE sl.bank_account_id = :a AND st.period_to <= :to AND sl.status <> 'excluded'
                AND NOT EXISTS (SELECT 1 FROM bank_match_items i WHERE i.statement_line_id = sl.id AND i.match_id IN ({$covered}))
              ORDER BY sl.txn_date, sl.id LIMIT ".self::LIST_CAP,
             $bind,

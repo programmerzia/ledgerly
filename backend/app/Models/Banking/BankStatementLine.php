@@ -24,6 +24,7 @@ use DateTimeImmutable;
  * @property int|null $balance_after
  * @property string $dedupe_hash
  * @property string $status unmatched|matched|excluded
+ * @property string|null $excluded_reason
  * @property int $lock_version
  * @property string|null $match_id from the list query
  * @property string|null $pending_journal_id from the list query

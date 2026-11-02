@@ -87,6 +87,23 @@ it('books a realised loss to its own account when the company has one, a gain to
     $this->inTenant(fn () => expect(LedgerChecks::problems())->toBe([]));
 });
 
+it('lists what was applied to a document, with credits undoable and reversed ones gone', function (): void {
+    $invoice = $this->postedDoc('invoices', $this->t->body($this->t->customer, [[10000, '1', 'VAT10']], '2026-03-01'));
+    $note = $this->postedDoc('invoices', $this->t->body($this->t->customer, [[1000, '1', 'VAT10']], '2026-03-02', ['kind' => 'credit_note', 'related_invoice_id' => $invoice['id']]));
+    $receipt = $this->postedSettlement('receipt', $this->t->customer, 2000, [[$invoice['id'], 2000]], '2026-03-03');
+    $credit = $this->asPerson($this->owner, signing: true)->postJson($this->api("invoices/{$note['id']}/allocate"), ['invoice_id' => $invoice['id'], 'amount_fc' => 500], $this->key())->assertCreated();
+
+    $rows = $this->getJson($this->api("invoices/{$invoice['id']}/payments"))->assertOk()->json('data');
+    $byType = collect($rows)->keyBy('type');
+    expect($rows)->toHaveCount(2)
+        ->and($byType['settlement']['id'])->toBe($receipt['id'])->and($byType['settlement']['amount_fc']['amount'])->toBe(2000)->and($byType['settlement']['can']['undo'])->toBeFalse()
+        ->and($byType['credit_application']['id'])->toBe($credit->json('data.id'))->and($byType['credit_application']['number'])->toBe($note['number'])->and($byType['credit_application']['can']['undo'])->toBeTrue();
+    expect($this->getJson($this->api("invoices/{$note['id']}/payments"))->assertOk()->json('data.0.number'))->toBe($invoice['number']);
+
+    $this->postJson($this->api('credit-applications/'.$credit->json('data.id').'/undo'), [], $this->key())->assertOk();
+    $this->getJson($this->api("invoices/{$invoice['id']}/payments"))->assertJsonCount(1, 'data');
+});
+
 it('lets the allocation that clears the invoice take its remaining base, so no cent stays on AR', function (): void {
     // EUR 100.00 at 1.005 is 100.5 → 101 (HALF_UP). Two receipts of EUR 50 at the same rate each carry round(50.25) = 50, so the
     // first leaves 51 on AR; the second clears the invoice with its remaining base 51 and books 50 − 51 = a loss of 1.

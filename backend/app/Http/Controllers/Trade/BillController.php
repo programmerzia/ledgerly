@@ -20,10 +20,12 @@ use App\Http\Requests\Trade\ApplyCreditRequest;
 use App\Http\Requests\Trade\InvoiceRequest;
 use App\Http\Requests\Trade\ListInvoicesRequest;
 use App\Http\Requests\TransitionRequest;
+use App\Http\Resources\DocumentPaymentResource;
 use App\Http\Resources\InvoicePostingPreviewResource;
 use App\Http\Resources\InvoiceResource;
 use App\Models\Organisation\Company;
 use App\Models\Trade\Invoice;
+use App\Queries\Trade\ListDocumentPayments;
 use App\Queries\Trade\ListInvoices;
 use App\Queries\Trade\PreviewInvoicePosting;
 use Illuminate\Http\JsonResponse;
@@ -52,6 +54,13 @@ final class BillController extends Controller
     public function store(InvoiceRequest $request, Company $company, CreateInvoiceDraft $action): JsonResponse
     {
         return $this->creating($request, $company, $action);
+    }
+
+    /** Settlements and credits applied to this document. */
+    #[Authorize('view', 'bill')]
+    public function payments(Company $company, Invoice $bill, ListDocumentPayments $payments): AnonymousResourceCollection
+    {
+        return DocumentPaymentResource::collection(array_map(fn (array $r) => [...$r, 'currency' => $bill->currency], $payments($bill)));
     }
 
     #[Authorize('update', 'bill')]

@@ -6,14 +6,18 @@ namespace App\Http\Controllers\Banking;
 
 use App\Actions\Banking\ApplyBankRule;
 use App\Actions\Banking\CreateBankTransaction;
+use App\Actions\Banking\ExcludeStatementLine;
 use App\Actions\Banking\MatchStatementLine;
 use App\Actions\Banking\UnmatchStatementLine;
 use App\Domain\Banking\BankRuleMatcher;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Banking\BankTransactionRequest;
+use App\Http\Requests\Banking\ExcludeLineRequest;
 use App\Http\Requests\Banking\MatchRequest;
+use App\Http\Requests\VersionRequest;
 use App\Http\Resources\BankMatchResource;
 use App\Http\Resources\BankRuleResource;
+use App\Http\Resources\BankStatementLineResource;
 use App\Http\Resources\BankTransactionResource;
 use App\Http\Support\CursorPage;
 use App\Http\Support\RequestActor;
@@ -73,6 +77,23 @@ final class BankMatchingController extends Controller
         $action->handle(RequestActor::user($request, $company->id), $company->id, $bankMatch->id);
 
         return response()->noContent();
+    }
+
+    /** Leave the line out of the books, with a reason. It stays on the statement and in the reconciliation's arithmetic. */
+    #[Authorize('reconcile', 'statementLine')]
+    public function exclude(ExcludeLineRequest $request, Company $company, BankStatementLine $statementLine, ExcludeStatementLine $action, BankQueries $queries): BankStatementLineResource
+    {
+        $action->exclude(RequestActor::user($request, $company->id), $company->id, $statementLine->id, $request->reason(), $request->version());
+
+        return new BankStatementLineResource($queries->lineWithState($company->id, $statementLine->id) ?? $statementLine);
+    }
+
+    #[Authorize('reconcile', 'statementLine')]
+    public function restore(VersionRequest $request, Company $company, BankStatementLine $statementLine, ExcludeStatementLine $action, BankQueries $queries): BankStatementLineResource
+    {
+        $action->restore(RequestActor::user($request, $company->id), $company->id, $statementLine->id, $request->version());
+
+        return new BankStatementLineResource($queries->lineWithState($company->id, $statementLine->id) ?? $statementLine);
     }
 
     /** Code the line as spend, receive or transfer money. Posts at once below the journal threshold, otherwise waits for an approver. */

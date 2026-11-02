@@ -352,6 +352,36 @@ it('refuses to finish while a statement line is not in the books, however small 
     $this->getJson($this->api("bank-accounts/{$this->bank}/reconciliations"))->assertOk()->assertJsonPath('data.0.id', $rec->json('data.id'))->assertJsonPath('data.0.report', null);
 });
 
+it('excludes a statement line with a reason, keeps it in the arithmetic, and lets finish through', function (): void {
+    $this->sale(1000000, '2026-03-01');
+    $receipt = $this->bankReceipt(1100000, '2026-03-02', 'INV-1');
+    $this->importStatement()->assertCreated();
+    $statement = $this->asPerson($this->owner)->getJson($this->api("bank-accounts/{$this->bank}/statements"))->json('data.0.id');
+    $lines = $this->bankLines();
+    $this->asPerson($this->accountant)->postJson($this->api('bank-matches'), ['statement_line_ids' => [$lines['ACME LTD payment']['id']], 'settlement_ids' => [$receipt['id']]], $this->key())->assertCreated();
+    $this->asPerson($this->accountant, signing: true)->postJson($this->api("bank-statement-lines/{$lines['Office supplies']['id']}/transactions"), ['kind' => 'spend', 'account_id' => $this->f->account('5000')], $this->key())->assertCreated();
+
+    $fee = $lines['BANK FEE MARCH'];
+    $this->postJson($this->api("bank-statement-lines/{$fee['id']}/exclude"), ['version' => $fee['version']], $this->key())->assertUnprocessable()->assertJsonValidationErrors(['reason']);
+    $excluded = $this->asPerson($this->accountant)->postJson($this->api("bank-statement-lines/{$fee['id']}/exclude"), ['version' => $fee['version'], 'reason' => 'Bank error, refunded in April'], $this->key())
+        ->assertOk()->assertJsonPath('data.status', 'excluded')->assertJsonPath('data.excluded_reason', 'Bank error, refunded in April');
+    $this->postJson($this->api("bank-statement-lines/{$fee['id']}/exclude"), ['version' => $excluded->json('data.version'), 'reason' => 'Again'], $this->key())->assertUnprocessable()->assertJson(['code' => 'bank_line_not_open']);
+    $this->postJson($this->api('bank-matches'), ['statement_line_ids' => [$fee['id']], 'settlement_ids' => [$receipt['id']]], $this->key())->assertUnprocessable();
+
+    $rec = $this->postJson($this->api('bank-reconciliations'), ['statement_id' => $statement], $this->key())->assertCreated();
+    expect($rec->json('data.report.unmatched_statement.count'))->toBe(0)->and($rec->json('data.report.excluded_statement'))->toBe(['total' => -1500, 'count' => 1])
+        ->and(collect($rec->json('data.report.unmatched_statement_items'))->pluck('id'))->not->toContain($fee['id'])
+        ->and($rec->json('data.report.difference'))->toBe(0);
+
+    $this->postJson($this->api('bank-reconciliations/'.$rec->json('data.id').'/finish'), [], $this->key())->assertOk();
+    // A finished reconciliation holds it; reopening lets it come back.
+    $this->postJson($this->api("bank-statement-lines/{$fee['id']}/restore"), ['version' => $excluded->json('data.version')], $this->key())->assertStatus(422)->assertJson(['code' => 'reconciliation_finished']);
+    $this->postJson($this->api('bank-reconciliations/'.$rec->json('data.id').'/reopen'), ['reason' => 'Bank line was real'], $this->key())->assertOk();
+    $this->postJson($this->api("bank-statement-lines/{$fee['id']}/restore"), ['version' => $excluded->json('data.version')], $this->key())->assertOk()
+        ->assertJsonPath('data.status', 'unmatched')->assertJsonPath('data.excluded_reason', null);
+    $this->inTenant(fn () => expect(DB::table('audit_events')->whereIn('action', ['bank_line.excluded', 'bank_line.restored'])->count())->toBe(2));
+});
+
 it('answers an account edit with its figures', function (): void {
     $this->asPerson($this->owner);
     $account = $this->getJson($this->api("bank-accounts/{$this->bank}"))->assertOk()->json('data');

@@ -515,6 +515,39 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/companies/{company}/bank-statement-lines/{statementLine}/exclude": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Leave the line out of the books, with a reason. It stays on the statement and in the reconciliation's arithmetic */
+        post: operations["bank-statement-lines.exclude"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/bank-statement-lines/{statementLine}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["bank-statement-lines.restore"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/companies/{company}/bank-statement-lines/{statementLine}/apply-rule": {
         parameters: {
             query?: never;
@@ -753,6 +786,23 @@ export interface paths {
         };
         get: operations["bills.show"];
         put: operations["bills.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/bills/{bill}/payments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Settlements and credits applied to this document */
+        get: operations["bills.payments"];
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -1563,6 +1613,23 @@ export interface paths {
         };
         get: operations["invoices.show"];
         put: operations["invoices.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/invoices/{invoice}/payments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Settlements and credits applied to this document */
+        get: operations["invoices.payments"];
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -3572,6 +3639,7 @@ export interface components {
                 currency: string;
             } | null;
             status: string;
+            excluded_reason: string | null;
             match_id: unknown;
             pending_journal_id: unknown;
             version: number;
@@ -3913,6 +3981,30 @@ export interface components {
             is_active: boolean;
             version: number;
         };
+        /** DocumentPaymentResource */
+        DocumentPaymentResource: {
+            /** @enum {string} */
+            type: "settlement" | "credit_application";
+            id: string;
+            kind: string;
+            number: string | null;
+            date: string;
+            amount_fc: {
+                amount: number;
+                currency: string;
+            };
+            amount: {
+                amount: number;
+                currency: string;
+            };
+            fx_gain_loss: {
+                amount: number;
+                currency: string;
+            };
+            can: {
+                [key: string]: boolean;
+            };
+        };
         /**
          * ExchangeRateRequest
          * @description A manual rate: 1 `from_currency` = `rate` `to_currency` on `rate_date`. The rate is a decimal string (D1: up to 8 decimals).
@@ -3934,6 +4026,11 @@ export interface components {
             source: string;
             created_by: string | null;
             created_at: string | null;
+        };
+        /** ExcludeLineRequest */
+        ExcludeLineRequest: {
+            reason: string;
+            version: number;
         };
         /** FiscalPeriodResource */
         FiscalPeriodResource: {
@@ -6446,6 +6543,76 @@ export interface operations {
             422: components["responses"]["ValidationException"];
         };
     };
+    "bank-statement-lines.exclude": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The statement line ID */
+                statementLine: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExcludeLineRequest"];
+            };
+        };
+        responses: {
+            /** @description `BankStatementLineResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["BankStatementLineResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "bank-statement-lines.restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The statement line ID */
+                statementLine: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VersionRequest"];
+            };
+        };
+        responses: {
+            /** @description `BankStatementLineResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["BankStatementLineResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
     "bank-statement-lines.apply-rule": {
         parameters: {
             query?: never;
@@ -7068,6 +7235,36 @@ export interface operations {
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             422: components["responses"]["ValidationException"];
+        };
+    };
+    "bills.payments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The bill ID */
+                bill: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `DocumentPaymentResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["DocumentPaymentResource"][];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
         };
     };
     "bills.preview": {
@@ -9056,6 +9253,36 @@ export interface operations {
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             422: components["responses"]["ValidationException"];
+        };
+    };
+    "invoices.payments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The invoice ID */
+                invoice: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `DocumentPaymentResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["DocumentPaymentResource"][];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
         };
     };
     "invoices.preview": {

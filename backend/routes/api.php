@@ -228,6 +228,7 @@ Route::middleware(['auth:sanctum', 'tenant', 'tenant.writable', 'idempotent', 'c
             Route::post($path, [$controller, 'store'])->name("{$path}.store");
             Route::get("{$path}/{{$param}}", [$controller, 'show'])->whereUuid($param)->name("{$path}.show");
             Route::put("{$path}/{{$param}}", [$controller, 'update'])->whereUuid($param)->name("{$path}.update");
+            Route::get("{$path}/{{$param}}/payments", [$controller, 'payments'])->whereUuid($param)->name("{$path}.payments");
             Route::post("{$path}/{{$param}}/posting-preview", [$controller, 'preview'])->whereUuid($param)->name("{$path}.preview");
             Route::post("{$path}/{{$param}}/submit", [$controller, 'submit'])->whereUuid($param)->name("{$path}.submit");
             Route::post("{$path}/{{$param}}/approve", [$controller, 'approve'])->whereUuid($param)->name("{$path}.approve");
@@ -299,6 +300,8 @@ Route::middleware(['auth:sanctum', 'tenant', 'tenant.writable', 'idempotent', 'c
         Route::get('bank-statement-lines/{statementLine}', [BankAccountController::class, 'line'])->whereUuid('statementLine')->name('bank-statement-lines.show');
         Route::get('bank-statement-lines/{statementLine}/suggestions', [BankMatchingController::class, 'suggestions'])->whereUuid('statementLine')->name('bank-statement-lines.suggestions');
         Route::post('bank-statement-lines/{statementLine}/transactions', [BankMatchingController::class, 'transaction'])->whereUuid('statementLine')->name('bank-statement-lines.transactions');
+        Route::post('bank-statement-lines/{statementLine}/exclude', [BankMatchingController::class, 'exclude'])->whereUuid('statementLine')->name('bank-statement-lines.exclude');
+        Route::post('bank-statement-lines/{statementLine}/restore', [BankMatchingController::class, 'restore'])->whereUuid('statementLine')->name('bank-statement-lines.restore');
         Route::post('bank-statement-lines/{statementLine}/apply-rule', [BankMatchingController::class, 'applyRule'])->whereUuid('statementLine')->name('bank-statement-lines.apply-rule');
         Route::post('bank-matches', [BankMatchingController::class, 'match'])->name('bank-matches.store');
         Route::delete('bank-matches/{bankMatch}', [BankMatchingController::class, 'unmatch'])->whereUuid('bankMatch')->name('bank-matches.destroy');

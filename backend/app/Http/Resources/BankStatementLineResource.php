@@ -32,10 +32,11 @@ final class BankStatementLineResource extends JsonResource
             'counterparty' => $this->counterparty,
             'balance_after' => $this->balance_after === null ? null : Json::money($this->balance_after, $this->currency),
             'status' => $this->status,
+            'excluded_reason' => $this->excluded_reason,
             'match_id' => $this->getAttribute('match_id'),
             'pending_journal_id' => $this->getAttribute('pending_journal_id'),
             'version' => $this->lock_version,
-            'can' => Json::can($request, $this->resource, ['match' => 'reconcile', 'code' => 'codeLines']),
+            'can' => Json::can($request, $this->resource, ['match' => 'reconcile', 'code' => 'codeLines', 'exclude' => 'reconcile']),
         ];
     }
 }
