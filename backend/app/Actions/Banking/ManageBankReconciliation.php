@@ -78,6 +78,13 @@ final class ManageBankReconciliation
                 throw DomainRuleViolation::single('reconciliation_difference', "The statement and the books differ by {$report['difference']} (minor units); resolve it before finishing.");
             }
 
+            // The difference is zero before anything is matched, so it cannot be the only test. A book item not yet on the
+            // statement is a timing difference and may stay open; a statement line must be in the books first.
+            $unmatched = (int) $report['unmatched_statement']['count'];
+            if ($unmatched > 0) {
+                throw DomainRuleViolation::single('reconciliation_lines_unmatched', "{$unmatched} statement line(s) are not matched or recorded yet.");
+            }
+
             $now = $this->clock->now();
             $before = $r->attributesToArray();
             $r->forceFill([

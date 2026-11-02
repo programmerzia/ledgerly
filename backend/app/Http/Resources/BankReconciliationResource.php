@@ -29,7 +29,7 @@ final class BankReconciliationResource extends JsonResource
     public function toArray(Request $request): array
     {
         /** @var array<string, mixed>|null $live */
-        $live = $this->getAttribute('live_report');
+        $live = $this->resource->hasAttribute('live_report') ? $this->getAttribute('live_report') : null;
         $finished = $this->status === 'finished';
 
         return [

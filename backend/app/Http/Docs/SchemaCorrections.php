@@ -27,6 +27,19 @@ final class SchemaCorrections
                     $lines->items->addProperty('dimensions', (new ObjectType)->additionalProperties(new StringType));
                 }
             }
+            // These are objects too: column mapping, and dimension id → value id on bank lines and rules.
+            if ($schema->type instanceof ObjectType && str_ends_with((string) $name, 'ImportStatementRequest') && $schema->type->hasProperty('mapping')) {
+                $schema->type->addProperty('mapping', (new ObjectType)->additionalProperties(new StringType));
+            }
+            if ($schema->type instanceof ObjectType && str_ends_with((string) $name, 'BankTransactionRequest') && $schema->type->hasProperty('dimensions')) {
+                $schema->type->addProperty('dimensions', (new ObjectType)->additionalProperties(new StringType));
+            }
+            if ($schema->type instanceof ObjectType && str_ends_with((string) $name, 'BankRuleRequest') && $schema->type->hasProperty('action')) {
+                $action = $schema->type->getProperty('action');
+                if ($action instanceof ObjectType && $action->hasProperty('dimensions')) {
+                    $action->addProperty('dimensions', (new ObjectType)->additionalProperties(new StringType));
+                }
+            }
             // `waivers.*` reads as a list; it is check code → reason.
             if ($schema->type instanceof ObjectType && str_ends_with((string) $name, 'ClosePeriodRequest')) {
                 $schema->type->addProperty('waivers', (new ObjectType)->additionalProperties(new StringType)

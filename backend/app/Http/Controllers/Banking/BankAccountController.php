@@ -55,9 +55,9 @@ final class BankAccountController extends Controller
     }
 
     #[Authorize('manageAccounts', 'bankAccount')]
-    public function update(BankAccountRequest $request, Company $company, BankAccount $bankAccount, ManageBankAccount $action): BankAccountResource
+    public function update(BankAccountRequest $request, Company $company, BankAccount $bankAccount, ManageBankAccount $action, BankQueries $queries): BankAccountResource
     {
-        return new BankAccountResource($action->update(RequestActor::user($request, $company->id), $bankAccount->id, $request->version(), $request->toInput())->refresh());
+        return BankAccountResource::withFigures($action->update(RequestActor::user($request, $company->id), $bankAccount->id, $request->version(), $request->toInput())->refresh(), $queries->figures($company->id));
     }
 
     #[Authorize('view', 'bankAccount')]

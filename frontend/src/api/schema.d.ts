@@ -3509,7 +3509,9 @@ export interface components {
                 tax_code_id?: string | null;
                 /** Format: uuid */
                 contact_id?: string | null;
-                dimensions?: string[] | null;
+                dimensions?: {
+                    [key: string]: string;
+                };
                 memo?: string | null;
             };
             version?: number;
@@ -3616,7 +3618,9 @@ export interface components {
             tax_code_id?: string | null;
             /** Format: uuid */
             contact_id?: string | null;
-            dimensions?: string[] | null;
+            dimensions?: {
+                [key: string]: string;
+            };
             memo?: string | null;
             /** Format: uuid */
             rule_id?: string | null;
@@ -4101,7 +4105,9 @@ export interface components {
             file: string;
             /** @enum {string|null} */
             format?: "auto" | "csv" | "ofx" | "camt" | null;
-            mapping?: string[] | null;
+            mapping?: {
+                [key: string]: string;
+            };
             save_mapping?: boolean | null;
             opening_balance?: number | null;
             closing_balance?: number | null;

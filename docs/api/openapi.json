@@ -20116,14 +20116,10 @@
                                 "format": "uuid"
                             },
                             "dimensions": {
-                                "type": [
-                                    "array",
-                                    "null"
-                                ],
-                                "items": {
+                                "type": "object",
+                                "additionalProperties": {
                                     "type": "string"
-                                },
-                                "maxItems": 8
+                                }
                             },
                             "memo": {
                                 "type": [
@@ -20564,14 +20560,10 @@
                         "format": "uuid"
                     },
                     "dimensions": {
-                        "type": [
-                            "array",
-                            "null"
-                        ],
-                        "items": {
+                        "type": "object",
+                        "additionalProperties": {
                             "type": "string"
-                        },
-                        "maxItems": 8
+                        }
                     },
                     "memo": {
                         "type": [
@@ -22430,11 +22422,8 @@
                         ]
                     },
                     "mapping": {
-                        "type": [
-                            "array",
-                            "null"
-                        ],
-                        "items": {
+                        "type": "object",
+                        "additionalProperties": {
                             "type": "string"
                         }
                     },

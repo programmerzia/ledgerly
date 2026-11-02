@@ -336,6 +336,31 @@ it('reconciles: live difference 0, finish freezes matches, unmatch and reversal 
     expect($live['difference'])->toBe(0)->and($live['unmatched_statement']['total'])->toBe(1100000 - 1500 * 0);
 });
 
+it('refuses to finish while a statement line is not in the books, however small the difference', function (): void {
+    $this->sale(1000000, '2026-03-01');
+    $this->bankReceipt(1100000, '2026-03-02', 'INV-1');
+    $this->importStatement()->assertCreated();
+    $statement = $this->asPerson($this->owner)->getJson($this->api("bank-accounts/{$this->bank}/statements"))->json('data.0.id');
+    $rec = $this->asPerson($this->accountant)->postJson($this->api('bank-reconciliations'), ['statement_id' => $statement], $this->key())->assertCreated();
+
+    // Nothing matched: the difference is already zero, and that must not be enough.
+    expect($rec->json('data.report.difference'))->toBe(0);
+    $this->postJson($this->api('bank-reconciliations/'.$rec->json('data.id').'/finish'), [], $this->key())
+        ->assertUnprocessable()->assertJson(['code' => 'reconciliation_lines_unmatched']);
+
+    // The list of an account's reconciliations reads without the live report.
+    $this->getJson($this->api("bank-accounts/{$this->bank}/reconciliations"))->assertOk()->assertJsonPath('data.0.id', $rec->json('data.id'))->assertJsonPath('data.0.report', null);
+});
+
+it('answers an account edit with its figures', function (): void {
+    $this->asPerson($this->owner);
+    $account = $this->getJson($this->api("bank-accounts/{$this->bank}"))->assertOk()->json('data');
+    $body = ['name' => 'Renamed', 'version' => $account['version'], ...array_intersect_key($account, array_flip(['account_id', 'currency']))];
+
+    $this->putJson($this->api("bank-accounts/{$this->bank}"), $body, $this->key())->assertOk()
+        ->assertJsonPath('data.name', 'Renamed')->assertJsonPath('data.book_balance.amount', $account['book_balance']['amount']);
+});
+
 it('refuses to finish while the statement and the books disagree', function (): void {
     $this->sale(1000000, '2026-03-01');
     $this->bankReceipt(1100000, '2026-03-02', 'INV-1');
