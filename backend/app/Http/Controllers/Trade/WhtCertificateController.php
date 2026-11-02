@@ -10,6 +10,7 @@ use App\Http\Resources\WhtCertificateResource;
 use App\Http\Support\CursorPage;
 use App\Models\Organisation\Company;
 use App\Models\Trade\WhtCertificate;
+use Dedoc\Scramble\Attributes\QueryParameter;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Routing\Attributes\Controllers\Authorize;
 
@@ -17,6 +18,8 @@ use Illuminate\Routing\Attributes\Controllers\Authorize;
 final class WhtCertificateController extends Controller
 {
     #[Authorize('viewAny', WhtCertificate::class)]
+    #[QueryParameter('payment_id', type: 'string', format: 'uuid')]
+    #[QueryParameter('invoice_id', type: 'string', format: 'uuid')]
     public function index(ListPaymentRunsRequest $request, Company $company): AnonymousResourceCollection
     {
         $query = WhtCertificate::query()->where('company_id', $company->id);

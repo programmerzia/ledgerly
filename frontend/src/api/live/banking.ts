@@ -56,6 +56,12 @@ export const codeLine = async (company: string, lineId: string, body: unknown, i
 export const applyRule = async (company: string, lineId: string, ruleId: string | undefined, intent: Intent): Promise<ApiBankTransaction> =>
   (await send<ApiBankTransaction>('POST', `${base(company)}/bank-statement-lines/${lineId}/apply-rule`, ruleId ? { rule_id: ruleId } : {}, intent)).data;
 
+export const excludeLine = async (company: string, lineId: string, reason: string, version: number, intent: Intent): Promise<ApiBankLine> =>
+  (await send<ApiBankLine>('POST', `${base(company)}/bank-statement-lines/${lineId}/exclude`, { reason, version }, intent)).data;
+
+export const restoreLine = async (company: string, lineId: string, version: number, intent: Intent): Promise<ApiBankLine> =>
+  (await send<ApiBankLine>('POST', `${base(company)}/bank-statement-lines/${lineId}/restore`, { version }, intent)).data;
+
 export const createMatch = async (company: string, body: { statement_line_ids: string[]; journal_line_ids?: string[]; settlement_ids?: string[] }, intent: Intent): Promise<ApiBankMatch> =>
   (await send<ApiBankMatch>('POST', `${base(company)}/bank-matches`, body, intent)).data;
 

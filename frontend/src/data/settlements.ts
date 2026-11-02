@@ -9,6 +9,7 @@ import type { Intent } from '@/api/idempotency';
 import { approvalsKey } from './journals';
 import { contactsKey } from './contacts';
 import { useRouteCompany } from './session';
+import { whtKey } from './wht';
 import type { DataResult } from './types';
 
 export const settlementsKey = (companyId: string) => ['settlements', companyId] as const;
@@ -65,6 +66,7 @@ export function useSettlementActions() {
     void qc.invalidateQueries({ queryKey: ['bills', company.id] });
     void qc.invalidateQueries({ queryKey: approvalsKey(company.id) });
     void qc.invalidateQueries({ queryKey: contactsKey(company.id) });
+    void qc.invalidateQueries({ queryKey: whtKey(company.id) });
   };
   const after = async (p: Promise<ApiSettlement>): Promise<LiveSettlement> => {
     const r = await p;

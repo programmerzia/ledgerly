@@ -6,7 +6,7 @@
  */
 import { useMemo } from 'react';
 import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useLedgerStore } from '@/mock/store';
+import { useActiveCompany } from './session';
 import { cursorPaging, type CursorPage } from '@/api/cursor';
 import * as live from '@/api/live/journals';
 import {
@@ -43,15 +43,15 @@ export interface PeriodChoice {
 }
 
 function useScope() {
-  const company = useLedgerStore((s) => s.currentCompany);
-  return { company, scope: { tenantId: company.tenant_id, companyId: company.id } };
+  const { company, known } = useActiveCompany();
+  return { company, known, scope: { tenantId: company.tenant_id, companyId: company.id } };
 }
 
 /** Dimensions and fiscal periods the journal form needs. Both come from the server; nothing is derived here. */
 export function useJournalRefs() {
-  const { company, scope } = useScope();
-  const dims = useQuery({ queryKey: [...journalsKey(company.id), 'refs', 'dimensions'], queryFn: () => live.listDimensions(company.id) });
-  const years = useQuery({ queryKey: [...journalsKey(company.id), 'refs', 'fiscal-years'], queryFn: () => live.listFiscalYears(company.id) });
+  const { company, known, scope } = useScope();
+  const dims = useQuery({ queryKey: [...journalsKey(company.id), 'refs', 'dimensions'], queryFn: () => live.listDimensions(company.id), enabled: known });
+  const years = useQuery({ queryKey: [...journalsKey(company.id), 'refs', 'fiscal-years'], queryFn: () => live.listFiscalYears(company.id), enabled: known });
   const apiDimensions: ApiDimension[] = useMemo(() => dims.data ?? [], [dims.data]);
   const dimensions: Dimension[] = useMemo(() => toDimensions(apiDimensions, company.id), [apiDimensions, company.id]);
   const periods: PeriodChoice[] = useMemo(
@@ -77,9 +77,10 @@ export interface JournalListResult {
 
 /** Server-filtered, cursor-paged. The caller never filters these rows itself. */
 export function useJournalList(filters: JournalFilters): JournalListResult {
-  const { company, scope } = useScope();
+  const { company, known, scope } = useScope();
   const clean = Object.fromEntries(Object.entries(filters).filter(([, v]) => v)) as JournalFilters;
   const q = useInfiniteQuery({
+    enabled: known,
     queryKey: [...journalsKey(company.id), 'list', clean],
     queryFn: ({ pageParam }) => live.listJournals(company.id, clean, pageParam),
     ...cursorPaging,
@@ -98,12 +99,12 @@ export function useJournalList(filters: JournalFilters): JournalListResult {
 }
 
 export function useJournal(id: string | undefined): DataResult<LiveJournal | null> {
-  const { company } = useScope();
+  const { company, known } = useScope();
   const refs = useJournalRefs();
   const q = useQuery({
     queryKey: [...journalsKey(company.id), 'one', id],
     queryFn: () => live.getJournal(company.id, id as string),
-    enabled: Boolean(id),
+    enabled: known && Boolean(id),
     staleTime: 0,
   });
   const data = useMemo(() => (q.data ? refs.adapt(q.data) : null), [q.data, refs.apiDimensions]); // eslint-disable-line react-hooks/exhaustive-deps

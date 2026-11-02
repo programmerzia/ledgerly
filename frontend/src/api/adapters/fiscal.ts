@@ -1,5 +1,4 @@
 import type { components } from '../schema';
-import { toCan } from './account';
 
 export type ApiFiscalYear = components['schemas']['FiscalYearResource'];
 export type ApiFiscalPeriod = components['schemas']['FiscalPeriodResource'];
@@ -57,7 +56,7 @@ export interface LiveCloseCheck {
 }
 
 export function toReopenRequest(r: ApiReopenRequest): LiveReopenRequest {
-  const can = toCan(r.can);
+  const can = r.can;
   return {
     id: r.id,
     period_id: r.fiscal_period_id,
@@ -73,7 +72,7 @@ export function toReopenRequest(r: ApiReopenRequest): LiveReopenRequest {
 }
 
 export function toPeriod(p: ApiFiscalPeriod): LivePeriod {
-  const can = toCan(p.can);
+  const can = p.can;
   return {
     id: p.id,
     fiscal_year_id: p.fiscal_year_id,
@@ -92,7 +91,7 @@ export function toPeriod(p: ApiFiscalPeriod): LivePeriod {
 }
 
 export function toFiscalYear(y: ApiFiscalYear): LiveFiscalYear {
-  const can = toCan(y.can);
+  const can = y.can;
   return {
     id: y.id,
     name: y.name,

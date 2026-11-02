@@ -15,7 +15,7 @@ export function toCan(raw: unknown): Record<string, boolean> {
 
 /** The API resource has no tenant/company ids in its body; the caller knows them from the URL and session. */
 export function toAccount(a: ApiAccount, scope: { tenantId: string; companyId: string }): Account {
-  const can = toCan(a.can);
+  const can = a.can;
   const rules = a.dimension_rules && !Array.isArray(a.dimension_rules) ? (a.dimension_rules as Record<string, DimensionRuleValue>) : undefined;
   return {
     id: a.id,

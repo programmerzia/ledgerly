@@ -6,15 +6,16 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { http } from '@/api/http';
 import { toFiscalYear, toCloseCheck, toCloseBody, toPeriod, toReopenRequest, type LiveFiscalYear, type LiveCloseCheck, type LivePeriod, type LiveReopenRequest } from '@/api/adapters/fiscal';
 import { createIntent, type Intent } from '@/api/idempotency';
-import { useLedgerStore } from '@/mock/store';
+import { useActiveCompany } from './session';
 import type { DataResult } from './types';
 
 export const fiscalYearsKey = (companyId: string) => ['fiscal-years', companyId] as const;
 export const closeChecksKey = (companyId: string, periodId: string) => ['close-checks', companyId, periodId] as const;
 
 export function useFiscalYears(): DataResult<LiveFiscalYear[]> {
-  const company = useLedgerStore((s) => s.currentCompany);
+  const { company, known } = useActiveCompany();
   const q = useQuery({
+    enabled: known,
     queryKey: fiscalYearsKey(company.id),
     queryFn: async () => {
       const res = await http.get('/v1/companies/{company}/fiscal-years', { path: { company: company.id } });
@@ -26,10 +27,10 @@ export function useFiscalYears(): DataResult<LiveFiscalYear[]> {
 
 /** The checklist preview is read-only and writes nothing (FiscalApiTest). Needs period-close permission, else 403. */
 export function useCloseChecks(periodId: string | undefined, enabled: boolean): DataResult<LiveCloseCheck[]> {
-  const company = useLedgerStore((s) => s.currentCompany);
+  const { company, known } = useActiveCompany();
   const q = useQuery({
     queryKey: closeChecksKey(company.id, periodId ?? 'none'),
-    enabled: enabled && Boolean(periodId),
+    enabled: known && enabled && Boolean(periodId),
     queryFn: async () => {
       const res = await http.get('/v1/companies/{company}/fiscal-periods/{fiscalPeriod}/close-checks', { path: { company: company.id, fiscalPeriod: periodId! } });
       return res.data.map(toCloseCheck);
@@ -54,7 +55,7 @@ export interface FiscalActions {
  */
 export function useFiscalActions(): FiscalActions {
   const client = useQueryClient();
-  const company = useLedgerStore((s) => s.currentCompany);
+  const { company } = useActiveCompany();
   const path = { company: company.id };
   const refresh = async () => {
     await client.invalidateQueries({ queryKey: fiscalYearsKey(company.id) });
@@ -68,7 +69,7 @@ export function useFiscalActions(): FiscalActions {
     close: async (p, waivers, intent = createIntent()) => {
       await http.post('/v1/companies/{company}/fiscal-periods/{fiscalPeriod}/close', {
         path: { ...path, fiscalPeriod: p.id },
-        body: toCloseBody(waivers) as never,
+        body: toCloseBody(waivers),
         intent,
       });
       await refresh();

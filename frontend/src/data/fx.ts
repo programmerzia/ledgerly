@@ -4,15 +4,16 @@ import { http } from '@/api/http';
 import { fetchAllPages } from '@/api/cursor';
 import { toRate, toRevalPreview, toRevalRun, toRateRequest, type LiveRate, type LiveRevalPreview, type LiveRevalRun } from '@/api/adapters/fx';
 import { createIntent, type Intent } from '@/api/idempotency';
-import { useLedgerStore } from '@/mock/store';
+import { useActiveCompany } from './session';
 import type { DataResult } from './types';
 
 export const fxRatesKey = (companyId: string) => ['fx-rates', companyId] as const;
 export const fxRunsKey = (companyId: string) => ['fx-revaluations', companyId] as const;
 
 export function useFxRates(): DataResult<LiveRate[]> {
-  const company = useLedgerStore((s) => s.currentCompany);
+  const { company, known } = useActiveCompany();
   const q = useQuery({
+    enabled: known,
     queryKey: fxRatesKey(company.id),
     queryFn: async () => {
       const rows = await fetchAllPages((cursor) => http.get('/v1/companies/{company}/fx-rates', { path: { company: company.id }, query: { cursor, limit: 100 } }));
@@ -23,8 +24,9 @@ export function useFxRates(): DataResult<LiveRate[]> {
 }
 
 export function useFxRuns(): DataResult<LiveRevalRun[]> {
-  const company = useLedgerStore((s) => s.currentCompany);
+  const { company, known } = useActiveCompany();
   const q = useQuery({
+    enabled: known,
     queryKey: fxRunsKey(company.id),
     queryFn: async () => {
       const rows = await fetchAllPages((cursor) => http.get('/v1/companies/{company}/fx-revaluations', { path: { company: company.id }, query: { cursor, limit: 50 } as never }));
@@ -36,10 +38,10 @@ export function useFxRuns(): DataResult<LiveRevalRun[]> {
 
 /** What running now would post and what blocks it. Writes nothing, takes no lock (FxApiTest). */
 export function useRevalPreview(periodId: string | undefined, asOf: string): DataResult<LiveRevalPreview | null> {
-  const company = useLedgerStore((s) => s.currentCompany);
+  const { company, known } = useActiveCompany();
   const q = useQuery({
     queryKey: ['fx-reval-preview', company.id, periodId ?? 'none', asOf],
-    enabled: Boolean(periodId),
+    enabled: known && Boolean(periodId),
     queryFn: async () => {
       const res = await http.get('/v1/companies/{company}/fx-revaluations/preview', {
         path: { company: company.id },
@@ -60,7 +62,7 @@ export interface FxActions {
 
 export function useFxActions(): FxActions {
   const client = useQueryClient();
-  const company = useLedgerStore((s) => s.currentCompany);
+  const { company } = useActiveCompany();
   const path = { company: company.id };
   return {
     addRate: async (f, intent = createIntent()) => {

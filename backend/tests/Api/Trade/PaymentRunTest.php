@@ -86,6 +86,9 @@ it('certifies the withheld tax when a payment on account pays a WHT bill, and vo
         expect(LedgerChecks::problems())->toBe([]);
     });
     $this->asPerson($this->owner)->getJson($this->api("wht-certificates?payment_id={$payment['id']}"))->assertOk()->assertJsonCount(1, 'data');
+    // The bill's payments list shows it, undoable, under the payment it came from.
+    $this->getJson($this->api("bills/{$c['id']}/payments"))->assertOk()->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.type', 'credit_application')->assertJsonPath('data.0.number', $payment['number'])->assertJsonPath('data.0.can.undo', true);
 
     $this->asPerson($this->owner, signing: true)->postJson($this->api('credit-applications/'.$applied->json('data.id').'/undo'), [], $this->key())->assertOk();
     $this->inTenant(fn () => expect(DB::table('wht_certificates')->value('status'))->toBe('void'));

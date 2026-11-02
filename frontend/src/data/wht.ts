@@ -30,14 +30,14 @@ export function useWhtCertificateList(filters: WhtQuery) {
   };
 }
 
-/** The certificates one payment issued. The API filters by contact, not by payment, so the payment is picked out here. */
-export function useWhtCertificates(of: { contact_id: string; payment_id: string } | null) {
+/** The certificates one payment issued (the server filters on `payment_id`). */
+export function useWhtCertificates(of: { payment_id: string } | null) {
   const company = useRouteCompany();
   const q = useQuery({
     queryKey: [...whtKey(company.id), 'of-payment', of?.payment_id],
     enabled: Boolean(of),
     staleTime: 0,
-    queryFn: async () => (await fetchAllPages((cursor) => live.listWhtCertificates(company.id, { contact_id: of?.contact_id }, cursor, 100))).map(toWhtCertificate).filter((c) => c.payment_id === of?.payment_id),
+    queryFn: async () => (await fetchAllPages((cursor) => live.listWhtCertificates(company.id, { payment_id: of?.payment_id }, cursor, 100))).map(toWhtCertificate),
   });
   return { rows: q.data ?? [], isLoading: q.isLoading, error: q.error };
 }

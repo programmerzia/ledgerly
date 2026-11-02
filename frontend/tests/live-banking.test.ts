@@ -151,14 +151,19 @@ describe('typed amounts', () => {
 
 const apiLine = (over: Partial<ApiBankLine> = {}): ApiBankLine => ({
   id: 'l1', statement_id: 's1', bank_account_id: 'b1', txn_date: '2026-03-02', value_date: null, amount: { amount: -1500, currency: 'USD' }, description: 'BANK FEE MARCH',
-  reference: 'FEE-03', counterparty: null, balance_after: null, status: 'unmatched', match_id: null, pending_journal_id: null, version: 1, can: { match: true, code: false }, ...over,
+  reference: 'FEE-03', counterparty: null, balance_after: null, status: 'unmatched', match_id: null, pending_journal_id: null, version: 1, excluded_reason: null, can: { match: true, code: false }, ...over,
 });
 
 describe('statement lines, suggestions and rules', () => {
   it('maps a line, with blanks as empty text and the can hints kept', () => {
     const l = toBankLine(apiLine());
-    expect(l).toMatchObject({ amount: -1500, currency: 'USD', counterparty: '', match_id: null, status: 'unmatched', can: { match: true, code: false } });
+    expect(l).toMatchObject({ amount: -1500, currency: 'USD', counterparty: '', match_id: null, status: 'unmatched', can: { match: true, code: false, exclude: false } });
     expect(toBankLine(apiLine({ status: 'matched', match_id: 'm1', pending_journal_id: 'j1' }))).toMatchObject({ status: 'matched', match_id: 'm1', pending_journal_id: 'j1' });
+  });
+  it('keeps the exclusion reason and the exclude hint, which also covers putting back', () => {
+    const l = toBankLine(apiLine({ status: 'excluded', excluded_reason: 'Duplicate of the March fee', can: { match: false, code: false, exclude: true } }));
+    expect(l).toMatchObject({ status: 'excluded', excluded_reason: 'Duplicate of the March fee', can: { exclude: true } });
+    expect(toBankLine(apiLine({ can: { match: true, code: true, exclude: true } })).can.exclude).toBe(true);
   });
   it('maps suggestions and the first matching rule', () => {
     const s = toSuggestions({
@@ -252,6 +257,11 @@ describe('reconciliation', () => {
   it('has no difference when the statement has no closing balance', () => {
     const r = toReconciliation(apiRec({ report: { as_of: '2026-03-09', difference: null, statement: { closing_balance: null } } }));
     expect(r.difference).toBeNull();
+  });
+  it('reads the excluded lines count and total from the report, zero when absent', () => {
+    const withExcluded = toReconciliation(apiRec({ report: { ...(apiRec().report as Record<string, unknown>), excluded_statement: { total: -2500, count: 1 } } }));
+    expect(withExcluded.report?.excluded_statement).toEqual({ total: -2500, count: 1 });
+    expect(toReconciliation(apiRec()).report?.excluded_statement).toEqual({ total: 0, count: 0 });
   });
   it('reads a missing report as none', () => {
     expect(toReconciliation(apiRec({ report: null })).report).toBeNull();

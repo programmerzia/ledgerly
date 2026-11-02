@@ -152,11 +152,19 @@ function useLiveSignOut(): () => Promise<void> {
  * first render after a reload, so screens that fetch by company id never ask for the previous one.
  */
 export function useRouteCompany(): Company {
+  return useActiveCompany().company;
+}
+
+/**
+ * Like `useRouteCompany`, plus whether the company is really known yet. Until it is, `company` is the store's
+ * leftover value (the mock's `co-1` on a direct load), which must never reach a URL: data hooks pass `known` as `enabled`.
+ */
+export function useActiveCompany(): { company: Company; known: boolean } {
   const { co } = useParams();
   const { tenantId, companies } = useLiveCompanies();
   const fallback = useLedgerStore((s) => s.currentCompany);
   const found = companies.data?.find((c) => c.slug === co);
-  return found && tenantId ? toCompany(found, tenantId) : fallback;
+  return found && tenantId ? { company: toCompany(found, tenantId), known: true } : { company: fallback, known: false };
 }
 
 /** Mirrors the live session into the zustand slice for pages that have not been migrated yet. */

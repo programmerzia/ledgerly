@@ -26,6 +26,10 @@ final class ListDocumentPayments
         $select = ['ca.id', 'other.kind', 'other.number', 'ca.applied_on as date', 'ca.amount_fc', 'ca.amount', 'ca.fx_gain_loss'];
         $received = $c->table('credit_applications as ca')->join('invoices as other', 'other.id', '=', 'ca.note_id')
             ->where('ca.invoice_id', $doc->id)->whereNull('ca.reversed_at')->select($select)->get();
+        // Credit on account: the settlement it came from is the other side.
+        $fromPayment = $c->table('credit_applications as ca')->join('settlements as s', 's.id', '=', 'ca.settlement_id')
+            ->where('ca.invoice_id', $doc->id)->whereNull('ca.reversed_at')
+            ->select(['ca.id', 's.kind', 's.number', 'ca.applied_on as date', 'ca.amount_fc', 'ca.amount', 'ca.fx_gain_loss'])->get();
         $given = $c->table('credit_applications as ca')->join('invoices as other', 'other.id', '=', 'ca.invoice_id')
             ->where('ca.note_id', $doc->id)->whereNull('ca.reversed_at')->select($select)->get();
 
@@ -36,7 +40,7 @@ final class ListDocumentPayments
 
         /** @var list<array{type: string, id: string, kind: string, number: string|null, date: string, amount_fc: int, amount: int, fx_gain_loss: int}> $rows */
         $rows = collect($settlements)->map(fn (stdClass $r) => $row('settlement', $r))
-            ->concat(collect($received)->concat($given)->map(fn (stdClass $r) => $row('credit_application', $r)))
+            ->concat(collect($received)->concat($fromPayment)->concat($given)->map(fn (stdClass $r) => $row('credit_application', $r)))
             ->sortBy('date')->values()->all();
 
         return $rows;

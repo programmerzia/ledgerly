@@ -13095,6 +13095,8 @@ export interface operations {
                 contact_id?: string | null;
                 from?: string | null;
                 to?: string | null;
+                payment_id?: string;
+                invoice_id?: string;
                 /** @description Opaque, from `meta.next_cursor` or `meta.prev_cursor`. */
                 cursor?: string;
                 /** @description Page size, 1 to 200; default 50. */

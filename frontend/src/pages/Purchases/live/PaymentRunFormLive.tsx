@@ -268,7 +268,7 @@ const RunFormInner: React.FC = () => {
     return a ? `${a.code} ${a.name}` : '';
   };
   const candidates = bills.docs.filter((d) => (!supplierFilter || d.contact_id === supplierFilter) && (!dueBy || (d.due_date !== '' && d.due_date <= dueBy)));
-  const openOf = (d: (typeof bills.docs)[number]) => (d.currency === base ? d.amount_due : d.amount_due_fc);
+  const openOf = (d: (typeof bills.docs)[number]) => d.amount_due_fc;
   const wholeBill = (id: string, whole: number | null) => setPay((p) => ({ ...p, [id]: whole ?? 0 }));
 
   return (
@@ -382,7 +382,7 @@ const RunFormInner: React.FC = () => {
                       <td className="px-3 py-2 text-text-secondary">{suppliers.byId.get(d.contact_id)?.name ?? '—'}</td>
                       <td className="px-3 py-2 tabular-nums text-text-muted">{d.due_date ? formatDate(d.due_date) : '—'}</td>
                       <td className="px-3 py-2 text-right tabular-nums">{formatMoney(d.total_fc, d.currency)}</td>
-                      <td className="px-3 py-2 text-right tabular-nums">{d.currency !== base && d.amount_due_fc != null ? formatMoney(d.amount_due_fc, d.currency) : formatMoney(d.amount_due, d.baseCurrency)}</td>
+                      <td className="px-3 py-2 text-right tabular-nums">{formatMoney(d.amount_due_fc, d.currency)}</td>
                       <td className="px-3 py-2">
                         {fits ? (
                           <div className="flex items-center justify-end gap-2">

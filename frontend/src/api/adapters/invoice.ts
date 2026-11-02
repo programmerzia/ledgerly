@@ -74,8 +74,8 @@ export interface LiveDoc {
   /** Base currency. Zero until the document is posted. For a credit note: the credit still left to apply. */
   settled: number;
   amount_due: number;
-  /** What is still open in the document's own currency, when the server sends it (newer backends do; not in openapi.json yet). */
-  amount_due_fc: number | null;
+  /** What is still open, in the document's own currency. */
+  amount_due_fc: number;
   /** The company's base currency, the currency of `amount_due`, `settled` and the base totals. */
   baseCurrency: string;
   related_invoice_id: string | null;
@@ -136,7 +136,7 @@ export function toDoc(a: ApiInvoice): LiveDoc {
     settled_fc: money(a.settled_fc),
     settled: money(a.settled),
     amount_due: money(a.amount_due),
-    amount_due_fc: moneyOrNull((a as unknown as { amount_due_fc?: ApiMoney }).amount_due_fc),
+    amount_due_fc: money(a.amount_due_fc),
     baseCurrency: a.amount_due.currency,
     related_invoice_id: a.related_invoice_id,
     journal_id: a.journal_id,

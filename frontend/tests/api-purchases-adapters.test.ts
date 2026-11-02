@@ -38,6 +38,7 @@ const apiBill = (over: Record<string, unknown> = {}): ApiInvoice =>
     settled_fc: usd(0),
     settled: usd(0),
     amount_due: usd(315000),
+    amount_due_fc: usd(315000),
     related_invoice_id: null,
     journal_id: 'j1',
     reversal_journal_id: null,
@@ -59,10 +60,10 @@ describe('bills at the boundary', () => {
     expect(d.wht_amount_fc).toBe(15000);
     expect(d.wht_amount).toBe(15000);
     expect(d.amount_due).toBe(315000);
-    expect(d.amount_due_fc).toBeNull();
+    expect(d.amount_due_fc).toBe(315000);
   });
 
-  it('reads the open amount in the document currency when the server sends it', () => {
+  it('reads the open amount in the document currency', () => {
     const d = toDoc(apiBill({ currency: 'EUR', amount_due: usd(110000), amount_due_fc: eur(100000) }));
     expect(d.amount_due_fc).toBe(100000);
     expect(d.amount_due).toBe(110000);

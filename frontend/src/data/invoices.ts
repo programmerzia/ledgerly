@@ -9,11 +9,12 @@ import { cursorPaging, fetchAllPages, type CursorPage } from '@/api/cursor';
 import * as live from '@/api/live/trade';
 import type { DocResource, DocQuery } from '@/api/live/trade';
 import { toDoc, type ApiInvoice, type LiveDoc } from '@/api/adapters/invoice';
-import { toCreditApplication } from '@/api/adapters/settlement';
+import { toCreditApplication, toDocPayment, type LiveDocPayment } from '@/api/adapters/settlement';
 import type { Intent } from '@/api/idempotency';
 import { approvalsKey } from './journals';
 import { contactsKey } from './contacts';
 import { settlementsKey } from './settlements';
+import { whtKey } from './wht';
 import { useRouteCompany } from './session';
 import type { DataResult } from './types';
 
@@ -47,6 +48,18 @@ export function useDoc(id: string | undefined, resource: DocResource = 'invoices
   const q = useQuery({ queryKey: [...docsKey(company.id, resource), 'one', id], queryFn: () => live.getDoc(company.id, resource, id as string), enabled: Boolean(id), staleTime: 0 });
   const data = useMemo(() => (q.data ? toDoc(q.data) : null), [q.data]);
   return { data, isLoading: q.isLoading, error: q.error, refetch: () => void q.refetch() };
+}
+
+/** Settlements and applied credits of one document, as the server lists them. */
+export function useDocPayments(id: string | undefined, resource: DocResource, enabled: boolean): DataResult<LiveDocPayment[]> {
+  const company = useRouteCompany();
+  const q = useQuery({
+    queryKey: [...docsKey(company.id, resource), 'payments', id],
+    queryFn: async () => (await live.listDocPayments(company.id, resource, id as string)).map(toDocPayment),
+    enabled: Boolean(id) && enabled,
+    staleTime: 0,
+  });
+  return { data: q.data ?? [], isLoading: q.isLoading, error: q.error, refetch: () => void q.refetch() };
 }
 
 /**
@@ -108,6 +121,13 @@ export function useDocActions(resource: DocResource = 'invoices') {
     voidDraft: (id: string, reason: string, version: number, intent: Intent) => after(live.transitionDoc(company.id, resource, id, 'void', { reason, version }, intent)),
     reverse: (id: string, body: { memo?: string; date?: string; version: number }, intent: Intent) => after(live.transitionDoc(company.id, resource, id, 'reverse', body, intent)),
     /** Applies a posted credit note to an open invoice of the same contact. */
+    /** Takes a credit application back; the document owes again and any certificate its payment issued is voided by the server. */
+    undoCredit: async (applicationId: string, intent: Intent) => {
+      const r = toCreditApplication(await live.undoCreditApplication(company.id, applicationId, intent));
+      refresh();
+      void qc.invalidateQueries({ queryKey: whtKey(company.id) });
+      return r;
+    },
     applyCredit: async (id: string, body: { invoice_id: string; amount_fc: number; date?: string }, intent: Intent) => {
       const r = toCreditApplication(await live.applyCredit(company.id, resource, id, body, intent));
       refresh();

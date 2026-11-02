@@ -10,7 +10,7 @@ import type { Intent } from '../idempotency';
 import type { CursorPage } from '../cursor';
 import type { ApiContact } from '../adapters/contact';
 import type { ApiInvoice, ApiInvoicePreview } from '../adapters/invoice';
-import type { ApiCreditApplication, ApiSettlement } from '../adapters/settlement';
+import type { ApiCreditApplication, ApiDocumentPayment, ApiSettlement } from '../adapters/settlement';
 import type { components } from '../schema';
 
 export type ApiItem = components['schemas']['ItemResource'];
@@ -78,6 +78,12 @@ export const transitionDoc = async (
 export const applyCredit = async (company: string, resource: DocResource, id: string, body: { invoice_id: string; amount_fc: number; date?: string }, intent: Intent) =>
   (await post<ApiCreditApplication>(`${base(company)}/${resource}/${id}/allocate`, body, intent)).data;
 
+/** Settlements and credits applied to one document. */
+export const listDocPayments = async (company: string, resource: DocResource, id: string) => (await getOne<ApiDocumentPayment[]>(`${base(company)}/${resource}/${id}/payments`));
+/** Takes a credit application back. 403 `signature_required` first when no grant is live. */
+export const undoCreditApplication = async (company: string, id: string, intent: Intent) =>
+  (await post<ApiCreditApplication>(`${base(company)}/credit-applications/${id}/undo`, {}, intent)).data;
+
 /* --------------------------------------------------------------- settlements */
 
 export interface SettlementQuery {
@@ -119,6 +125,7 @@ export const listBankAccounts = async (company: string): Promise<ApiBankAccount[
 export type ApiWhtCertificate = components['schemas']['WhtCertificateResource'];
 export interface WhtQuery {
   contact_id?: string;
+  payment_id?: string;
   status?: string;
   from?: string;
   to?: string;

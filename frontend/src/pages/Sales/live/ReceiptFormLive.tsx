@@ -411,13 +411,11 @@ const ReceiptFormInner: React.FC<{ side: Side }> = ({ side }) => {
                       <td className="px-3 py-2 font-semibold text-text-primary">{d.number}</td>
                       <td className="px-3 py-2 tabular-nums text-text-muted">{d.due_date ? formatDate(d.due_date) : '—'}</td>
                       <td className="px-3 py-2 text-right tabular-nums">{formatMoney(d.total_fc, d.currency)}</td>
-                      <td className="px-3 py-2 text-right tabular-nums">{d.currency !== base && d.amount_due_fc != null ? formatMoney(d.amount_due_fc, d.currency) : formatMoney(d.amount_due, d.baseCurrency)}</td>
+                      <td className="px-3 py-2 text-right tabular-nums">{formatMoney(d.amount_due_fc, d.currency)}</td>
                       <td className="px-3 py-2">
                         {fits ? (
                           <div className="flex items-center justify-end gap-2">
-                            {(d.currency === base || d.amount_due_fc != null) && (
-                              <button type="button" onClick={() => setAlloc((a) => ({ ...a, [d.id]: d.currency === base ? d.amount_due : (d.amount_due_fc as number) }))} className="rounded border border-border px-2 py-1 text-[11px] hover:bg-surface-neutral">Full</button>
-                            )}
+                            <button type="button" onClick={() => setAlloc((a) => ({ ...a, [d.id]: d.amount_due_fc }))} className="rounded border border-border px-2 py-1 text-[11px] hover:bg-surface-neutral">Full</button>
                             <div className="w-32">
                               <MoneyInput value={alloc[d.id] ?? 0} onChange={(v) => setAlloc((a) => ({ ...a, [d.id]: v }))} currency={currency} allowNegative={false} size="sm" />
                             </div>

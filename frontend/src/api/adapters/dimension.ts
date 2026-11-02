@@ -1,5 +1,4 @@
 import type { components } from '../schema';
-import { toCan } from './account';
 
 export type ApiDimension = components['schemas']['DimensionResource'];
 export type ApiDimensionValue = components['schemas']['DimensionValueResource'];
@@ -30,7 +29,7 @@ export function toDimensionValue(v: ApiDimensionValue): LiveDimensionValue {
 }
 
 export function toDimension(d: ApiDimension): LiveDimension {
-  const can = toCan(d.can);
+  const can = d.can;
   return {
     id: d.id,
     code: d.code,

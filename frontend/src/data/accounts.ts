@@ -12,6 +12,7 @@ import { toAccount, toAccountRequest, toNewAccountRequest, toDimensionRulesReque
 import { createIntent, type Intent } from '@/api/idempotency';
 import { Handled, handleVersionConflict } from '@/api/live/writeProblems';
 import { useLedgerStore } from '@/mock/store';
+import { useActiveCompany } from './session';
 import type { Account } from '@/types';
 import type { DataResult } from './types';
 
@@ -23,8 +24,9 @@ export function useMockAccounts(): DataResult<Account[]> {
 export const accountsKey = (companyId: string) => ['accounts', companyId] as const;
 
 export function useLiveAccounts(): DataResult<Account[]> {
-  const company = useLedgerStore((s) => s.currentCompany);
+  const { company, known } = useActiveCompany();
   const q = useQuery({
+    enabled: known,
     queryKey: accountsKey(company.id),
     queryFn: async () => {
       const rows = await fetchAllPages((cursor) =>
@@ -105,7 +107,7 @@ export function useMockAccountActions(): AccountActions {
 
 export function useLiveAccountActions(): AccountActions {
   const client = useQueryClient();
-  const company = useLedgerStore((s) => s.currentCompany);
+  const { company } = useActiveCompany();
   const path = { company: company.id };
   const done = () => client.invalidateQueries({ queryKey: accountsKey(company.id) });
   const guard = async (account: Account, local: string, fn: () => Promise<unknown>) => {
@@ -158,10 +160,10 @@ export interface AccountBalance {
 }
 
 export function useLiveAccountBalances(enabled: boolean, asOf: string): DataResult<Record<string, AccountBalance>> {
-  const company = useLedgerStore((s) => s.currentCompany);
+  const { company, known } = useActiveCompany();
   const q = useQuery({
     queryKey: ['account-balances', company.id, asOf],
-    enabled,
+    enabled: known && enabled,
     queryFn: async () => {
       const res = (await http.get('/v1/companies/{company}/reports/trial-balance', {
         path: { company: company.id },

@@ -7,14 +7,15 @@ import { http } from '@/api/http';
 import { toDimension, type LiveDimension } from '@/api/adapters/dimension';
 import { createIntent, type Intent } from '@/api/idempotency';
 import { Handled, handleVersionConflict } from '@/api/live/writeProblems';
-import { useLedgerStore } from '@/mock/store';
+import { useActiveCompany } from './session';
 import type { DataResult } from './types';
 
 export const dimensionsKey = (companyId: string) => ['dimensions', companyId] as const;
 
 export function useDimensions(): DataResult<LiveDimension[]> {
-  const company = useLedgerStore((s) => s.currentCompany);
+  const { company, known } = useActiveCompany();
   const q = useQuery({
+    enabled: known,
     queryKey: dimensionsKey(company.id),
     queryFn: async () => {
       const res = await http.get('/v1/companies/{company}/dimensions', { path: { company: company.id } });
@@ -35,7 +36,7 @@ export interface DimensionActions {
 
 export function useDimensionActions(): DimensionActions {
   const client = useQueryClient();
-  const company = useLedgerStore((s) => s.currentCompany);
+  const { company } = useActiveCompany();
   const path = { company: company.id };
   const key = dimensionsKey(company.id);
   const run = async (subject: string, id: string, fn: () => Promise<unknown>) => {

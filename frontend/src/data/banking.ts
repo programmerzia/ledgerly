@@ -201,6 +201,8 @@ export function useBankingActions() {
         done(live.importStatement(companyId, bankAccountId, form, intent).then(toStatementImport)),
       match: (body: { statement_line_ids: string[]; journal_line_ids?: string[]; settlement_ids?: string[] }, intent: Intent) => done(live.createMatch(companyId, body, intent)),
       unmatch: (matchId: string, intent: Intent) => done(live.deleteMatch(companyId, matchId, intent)),
+      excludeLine: (lineId: string, reason: string, version: number, intent: Intent) => done(live.excludeLine(companyId, lineId, reason, version, intent)),
+      restoreLine: (lineId: string, version: number, intent: Intent) => done(live.restoreLine(companyId, lineId, version, intent)),
       codeLine: (lineId: string, body: unknown, intent: Intent) => done(live.codeLine(companyId, lineId, body, intent), true),
       applyRule: (lineId: string, ruleId: string | undefined, intent: Intent) => done(live.applyRule(companyId, lineId, ruleId, intent), true),
       startReconciliation: (statementId: string, intent: Intent) => done(live.startReconciliation(companyId, statementId, intent).then(toReconciliation)),

@@ -18513,6 +18513,22 @@
                         }
                     },
                     {
+                        "name": "payment_id",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "invoice_id",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
                         "name": "cursor",
                         "in": "query",
                         "description": "Opaque, from `meta.next_cursor` or `meta.prev_cursor`.",

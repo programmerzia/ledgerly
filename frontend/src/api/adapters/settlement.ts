@@ -158,6 +158,41 @@ export function toSettlementRequest(input: SettlementDraftInput, baseCurrency: s
   return body;
 }
 
+export type ApiDocumentPayment = components['schemas']['DocumentPaymentResource'];
+
+/** One line of a document's Payments section: a settlement (receipt or payment) or a credit applied from a credit note. */
+export interface LiveDocPayment {
+  type: 'settlement' | 'credit_application';
+  id: string;
+  kind: string;
+  number: string;
+  date: string;
+  /** In the document's currency, as the server sends it. */
+  amount_fc: number;
+  currency: string;
+  /** Base currency. */
+  amount: number;
+  base_currency: string;
+  fx_gain_loss: number;
+  can_undo: boolean;
+}
+
+export function toDocPayment(p: ApiDocumentPayment): LiveDocPayment {
+  return {
+    type: p.type,
+    id: p.id,
+    kind: p.kind,
+    number: p.number ?? '',
+    date: p.date,
+    amount_fc: money(p.amount_fc),
+    currency: p.amount_fc.currency,
+    amount: money(p.amount),
+    base_currency: p.amount.currency,
+    fx_gain_loss: money(p.fx_gain_loss),
+    can_undo: p.can.undo === true,
+  };
+}
+
 export interface LiveCreditApplication {
   id: string;
   invoice_id: string;

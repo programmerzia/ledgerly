@@ -22,7 +22,7 @@ export interface LiveItem {
 }
 
 export function toLiveItem(a: ApiItemResource): LiveItem {
-  const can = (a.can && typeof a.can === 'object' ? a.can : {}) as Record<string, unknown>;
+  const can = a.can;
   return {
     id: a.id,
     code: a.code,

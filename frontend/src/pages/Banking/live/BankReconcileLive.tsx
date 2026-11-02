@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Check, CheckCircle2, Clock, Link2, Settings2, Undo2, Upload } from 'lucide-react';
+import { Ban, Check, CheckCircle2, Clock, Link2, Settings2, Undo2, Upload } from 'lucide-react';
 import { PageHeader } from '@/components/domain/PageHeader';
 import { SignDialog } from '@/components/domain/SignDialog';
 import { ConflictDialog, type VersionConflict } from '@/components/domain/ConflictDialog';
@@ -20,7 +20,7 @@ import { bankingErrorText, describeExplanation, describeImportWarning, lineTitle
 import { ErrorLine, LoadingLine, verdictText } from '@/pages/Accounting/live/parts';
 import { CodeLineForm } from './CodeLineForm';
 
-type Filter = 'to_match' | 'waiting' | 'matched';
+type Filter = 'to_match' | 'waiting' | 'matched' | 'excluded';
 
 const paneCard = 'flex flex-col overflow-hidden rounded-lg border border-border bg-surface';
 const rowBase = 'relative w-full px-4 py-3 text-left outline-none transition-colors duration-150 focus-visible:bg-accent-soft/50';
@@ -77,11 +77,17 @@ export const BankReconcileLive: React.FC = () => {
   const finishSlot = useRef(new IntentSlot()).current;
   const reopenSlot = useRef(new IntentSlot()).current;
   const ruleSlot = useRef(new IntentSlot()).current;
+  const excludeSlot = useRef(new IntentSlot()).current;
+  const restoreSlot = useRef(new IntentSlot()).current;
+  const [excludeTarget, setExcludeTarget] = useState<LiveBankLine | null>(null);
+  const [excludeReason, setExcludeReason] = useState('');
+  const [excludeError, setExcludeError] = useState('');
 
   const toMatch = lines.filter((l) => l.status === 'unmatched' && !l.pending_journal_id);
   const waiting = lines.filter((l) => l.status === 'unmatched' && l.pending_journal_id);
   const matched = lines.filter((l) => l.status === 'matched');
-  const shown = filter === 'to_match' ? toMatch : filter === 'waiting' ? waiting : matched;
+  const excluded = lines.filter((l) => l.status === 'excluded');
+  const shown = filter === 'to_match' ? toMatch : filter === 'waiting' ? waiting : filter === 'excluded' ? excluded : matched;
   // The focused line: the one picked if it is still in this list, else the first line that needs work.
   const activeId = lines.some((l) => l.id === activePick && (filter !== 'to_match' || toMatch.some((m) => m.id === l.id))) ? activePick : filter === 'to_match' ? (toMatch[0]?.id ?? null) : null;
   const active = lines.find((l) => l.id === activeId) ?? null;
@@ -161,6 +167,43 @@ export const BankReconcileLive: React.FC = () => {
       await actions.unmatch(l.match_id, unmatchSlot.for(l.match_id));
       unmatchSlot.clear();
       toast.success('Match removed. The line is open again.');
+    } catch (e) {
+      fail(e);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const openExclude = (l: LiveBankLine) => {
+    setExcludeTarget(l);
+    setExcludeReason('');
+    setExcludeError('');
+  };
+
+  const exclude = async () => {
+    if (!excludeTarget) return;
+    const reason = excludeReason.trim();
+    if (!reason) return setExcludeError('Give a reason for leaving this line out of the books.');
+    setBusy(true);
+    setExcludeError('');
+    try {
+      await actions.excludeLine(excludeTarget.id, reason, excludeTarget.version, excludeSlot.for(`${excludeTarget.id}:${excludeTarget.version}:${reason}`));
+      excludeSlot.clear();
+      setExcludeTarget(null);
+      toast.success('Line excluded. It stays on the statement but is not in your books.');
+    } catch (e) {
+      setExcludeError(isSigningCancelled(e) ? '' : bankingErrorText(e, verdictText));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const putBack = async (l: LiveBankLine) => {
+    setBusy(true);
+    try {
+      await actions.restoreLine(l.id, l.version, restoreSlot.for(`${l.id}:${l.version}`));
+      restoreSlot.clear();
+      toast.success('Line put back. It is open to match again.');
     } catch (e) {
       fail(e);
     } finally {
@@ -374,9 +417,15 @@ export const BankReconcileLive: React.FC = () => {
                   <div>{rep?.unmatched_statement.count ?? 0} statement lines unmatched</div>
                   <div>{rep?.book.unmatched_count ?? 0} book entries unmatched</div>
                 </div>
-                {diff === 0 && (rep?.unmatched_statement.count ?? 0) > 0 && !finished && (
+                {(rep?.excluded_statement.count ?? 0) > 0 && (
+                  <div className="text-xs text-text-muted" data-testid="excluded-figure">
+                    <div>{rep?.excluded_statement.count} statement {rep?.excluded_statement.count === 1 ? 'line' : 'lines'} excluded</div>
+                    <div className="tabular-nums">{formatMoney(rep?.excluded_statement.total ?? 0, currency)} left out of the books</div>
+                  </div>
+                )}
+                {(rep?.unmatched_statement.count ?? 0) > 0 && !finished && (
                   <p className="basis-full text-xs text-text-muted" data-testid="unmatched-note">
-                    The difference is zero, but {rep?.unmatched_statement.count} statement {rep?.unmatched_statement.count === 1 ? 'line is' : 'lines are'} not matched yet. You can finish once every statement line is matched or recorded.
+                    {diff === 0 ? 'The difference is zero, but ' : ''}{rep?.unmatched_statement.count} statement {rep?.unmatched_statement.count === 1 ? 'line is' : 'lines are'} not matched yet, so Finish is off. Match each one, record it, or exclude it with a reason.
                   </p>
                 )}
               </div>
@@ -396,6 +445,7 @@ export const BankReconcileLive: React.FC = () => {
                         ['to_match', `To match ${toMatch.length}`],
                         ['waiting', `Waiting ${waiting.length}`],
                         ['matched', `Matched ${matched.length}`],
+                        ['excluded', `Excluded ${rep?.excluded_statement.count ?? excluded.length}`],
                       ] as Array<[Filter, string]>
                     ).map(([k, label]) => (
                       <button key={k} type="button" role="tab" aria-selected={filter === k} onClick={() => setFilter(k)} className={cn('h-7 rounded-md px-2.5 text-xs font-medium', filter === k ? 'bg-surface-elevated text-text-primary' : 'text-text-muted hover:text-text-primary')}>
@@ -406,9 +456,15 @@ export const BankReconcileLive: React.FC = () => {
                 </div>
                 <div className="max-h-[460px] divide-y divide-border overflow-y-auto" data-testid="statement-lines">
                   {linesQ.isLoading && <LoadingLine what="statement lines" />}
+                  {filter === 'excluded' && (
+                    <p className="bg-surface-neutral/40 px-4 py-2 text-xs text-text-muted">
+                      Excluded lines stay on the statement but are not in your books.
+                      {rep && rep.excluded_statement.count > 0 ? ` ${rep.excluded_statement.count} ${rep.excluded_statement.count === 1 ? 'line' : 'lines'}, ${formatMoney(rep.excluded_statement.total, currency)} in all.` : ''}
+                    </p>
+                  )}
                   {!linesQ.isLoading && shown.length === 0 && (
                     <div className="px-4 py-12 text-center text-xs text-text-muted">
-                      {filter === 'to_match' ? (toMatch.length === 0 && lines.length > 0 ? 'Every statement line is matched or recorded.' : 'No lines to match.') : filter === 'waiting' ? 'Nothing is waiting for approval.' : 'Nothing matched yet.'}
+                      {filter === 'to_match' ? (toMatch.length === 0 && lines.length > 0 ? 'Every statement line is matched or recorded.' : 'No lines to match.') : filter === 'waiting' ? 'Nothing is waiting for approval.' : filter === 'excluded' ? 'No lines are excluded.' : 'Nothing matched yet.'}
                     </div>
                   )}
                   {shown.map((l) => {
@@ -430,6 +486,7 @@ export const BankReconcileLive: React.FC = () => {
                             <span className="truncate">{l.counterparty ? l.description : l.reference}</span>
                             <span className="shrink-0 tabular-nums">{formatDate(l.date)}</span>
                           </div>
+                          {l.status === 'excluded' && l.excluded_reason && <span className="mt-1 block truncate text-xs text-text-secondary">Reason: {l.excluded_reason}</span>}
                           {l.pending_journal_id && (
                             <span className="mt-1.5 inline-flex items-center gap-1 rounded-[3px] bg-warning-soft px-2 py-0.5 text-[11px] font-medium text-warning">
                               <Clock className="size-3" /> Waiting for approval
@@ -441,8 +498,18 @@ export const BankReconcileLive: React.FC = () => {
                             View
                           </Link>
                         )}
+                        {l.status === 'unmatched' && !l.pending_journal_id && l.can.exclude && (
+                          <button type="button" disabled={busy || finished} title={finished ? 'Reopen the reconciliation to change lines' : undefined} onClick={() => openExclude(l)} className="flex shrink-0 items-center gap-1 whitespace-nowrap px-3 text-xs text-accent hover:underline disabled:cursor-not-allowed disabled:text-text-muted disabled:no-underline">
+                            <Ban className="size-3" /> Exclude
+                          </button>
+                        )}
+                        {l.status === 'excluded' && l.can.exclude && (
+                          <button type="button" disabled={busy || finished} title={finished ? 'Reopen the reconciliation to change lines' : undefined} onClick={() => void putBack(l)} className="flex shrink-0 items-center gap-1 whitespace-nowrap px-3 text-xs text-accent hover:underline disabled:cursor-not-allowed disabled:text-text-muted disabled:no-underline">
+                            <Undo2 className="size-3" /> Put back
+                          </button>
+                        )}
                         {l.status === 'matched' && l.match_id && (
-                          <button type="button" disabled={busy || finished || !l.can.match} title={finished ? 'Reopen the reconciliation to change matches' : undefined} onClick={() => void unmatch(l)} className="flex items-center gap-1 px-3 text-xs text-accent hover:underline disabled:cursor-not-allowed disabled:text-text-muted disabled:no-underline">
+                          <button type="button" disabled={busy || finished || !l.can.match} title={finished ? 'Reopen the reconciliation to change matches' : undefined} onClick={() => void unmatch(l)} className="flex shrink-0 items-center gap-1 whitespace-nowrap px-3 text-xs text-accent hover:underline disabled:cursor-not-allowed disabled:text-text-muted disabled:no-underline">
                             <Undo2 className="size-3" /> Unmatch
                           </button>
                         )}
@@ -534,6 +601,26 @@ export const BankReconcileLive: React.FC = () => {
             <button type="button" onClick={() => void finish()} disabled={busy} className="h-8 rounded-md bg-success px-3 text-[13px] font-medium text-white hover:opacity-90 disabled:opacity-50">
               {busy ? 'Finishing…' : 'Finish reconciliation'}
             </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={excludeTarget !== null} onOpenChange={(o) => !o && !busy && setExcludeTarget(null)}>
+        <DialogContent className="max-w-[460px] p-6">
+          <DialogHeader>
+            <DialogTitle className="text-sm font-semibold">Exclude this line</DialogTitle>
+            <DialogDescription className="text-xs">
+              {excludeTarget ? `${lineTitle(excludeTarget)}, ${formatMoney(excludeTarget.amount, excludeTarget.currency)}. ` : ''}The line stays on the statement but is not in your books. You can put it back later.
+            </DialogDescription>
+          </DialogHeader>
+          <label className="flex flex-col gap-1 text-[11px] font-medium text-text-muted">
+            Reason
+            <textarea value={excludeReason} onChange={(e) => setExcludeReason(e.target.value)} rows={3} aria-label="Reason for excluding" className="rounded-md border border-border bg-surface p-2 text-[13px] text-text-primary outline-none focus:border-accent" />
+          </label>
+          {excludeError && <p role="alert" className="text-[13px] text-danger">{excludeError}</p>}
+          <DialogFooter className="gap-2">
+            <button type="button" onClick={() => setExcludeTarget(null)} disabled={busy} className={btnSecondary}>Cancel</button>
+            <button type="button" onClick={() => void exclude()} disabled={busy} className={btnPrimary}>{busy ? 'Excluding…' : 'Exclude line'}</button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

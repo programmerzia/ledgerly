@@ -54,7 +54,7 @@ const GeneralForm: React.FC<{ settings: ApiSettings; companyId: string }> = ({ s
           setConflict(null);
           void qc.invalidateQueries({ queryKey: settingsKey(companyId) });
         };
-        setConflict({ noun: 'company details', serverVersion: err.serverVersion, localVersion: settings.data.version, onReload: reload, onClose: () => setConflict(null) });
+        setConflict({ noun: 'company profile', serverVersion: err.serverVersion, localVersion: settings.data.version, onReload: reload, onClose: () => setConflict(null) });
       } else if (!isSigningCancelled(err)) setError(err);
     } finally {
       setBusy(false);

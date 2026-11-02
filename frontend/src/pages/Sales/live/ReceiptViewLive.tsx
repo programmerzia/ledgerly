@@ -69,7 +69,7 @@ export const ReceiptViewLive: React.FC<{ side?: Side }> = ({ side = 'sales' }) =
 
   const r = q.data;
   const open = useOpenDocs(r?.status === 'posted' && r.unallocated_fc > 0 && r.kind !== 'supplier_refund' ? r.contact_id : undefined, S.mainKind, S.resource);
-  const certs = useWhtCertificates(side === 'purchases' && r?.status === 'posted' ? { contact_id: r.contact_id, payment_id: r.id } : null);
+  const certs = useWhtCertificates(side === 'purchases' && r?.status === 'posted' ? { payment_id: r.id } : null);
 
   if (q.isLoading) return <LoadingLine what={S.settlement} />;
   if (q.error || !r) {
@@ -231,7 +231,10 @@ export const ReceiptViewLive: React.FC<{ side?: Side }> = ({ side = 'sales' }) =
                 {certs.rows.map((c) => (
                   <li key={c.id} className="flex items-center justify-between">
                     <Link className="font-semibold text-accent hover:underline" to={`/${coSlug}/wht-certificates`}>{c.number}</Link>
-                    <span className="tabular-nums text-text-primary">{formatMoney(c.wht_amount, c.currency)}</span>
+                    <span className="flex items-center gap-2">
+                      {c.status === 'void' && <span className="text-xs text-danger">Voided</span>}
+                      <span className={cn('tabular-nums', c.status === 'void' ? 'text-text-muted line-through' : 'text-text-primary')}>{formatMoney(c.wht_amount, c.currency)}</span>
+                    </span>
                   </li>
                 ))}
               </ul>

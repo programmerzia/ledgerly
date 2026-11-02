@@ -379,7 +379,7 @@ export interface RecurringJournal {
 }
 
 export function toRecurringJournal(s: ApiRecurringSchedule): RecurringJournal {
-  const can = (s.can && typeof s.can === 'object' ? s.can : {}) as Record<string, unknown>;
+  const can = s.can;
   return {
     id: s.id,
     name: s.name,

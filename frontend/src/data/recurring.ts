@@ -1,6 +1,6 @@
 /** Repeating journal entries, live side (docs/15): GET/POST /recurring-journals, pause/resume, "run now". */
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useLedgerStore } from '@/mock/store';
+import { useActiveCompany } from './session';
 import { fetchAllPages } from '@/api/cursor';
 import * as live from '@/api/live/journals';
 import { toRecurringJournal, type RecurringJournal } from '@/api/adapters/journal';
@@ -11,8 +11,9 @@ import type { DataResult } from './types';
 export const recurringKey = (companyId: string) => ['recurring-journals', companyId] as const;
 
 export function useRecurringJournals(): DataResult<RecurringJournal[]> {
-  const company = useLedgerStore((s) => s.currentCompany);
+  const { company, known } = useActiveCompany();
   const q = useQuery({
+    enabled: known,
     queryKey: recurringKey(company.id),
     queryFn: async () => (await fetchAllPages((cursor) => live.listRecurringJournals(company.id, cursor))).map(toRecurringJournal),
   });
@@ -28,7 +29,7 @@ export interface RecurringInput {
 }
 
 export function useRecurringActions() {
-  const company = useLedgerStore((s) => s.currentCompany);
+  const { company } = useActiveCompany();
   const qc = useQueryClient();
   const refresh = () => {
     void qc.invalidateQueries({ queryKey: recurringKey(company.id) });

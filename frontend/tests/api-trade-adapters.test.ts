@@ -13,7 +13,7 @@ import {
   type DocDraftInput,
 } from '@/api/adapters/invoice';
 import { addressLines, draftOf, toContact, toContactRequest, type ApiContact } from '@/api/adapters/contact';
-import { toCreditApplication, toSettlement, toSettlementRequest, type ApiSettlement } from '@/api/adapters/settlement';
+import { toDocPayment, toCreditApplication, toSettlement, toSettlementRequest, type ApiSettlement } from '@/api/adapters/settlement';
 import { describeTradeViolation } from '@/api/tradeViolations';
 
 const usd = (amount: number) => ({ amount, currency: 'USD' });
@@ -45,6 +45,7 @@ const apiInvoice = (over: Record<string, unknown> = {}): ApiInvoice =>
     settled_fc: eur(16000),
     settled: usd(17280),
     amount_due: usd(108000),
+    amount_due_fc: eur(100000),
     related_invoice_id: null,
     journal_id: 'j1',
     reversal_journal_id: null,
@@ -336,5 +337,19 @@ describe('settlements', () => {
   it('reads a credit application', () => {
     const a = toCreditApplication({ id: 'x', settlement_id: null, note_id: 'n', invoice_id: 'i', amount_fc: usd(34800), source_amount: usd(34800), amount: usd(34800), fx_gain_loss: usd(0), applied_on: '2026-11-02', journal_id: 'j', reversal_journal_id: null, reversed_at: null, created_by: 'u' } as never);
     expect(a).toMatchObject({ invoice_id: 'i', amount_fc: 34800, applied_on: '2026-11-02' });
+  });
+});
+
+describe('document payments', () => {
+  const row = (over: Record<string, unknown> = {}) =>
+    toDocPayment({
+      type: 'settlement', id: 's1', kind: 'receipt', number: 'RCT-1', date: '2026-11-02',
+      amount_fc: eur(5000), amount: usd(5500), fx_gain_loss: usd(20), can: { undo: false }, ...over,
+    } as never);
+  it('keeps the document-currency amount, the base amount and the exchange difference as sent', () => {
+    expect(row()).toMatchObject({ type: 'settlement', number: 'RCT-1', amount_fc: 5000, currency: 'EUR', amount: 5500, base_currency: 'USD', fx_gain_loss: 20, can_undo: false });
+  });
+  it('offers undo only when the server says so, and reads a missing number as empty', () => {
+    expect(row({ type: 'credit_application', number: null, can: { undo: true } })).toMatchObject({ type: 'credit_application', number: '', can_undo: true });
   });
 });

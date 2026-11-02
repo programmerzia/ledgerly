@@ -5,7 +5,6 @@
  */
 import type { components } from '../schema';
 import { ApiError } from '../errors';
-import { toCan } from './account';
 
 export type ApiBankAccount = components['schemas']['BankAccountResource'];
 export type ApiBankStatement = components['schemas']['BankStatementResource'];
@@ -275,7 +274,7 @@ export interface LiveBankAccount {
 }
 
 export function toBankAccount(a: ApiBankAccount): LiveBankAccount {
-  const can = toCan(a.can);
+  const can = a.can;
   return {
     id: a.id,
     name: a.name,
@@ -414,12 +413,14 @@ export interface LiveBankLine {
   status: LineStatus;
   match_id: string | null;
   pending_journal_id: string | null;
+  excluded_reason: string;
   version: number;
-  can: { match: boolean; code: boolean };
+  /** `exclude` (the reconcile ability) also covers putting an excluded line back; the server sends no separate hint. */
+  can: { match: boolean; code: boolean; exclude: boolean };
 }
 
 export function toBankLine(l: ApiBankLine): LiveBankLine {
-  const can = toCan(l.can);
+  const can = l.can;
   return {
     id: l.id,
     statement_id: l.statement_id,
@@ -434,8 +435,9 @@ export function toBankLine(l: ApiBankLine): LiveBankLine {
     status: l.status === 'matched' || l.status === 'excluded' ? l.status : 'unmatched',
     match_id: typeof l.match_id === 'string' ? l.match_id : null,
     pending_journal_id: typeof l.pending_journal_id === 'string' ? l.pending_journal_id : null,
+    excluded_reason: l.excluded_reason ?? '',
     version: l.version,
-    can: { match: can.match === true, code: can.code === true },
+    can: { match: can.match === true, code: can.code === true, exclude: can.exclude === true },
   };
 }
 
@@ -534,7 +536,7 @@ export interface LiveBankRule {
 }
 
 export function toBankRule(r: ApiBankRule): LiveBankRule {
-  const can = toCan(r.can);
+  const can = r.can;
   const dir = r.conditions.direction;
   return {
     id: r.id,
@@ -635,6 +637,7 @@ export interface ReconReport {
   statement: { opening_balance: number | null; receipts: number; payments: number; closing_balance: number | null; line_count: number };
   book: { balance: number; opening_position: number; matched: number; unmatched: number; unmatched_count: number; matched_after_as_of: number };
   unmatched_statement: { total: number; count: number };
+  excluded_statement: { total: number; count: number };
   adjusted_book_balance: number;
   difference: number | null;
   unmatched_book_items: Array<{ journal_line_id: string; journal_id: string; number: string; date: string; amount: number; description: string }>;
@@ -650,6 +653,7 @@ export function toReconReport(raw: Record<string, unknown> | null | undefined): 
   const st = (raw.statement ?? {}) as Record<string, unknown>;
   const bk = (raw.book ?? {}) as Record<string, unknown>;
   const us = (raw.unmatched_statement ?? {}) as Record<string, unknown>;
+  const ex = (raw.excluded_statement ?? {}) as Record<string, unknown>;
   const items = (v: unknown): Array<Record<string, unknown>> => (Array.isArray(v) ? (v as Array<Record<string, unknown>>) : []);
   return {
     as_of: String(raw.as_of ?? ''),
@@ -657,6 +661,7 @@ export function toReconReport(raw: Record<string, unknown> | null | undefined): 
     statement: { opening_balance: intOrNull(st.opening_balance), receipts: intOr(st.receipts), payments: intOr(st.payments), closing_balance: intOrNull(st.closing_balance), line_count: intOr(st.line_count) },
     book: { balance: intOr(bk.balance), opening_position: intOr(bk.opening_position), matched: intOr(bk.matched), unmatched: intOr(bk.unmatched), unmatched_count: intOr(bk.unmatched_count), matched_after_as_of: intOr(bk.matched_after_as_of) },
     unmatched_statement: { total: intOr(us.total), count: intOr(us.count) },
+    excluded_statement: { total: intOr(ex.total), count: intOr(ex.count) },
     adjusted_book_balance: intOr(raw.adjusted_book_balance),
     difference: intOrNull(raw.difference),
     unmatched_book_items: items(raw.unmatched_book_items).map((o) => ({
@@ -695,7 +700,7 @@ export interface LiveReconciliation {
 }
 
 export function toReconciliation(r: ApiReconciliation): LiveReconciliation {
-  const can = toCan(r.can);
+  const can = r.can;
   const report = toReconReport(r.report as Record<string, unknown> | null);
   return {
     id: r.id,

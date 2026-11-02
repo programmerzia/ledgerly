@@ -52,7 +52,7 @@ export const LivePosting: React.FC = () => {
           setChosen({});
           void qc.invalidateQueries({ queryKey: settingsKey(company.id) });
         };
-        setConflict({ noun: 'posting accounts', serverVersion: err.serverVersion, localVersion: settings.data.version, onReload: reload, onClose: () => setConflict(null) });
+        setConflict({ noun: 'list of posting accounts', serverVersion: err.serverVersion, localVersion: settings.data.version, onReload: reload, onClose: () => setConflict(null) });
       } else if (!isSigningCancelled(err)) setError(err);
     } finally {
       setBusy(false);

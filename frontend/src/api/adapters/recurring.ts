@@ -7,7 +7,7 @@ export interface RecurringDoc extends RecurringJournal {
 }
 
 export function toRecurringDoc(s: ApiRecurringSchedule): RecurringDoc {
-  return { ...toRecurringJournal(s), document_type: String((s as unknown as { document_type?: string }).document_type ?? '') };
+  return { ...toRecurringJournal(s), document_type: s.document_type ?? '' };
 }
 
 export interface ScheduleDraft {

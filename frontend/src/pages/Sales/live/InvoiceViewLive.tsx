@@ -14,7 +14,7 @@ import { useRouteCompany } from '@/data/session';
 import { useLedgerStore } from '@/mock/store';
 import { useAccounts } from '@/data/accounts';
 import { useContactDirectory } from '@/data/contacts';
-import { useDoc, useDocActions, useOpenDocs } from '@/data/invoices';
+import { useDoc, useDocActions, useDocPayments, useOpenDocs } from '@/data/invoices';
 import { useTradeRefs } from '@/data/tradeRefs';
 import { useMemberNames } from '@/data/approvals';
 import { isSigningCancelled, useSignedRun } from '@/data/signing';
@@ -22,10 +22,12 @@ import { ApiError } from '@/api/errors';
 import { IntentSlot } from '@/api/intentSlot';
 import { rateForDisplay } from '@/api/adapters/money';
 import type { LiveDoc } from '@/api/adapters/invoice';
+import type { LiveDocPayment } from '@/api/adapters/settlement';
+import { DocPayments, paymentTitle } from './DocPayments';
 import { DocStatusPill, ErrorLine, LoadingLine, inputClass, tradeVerdictText } from './parts';
 import { SIDES, isCreditKind, type Side } from './side';
 
-type Pending = 'approve' | 'reverse' | 'submit' | 'apply';
+type Pending = 'approve' | 'reverse' | 'submit' | 'apply' | 'undo';
 
 export const InvoiceViewLive: React.FC<{ side?: Side }> = ({ side = 'sales' }) => {
   const S = SIDES[side];
@@ -45,7 +47,8 @@ export const InvoiceViewLive: React.FC<{ side?: Side }> = ({ side = 'sales' }) =
   const [pending, setPending] = useState<Pending | null>(null);
   const [busy, setBusy] = useState(false);
   const [conflict, setConflict] = useState<VersionConflict | null>(null);
-  const [dialog, setDialog] = useState<null | 'return' | 'void' | 'reverse' | 'apply'>(null);
+  const [dialog, setDialog] = useState<null | 'return' | 'void' | 'reverse' | 'apply' | 'undo'>(null);
+  const [undoTarget, setUndoTarget] = useState<LiveDocPayment | null>(null);
   const [text, setText] = useState('');
   const [reverseDate, setReverseDate] = useState('');
   const [applyTo, setApplyTo] = useState('');
@@ -61,6 +64,8 @@ export const InvoiceViewLive: React.FC<{ side?: Side }> = ({ side = 'sales' }) =
 
   const doc = docQ.data;
   const open = useOpenDocs(doc?.status === 'posted' && isCreditKind(doc.kind) ? doc.contact_id : undefined, S.mainKind, S.resource);
+
+  const payments = useDocPayments(id, S.resource, docQ.data?.status === 'posted' || docQ.data?.status === 'reversed');
 
   if (docQ.isLoading || accounts.isLoading) return <LoadingLine what="document" />;
   if (docQ.error || !doc) {
@@ -176,13 +181,27 @@ export const InvoiceViewLive: React.FC<{ side?: Side }> = ({ side = 'sales' }) =
     }
   };
 
+  const doUndo = async () => {
+    if (!undoTarget) return;
+    const r = await perform('undo', undoTarget.id, 'undo', (intent) => actions.undoCredit(undoTarget.id, intent));
+    if (r) {
+      setDialog(null);
+      setUndoTarget(null);
+      docQ.refetch();
+      payments.refetch();
+      toast.success(`Credit taken back. The ${S.main} owes that amount again.`);
+    }
+  };
+
   const can = doc.can;
   const pendingApproval = doc.status === 'pending_approval';
   const posted = doc.status === 'posted';
   const targetInvoice = open.docs.find((d) => d.id === applyTo);
   const sameCurrency = (d: LiveDoc | undefined) => Boolean(d) && d?.currency === base && doc.currency === base;
   const sign =
-    pending === 'apply'
+    pending === 'undo'
+      ? { action: 'Undo credit', text: `This takes the credit back off the ${S.main}. What it covered is owed again, and any withholding certificate it issued is voided.` }
+      : pending === 'apply'
       ? { action: 'Apply credit', text: side === 'sales' ? 'This puts the credit against the invoice you chose. The invoice owes that much less. Undo it later if it was a mistake.' : 'This puts the credit against the bill you chose. You owe that much less on it.' }
       : pending === 'reverse'
       ? { action: `Reverse ${words.one}`, text: `Reversing adds an equal and opposite entry and gives the ${S.main} back its open amounts.` }
@@ -404,6 +423,18 @@ export const InvoiceViewLive: React.FC<{ side?: Side }> = ({ side = 'sales' }) =
         </aside>
       </div>
 
+      <DocPayments
+        rows={payments.data}
+        isLoading={payments.isLoading}
+        error={payments.error}
+        onRetry={payments.refetch}
+        slug={coSlug}
+        settlementPath={S.settlementPath}
+        side={side}
+        busy={busy}
+        onUndo={(p) => { setProblem(''); setUndoTarget(p); setDialog('undo'); }}
+      />
+
       <Dialog open={dialog === 'return'} onOpenChange={(o) => !o && setDialog(null)}>
         <DialogContent className="max-w-md rounded-lg border border-border bg-surface-elevated p-6 shadow-popover">
           <DialogHeader><DialogTitle className="text-base font-semibold text-text-primary">Send back for changes</DialogTitle></DialogHeader>
@@ -453,6 +484,21 @@ export const InvoiceViewLive: React.FC<{ side?: Side }> = ({ side = 'sales' }) =
           <DialogFooter className="mt-4 flex justify-end gap-2">
             <button type="button" onClick={() => setDialog(null)} className="h-8 rounded-md border border-border bg-surface px-3 text-[13px] font-medium hover:bg-surface-neutral">Cancel</button>
             <button type="button" disabled={!text.trim() || busy} onClick={() => void doReverse()} className="h-8 rounded-md bg-danger px-3 text-[13px] font-medium text-white hover:bg-danger/90 disabled:opacity-50">Reverse {words.one}</button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={dialog === 'undo'} onOpenChange={(o) => !o && setDialog(null)}>
+        <DialogContent className="max-w-md rounded-lg border border-border bg-surface-elevated p-6 shadow-popover">
+          <DialogHeader><DialogTitle className="text-base font-semibold text-text-primary">Undo this credit</DialogTitle></DialogHeader>
+          <p className="text-xs text-text-secondary">
+            {undoTarget ? `${paymentTitle(undoTarget)}, ${formatMoney(undoTarget.amount_fc, undoTarget.currency)}. ` : ''}
+            The credit goes back to the note and this {S.main} owes that amount again. You may be asked for your signing PIN.
+          </p>
+          {problem && <p role="alert" className="text-xs text-danger">{problem}</p>}
+          <DialogFooter className="mt-2 flex justify-end gap-2">
+            <button type="button" onClick={() => setDialog(null)} className="h-9 rounded-md border border-border bg-surface px-3 text-xs hover:bg-surface-neutral">Keep it</button>
+            <button type="button" onClick={() => void doUndo()} disabled={busy} className="h-9 rounded-md bg-danger px-3 text-xs font-semibold text-white disabled:opacity-50">Undo credit</button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
