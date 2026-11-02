@@ -93,6 +93,7 @@ it('statements run from the control account: opening balance, running balance, c
 
     $s = $this->asPerson($this->owner)->getJson($this->api("reports/customer-statement?contact_id={$this->t->customer}&from=2026-03-16&to=2026-04-30"))->assertOk()->json('data');
     // Opening (before 03-16): 11,000. Then 11,000 - 4,000 = 7,000; - 1,000 = 6,000; - 2,000 = 4,000.
+    expect($s['rows'][0]['journal_id'])->toBeString();
     expect(amt($s, 'opening_balance'))->toBe(11000)
         ->and(array_map(fn ($r) => $r['balance']['amount'], $s['rows']))->toBe([7000, 6000, 4000])
         ->and(array_column($s['rows'], 'type'))->toBe(['receipt', 'credit_note', 'receipt'])

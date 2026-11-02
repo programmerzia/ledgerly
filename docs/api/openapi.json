@@ -12806,17 +12806,16 @@
                     {
                         "name": "dimensions[]",
                         "in": "query",
+                        "description": "Dimension id \u2192 a value id or a list of them; withValidator checks the shape.",
                         "schema": {
                             "type": [
                                 "array",
                                 "null"
                             ],
                             "items": {
-                                "type": [
-                                    "string",
-                                    "null"
-                                ]
-                            }
+                                "type": "string"
+                            },
+                            "maxItems": 8
                         }
                     },
                     {
@@ -13022,17 +13021,16 @@
                     {
                         "name": "dimensions[]",
                         "in": "query",
+                        "description": "Dimension id \u2192 a value id or a list of them; withValidator checks the shape.",
                         "schema": {
                             "type": [
                                 "array",
                                 "null"
                             ],
                             "items": {
-                                "type": [
-                                    "string",
-                                    "null"
-                                ]
-                            }
+                                "type": "string"
+                            },
+                            "maxItems": 8
                         }
                     },
                     {
@@ -13238,17 +13236,16 @@
                     {
                         "name": "dimensions[]",
                         "in": "query",
+                        "description": "Dimension id \u2192 a value id or a list of them; withValidator checks the shape.",
                         "schema": {
                             "type": [
                                 "array",
                                 "null"
                             ],
                             "items": {
-                                "type": [
-                                    "string",
-                                    "null"
-                                ]
-                            }
+                                "type": "string"
+                            },
+                            "maxItems": 8
                         }
                     },
                     {
@@ -13454,17 +13451,16 @@
                     {
                         "name": "dimensions[]",
                         "in": "query",
+                        "description": "Dimension id \u2192 a value id or a list of them; withValidator checks the shape.",
                         "schema": {
                             "type": [
                                 "array",
                                 "null"
                             ],
                             "items": {
-                                "type": [
-                                    "string",
-                                    "null"
-                                ]
-                            }
+                                "type": "string"
+                            },
+                            "maxItems": 8
                         }
                     },
                     {
@@ -13671,17 +13667,16 @@
                     {
                         "name": "dimensions[]",
                         "in": "query",
+                        "description": "Dimension id \u2192 a value id or a list of them; withValidator checks the shape.",
                         "schema": {
                             "type": [
                                 "array",
                                 "null"
                             ],
                             "items": {
-                                "type": [
-                                    "string",
-                                    "null"
-                                ]
-                            }
+                                "type": "string"
+                            },
+                            "maxItems": 8
                         }
                     },
                     {
@@ -13937,17 +13932,16 @@
                     {
                         "name": "dimensions[]",
                         "in": "query",
+                        "description": "Dimension id \u2192 a value id or a list of them; withValidator checks the shape.",
                         "schema": {
                             "type": [
                                 "array",
                                 "null"
                             ],
                             "items": {
-                                "type": [
-                                    "string",
-                                    "null"
-                                ]
-                            }
+                                "type": "string"
+                            },
+                            "maxItems": 8
                         }
                     },
                     {
@@ -14153,17 +14147,16 @@
                     {
                         "name": "dimensions[]",
                         "in": "query",
+                        "description": "Dimension id \u2192 a value id or a list of them; withValidator checks the shape.",
                         "schema": {
                             "type": [
                                 "array",
                                 "null"
                             ],
                             "items": {
-                                "type": [
-                                    "string",
-                                    "null"
-                                ]
-                            }
+                                "type": "string"
+                            },
+                            "maxItems": 8
                         }
                     },
                     {
@@ -14369,17 +14362,16 @@
                     {
                         "name": "dimensions[]",
                         "in": "query",
+                        "description": "Dimension id \u2192 a value id or a list of them; withValidator checks the shape.",
                         "schema": {
                             "type": [
                                 "array",
                                 "null"
                             ],
                             "items": {
-                                "type": [
-                                    "string",
-                                    "null"
-                                ]
-                            }
+                                "type": "string"
+                            },
+                            "maxItems": 8
                         }
                     },
                     {
@@ -14585,17 +14577,16 @@
                     {
                         "name": "dimensions[]",
                         "in": "query",
+                        "description": "Dimension id \u2192 a value id or a list of them; withValidator checks the shape.",
                         "schema": {
                             "type": [
                                 "array",
                                 "null"
                             ],
                             "items": {
-                                "type": [
-                                    "string",
-                                    "null"
-                                ]
-                            }
+                                "type": "string"
+                            },
+                            "maxItems": 8
                         }
                     },
                     {
@@ -14801,17 +14792,16 @@
                     {
                         "name": "dimensions[]",
                         "in": "query",
+                        "description": "Dimension id \u2192 a value id or a list of them; withValidator checks the shape.",
                         "schema": {
                             "type": [
                                 "array",
                                 "null"
                             ],
                             "items": {
-                                "type": [
-                                    "string",
-                                    "null"
-                                ]
-                            }
+                                "type": "string"
+                            },
+                            "maxItems": 8
                         }
                     },
                     {
@@ -15018,17 +15008,16 @@
                     {
                         "name": "dimensions[]",
                         "in": "query",
+                        "description": "Dimension id \u2192 a value id or a list of them; withValidator checks the shape.",
                         "schema": {
                             "type": [
                                 "array",
                                 "null"
                             ],
                             "items": {
-                                "type": [
-                                    "string",
-                                    "null"
-                                ]
-                            }
+                                "type": "string"
+                            },
+                            "maxItems": 8
                         }
                     },
                     {
@@ -15485,17 +15474,16 @@
                     {
                         "name": "dimensions[]",
                         "in": "query",
+                        "description": "Dimension id \u2192 a value id or a list of them; withValidator checks the shape.",
                         "schema": {
                             "type": [
                                 "array",
                                 "null"
                             ],
                             "items": {
-                                "type": [
-                                    "string",
-                                    "null"
-                                ]
-                            }
+                                "type": "string"
+                            },
+                            "maxItems": 8
                         }
                     },
                     {

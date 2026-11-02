@@ -44,7 +44,7 @@ final class ContactStatement
         )->n ?? 0);
 
         $lines = $db->select(
-            "SELECT j.journal_date, j.number AS journal_number, j.source_type, j.source_id, j.reference, j.reversal_of_id, l.description, l.debit, l.credit,
+            "SELECT j.id AS journal_id, j.journal_date, j.number AS journal_number, j.source_type, j.source_id, j.reference, j.reversal_of_id, l.description, l.debit, l.credit,
                     i.number AS invoice_number, s.number AS settlement_number, s.kind::text AS settlement_kind
              FROM journal_lines l JOIN journals j ON j.id = l.journal_id JOIN accounts a ON a.id = l.account_id
              LEFT JOIN invoices i ON i.id = j.source_id AND j.source_type = i.kind::text
@@ -70,6 +70,7 @@ final class ContactStatement
                 'date' => $l->journal_date,
                 'type' => $l->reversal_of_id !== null ? 'reversal' : ($type === 'settlement' ? (string) $l->settlement_kind : (self::LABELS[$type] ?? $type)),
                 'document' => ['type' => $type, 'id' => $l->source_id, 'number' => $number],
+                'journal_id' => $l->journal_id,
                 'journal_number' => $l->journal_number,
                 'description' => $l->description,
                 'debit' => Json::money($debit, $cur),

@@ -229,6 +229,9 @@ it('filters by dimension and groups equity by the Fund dimension (D13)', functio
     $march = $this->inTenant(fn () => $this->s->periodId('2026-03-15'));
     $pl = $this->getJson($this->api("reports/profit-and-loss?period_id={$march}&dimensions[{$dimension}]={$restricted}"))->assertOk();
     expect($pl->json('data.subtotals.net_profit.amount.amount'))->toBe(2_000)->and($pl->json('data.filtered'))->toBeTrue();
+    // Several values of one dimension add up.
+    $both = $this->getJson($this->api("reports/profit-and-loss?period_id={$march}&dimensions[{$dimension}][]={$restricted}&dimensions[{$dimension}][]={$general}"))->assertOk();
+    expect($both->json('data.subtotals.net_profit.amount.amount'))->toBe(2_300);
 
     $bs = $this->getJson($this->api("reports/balance-sheet?period_id={$march}"))->assertOk();
     $funds = collect($bs->json('data.equity.funds'))->mapWithKeys(fn ($f) => [($f['fund']['code'] ?? 'none') => $f['total']['amount']['amount']])->all();
@@ -300,6 +303,14 @@ it('limits exports to ten an hour per company and queues the big ones', function
     $this->get($url)->assertStatus(429);
     // The limit is per company, not per request: another company of the tenant is unaffected.
     $this->get($this->api('reports/trial-balance/export?as_of=2026-02-28&format=csv', $this->secondCompany()->id))->assertStatus(403);
+});
+
+it('always sends a PDF to the worker, however small', function (): void {
+    Queue::fake();
+    $this->asPerson($this->accountant);
+
+    $this->get($this->api('reports/trial-balance/export?as_of=2026-02-28&format=pdf'))->assertStatus(202)->assertJsonPath('data.format', 'pdf');
+    Queue::assertPushedOn('exports', RunReportExport::class);
 });
 
 it('runs a large export as a queued job, tracked and downloadable only by who asked', function (): void {

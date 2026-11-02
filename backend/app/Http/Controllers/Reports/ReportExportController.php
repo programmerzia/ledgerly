@@ -40,7 +40,8 @@ final class ReportExportController extends Controller
         unset($input['format']);
 
         $plan = $exports->plan($report, $company, $input);
-        $queued = $plan['rows'] > (int) config('reports.export_inline_max_rows');
+        // A PDF always goes to the worker: rendering needs Chromium and takes too long for a web process.
+        $queued = $format === 'pdf' || $plan['rows'] > (int) config('reports.export_inline_max_rows');
         $audit->record(RequestActor::from($request, $company->id), 'report.exported', null, [
             'report' => $report, 'format' => $format, 'rows' => $plan['rows'], 'delivery' => $queued ? 'queued' : 'inline', 'parameters' => $input,
         ]);
@@ -57,20 +58,6 @@ final class ReportExportController extends Controller
 
         $filename = $this->filename($report, $company, $format);
         $headers = ['Content-Type' => ReportExport::FORMATS[$format], 'X-Content-Type-Options' => 'nosniff'];
-        if ($format === 'pdf') {
-            return response()->streamDownload(function () use ($exports, $plan): void {
-                $tmp = tempnam(sys_get_temp_dir(), 'report-pdf-');
-                if ($tmp === false) {
-                    throw new \RuntimeException('No temporary file for the export.');
-                }
-                try {
-                    $exports->write($plan['table'], 'pdf', $tmp);
-                    readfile($tmp);
-                } finally {
-                    @unlink($tmp);
-                }
-            }, $filename, $headers);
-        }
 
         return response()->streamDownload(function () use ($exports, $plan, $format): void {
             $exports->write($plan['table'], $format, 'php://output');

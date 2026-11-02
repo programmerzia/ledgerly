@@ -36,8 +36,8 @@ final class ReportRequest extends CompanyRequest
             'to' => ['nullable', 'date_format:Y-m-d', 'prohibits:period_id', 'after_or_equal:from'],
             'basis' => ['nullable', 'string', Rule::in(['month', 'ytd'])],
             'comparison' => ['nullable', 'string', Rule::in(['none', 'previous_period', 'previous_year'])],
+            /** Dimension id → a value id or a list of them; withValidator checks the shape. */
             'dimensions' => ['nullable', 'array', 'max:8'],
-            'dimensions.*' => ['nullable', 'string'],
             'hide_zero' => ['nullable', 'boolean'],
             'account_id' => ['nullable', 'uuid'],
             'exclude_closing' => ['nullable', 'boolean'],

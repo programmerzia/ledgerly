@@ -11014,7 +11014,8 @@ export interface operations {
                 to?: string | null;
                 basis?: "month" | "ytd" | null;
                 comparison?: "none" | "previous_period" | "previous_year" | null;
-                "dimensions[]"?: (string | null)[] | null;
+                /** @description Dimension id → a value id or a list of them; withValidator checks the shape. */
+                "dimensions[]"?: string[] | null;
                 hide_zero?: boolean | null;
                 account_id?: string | null;
                 exclude_closing?: boolean | null;
@@ -11058,7 +11059,8 @@ export interface operations {
                 to?: string | null;
                 basis?: "month" | "ytd" | null;
                 comparison?: "none" | "previous_period" | "previous_year" | null;
-                "dimensions[]"?: (string | null)[] | null;
+                /** @description Dimension id → a value id or a list of them; withValidator checks the shape. */
+                "dimensions[]"?: string[] | null;
                 hide_zero?: boolean | null;
                 account_id?: string | null;
                 exclude_closing?: boolean | null;
@@ -11102,7 +11104,8 @@ export interface operations {
                 to?: string | null;
                 basis?: "month" | "ytd" | null;
                 comparison?: "none" | "previous_period" | "previous_year" | null;
-                "dimensions[]"?: (string | null)[] | null;
+                /** @description Dimension id → a value id or a list of them; withValidator checks the shape. */
+                "dimensions[]"?: string[] | null;
                 hide_zero?: boolean | null;
                 account_id?: string | null;
                 exclude_closing?: boolean | null;
@@ -11146,7 +11149,8 @@ export interface operations {
                 to?: string | null;
                 basis?: "month" | "ytd" | null;
                 comparison?: "none" | "previous_period" | "previous_year" | null;
-                "dimensions[]"?: (string | null)[] | null;
+                /** @description Dimension id → a value id or a list of them; withValidator checks the shape. */
+                "dimensions[]"?: string[] | null;
                 hide_zero?: boolean | null;
                 account_id?: string | null;
                 exclude_closing?: boolean | null;
@@ -11190,7 +11194,8 @@ export interface operations {
                 to?: string | null;
                 basis?: "month" | "ytd" | null;
                 comparison?: "none" | "previous_period" | "previous_year" | null;
-                "dimensions[]"?: (string | null)[] | null;
+                /** @description Dimension id → a value id or a list of them; withValidator checks the shape. */
+                "dimensions[]"?: string[] | null;
                 hide_zero?: boolean | null;
                 account_id?: string | null;
                 exclude_closing?: boolean | null;
@@ -11244,7 +11249,8 @@ export interface operations {
                 to?: string | null;
                 basis?: "month" | "ytd" | null;
                 comparison?: "none" | "previous_period" | "previous_year" | null;
-                "dimensions[]"?: (string | null)[] | null;
+                /** @description Dimension id → a value id or a list of them; withValidator checks the shape. */
+                "dimensions[]"?: string[] | null;
                 hide_zero?: boolean | null;
                 account_id?: string | null;
                 exclude_closing?: boolean | null;
@@ -11288,7 +11294,8 @@ export interface operations {
                 to?: string | null;
                 basis?: "month" | "ytd" | null;
                 comparison?: "none" | "previous_period" | "previous_year" | null;
-                "dimensions[]"?: (string | null)[] | null;
+                /** @description Dimension id → a value id or a list of them; withValidator checks the shape. */
+                "dimensions[]"?: string[] | null;
                 hide_zero?: boolean | null;
                 account_id?: string | null;
                 exclude_closing?: boolean | null;
@@ -11332,7 +11339,8 @@ export interface operations {
                 to?: string | null;
                 basis?: "month" | "ytd" | null;
                 comparison?: "none" | "previous_period" | "previous_year" | null;
-                "dimensions[]"?: (string | null)[] | null;
+                /** @description Dimension id → a value id or a list of them; withValidator checks the shape. */
+                "dimensions[]"?: string[] | null;
                 hide_zero?: boolean | null;
                 account_id?: string | null;
                 exclude_closing?: boolean | null;
@@ -11376,7 +11384,8 @@ export interface operations {
                 to?: string | null;
                 basis?: "month" | "ytd" | null;
                 comparison?: "none" | "previous_period" | "previous_year" | null;
-                "dimensions[]"?: (string | null)[] | null;
+                /** @description Dimension id → a value id or a list of them; withValidator checks the shape. */
+                "dimensions[]"?: string[] | null;
                 hide_zero?: boolean | null;
                 account_id?: string | null;
                 exclude_closing?: boolean | null;
@@ -11420,7 +11429,8 @@ export interface operations {
                 to?: string | null;
                 basis?: "month" | "ytd" | null;
                 comparison?: "none" | "previous_period" | "previous_year" | null;
-                "dimensions[]"?: (string | null)[] | null;
+                /** @description Dimension id → a value id or a list of them; withValidator checks the shape. */
+                "dimensions[]"?: string[] | null;
                 hide_zero?: boolean | null;
                 account_id?: string | null;
                 exclude_closing?: boolean | null;
@@ -11464,7 +11474,8 @@ export interface operations {
                 to?: string | null;
                 basis?: "month" | "ytd" | null;
                 comparison?: "none" | "previous_period" | "previous_year" | null;
-                "dimensions[]"?: (string | null)[] | null;
+                /** @description Dimension id → a value id or a list of them; withValidator checks the shape. */
+                "dimensions[]"?: string[] | null;
                 hide_zero?: boolean | null;
                 account_id?: string | null;
                 exclude_closing?: boolean | null;
@@ -11582,7 +11593,8 @@ export interface operations {
                 to?: string | null;
                 basis?: "month" | "ytd" | null;
                 comparison?: "none" | "previous_period" | "previous_year" | null;
-                "dimensions[]"?: (string | null)[] | null;
+                /** @description Dimension id → a value id or a list of them; withValidator checks the shape. */
+                "dimensions[]"?: string[] | null;
                 hide_zero?: boolean | null;
                 account_id?: string | null;
                 exclude_closing?: boolean | null;
