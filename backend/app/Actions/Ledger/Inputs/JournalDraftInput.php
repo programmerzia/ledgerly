@@ -22,5 +22,8 @@ final readonly class JournalDraftInput
         public ?string $fiscalPeriodId = null,
         /** Client-generated UUIDv7, accepted if unused (13 §12). */
         public ?string $id = null,
+        /** The document this journal belongs to (a bank transaction), if any. */
+        public ?string $sourceType = null,
+        public ?string $sourceId = null,
     ) {}
 }

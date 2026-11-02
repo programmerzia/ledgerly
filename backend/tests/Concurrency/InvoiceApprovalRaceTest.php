@@ -106,3 +106,38 @@ it('reverses a posted invoice once when two people race to reverse it', function
         ->and(DB::table('audit_events')->where('action', 'invoice.reversed')->count())->toBe(1)
         ->and(LedgerChecks::problems())->toBe([]);
 })->group('concurrency');
+
+it('approves each invoice once when overlapping bulk batches list them in opposite orders', function (): void {
+    $this->grant('invoices.create', 'invoices.submit');
+    $f = LedgerFixture::create();
+    $amina = Race::user($f, 'Amina');
+    $kenneth = Race::user($f, 'Kenneth');
+    $t = TradeFixture::prepare($f);
+    Race::workflow($f, [['role' => 'Approver', 'count' => 1]], 'invoice');
+    $ids = [];
+    foreach (range(1, 6) as $i) {
+        $draft = app(CreateInvoiceDraft::class)->handle($f->actor, new InvoiceDraftInput(
+            $f->companyId, InvoiceKind::SalesInvoice, $t->customer, new DateTimeImmutable('2026-03-15'),
+            [new InvoiceLineInput('1', accountId: $f->account('4000'), unitPriceFc: 1000 * $i, taxCodeId: $t->tax['VAT10'], taxCodeGiven: true)],
+        ));
+        app(SubmitDocument::class)->handle($f->actor, new DocumentRef('invoice', $draft->id));
+        $ids[] = $draft->id;
+    }
+
+    $flat = Race::flatten(Race::run($f, [
+        [['op' => 'bulk_approve', 'ids' => $ids, 'user' => $amina]],
+        [['op' => 'bulk_approve', 'ids' => array_reverse($ids), 'user' => $kenneth]],
+    ]));
+
+    $results = array_merge(...array_column(Race::ok($flat), 'results'));
+    $approved = array_filter($results, fn (array $r) => $r['ok']);
+    $skipped = array_filter($results, fn (array $r) => ! $r['ok']);
+    expect(Race::errors($flat))->toBe([], 'a raw error (e.g. a deadlock) surfaced to the caller')
+        ->and($results)->toHaveCount(12)
+        ->and($approved)->toHaveCount(6, 'every invoice approved exactly once across both batches')
+        ->and(array_unique(array_column($skipped, 'code')))->toBe(['document_not_pending'])
+        ->and(DB::table('invoices')->where('status', 'posted')->count())->toBe(6)
+        ->and(DB::table('approval_requests')->where('status', 'approved')->count())->toBe(6)
+        ->and(DB::table('sequences')->where('sequence_key', 'doc:sales_invoice:FY2026')->value('next_value'))->toBe(7)
+        ->and(LedgerChecks::problems())->toBe([]);
+})->group('concurrency');

@@ -46,6 +46,7 @@ final class PaymentRunWriter
             throw DomainRuleViolation::single('payment_run_empty', 'Select at least one bill.');
         }
         $currency = $in->currency ?? $company->base_currency;
+        SettlementWriter::assertBankAccount($in->bankAccountId, $in->cashAccountId, $currency, $company->id);
         $rate = $this->settlements->rate($company, $currency, $in->fxRate, $in->runDate->format('Y-m-d'));
 
         $seen = [];

@@ -16,6 +16,13 @@ use App\Contracts\PermissionChecker;
 use App\Contracts\RoleChecker;
 use App\Contracts\VirusScanner;
 use App\Http\Support\CompanyBindings;
+use App\Models\Audit\AuditEvent;
+use App\Models\Banking\BankAccount;
+use App\Models\Banking\BankMatch;
+use App\Models\Banking\BankReconciliation;
+use App\Models\Banking\BankRule;
+use App\Models\Banking\BankStatementLine;
+use App\Models\Banking\BankTransaction;
 use App\Models\Files\Attachment;
 use App\Models\Fiscal\FiscalPeriod;
 use App\Models\Fiscal\FiscalYear;
@@ -29,6 +36,9 @@ use App\Models\Organisation\ApiClient;
 use App\Models\Organisation\Company;
 use App\Models\Organisation\Invitation;
 use App\Models\Platform\PersonalAccessToken;
+use App\Models\Platform\TenantUser;
+use App\Models\Recurring\RecurringInvoice;
+use App\Models\Recurring\RecurringJournal;
 use App\Models\Tax\TaxCode;
 use App\Models\Tax\TaxGroup;
 use App\Models\Trade\Contact;
@@ -41,14 +51,20 @@ use App\Models\Trade\WhtCertificate;
 use App\Models\Webhooks\WebhookEndpoint;
 use App\Models\Workflow\ApprovalRequest;
 use App\Models\Workflow\ApprovalWorkflow;
+use App\Policies\Audit\AuditPolicy;
+use App\Policies\Banking\BankingPolicy;
 use App\Policies\Files\AttachmentPolicy;
 use App\Policies\Fiscal\PeriodPolicy;
 use App\Policies\Fx\FxPolicy;
 use App\Policies\Ledger\AccountPolicy;
 use App\Policies\Ledger\DimensionPolicy;
 use App\Policies\Ledger\JournalPolicy;
+use App\Policies\Organisation\ApiClientPolicy;
 use App\Policies\Organisation\CompanyPolicy;
 use App\Policies\Organisation\InvitationPolicy;
+use App\Policies\Organisation\MemberPolicy;
+use App\Policies\Practice\PracticePolicy;
+use App\Policies\Recurring\RecurringSchedulePolicy;
 use App\Policies\Reports\ReportPolicy;
 use App\Policies\SigningPolicy;
 use App\Policies\Tax\TaxCodePolicy;
@@ -63,6 +79,7 @@ use App\Policies\Trade\WhtCertificatePolicy;
 use App\Policies\Webhooks\WebhookEndpointPolicy;
 use App\Policies\Workflow\ApprovalRequestPolicy;
 use App\Policies\Workflow\ApprovalWorkflowPolicy;
+use App\Queries\Practice\PracticeOverview;
 use App\Services\Files\ClamdScanner;
 use App\Services\Files\LocalAttachmentStore;
 use App\Services\Fx\EcbRateProvider;
@@ -159,7 +176,10 @@ class AppServiceProvider extends ServiceProvider
         // Explicit map, no guessing (13 §7). Policies take any principal and decide for people (permissions)
         // and API clients (token abilities) themselves; whatever approves, reverses or closes asks for a person.
         Gate::policy(Company::class, CompanyPolicy::class);
+        Gate::policy(PracticeOverview::class, PracticePolicy::class);
         Gate::policy(Invitation::class, InvitationPolicy::class);
+        Gate::policy(ApiClient::class, ApiClientPolicy::class);
+        Gate::policy(TenantUser::class, MemberPolicy::class);
         Gate::policy(Journal::class, JournalPolicy::class);
         Gate::policy(Account::class, AccountPolicy::class);
         Gate::policy(Dimension::class, DimensionPolicy::class);
@@ -173,9 +193,15 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(WhtCertificate::class, WhtCertificatePolicy::class);
         Gate::policy(CreditApplication::class, CreditApplicationPolicy::class);
         Gate::policy(Attachment::class, AttachmentPolicy::class);
+        foreach ([BankAccount::class, BankStatementLine::class, BankMatch::class, BankRule::class, BankTransaction::class, BankReconciliation::class] as $bankModel) {
+            Gate::policy($bankModel, BankingPolicy::class);
+        }
         Gate::policy(TaxCode::class, TaxCodePolicy::class);
         Gate::policy(TaxGroup::class, TaxGroupPolicy::class);
         Gate::policy(WebhookEndpoint::class, WebhookEndpointPolicy::class);
+        Gate::policy(AuditEvent::class, AuditPolicy::class);
+        Gate::policy(RecurringInvoice::class, RecurringSchedulePolicy::class);
+        Gate::policy(RecurringJournal::class, RecurringSchedulePolicy::class);
         foreach ([FiscalYear::class, FiscalPeriod::class, PeriodReopenRequest::class] as $model) {
             Gate::policy($model, PeriodPolicy::class);
         }

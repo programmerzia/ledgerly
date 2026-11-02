@@ -32,7 +32,7 @@ final class LockSet
     /** Document ordering within level 2: (table rank, id). */
     private const array DOCUMENT_RANK = [
         'journals' => 10, 'payment_runs' => 15, 'settlements' => 20, 'invoices' => 30,
-        'fx_revaluations' => 50, 'depreciation_runs' => 60,
+        'bank_accounts' => 40, 'bank_reconciliations' => 42, 'bank_statement_lines' => 45, 'fx_revaluations' => 50, 'depreciation_runs' => 60,
     ];
 
     private int $level = 0;

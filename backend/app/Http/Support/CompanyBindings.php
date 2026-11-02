@@ -6,6 +6,12 @@ namespace App\Http\Support;
 
 use App\Domain\Shared\DomainRuleViolation;
 use App\Domain\Trade\InvoiceKind;
+use App\Models\Banking\BankAccount;
+use App\Models\Banking\BankMatch;
+use App\Models\Banking\BankReconciliation;
+use App\Models\Banking\BankRule;
+use App\Models\Banking\BankStatementLine;
+use App\Models\Banking\BankTransaction;
 use App\Models\BaseModel;
 use App\Models\Files\Attachment;
 use App\Models\Fiscal\FiscalPeriod;
@@ -15,6 +21,8 @@ use App\Models\Ledger\Account;
 use App\Models\Ledger\Dimension;
 use App\Models\Ledger\DimensionValue;
 use App\Models\Ledger\Journal;
+use App\Models\Recurring\RecurringInvoice;
+use App\Models\Recurring\RecurringJournal;
 use App\Models\Tax\TaxCode;
 use App\Models\Tax\TaxGroup;
 use App\Models\Trade\Contact;
@@ -56,6 +64,14 @@ final class CompanyBindings
         'whtCertificate' => WhtCertificate::class,
         'creditApplication' => CreditApplication::class,
         'attachment' => Attachment::class,
+        'bankAccount' => BankAccount::class,
+        'statementLine' => BankStatementLine::class,
+        'bankMatch' => BankMatch::class,
+        'bankRule' => BankRule::class,
+        'bankTransaction' => BankTransaction::class,
+        'bankReconciliation' => BankReconciliation::class,
+        'recurringInvoice' => RecurringInvoice::class,
+        'recurringJournal' => RecurringJournal::class,
         // /invoices/{invoice} holds invoices and credit notes, /bills/{bill} bills and debit notes: the other family is a 404.
         'invoice' => Invoice::class,
         'bill' => Invoice::class,

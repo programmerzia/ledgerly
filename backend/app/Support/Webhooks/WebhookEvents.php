@@ -26,6 +26,9 @@ final class WebhookEvents
         'document.submitted', 'document.approved', 'document.returned', 'document.voided',
         'period.soft_closed', 'period.closed', 'period.reopened',
         'fiscal_year.closed', 'fiscal_year.locked',
+        'bank_statement.imported', 'bank_match.created', 'bank_match.removed', 'bank_transaction.created',
+        'bank_reconciliation.finished', 'bank_reconciliation.reopened',
+        'recurring.occurrence_created',
     ];
 
     /** @return list<string> what the API accepts in an endpoint's `events` */

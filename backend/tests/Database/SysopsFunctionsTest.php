@@ -35,7 +35,7 @@ it('defines each function as SECURITY DEFINER, owned by sysops, with a fixed sea
         WHERE n.nspname = 'sysops' ORDER BY p.proname
     SQL);
 
-    expect(array_column($functions, 'name'))->toBe(['claim_outbox_batch', 'invitation_by_token_hash', 'purge_idempotency_keys', 'tenants_due_for', 'webhook_deliveries_due']);
+    expect(array_column($functions, 'name'))->toBe(['claim_outbox_batch', 'invitation_by_token_hash', 'kpi_dirty_tenants', 'mark_kpi_dirty', 'practice_overview', 'purge_idempotency_keys', 'store_kpi_snapshots', 'tenants_due_for', 'webhook_deliveries_due']);
     foreach ($functions as $fn) {
         expect($fn->definer)->toBeTrue()
             ->and($fn->owner)->toBe('ledgerly_sysops')

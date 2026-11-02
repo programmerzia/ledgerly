@@ -30,6 +30,8 @@ describe('Efficiency round', () => {
     const { net, tax } = splitGross(1001, 0.05);
     expect(net + tax).toBe(1001);
     expect(splitGross(1500, 0)).toEqual({ net: 1500, tax: 0 });
+    // An exact half goes to the tax (HALF_UP on the tax, as the backend): 3 at 20% is net 2.5 → tax 0.5 → 1.
+    expect(splitGross(3, 0.2)).toEqual({ net: 2, tax: 1 });
   });
 
   it('E1: spend money posts a balanced journal and matches the line', () => {

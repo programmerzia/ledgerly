@@ -15,7 +15,7 @@ use Illuminate\Validation\ValidationException;
  * Keyset pagination (13 §16): `?limit=` (default 50, max 200) and an opaque `?cursor=`, answered as
  * `{data, meta: {next_cursor, prev_cursor, limit}}`. Rows are ordered by one sort column (a unique
  * tiebreak on `id` is added) so a cursor stays valid while rows are inserted. A sort column that holds
- * dates is serialised as YYYY-MM-DD and must be declared with `$kind = 'date'` (else 'text' or 'uuid'). A malformed cursor or limit is a 422.
+ * dates is serialised as YYYY-MM-DD and must be declared with `$kind = 'date'` (else 'text' or 'uuid'); a table keyed by a bigint id (the audit log) uses 'int'. A malformed cursor or limit is a 422.
  */
 final readonly class CursorPage
 {
@@ -102,7 +102,7 @@ final readonly class CursorPage
         if (! is_array($data) || ! in_array($data['d'] ?? null, ['n', 'p'], true)
             || ! is_array($data['k'] ?? null) || count($data['k']) !== 2
             || ! is_string($data['k'][0] ?? null) || ! is_string($data['k'][1] ?? null)
-            || preg_match('/^[0-9a-f-]{36}$/', $data['k'][1]) !== 1) {
+            || preg_match($kind === 'int' ? '/^\d{1,18}$/' : '/^[0-9a-f-]{36}$/', $data['k'][1]) !== 1) {
             throw $invalid;
         }
 
@@ -111,6 +111,7 @@ final readonly class CursorPage
             'date' => preg_match('/^\d{4}-\d{2}-\d{2}$/', $sort) === 1 && \DateTimeImmutable::createFromFormat('!Y-m-d', $sort) !== false
                 && \DateTimeImmutable::createFromFormat('!Y-m-d', $sort)->format('Y-m-d') === $sort,
             'uuid' => preg_match('/^[0-9a-f-]{36}$/', $sort) === 1,
+            'int' => preg_match('/^\d{1,18}$/', $sort) === 1,
             default => $sort !== '' && strlen($sort) <= 255 && mb_check_encoding($sort, 'UTF-8') && ! str_contains($sort, "\0"),
         };
         if (! $sortOk) {

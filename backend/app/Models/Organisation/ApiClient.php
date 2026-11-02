@@ -22,7 +22,9 @@ use Laravel\Sanctum\NewAccessToken;
  * @property string $tenant_id
  * @property string $name
  * @property list<string> $company_ids
+ * @property CarbonImmutable|null $last_used_at
  * @property CarbonImmutable|null $revoked_at
+ * @property string $created_by
  */
 class ApiClient extends BaseModel implements AuthenticatableContract, AuthorizableContract
 {

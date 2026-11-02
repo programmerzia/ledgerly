@@ -33,6 +33,19 @@ final class PostingAccountResolver
         );
     }
 
+    /** One configured posting account (`posting_accounts.<key>`) by id or code; null when it is not set. */
+    public function named(Company $company, string $key): ?string
+    {
+        $raw = CompanySettings::query()->where('company_id', $company->id)->first()?->getAttribute('posting_accounts');
+        /** @var array<string, mixed> $settings */
+        $settings = is_string($raw) ? (json_decode($raw, true) ?: []) : (is_array($raw) ? $raw : []);
+        if (! isset($settings[$key]) || $settings[$key] === '') {
+            return null;
+        }
+
+        return $this->account($company, $settings, $key);
+    }
+
     /** @param array<string, mixed> $settings */
     private function account(Company $company, array $settings, string $key): string
     {

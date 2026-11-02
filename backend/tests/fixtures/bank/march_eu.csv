@@ -1,0 +1,4 @@
+Konto;Buchungstag;Text;Referenz;Soll;Haben
+DE01;02.03.2026;ACME LTD payment;INV-1;;11.000,00
+DE01;05.03.2026;BANK FEE MARCH;FEE-03;15,00;
+DE01;09.03.2026;Office supplies;POS-77;110,00;

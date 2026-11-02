@@ -390,7 +390,7 @@ it('keeps the signing secret encrypted at rest and out of audit rows', function 
 
 it('registers the webhook handler for every subscribable event type', function (): void {
     foreach (WebhookEvents::TYPES as $type) {
-        expect(config('outbox.handlers')[$type])->toBe([WebhookOutboxHandler::class]);
+        expect(config('outbox.handlers')[$type])->toContain(WebhookOutboxHandler::class); // other handlers (practice KPIs) may share the type
     }
     expect(WebhookEvents::subscribable())->toContain('*', 'journal.posted', 'period.closed', 'document.approved');
 });

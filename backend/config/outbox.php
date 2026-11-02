@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Contracts\OutboxHandler;
+use App\Support\Outbox\KpiOutboxHandler;
 use App\Support\Outbox\WebhookOutboxHandler;
 use App\Support\Webhooks\WebhookEvents;
 
@@ -13,8 +14,10 @@ return [
      *
      * @var array<string, list<class-string<OutboxHandler>>>
      */
-    'handlers' => [
+    'handlers' => array_merge_recursive(
         // Webhooks (13 §15): every event type integrators can subscribe to.
-        ...WebhookEvents::handlerMap(WebhookOutboxHandler::class),
-    ],
+        WebhookEvents::handlerMap(WebhookOutboxHandler::class),
+        // Practice overview (13 §7): posting, settlement, approval and period events flag the KPI snapshot.
+        array_fill_keys(KpiOutboxHandler::TYPES, [KpiOutboxHandler::class]),
+    ),
 ];

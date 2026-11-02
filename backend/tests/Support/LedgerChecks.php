@@ -24,12 +24,45 @@ final class LedgerChecks
             'trade_documents' => self::tradeProblems(),
             'settlements' => self::settlementProblems(),
             'control_accounts' => self::controlAccountProblems(),
+            'bank_reconciliations' => self::bankReconciliationProblems(),
             'posted_after_close' => self::postedAfterClose(),
             'trial_balance' => (int) DB::table('account_period_balances')->sum(DB::raw('debit - credit')) === 0 ? [] : ['trial balance does not net to zero'],
             'audit_chain' => self::auditChainProblems(),
         ];
 
         return array_filter($found, fn (array $rows) => $rows !== []);
+    }
+
+    /**
+     * Banking (2.13): every match has equal statement and book sides, and a finished reconciliation's book balance equals the sum of its
+     * matched and unmatched items (opening position + matched + unmatched), is bridged to the statement balance with zero difference,
+     * and every match it covers is still tied to it.
+     *
+     * @return list<string>
+     */
+    public static function bankReconciliationProblems(): array
+    {
+        $problems = [];
+        foreach (DB::select('SELECT match_id FROM bank_match_items GROUP BY match_id HAVING coalesce(sum(amount) FILTER (WHERE statement_line_id IS NOT NULL), 0) <> coalesce(sum(amount) FILTER (WHERE journal_line_id IS NOT NULL), 0)') as $row) {
+            $problems[] = "match {$row->match_id} has unequal sides";
+        }
+        foreach (DB::select("SELECT id FROM bank_statement_lines l WHERE (status = 'matched') <> EXISTS (SELECT 1 FROM bank_match_items i WHERE i.statement_line_id = l.id)") as $row) {
+            $problems[] = "statement line {$row->id} status disagrees with its match";
+        }
+        foreach (DB::table('bank_reconciliations')->where('status', 'finished')->get() as $rec) {
+            /** @var array{book: array{balance: int, opening_position: int, matched: int, unmatched: int, matched_after_as_of: int}, unmatched_statement: array{total: int}, statement: array{closing_balance: int}, adjusted_book_balance: int, difference: int} $r */
+            $r = json_decode((string) $rec->report, true, flags: JSON_THROW_ON_ERROR);
+            $book = $r['book'];
+            if ($book['balance'] !== $book['opening_position'] + $book['matched'] + $book['unmatched'] || (int) $rec->book_balance !== $book['balance']) {
+                $problems[] = "reconciliation {$rec->id}: book balance is not the sum of its matched and unmatched items";
+            }
+            if ($r['adjusted_book_balance'] !== $book['balance'] - $book['unmatched'] + $r['unmatched_statement']['total'] + $book['matched_after_as_of']
+                || $r['statement']['closing_balance'] !== $r['adjusted_book_balance'] || (int) $rec->difference !== 0 || (int) $rec->statement_balance !== $r['statement']['closing_balance']) {
+                $problems[] = "reconciliation {$rec->id}: statement balance does not equal the adjusted book balance";
+            }
+        }
+
+        return $problems;
     }
 
     /** @return list<mixed> */

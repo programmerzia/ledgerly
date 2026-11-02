@@ -8,7 +8,7 @@
  *   spend:    Dr coding account (net), Dr tax pay account (tax), Cr bank (gross)
  *   receive:  Dr bank (gross), Cr coding account (net), Cr tax collect account (tax)
  *   transfer: Dr destination bank, Cr source bank (money out) — or the reverse for money in
- * net = roundHalfUp(gross / (1 + rate)), tax = gross − net, so the lines always balance.
+ * tax = roundHalfUp(gross × rate / (1 + rate)), net = gross − tax, so the lines always balance (same as the backend).
  */
 import type {
   Account,
@@ -70,8 +70,9 @@ export function matchBankRule(line: BankStatementLine, rules: BankRule[]): BankR
 /** Splits a tax-inclusive gross amount into net and tax with the document rounding rule. */
 export function splitGross(gross: number, rate: number): { net: number; tax: number } {
   if (!rate) return { net: gross, tax: 0 };
-  const net = roundHalfUp(gross / (1 + rate));
-  return { net, tax: gross - net };
+  // The tax is the figure rounded (HALF_UP, 13 §23 D2) and the net is what is left, as the backend's TaxCalculator does for an inclusive line.
+  const tax = roundHalfUp((gross * rate) / (1 + rate));
+  return { net: gross - tax, tax };
 }
 
 export function buildBankTransaction(

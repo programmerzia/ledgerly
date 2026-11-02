@@ -45,4 +45,16 @@ final class CompanyPolicy
     {
         return $user instanceof User && $this->context->allows($user, 'settings.manage', $company->id);
     }
+
+    /** Reading the settings screen: people with `settings.view`. */
+    public function viewSettings(Authenticatable $user, Company $company): bool
+    {
+        return $user instanceof User && $this->context->allows($user, 'settings.view', $company->id);
+    }
+
+    /** Assigning and revoking company roles: organisation owners and admins (the Actions check again). */
+    public function manageRoles(Authenticatable $user, Company $company): bool
+    {
+        return $user instanceof User && $this->context->isOrgAdmin($user);
+    }
 }

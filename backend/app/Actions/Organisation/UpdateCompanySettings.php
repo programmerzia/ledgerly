@@ -1,0 +1,99 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Actions\Organisation;
+
+use App\Actions\Ledger\SetupGuard;
+use App\Actions\Organisation\Inputs\CompanySettingsInput;
+use App\Domain\Shared\DomainRuleViolation;
+use App\Models\Ledger\Account;
+use App\Models\Organisation\Company;
+use App\Models\Organisation\CompanySettings;
+use App\Support\Actor;
+use App\Support\UnitOfWork\AuditBuffer;
+use App\Support\UnitOfWork\LockSet;
+use App\Support\UnitOfWork\Outbox;
+use App\Support\UnitOfWork\UnitOfWork;
+
+/**
+ * Company profile, tax rounding and posting accounts (`settings.manage`, people only). Country and base currency are set
+ * when the company is created and never change (every posted amount is in that currency). A posting account must be an
+ * active, postable account of this company, and the receivable, payable, tax and retained-earnings keys need a control
+ * account of the matching type, so a posting cannot be pointed at the wrong ledger. Numbering prefixes are not
+ * configurable yet (document numbers are gapless and their format is part of the posting engine); see plan 2.20.
+ */
+final class UpdateCompanySettings
+{
+    /** @var array<string, string|null> posting account key → control type it requires (null: any postable account) */
+    public const array POSTING_KEYS = [
+        'ar_control' => 'ar', 'ap_control' => 'ap', 'tax_output' => 'tax', 'tax_input' => 'tax', 'wht_payable' => 'tax',
+        'retained_earnings' => 'retained_earnings', 'fx_realised' => null, 'fx_unrealised' => null, 'rounding' => null,
+        'suspense' => null, 'bank_clearing' => null,
+    ];
+
+    public function __construct(private readonly UnitOfWork $uow, private readonly SetupGuard $guard) {}
+
+    public function handle(Actor $actor, CompanySettingsInput $in): CompanySettings
+    {
+        return $this->uow->run($actor, function (LockSet $locks, AuditBuffer $audit, Outbox $outbox) use ($actor, $in) {
+            if ($actor->isApiClient()) {
+                throw DomainRuleViolation::single('forbidden', 'Company settings are changed by people.');
+            }
+            $this->guard->require($actor, 'settings.manage', $in->companyId);
+
+            $company = Company::query()->whereKey($in->companyId)->lockForUpdate()->firstOrFail();
+            $settings = CompanySettings::query()->where('company_id', $in->companyId)->lockForUpdate()->first()
+                ?? (new CompanySettings)->forceFill(['tenant_id' => $actor->tenantId, 'company_id' => $in->companyId]);
+            $before = ['company' => $company->only(array_keys($in->profile)), 'settings' => $settings->only(['tax_rounding', 'posting_accounts'])];
+
+            if ($in->profile !== []) {
+                $company->forceFill($in->profile)->save();
+            }
+            $posting = $this->postingAccounts($settings);
+            foreach ($in->postingAccounts as $key => $accountId) {
+                if (! array_key_exists($key, self::POSTING_KEYS)) {
+                    throw DomainRuleViolation::single('posting_key_unknown', "There is no posting account called {$key}.");
+                }
+                if ($accountId === null) {
+                    unset($posting[$key]);
+
+                    continue;
+                }
+                $this->checkAccount($in->companyId, $key, $accountId);
+                $posting[$key] = $accountId;
+            }
+            $settings->forceFill(['posting_accounts' => $posting]);
+            if ($in->taxRounding !== null) {
+                $settings->forceFill(['tax_rounding' => $in->taxRounding]);
+            }
+            $settings->save();
+            $settings->refresh();
+
+            $audit->add('company_settings.updated', $company, before: $before, after: ['company' => $company->only(array_keys($in->profile)), 'settings' => $settings->only(['tax_rounding', 'posting_accounts'])]);
+
+            return $settings;
+        });
+    }
+
+    /** @return array<string, string> */
+    private function postingAccounts(CompanySettings $settings): array
+    {
+        $raw = $settings->getAttribute('posting_accounts');
+        $decoded = is_string($raw) ? json_decode($raw, true) : $raw;
+
+        return is_array($decoded) ? array_filter($decoded, 'is_string') : [];
+    }
+
+    private function checkAccount(string $companyId, string $key, string $accountId): void
+    {
+        $account = Account::query()->where('company_id', $companyId)->whereKey($accountId)->first();
+        if ($account === null || ! $account->is_active || ! $account->is_postable) {
+            throw DomainRuleViolation::single('posting_account_invalid', "The {$key} account must be an active, postable account of this company.");
+        }
+        $needs = self::POSTING_KEYS[$key];
+        if ($needs !== null && $account->control_type->value !== $needs) {
+            throw DomainRuleViolation::single('posting_account_wrong_control', "The {$key} account must be a {$needs} control account.");
+        }
+    }
+}

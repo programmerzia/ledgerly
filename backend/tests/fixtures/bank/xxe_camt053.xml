@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE Document [ <!ENTITY xxe SYSTEM "file:///etc/passwd"> ]>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:camt.053.001.02"><BkToCstmrStmt><Stmt>
+  <Ntry><Amt Ccy="USD">1.00</Amt><CdtDbtInd>CRDT</CdtDbtInd><BookgDt><Dt>2026-03-02</Dt></BookgDt><AddtlNtryInf>&xxe;</AddtlNtryInf></Ntry>
+</Stmt></BkToCstmrStmt></Document>

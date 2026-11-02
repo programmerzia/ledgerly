@@ -18,6 +18,7 @@ final class PaymentRunRequest extends CompanyRequest
     {
         return [
             'cash_account_id' => ['required', 'uuid', $this->inCompany('accounts')->whereNull('deleted_at')],
+            'bank_account_id' => ['nullable', 'uuid', $this->inCompany('bank_accounts')],
             'run_date' => ['required', 'date_format:Y-m-d'],
             'currency' => ['nullable', 'string', 'size:3', Rule::exists('currencies', 'code')],
             'fx_rate' => ['nullable', 'string', 'regex:/^\d{1,12}(\.\d{1,8})?$/'],
@@ -43,6 +44,7 @@ final class PaymentRunRequest extends CompanyRequest
             fxRate: isset($v['fx_rate']) ? (string) $v['fx_rate'] : null,
             reference: isset($v['reference']) ? (string) $v['reference'] : null,
             memo: isset($v['memo']) ? (string) $v['memo'] : null,
+            bankAccountId: isset($v['bank_account_id']) ? (string) $v['bank_account_id'] : null,
         );
     }
 

@@ -21,6 +21,7 @@ use App\Events\Ledger\JournalReversed;
 use App\Models\Fiscal\FiscalPeriod;
 use App\Models\Ledger\Journal;
 use App\Models\Organisation\Company;
+use App\Services\Banking\BankLedgerHooks;
 use App\Services\Ledger\PostingEngine;
 use App\Support\Actor;
 use App\Support\ActorType;
@@ -43,6 +44,7 @@ final class ReverseJournal
         private readonly PostingEngine $engine,
         private readonly PermissionChecker $permissions,
         private readonly IdGenerator $ids,
+        private readonly BankLedgerHooks $banking,
     ) {}
 
     public function handle(Actor $actor, ReverseJournalInput $in): Journal
@@ -84,6 +86,7 @@ final class ReverseJournal
             if ($in->whileLocked !== null) {
                 ($in->whileLocked)($locks);
             }
+            $this->banking->beforeReverse($locks, $doc);                                     // 2: bank account when the journal is matched
 
             $company = Company::query()->findOrFail($doc->company_id);
             $lines = array_values($doc->load('lines')->lines->map(fn ($l) => $l->toDraftLine($company->base_currency)->mirrored())->all());

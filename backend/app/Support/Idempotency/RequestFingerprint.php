@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Support\Idempotency;
 
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Arr;
 
 /**
  * sha256(method ‖ path ‖ canonical query ‖ canonical body) (13 §11). JSON bodies are compared by
@@ -17,6 +19,11 @@ final class RequestFingerprint
     {
         $query = $request->query();
         $body = $request->isJson() ? $request->json()->all() : $request->getContent();
+        if (! $request->isJson() && $request->allFiles() !== []) {
+            // multipart: the fields and the content of every uploaded file (the raw body is not available)
+            $files = array_map(fn (mixed $f): string => $f instanceof UploadedFile ? (string) hash_file('sha256', $f->getRealPath()) : '', Arr::flatten($request->allFiles()));
+            $body = ['fields' => $request->except(array_keys($request->allFiles())), 'files' => $files];
+        }
 
         return hash('sha256', implode("\n", [
             $request->method(),

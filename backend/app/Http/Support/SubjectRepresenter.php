@@ -5,7 +5,13 @@ declare(strict_types=1);
 namespace App\Http\Support;
 
 use App\Http\Resources\AccountResource;
+use App\Http\Resources\ApiClientResource;
 use App\Http\Resources\ApprovalWorkflowResource;
+use App\Http\Resources\BankAccountResource;
+use App\Http\Resources\BankMatchResource;
+use App\Http\Resources\BankReconciliationResource;
+use App\Http\Resources\BankRuleResource;
+use App\Http\Resources\BankTransactionResource;
 use App\Http\Resources\CompanyResource;
 use App\Http\Resources\ContactResource;
 use App\Http\Resources\DimensionResource;
@@ -17,10 +23,16 @@ use App\Http\Resources\InvoiceResource;
 use App\Http\Resources\ItemResource;
 use App\Http\Resources\JournalResource;
 use App\Http\Resources\PaymentRunResource;
+use App\Http\Resources\RecurringScheduleResource;
 use App\Http\Resources\ReopenRequestResource;
 use App\Http\Resources\SettlementResource;
 use App\Http\Resources\TaxCodeResource;
 use App\Http\Resources\TaxGroupResource;
+use App\Models\Banking\BankAccount;
+use App\Models\Banking\BankMatch;
+use App\Models\Banking\BankReconciliation;
+use App\Models\Banking\BankRule;
+use App\Models\Banking\BankTransaction;
 use App\Models\Fiscal\FiscalPeriod;
 use App\Models\Fiscal\FiscalYear;
 use App\Models\Fiscal\PeriodReopenRequest;
@@ -28,8 +40,11 @@ use App\Models\Ledger\Account;
 use App\Models\Ledger\Dimension;
 use App\Models\Ledger\DimensionValue;
 use App\Models\Ledger\Journal;
+use App\Models\Organisation\ApiClient;
 use App\Models\Organisation\Company;
 use App\Models\Organisation\Invitation;
+use App\Models\Recurring\RecurringInvoice;
+use App\Models\Recurring\RecurringJournal;
 use App\Models\Tax\TaxCode;
 use App\Models\Tax\TaxGroup;
 use App\Models\Trade\Contact;
@@ -53,6 +68,7 @@ final class SubjectRepresenter
     private const array RESOURCES = [
         'companies' => [Company::class, CompanyResource::class, []],
         'invitations' => [Invitation::class, InvitationResource::class, []],
+        'api_clients' => [ApiClient::class, ApiClientResource::class, ['tokens']],
         'journals' => [Journal::class, JournalResource::class, ['lines']],
         'accounts' => [Account::class, AccountResource::class, ['dimensionRules']],
         'dimensions' => [Dimension::class, DimensionResource::class, ['values']],
@@ -68,6 +84,13 @@ final class SubjectRepresenter
         'items' => [Item::class, ItemResource::class, []],
         'settlements' => [Settlement::class, SettlementResource::class, ['allocations']],
         'payment_runs' => [PaymentRun::class, PaymentRunResource::class, ['items']],
+        'bank_accounts' => [BankAccount::class, BankAccountResource::class, []],
+        'bank_rules' => [BankRule::class, BankRuleResource::class, []],
+        'bank_matches' => [BankMatch::class, BankMatchResource::class, ['items']],
+        'bank_transactions' => [BankTransaction::class, BankTransactionResource::class, ['journal']],
+        'bank_reconciliations' => [BankReconciliation::class, BankReconciliationResource::class, []],
+        'recurring_invoices' => [RecurringInvoice::class, RecurringScheduleResource::class, []],
+        'recurring_journals' => [RecurringJournal::class, RecurringScheduleResource::class, []],
     ];
 
     public function represent(?string $subjectType, ?string $subjectId): JsonResponse

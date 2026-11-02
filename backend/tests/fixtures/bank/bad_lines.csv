@@ -1,0 +1,4 @@
+Date,Description,Reference,Amount
+2026-03-02,ok,A,10.00
+2026-03-05,bad amount,B,12.345
+2026-13-40,bad date,C,5.00

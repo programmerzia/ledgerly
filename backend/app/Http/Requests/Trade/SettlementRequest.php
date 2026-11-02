@@ -19,7 +19,7 @@ use Illuminate\Validation\Rule;
  * Create (POST) or replace (PUT, with `version`) a draft receipt, payment or refund. Shape only: ids exist in this company, the
  * rate is a decimal string, the amount whole minor units. The base amount, the carried amounts and the exchange differences are the
  * server's. Allocations name an `invoice_id` or, for a refund of credit on account, a `source_settlement_id`. Dimensions are
- * `{"<dimension id>": "<dimension value id>"}`. `bank_account_id` is not accepted until bank accounts exist (2.13).
+ * `{"<dimension id>": "<dimension value id>"}`. `bank_account_id` (optional) names the bank account; it must be linked to `cash_account_id` and be in the settlement's currency.
  */
 final class SettlementRequest extends CompanyRequest
 {
@@ -32,6 +32,7 @@ final class SettlementRequest extends CompanyRequest
             'kind' => [$update ? 'prohibited' : 'required', 'string', Rule::in(SettlementWriter::KINDS)],
             'contact_id' => ['required', 'uuid', $this->inCompany('contacts')->whereNull('deleted_at')],
             'cash_account_id' => ['required', 'uuid', $this->inCompany('accounts')->whereNull('deleted_at')],
+            'bank_account_id' => ['nullable', 'uuid', $this->inCompany('bank_accounts')],
             'settlement_date' => ['required', 'date_format:Y-m-d'],
             'amount_fc' => ['required', 'integer', 'min:1', 'max:'.PostingValidator::MAX_AMOUNT],
             'currency' => ['nullable', 'string', 'size:3', Rule::exists('currencies', 'code')],
@@ -106,6 +107,7 @@ final class SettlementRequest extends CompanyRequest
             reference: isset($v['reference']) ? (string) $v['reference'] : null,
             memo: isset($v['memo']) ? (string) $v['memo'] : null,
             dims: $dims,
+            bankAccountId: isset($v['bank_account_id']) ? (string) $v['bank_account_id'] : null,
         );
     }
 

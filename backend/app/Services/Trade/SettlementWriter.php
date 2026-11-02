@@ -9,6 +9,7 @@ use App\Contracts\Clock;
 use App\Contracts\IdGenerator;
 use App\Domain\Shared\DomainRuleViolation;
 use App\Domain\Trade\PostingSupport;
+use App\Models\Banking\BankAccount;
 use App\Models\Organisation\Company;
 use App\Models\Trade\Invoice;
 use App\Models\Trade\Settlement;
@@ -46,6 +47,7 @@ final class SettlementWriter
             throw DomainRuleViolation::single('amount_invalid', 'The amount must be greater than zero.');
         }
         $currency = $in->currency ?? $company->base_currency;
+        self::assertBankAccount($in->bankAccountId, $in->cashAccountId, $currency, $company->id);
         $rate = $this->rate($company, $currency, $in->fxRate, $in->settlementDate->format('Y-m-d'));
         $header = [
             'contact_id' => $in->contactId, 'cash_account_id' => $in->cashAccountId, 'bank_account_id' => $in->bankAccountId,
@@ -58,6 +60,25 @@ final class SettlementWriter
         }
 
         return $header;
+    }
+
+    /** A named bank account must be this company's, active, on the cash account and in the settlement's currency (05 §10). */
+    public static function assertBankAccount(?string $bankAccountId, string $cashAccountId, string $currency, string $companyId): void
+    {
+        if ($bankAccountId === null) {
+            return;
+        }
+        $bank = BankAccount::query()->where('company_id', $companyId)->find($bankAccountId)
+            ?? throw DomainRuleViolation::single('not_found', 'The bank account does not exist.');
+        if ($bank->account_id !== $cashAccountId) {
+            throw DomainRuleViolation::single('bank_account_mismatch', 'The bank account is linked to a different GL account than the cash account of this settlement.');
+        }
+        if ($bank->currency !== $currency) {
+            throw DomainRuleViolation::single('bank_account_currency_mismatch', "The bank account is in {$bank->currency}, the settlement in {$currency}.");
+        }
+        if (! $bank->is_active) {
+            throw DomainRuleViolation::single('bank_account_inactive', 'The bank account is inactive.');
+        }
     }
 
     public function rate(Company $company, string $currency, ?string $given, string $date): string

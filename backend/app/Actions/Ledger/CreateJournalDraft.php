@@ -29,7 +29,7 @@ final class CreateJournalDraft
     {
         return $this->uow->run($actor, function (LockSet $locks, AuditBuffer $audit, Outbox $outbox) use ($actor, $in) {
             $company = Company::query()->findOrFail($in->companyId);
-            $draft = new JournalDraft($company->id, $in->type, $in->date, $in->lines, $in->reference, $in->memo);
+            $draft = new JournalDraft($company->id, $in->type, $in->date, $in->lines, $in->reference, $in->memo, $in->sourceType, $in->sourceId);
 
             $journal = $this->engine->insertDraft($actor, $in->id ?? $this->ids->next(), $draft, $company->base_currency, $in->fiscalPeriodId);
             $audit->add('journal.created', $journal, after: $journal, context: ['lines' => count($in->lines)]);

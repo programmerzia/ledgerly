@@ -69,6 +69,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/api-clients": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["api-clients.index"];
+        put?: never;
+        /** Creates the client and its first token; the response carries `token`, which cannot be read again */
+        post: operations["api-clients.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/api-clients/{apiClient}/tokens": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Another token for the client; the response carries `token`, which cannot be read again */
+        post: operations["api-clients.tokens.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/api-clients/{apiClient}/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Revokes the client: its tokens stop working at once */
+        post: operations["api-clients.revoke"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/companies/{company}/approvals": {
         parameters: {
             query?: never;
@@ -80,6 +131,26 @@ export interface paths {
         get: operations["approvals.index"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/approvals/bulk-approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Approve several documents on one signing grant (doc 14 E5). The answer is always 200 with one result per document:
+         *     approved (with its status afterwards and number) or skipped with a code and reason. Sign first with `POST /signing/verify`
+         */
+        post: operations["approvals.bulk-approve"];
         delete?: never;
         options?: never;
         head?: never;
@@ -251,6 +322,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/companies/{company}/audit-events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The company's events, newest first */
+        get: operations["audit-events.index"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/audit-events/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Recomputes the organisation's whole chain (the chain is per organisation, so this checks every company's events).
+         *     `full=true` starts from the first event; the default starts after the newest seal that still matches
+         */
+        post: operations["audit-events.verify"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/auth/login": {
         parameters: {
             query?: never;
@@ -280,6 +388,341 @@ export interface paths {
         /** Destroy an authenticated session */
         post: operations["logout"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/bank-accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Every bank account with its book balance and unreconciled count (a short reference list, not paged) */
+        get: operations["bank-accounts.index"];
+        put?: never;
+        post: operations["bank-accounts.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/bank-accounts/{bankAccount}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["bank-accounts.show"];
+        put: operations["bank-accounts.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/bank-accounts/{bankAccount}/statements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["bank-accounts.statements"];
+        put?: never;
+        /**
+         * Import a CSV, OFX or CAMT.053 file, synchronously (files over 2 MB or 5,000 lines are refused). Lines already imported are skipped:
+         *     the same file twice adds nothing. Errors name the line (`violations[].line_no`)
+         */
+        post: operations["bank-accounts.import"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/bank-accounts/{bankAccount}/lines": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["bank-accounts.lines"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/bank-statement-lines/{statementLine}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["bank-statement-lines.show"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/bank-statement-lines/{statementLine}/suggestions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Posted, unmatched book lines with exactly the line's amount within `window_days` (default 7, at most 60), each with why it fits
+         *     (`explanation`), plus the first bank rule that matches the line
+         */
+        get: operations["bank-statement-lines.suggestions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/bank-statement-lines/{statementLine}/transactions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Code the line as spend, receive or transfer money. Posts at once below the journal threshold, otherwise waits for an approver */
+        post: operations["bank-statement-lines.transactions"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/bank-statement-lines/{statementLine}/apply-rule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Apply a bank rule (the first matching one, or `rule_id`) to the line: the person's confirmation of the rule's suggestion */
+        post: operations["bank-statement-lines.apply-rule"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/bank-matches": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Match statement lines with book lines or settlements. The two sides must add up to exactly the same amount */
+        post: operations["bank-matches.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/bank-matches/{bankMatch}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove a match, until a finished reconciliation covers it */
+        delete: operations["bank-matches.destroy"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/bank-transactions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["bank-transactions.index"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/bank-transactions/{bankTransaction}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["bank-transactions.show"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/bank-accounts/{bankAccount}/reconciliations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["bank-accounts.reconciliations"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/bank-reconciliations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["bank-reconciliations.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/bank-reconciliations/{bankReconciliation}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["bank-reconciliations.show"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/bank-reconciliations/{bankReconciliation}/finish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["bank-reconciliations.finish"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/bank-reconciliations/{bankReconciliation}/reopen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["bank-reconciliations.reopen"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/bank-rules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** In running order (priority, then id) */
+        get: operations["bank-rules.index"];
+        put?: never;
+        post: operations["bank-rules.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/bank-rules/order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Set the running order: every rule id exactly once; priorities become 1..n */
+        put: operations["bank-rules.order"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/bank-rules/{bankRule}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["bank-rules.update"];
+        post?: never;
+        delete: operations["bank-rules.destroy"];
         options?: never;
         head?: never;
         patch?: never;
@@ -474,6 +917,22 @@ export interface paths {
         get: operations["companies.index"];
         put?: never;
         post: operations["companies.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["settings.show"];
+        put: operations["settings.update"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1265,6 +1724,58 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Everyone in the organisation, each with their roles per company */
+        get: operations["members.index"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/roles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The company's roles with their permissions and head count */
+        get: operations["roles.index"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/members/{user}/roles/{role}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Gives a member a role in this company (`role` is the role's id); repeating it changes nothing */
+        put: operations["members.roles.assign"];
+        post?: never;
+        /** Takes a role away; taking away a role the member does not hold changes nothing */
+        delete: operations["members.roles.revoke"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/auth/reset-password": {
         parameters: {
             query?: never;
@@ -1448,6 +1959,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/practice/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["practice.overview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/auth/user/profile-information": {
         parameters: {
             query?: never;
@@ -1477,6 +2004,151 @@ export interface paths {
         put?: never;
         /** Generate a fresh set of two factor authentication recovery codes */
         post: operations["two-factor.regenerate-recovery-codes"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/recurring-invoices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["recurring-invoices.index"];
+        put?: never;
+        post: operations["recurring-invoices.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/recurring-invoices/{recurringInvoice}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["recurring-invoices.show"];
+        put: operations["recurring-invoices.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/recurring-invoices/{recurringInvoice}/pause": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["recurring-invoices.pause"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/recurring-invoices/{recurringInvoice}/resume": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["recurring-invoices.resume"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/recurring-journals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["recurring-journals.index"];
+        put?: never;
+        post: operations["recurring-journals.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/recurring-journals/{recurringJournal}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["recurring-journals.show"];
+        put: operations["recurring-journals.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/recurring-journals/{recurringJournal}/pause": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["recurring-journals.pause"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/recurring-journals/{recurringJournal}/resume": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["recurring-journals.resume"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/recurring-runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["recurring-runs.index"];
+        put?: never;
+        /** Creates the drafts due up to `as_of` (default: today in the company's time zone). Drafts only; nothing posts */
+        post: operations["recurring-runs.run"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2365,6 +3037,37 @@ export interface components {
             };
             can: unknown[];
         };
+        /**
+         * ApiClientRequest
+         * @description Create a client with its first token (POST /api-clients) or another token for it (POST /api-clients/{id}/tokens).
+         *     Abilities come from the fixed list; there is no approve ability and no wildcard.
+         */
+        ApiClientRequest: {
+            name: string;
+            company_ids: string[];
+            token_name?: string | null;
+            abilities: ("accounts:read" | "accounts:write" | "attachments:read" | "attachments:write" | "banking:read" | "banking:write" | "bills:read" | "bills:write" | "bills:submit" | "contacts:read" | "contacts:write" | "dimensions:read" | "dimensions:write" | "fx:read" | "fx:write" | "invoices:read" | "invoices:write" | "invoices:submit" | "items:read" | "items:write" | "journals:read" | "journals:write" | "journals:submit" | "periods:read" | "recurring:read" | "recurring:write" | "reports:read" | "settlements:read" | "settlements:write" | "settlements:submit" | "tax:read")[];
+            expires_at?: string | null;
+        };
+        /** ApiClientResource */
+        ApiClientResource: {
+            id: string;
+            name: string;
+            company_ids: string[];
+            created_by: string;
+            last_used_at: string | null;
+            revoked_at: string | null;
+            is_active: boolean;
+            tokens: {
+                name: string;
+                abilities: unknown[];
+                last_used_at: string | null;
+                expires_at: string | null;
+                created_at: string | null;
+            }[];
+            token?: string;
+            can: unknown[];
+        };
         /** ApplyChartTemplateRequest */
         ApplyChartTemplateRequest: {
             template_code: string;
@@ -2505,6 +3208,290 @@ export interface components {
             created_at: string | null;
             can: unknown[];
         };
+        /** AuditChainReportResource */
+        AuditChainReportResource: {
+            intact: boolean;
+            events_checked: number;
+            started_after_id: number | null;
+            broken_at_id: number | null;
+            problem: string | null;
+            detail: string | null;
+        };
+        /** AuditEventResource */
+        AuditEventResource: {
+            id: number;
+            occurred_at: string | null;
+            actor_type: string;
+            actor_id: string | null;
+            action: string;
+            subject_type: string | null;
+            subject_id: string | null;
+            before: {
+                [key: string]: unknown;
+            } | null;
+            after: {
+                [key: string]: unknown;
+            } | null;
+            context: {
+                [key: string]: unknown;
+            } | null;
+            ip: string | null;
+            request_id: string | null;
+            prev_hash: string | null;
+            hash: string;
+        };
+        /**
+         * BankAccountRequest
+         * @description Create (POST) or replace (PUT, with `version`) a bank account. The GL account must be of control type bank or cash (checked by the Action).
+         */
+        BankAccountRequest: {
+            name: string;
+            /** Format: uuid */
+            account_id: string;
+            currency: string;
+            /** @enum {string|null} */
+            kind?: "bank" | "cash" | "card" | null;
+            bank_name?: string | null;
+            account_number_masked?: string | null;
+            iban?: string | null;
+            swift?: string | null;
+            import_mapping?: string[] | null;
+            is_active?: boolean | null;
+            version?: number;
+        };
+        /** BankAccountResource */
+        BankAccountResource: {
+            id: string;
+            name: string;
+            account_id: string;
+            currency: string;
+            kind: string;
+            bank_name: string | null;
+            account_number_masked: string | null;
+            iban: string | null;
+            swift: string | null;
+            /** @description The saved CSV column mapping. */
+            import_mapping: {
+                [key: string]: unknown;
+            } | null;
+            last_statement_balance: {
+                amount: number | null;
+                currency: string;
+            } | null;
+            last_statement_date: string | null;
+            book_balance: {
+                amount: number;
+                currency: string;
+            } | null;
+            /** @description Statement lines still unmatched. */
+            unreconciled_count: number | null;
+            is_active: boolean;
+            version: number;
+            can: unknown[];
+        };
+        /** BankMatchResource */
+        BankMatchResource: {
+            id: string;
+            bank_account_id: string;
+            /** @description Signed total of either side; the two sides are equal. */
+            amount: {
+                amount: number;
+                currency: string;
+            };
+            statement_line_ids: string[];
+            journal_line_ids: string[];
+            settlement_ids: string[];
+            matched_by: string | null;
+            matched_at: string | null;
+            /** @description Set while a finished reconciliation covers the match; it cannot be removed then. */
+            reconciliation_id: string | null;
+            can: unknown[];
+        };
+        /** BankReconciliationResource */
+        BankReconciliationResource: {
+            id: string;
+            bank_account_id: string;
+            statement_id: string;
+            as_of: string | null;
+            status: string;
+            book_balance: number | null;
+            statement_balance: number | null;
+            difference: number | null;
+            report: {
+                [key: string]: unknown;
+            } | null;
+            finished_by: string | null;
+            finished_at: string | null;
+            reopened_by: string | null;
+            reopened_at: string | null;
+            reopen_reason: string | null;
+            reopen_count: number;
+            version: number;
+            can: unknown[];
+        };
+        /**
+         * BankRuleRequest
+         * @description Create (POST) or replace (PUT, with `version`) a bank rule; `priority` is optional (new rules go last; `PUT bank-rules/order` reorders).
+         */
+        BankRuleRequest: {
+            name: string;
+            /** Format: uuid */
+            bank_account_id?: string | null;
+            is_active?: boolean | null;
+            priority?: number | null;
+            conditions: {
+                contains: string;
+                /** @enum {string} */
+                direction: "in" | "out" | "any";
+                min_amount?: number | null;
+                max_amount?: number | null;
+            };
+            action: {
+                /** Format: uuid */
+                account_id: string;
+                /** Format: uuid */
+                tax_code_id?: string | null;
+                /** Format: uuid */
+                contact_id?: string | null;
+                dimensions?: string[] | null;
+                memo?: string | null;
+            };
+            version?: number;
+        };
+        /** BankRuleResource */
+        BankRuleResource: {
+            id: string;
+            bank_account_id: string | null;
+            name: string;
+            /** @description Lower runs first; the first matching rule wins. */
+            priority: number;
+            is_active: boolean;
+            conditions: {
+                contains: string;
+                direction: string;
+                min_amount?: number | null;
+                max_amount?: number | null;
+            };
+            action: {
+                account_id: string;
+                tax_code_id?: string | null;
+                contact_id?: string | null;
+                dimensions?: {
+                    [key: string]: string;
+                };
+                memo?: string | null;
+            };
+            times_applied: number;
+            version: number;
+            can: unknown[];
+        };
+        /** BankStatementImportResource */
+        BankStatementImportResource: {
+            statement: components["schemas"]["BankStatementResource"] | null;
+            lines_imported: number;
+            duplicate_lines_skipped: number;
+            already_imported: boolean;
+            warnings: string[];
+        };
+        /** BankStatementLineResource */
+        BankStatementLineResource: {
+            id: string;
+            statement_id: string;
+            bank_account_id: string;
+            txn_date: string | null;
+            value_date: string | null;
+            amount: {
+                amount: number;
+                currency: string;
+            };
+            description: string;
+            reference: string | null;
+            counterparty: string | null;
+            balance_after: {
+                amount: number | null;
+                currency: string;
+            } | null;
+            status: string;
+            match_id: unknown;
+            pending_journal_id: unknown;
+            version: number;
+            can: unknown[];
+        };
+        /** BankStatementResource */
+        BankStatementResource: {
+            id: string;
+            bank_account_id: string;
+            period_from: string | null;
+            period_to: string | null;
+            opening_balance: {
+                amount: number | null;
+                currency: string;
+            } | null;
+            closing_balance: {
+                amount: number | null;
+                currency: string;
+            } | null;
+            source: string;
+            file_name: string | null;
+            line_count: number;
+            /** @description Lines in the file that were already imported and so added nothing. */
+            duplicates_skipped: number;
+            /** @description For example statement_balance_mismatch, balances_not_provided. */
+            warnings: string[];
+            imported_by: string | null;
+            imported_at: string | null;
+        };
+        /**
+         * BankTransactionRequest
+         * @description Code a statement line: `kind` spend|receive (with `account_id`, optional `tax_code_id`, `contact_id`, `dimensions`, `memo`) or transfer (with `to_bank_account_id`).
+         */
+        BankTransactionRequest: {
+            /** @enum {string} */
+            kind: "spend" | "receive" | "transfer";
+            /** Format: uuid */
+            account_id?: string | null;
+            /** Format: uuid */
+            to_bank_account_id?: string | null;
+            /** Format: uuid */
+            tax_code_id?: string | null;
+            /** Format: uuid */
+            contact_id?: string | null;
+            dimensions?: string[] | null;
+            memo?: string | null;
+            /** Format: uuid */
+            rule_id?: string | null;
+        };
+        /** BankTransactionResource */
+        BankTransactionResource: {
+            id: string;
+            bank_account_id: string;
+            statement_line_id: string;
+            kind: string;
+            to_bank_account_id: string | null;
+            rule_id: string | null;
+            gross: {
+                amount: number;
+                currency: string;
+            };
+            journal_id: string;
+            /** @enum {string|null} */
+            status: "draft" | "pending_approval" | "posted" | "reversed" | "void" | null;
+            journal_number: string | null;
+            created_by: string | null;
+        };
+        /**
+         * BulkApproveRequest
+         * @description `{documents: [{type, id}, …]}`, up to 50, approved on the caller's signing grant.
+         */
+        BulkApproveRequest: {
+            documents: {
+                /** @enum {string} */
+                type: "journal" | "invoice" | "bill" | "settlement" | "payment_run";
+                /** Format: uuid */
+                id: string;
+            }[];
+            comment?: string | null;
+        };
         /** ChartTemplateResource */
         ChartTemplateResource: {
             code: string;
@@ -2545,6 +3532,29 @@ export interface components {
             can: {
                 open: boolean;
                 manage_settings: boolean;
+            };
+        };
+        /** CompanySettingsResource */
+        CompanySettingsResource: {
+            company_id: string;
+            name: string;
+            legal_name: string | null;
+            tax_id: string | null;
+            country: string;
+            base_currency: string;
+            timezone: string;
+            locale: string;
+            fiscal_year_start_month: number;
+            tax_rounding: string;
+            posting_accounts: {
+                [key: string]: {
+                    account_id: string;
+                    code: string;
+                    name: string;
+                } | null;
+            };
+            can: {
+                update: boolean;
             };
         };
         /**
@@ -2826,6 +3836,25 @@ export interface components {
             items: unknown[];
             residuals: unknown[];
             created_by: string | null;
+        };
+        /**
+         * ImportStatementRequest
+         * @description Multipart statement upload: `file` (at most 2 MB), `format` (csv|ofx|camt|auto, default auto), `mapping` for CSV (a JSON object, or
+         *     a field per key; see CsvStatementParser), `save_mapping`, and optional `opening_balance` / `closing_balance` in minor units when the
+         *     file does not state them.
+         */
+        ImportStatementRequest: {
+            /**
+             * Format: binary
+             * @description Maximum file size: 2048 kilobytes.
+             */
+            file: string;
+            /** @enum {string|null} */
+            format?: "auto" | "csv" | "ofx" | "camt" | null;
+            mapping?: string[] | null;
+            save_mapping?: boolean | null;
+            opening_balance?: number | null;
+            closing_balance?: number | null;
         };
         /** InvitationPreviewResource */
         InvitationPreviewResource: {
@@ -3200,12 +4229,32 @@ export interface components {
             remember?: string;
         };
         /**
+         * MatchRequest
+         * @description Match statement lines to book lines (`journal_line_ids`) or settlements; many-to-one and one-to-many when the sums are equal.
+         */
+        MatchRequest: {
+            statement_line_ids: string[];
+            journal_line_ids?: string[] | null;
+            settlement_ids?: string[] | null;
+        };
+        /** MemberResource */
+        MemberResource: {
+            user_id: string;
+            name: string;
+            email: string;
+            role: string;
+            status: string;
+            company_roles: unknown;
+        };
+        /**
          * PaymentRunRequest
          * @description Create (POST) or replace (PUT, with `version`) a draft payment run: the bills and how much of each to pay (net of tax withheld when the bill posted).
          */
         PaymentRunRequest: {
             /** Format: uuid */
             cash_account_id: string;
+            /** Format: uuid */
+            bank_account_id?: string | null;
             /** Format: date */
             run_date: string;
             currency?: string | null;
@@ -3276,6 +4325,45 @@ export interface components {
             };
             number: null;
         };
+        /** PracticeOverviewResource */
+        PracticeOverviewResource: {
+            practices: {
+                tenant: {
+                    id: string;
+                    name: string;
+                    slug: string;
+                    lifecycle: string;
+                };
+                role: string;
+                current: boolean;
+                switch: {
+                    method: string;
+                    path: string;
+                    body: {
+                        tenant_id: string;
+                    };
+                };
+                companies: {
+                    id: string;
+                    name: string;
+                    base_currency: string;
+                    open_ar: {
+                        amount: number;
+                        currency: string;
+                    };
+                    open_ap: {
+                        amount: number;
+                        currency: string;
+                    };
+                    pending_approvals: number;
+                    last_closed_period: string | null;
+                    period_states: {
+                        [key: string]: number;
+                    };
+                    as_of: string | null;
+                }[];
+            }[];
+        };
         /**
          * ReasonRequest
          * @description A required free-text explanation: `reason` for a reopen request, `comment` for rejecting one.
@@ -3283,6 +4371,82 @@ export interface components {
         ReasonRequest: {
             reason?: string | null;
             comment?: string | null;
+        };
+        /**
+         * ReconciliationRequest
+         * @description Start (`statement_id`), finish (optional `version`) or reopen (`reason`, optional `version`) a reconciliation.
+         */
+        ReconciliationRequest: {
+            /** Format: uuid */
+            statement_id: string;
+            reason?: string;
+            version?: number | null;
+        };
+        /**
+         * RecurringInvoiceRequest
+         * @description A recurring invoice or bill: the template is a posted invoice or bill.
+         */
+        RecurringInvoiceRequest: {
+            name: string;
+            /** Format: uuid */
+            template_id: string;
+            /** @enum {string} */
+            frequency: "monthly" | "quarterly" | "annual";
+            /** Format: date */
+            next_date: string;
+            /** Format: date */
+            end_date?: string | null;
+            /** Format: uuid */
+            owner_id?: string | null;
+            version?: number;
+        };
+        /**
+         * RecurringJournalRequest
+         * @description A recurring journal: the template is a posted manual journal.
+         */
+        RecurringJournalRequest: {
+            name: string;
+            /** Format: uuid */
+            template_id: string;
+            /** @enum {string} */
+            frequency: "monthly" | "quarterly" | "annual";
+            /** Format: date */
+            next_date: string;
+            /** Format: date */
+            end_date?: string | null;
+            /** Format: uuid */
+            owner_id?: string | null;
+            version?: number;
+        };
+        /** RecurringRunResource */
+        RecurringRunResource: {
+            id: string;
+            schedule_type: string;
+            schedule_id: string;
+            occurrence_date: string | null;
+            document_type: string;
+            document_id: string;
+            status: string;
+            note: string | null;
+        };
+        /** RecurringScheduleResource */
+        RecurringScheduleResource: {
+            id: string;
+            name: string;
+            /** @constant */
+            document_type: "journal";
+            template_id: string | null;
+            /** @enum {string} */
+            frequency: "monthly" | "quarterly" | "annual";
+            next_date: string | null;
+            end_date: string | null;
+            owner_id: string;
+            is_active: boolean;
+            last_run_on: string | null;
+            last_error: string | null;
+            generated_count: number;
+            version: number;
+            can: unknown[];
         };
         /** ReopenRequestResource */
         ReopenRequestResource: {
@@ -3314,6 +4478,30 @@ export interface components {
             date?: string | null;
             memo?: string | null;
             version?: number | null;
+        };
+        /** RoleResource */
+        RoleResource: {
+            id: string;
+            name: string;
+            permissions: unknown[];
+            members: number;
+        };
+        /**
+         * RuleOrderRequest
+         * @description The full list of rule ids in the order they should run.
+         */
+        RuleOrderRequest: {
+            ids: string[];
+        };
+        /**
+         * RunRecurringRequest
+         * @description "Run now": create every draft due up to `as_of` (default: today), optionally for one schedule.
+         */
+        RunRecurringRequest: {
+            /** Format: date */
+            as_of?: string | null;
+            /** Format: uuid */
+            schedule_id?: string | null;
         };
         /** SendPasswordResetLinkRequest */
         SendPasswordResetLinkRequest: {
@@ -3351,7 +4539,7 @@ export interface components {
          * @description Create (POST) or replace (PUT, with `version`) a draft receipt, payment or refund. Shape only: ids exist in this company, the
          *     rate is a decimal string, the amount whole minor units. The base amount, the carried amounts and the exchange differences are the
          *     server's. Allocations name an `invoice_id` or, for a refund of credit on account, a `source_settlement_id`. Dimensions are
-         *     `{"<dimension id>": "<dimension value id>"}`. `bank_account_id` is not accepted until bank accounts exist (2.13).
+         *     `{"<dimension id>": "<dimension value id>"}`. `bank_account_id` (optional) names the bank account; it must be linked to `cash_account_id` and be in the settlement's currency.
          */
         SettlementRequest: {
             /** @enum {string} */
@@ -3360,6 +4548,8 @@ export interface components {
             contact_id: string;
             /** Format: uuid */
             cash_account_id: string;
+            /** Format: uuid */
+            bank_account_id?: string | null;
             /** Format: date */
             settlement_date: string;
             amount_fc: number;
@@ -3572,7 +4762,7 @@ export interface components {
         WebhookEndpointRequest: {
             url: string;
             description?: string | null;
-            events: ("*" | "journal.posted" | "journal.reversed" | "invoice.posted" | "invoice.reversed" | "bill.posted" | "bill.reversed" | "settlement.posted" | "settlement.reversed" | "payment_run.posted" | "credit_application.created" | "credit_application.reversed" | "document.submitted" | "document.approved" | "document.returned" | "document.voided" | "period.soft_closed" | "period.closed" | "period.reopened" | "fiscal_year.closed" | "fiscal_year.locked")[];
+            events: ("*" | "journal.posted" | "journal.reversed" | "invoice.posted" | "invoice.reversed" | "bill.posted" | "bill.reversed" | "settlement.posted" | "settlement.reversed" | "payment_run.posted" | "credit_application.created" | "credit_application.reversed" | "document.submitted" | "document.approved" | "document.returned" | "document.voided" | "period.soft_closed" | "period.closed" | "period.reopened" | "fiscal_year.closed" | "fiscal_year.locked" | "bank_statement.imported" | "bank_match.created" | "bank_match.removed" | "bank_transaction.created" | "bank_reconciliation.finished" | "bank_reconciliation.reopened" | "recurring.occurrence_created")[];
             version?: number;
         };
         /** WebhookEndpointResource */
@@ -3877,6 +5067,120 @@ export interface operations {
             422: components["responses"]["ValidationException"];
         };
     };
+    "api-clients.index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `ApiClientResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ApiClientResource"][];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+        };
+    };
+    "api-clients.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApiClientRequest"];
+            };
+        };
+        responses: {
+            /** @description `ApiClientResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ApiClientResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "api-clients.tokens.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The api client ID */
+                apiClient: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApiClientRequest"];
+            };
+        };
+        responses: {
+            /** @description `ApiClientResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ApiClientResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "api-clients.revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The api client ID */
+                apiClient: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `ApiClientResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ApiClientResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
     "approvals.index": {
         parameters: {
             query?: never;
@@ -3908,6 +5212,42 @@ export interface operations {
             401: components["responses"]["AuthenticationException"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "approvals.bulk-approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BulkApproveRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: unknown[];
+                        meta: {
+                            approved: number;
+                            skipped: number;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
         };
     };
     "approval-workflows.index": {
@@ -4283,6 +5623,74 @@ export interface operations {
             };
         };
     };
+    "audit-events.index": {
+        parameters: {
+            query?: {
+                action?: string | null;
+                subject_type?: string | null;
+                subject_id?: string | null;
+                actor_id?: string | null;
+                request_id?: string | null;
+            };
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `AuditEventResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AuditEventResource"][];
+                        meta: {
+                            next_cursor: string | null;
+                            prev_cursor: string | null;
+                            limit: number;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "audit-events.verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `AuditChainReportResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AuditChainReportResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
     "login.store": {
         parameters: {
             query?: never;
@@ -4335,6 +5743,835 @@ export interface operations {
                 };
             };
             401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "bank-accounts.index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `BankAccountResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["BankAccountResource"][];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "bank-accounts.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BankAccountRequest"];
+            };
+        };
+        responses: {
+            /** @description `BankAccountResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["BankAccountResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "bank-accounts.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The bank account ID */
+                bankAccount: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `BankAccountResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["BankAccountResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "bank-accounts.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The bank account ID */
+                bankAccount: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BankAccountRequest"];
+            };
+        };
+        responses: {
+            /** @description `BankAccountResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["BankAccountResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "bank-accounts.statements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The bank account ID */
+                bankAccount: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `BankStatementResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["BankStatementResource"][];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "bank-accounts.import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The bank account ID */
+                bankAccount: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["ImportStatementRequest"];
+            };
+        };
+        responses: {
+            /** @description `BankStatementImportResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["BankStatementImportResource"];
+                    };
+                };
+            };
+            /** @description `BankStatementImportResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["BankStatementImportResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "bank-accounts.lines": {
+        parameters: {
+            query?: {
+                status?: "unmatched" | "matched" | "excluded" | null;
+                statement_id?: string | null;
+                from?: string | null;
+                to?: string | null;
+                search?: string | null;
+            };
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The bank account ID */
+                bankAccount: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `BankStatementLineResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["BankStatementLineResource"][];
+                        meta: {
+                            next_cursor: string | null;
+                            prev_cursor: string | null;
+                            limit: number;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "bank-statement-lines.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The statement line ID */
+                statementLine: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `BankStatementLineResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["BankStatementLineResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "bank-statement-lines.suggestions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The statement line ID */
+                statementLine: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            matches: {
+                                journal_line_id: string;
+                                journal_id: string;
+                                number: string;
+                                date: string;
+                                amount: number;
+                                settlement_id: string | null;
+                                description: string;
+                                score: number;
+                                explanation: [
+                                    string | "same_day"
+                                ];
+                            }[];
+                            rule: unknown[] | null;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "bank-statement-lines.transactions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The statement line ID */
+                statementLine: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BankTransactionRequest"];
+            };
+        };
+        responses: {
+            /** @description `BankTransactionResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["BankTransactionResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "bank-statement-lines.apply-rule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The statement line ID */
+                statementLine: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    rule_id?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description `BankTransactionResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["BankTransactionResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "bank-matches.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MatchRequest"];
+            };
+        };
+        responses: {
+            /** @description `BankMatchResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["BankMatchResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "bank-matches.destroy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The bank match ID */
+                bankMatch: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "bank-transactions.index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `BankTransactionResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["BankTransactionResource"][];
+                        meta: {
+                            next_cursor: string | null;
+                            prev_cursor: string | null;
+                            limit: number;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "bank-transactions.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The bank transaction ID */
+                bankTransaction: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `BankTransactionResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["BankTransactionResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "bank-accounts.reconciliations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The bank account ID */
+                bankAccount: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `BankReconciliationResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["BankReconciliationResource"][];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "bank-reconciliations.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReconciliationRequest"];
+            };
+        };
+        responses: {
+            /** @description `BankReconciliationResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["BankReconciliationResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "bank-reconciliations.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The bank reconciliation ID */
+                bankReconciliation: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `BankReconciliationResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["BankReconciliationResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "bank-reconciliations.finish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The bank reconciliation ID */
+                bankReconciliation: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReconciliationRequest"];
+            };
+        };
+        responses: {
+            /** @description `BankReconciliationResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["BankReconciliationResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "bank-reconciliations.reopen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The bank reconciliation ID */
+                bankReconciliation: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReconciliationRequest"];
+            };
+        };
+        responses: {
+            /** @description `BankReconciliationResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["BankReconciliationResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "bank-rules.index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `BankRuleResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["BankRuleResource"][];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "bank-rules.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BankRuleRequest"];
+            };
+        };
+        responses: {
+            /** @description `BankRuleResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["BankRuleResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "bank-rules.order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RuleOrderRequest"];
+            };
+        };
+        responses: {
+            /** @description Array of `BankRuleResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["BankRuleResource"][];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "bank-rules.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The bank rule ID */
+                bankRule: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BankRuleRequest"];
+            };
+        };
+        responses: {
+            /** @description `BankRuleResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["BankRuleResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "bank-rules.destroy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The bank rule ID */
+                bankRule: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
         };
     };
     "bills.index": {
@@ -4831,6 +7068,63 @@ export interface operations {
             };
             401: components["responses"]["AuthenticationException"];
             403: components["responses"]["AuthorizationException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "settings.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `CompanySettingsResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["CompanySettingsResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "settings.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `CompanySettingsResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["CompanySettingsResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
             422: components["responses"]["ValidationException"];
         };
     };
@@ -6844,6 +9138,118 @@ export interface operations {
             422: components["responses"]["ValidationException"];
         };
     };
+    "members.index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `MemberResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["MemberResource"][];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+        };
+    };
+    "roles.index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `RoleResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["RoleResource"][];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "members.roles.assign": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                user: string;
+                role: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `MemberResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["MemberResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "members.roles.revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                user: string;
+                role: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `MemberResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["MemberResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
     "password.update": {
         parameters: {
             query?: never;
@@ -7256,6 +9662,30 @@ export interface operations {
             422: components["responses"]["ValidationException"];
         };
     };
+    "practice.overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `PracticeOverviewResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PracticeOverviewResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+        };
+    };
     "user-profile-information.update": {
         parameters: {
             query?: never;
@@ -7314,6 +9744,479 @@ export interface operations {
                 };
             };
             401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "recurring-invoices.index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `RecurringScheduleResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["RecurringScheduleResource"][];
+                        meta: {
+                            next_cursor: string | null;
+                            prev_cursor: string | null;
+                            limit: number;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "recurring-invoices.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecurringInvoiceRequest"];
+            };
+        };
+        responses: {
+            /** @description `RecurringScheduleResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["RecurringScheduleResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "recurring-invoices.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The recurring invoice ID */
+                recurringInvoice: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `RecurringScheduleResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["RecurringScheduleResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "recurring-invoices.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The recurring invoice ID */
+                recurringInvoice: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecurringInvoiceRequest"];
+            };
+        };
+        responses: {
+            /** @description `RecurringScheduleResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["RecurringScheduleResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "recurring-invoices.pause": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The recurring invoice ID */
+                recurringInvoice: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VersionRequest"];
+            };
+        };
+        responses: {
+            /** @description `RecurringScheduleResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["RecurringScheduleResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "recurring-invoices.resume": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The recurring invoice ID */
+                recurringInvoice: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VersionRequest"];
+            };
+        };
+        responses: {
+            /** @description `RecurringScheduleResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["RecurringScheduleResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "recurring-journals.index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `RecurringScheduleResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["RecurringScheduleResource"][];
+                        meta: {
+                            next_cursor: string | null;
+                            prev_cursor: string | null;
+                            limit: number;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "recurring-journals.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecurringJournalRequest"];
+            };
+        };
+        responses: {
+            /** @description `RecurringScheduleResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["RecurringScheduleResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "recurring-journals.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The recurring journal ID */
+                recurringJournal: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `RecurringScheduleResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["RecurringScheduleResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "recurring-journals.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The recurring journal ID */
+                recurringJournal: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecurringJournalRequest"];
+            };
+        };
+        responses: {
+            /** @description `RecurringScheduleResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["RecurringScheduleResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "recurring-journals.pause": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The recurring journal ID */
+                recurringJournal: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VersionRequest"];
+            };
+        };
+        responses: {
+            /** @description `RecurringScheduleResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["RecurringScheduleResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "recurring-journals.resume": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The recurring journal ID */
+                recurringJournal: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VersionRequest"];
+            };
+        };
+        responses: {
+            /** @description `RecurringScheduleResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["RecurringScheduleResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "recurring-runs.index": {
+        parameters: {
+            query?: {
+                schedule_id?: string | null;
+            };
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `RecurringRunResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["RecurringRunResource"][];
+                        meta: {
+                            next_cursor: string | null;
+                            prev_cursor: string | null;
+                            limit: number;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "recurring-runs.run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["RunRecurringRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            created: unknown[];
+                            failures: string[];
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
         };
     };
     "register.store": {

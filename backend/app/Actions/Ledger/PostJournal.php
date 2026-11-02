@@ -12,6 +12,7 @@ use App\Domain\Shared\Violation;
 use App\Events\Ledger\JournalPosted;
 use App\Models\Ledger\Journal;
 use App\Models\Organisation\Company;
+use App\Services\Banking\BankLedgerHooks;
 use App\Services\Ledger\PostingEngine;
 use App\Support\Actor;
 use App\Support\UnitOfWork\AuditBuffer;
@@ -26,7 +27,7 @@ use App\Support\UnitOfWork\UnitOfWork;
  */
 final class PostJournal
 {
-    public function __construct(private readonly UnitOfWork $uow, private readonly PostingEngine $engine) {}
+    public function __construct(private readonly UnitOfWork $uow, private readonly PostingEngine $engine, private readonly BankLedgerHooks $banking) {}
 
     public function handle(Actor $actor, PostJournalInput $in): Journal
     {
@@ -41,6 +42,8 @@ final class PostJournal
             if (! in_array($doc->status, [JournalStatus::Draft, JournalStatus::PendingApproval], true)) {
                 throw DomainRuleViolation::single('journal_not_postable', "A {$doc->status->value} journal cannot be posted.");
             }
+
+            $this->banking->beforePost($actor, $locks, $doc);                                   // 2: bank account, statement line (bank transactions)
 
             $company = Company::query()->findOrFail($doc->company_id);
             $journalDraft = $this->engine->draftOf($doc->load('lines'), $company->base_currency);
