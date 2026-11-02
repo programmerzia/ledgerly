@@ -34,6 +34,8 @@ final class PurchaseOrderRequest extends CompanyRequest
             'memo' => ['nullable', 'string', 'max:5000'],
             'version' => [$update ? 'required' : 'prohibited', 'integer', 'min:0'],
             ...$this->orderLineRules(),
+            /** Only on a PUT: the id of a line the draft already has. A new order's lines get their ids from the server. */
+            'lines.*.id' => [$update ? 'nullable' : 'prohibited', 'uuid'],
         ];
     }
 
