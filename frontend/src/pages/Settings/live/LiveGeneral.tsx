@@ -7,7 +7,8 @@ import { ApiError } from '@/api/errors';
 import type { ApiSettings } from '@/api/live/admin';
 import { fieldError } from '@/api/messages';
 import { isSigningCancelled } from '@/data/signing';
-import { TAX_ROUNDING_LABEL, profilePatch, toProfileForm, type ProfileForm } from '@/api/adapters/admin';
+import { TAX_ROUNDING_LABEL, profilePatch, purchasingErrors, purchasingPatch, toProfileForm, toPurchasingForm, type ProfileForm, type PurchasingForm } from '@/api/adapters/admin';
+import { Checkbox } from '@/components/ui/checkbox';
 import { settingsKey, useAdminActions, useSettings } from '@/data/admin';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCurrentCompany } from '@/data/team';
@@ -28,18 +29,24 @@ const GeneralForm: React.FC<{ settings: ApiSettings; companyId: string }> = ({ s
   const slot = useRef(new IntentSlot()).current;
   const saved = toProfileForm(loaded);
   const [form, setForm] = useState<ProfileForm>(saved);
+  const savedPurchasing = toPurchasingForm(loaded);
+  const [purchasing, setPurchasing] = useState<PurchasingForm>(savedPurchasing);
+  const [tried, setTried] = useState(false);
   const [error, setError] = useState<unknown>(null);
   const [busy, setBusy] = useState(false);
   const [conflict, setConflict] = useState<VersionConflict | null>(null);
   const qc = useQueryClient();
 
   const canEdit = settings.data.can.update;
-  const patch = profilePatch(saved, form);
+  const patch = { ...profilePatch(saved, form), ...purchasingPatch(savedPurchasing, purchasing) };
   const dirty = Object.keys(patch).length > 0;
+  const pctErrors = tried ? purchasingErrors(purchasing) : {};
   const set = (k: keyof ProfileForm) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setForm({ ...form, [k]: e.target.value });
 
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
+    setTried(true);
+    if (Object.keys(purchasingErrors(purchasing)).length > 0) return;
     setBusy(true);
     setError(null);
     try {
@@ -47,6 +54,8 @@ const GeneralForm: React.FC<{ settings: ApiSettings; companyId: string }> = ({ s
       const next = await actions.saveSettings({ ...patch, version }, slot.for(`${version}:${JSON.stringify(patch)}`));
       slot.clear();
       setForm(toProfileForm(next));
+      setPurchasing(toPurchasingForm(next));
+      setTried(false);
       toast.success('Company details saved.');
     } catch (err) {
       if (err instanceof ApiError && err.isVersionConflict) {
@@ -92,11 +101,40 @@ const GeneralForm: React.FC<{ settings: ApiSettings; companyId: string }> = ({ s
           <div className="col-span-2 text-xs text-text-muted md:col-span-1">Country and currency are set when the company is created and cannot change, because every posted amount is in that currency.</div>
         </dl>
       </SettingsCard>
+      <SettingsCard title="Purchasing" description="How strictly a supplier’s bill has to match the purchase order and what was received.">
+        <div className="flex flex-col gap-4">
+          <label className="flex items-start gap-2.5 text-[13px] text-text-primary">
+            <Checkbox
+              id="co-require-po"
+              checked={purchasing.require_purchase_order}
+              onCheckedChange={(v) => setPurchasing({ ...purchasing, require_purchase_order: v === true })}
+              disabled={!canEdit}
+              aria-label="Require a purchase order on every bill line"
+              className="mt-0.5"
+            />
+            <span>
+              <span className="font-medium">Require a purchase order on every bill line</span>
+              <span className="block text-xs text-text-muted">A bill line with no order is refused unless someone with the override permission passes it with a reason.</span>
+            </span>
+          </label>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <Field id="co-po-price" label="Price tolerance (%)" hint="How far a bill’s price may differ from the order’s, up or down." error={pctErrors.po_price_tolerance_pct ?? fieldError(error, 'po_price_tolerance_pct')}>
+              <input id="co-po-price" className={`${field} text-right tabular-nums`} inputMode="decimal" value={purchasing.po_price_tolerance_pct} onChange={(e) => setPurchasing({ ...purchasing, po_price_tolerance_pct: e.target.value })} disabled={!canEdit} />
+            </Field>
+            <Field id="co-po-qty" label="Quantity tolerance (%)" hint="How far the quantity billed may go over what was received." error={pctErrors.po_quantity_tolerance_pct ?? fieldError(error, 'po_quantity_tolerance_pct')}>
+              <input id="co-po-qty" className={`${field} text-right tabular-nums`} inputMode="decimal" value={purchasing.po_quantity_tolerance_pct} onChange={(e) => setPurchasing({ ...purchasing, po_quantity_tolerance_pct: e.target.value })} disabled={!canEdit} />
+            </Field>
+            <Field id="co-receipt-over" label="Over-delivery tolerance (%)" hint="How far a receipt may go over what was ordered." error={pctErrors.receipt_over_tolerance_pct ?? fieldError(error, 'receipt_over_tolerance_pct')}>
+              <input id="co-receipt-over" className={`${field} text-right tabular-nums`} inputMode="decimal" value={purchasing.receipt_over_tolerance_pct} onChange={(e) => setPurchasing({ ...purchasing, receipt_over_tolerance_pct: e.target.value })} disabled={!canEdit} />
+            </Field>
+          </div>
+        </div>
+      </SettingsCard>
       <FormError error={error} />
       {canEdit ? (
         <div className="flex gap-2">
           <button type="submit" className={primary} disabled={!dirty || busy}>{busy ? 'Saving…' : 'Save changes'}</button>
-          <button type="button" className={secondary} disabled={!dirty || busy} onClick={() => { setForm(saved); setError(null); }}>Discard</button>
+          <button type="button" className={secondary} disabled={!dirty || busy} onClick={() => { setForm(saved); setPurchasing(savedPurchasing); setTried(false); setError(null); }}>Discard</button>
         </div>
       ) : (
         <p className="text-[13px] text-text-muted">You can read these details but not change them.</p>

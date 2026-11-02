@@ -120,6 +120,52 @@ export function profilePatch(saved: ProfileForm, next: ProfileForm) {
   return patch;
 }
 
+/* ------------------------------------------------------------------ purchasing */
+
+export interface PurchasingForm {
+  require_purchase_order: boolean;
+  /** Percentages as typed text ("5", "2.5"): the server holds them as decimal strings and so do we. */
+  po_price_tolerance_pct: string;
+  po_quantity_tolerance_pct: string;
+  receipt_over_tolerance_pct: string;
+}
+
+export const PURCHASING_PCT_FIELDS = ['po_price_tolerance_pct', 'po_quantity_tolerance_pct', 'receipt_over_tolerance_pct'] as const;
+export type PurchasingPctField = (typeof PURCHASING_PCT_FIELDS)[number];
+
+/** "5.0000" -> "5", "2.5000" -> "2.5": text only, no arithmetic. */
+function tidyPct(s: string): string {
+  if (!s.includes('.')) return s;
+  const t = s.replace(/0+$/, '').replace(/\.$/, '');
+  return t === '' ? '0' : t;
+}
+
+export const toPurchasingForm = (s: ApiSettings): PurchasingForm => ({
+  require_purchase_order: s.require_purchase_order === true,
+  po_price_tolerance_pct: tidyPct(s.po_price_tolerance_pct ?? '0'),
+  po_quantity_tolerance_pct: tidyPct(s.po_quantity_tolerance_pct ?? '0'),
+  receipt_over_tolerance_pct: tidyPct(s.receipt_over_tolerance_pct ?? '0'),
+});
+
+/** 0 to 100 with up to four decimals, as the server accepts it. */
+export const isPercent = (s: string): boolean => /^(100(\.0{1,4})?|\d{1,2}(\.\d{1,4})?)$/.test(s.trim());
+
+/** Only what differs from the saved settings. */
+export type PurchasingPatch = { require_purchase_order?: boolean } & Partial<Record<PurchasingPctField, string>>;
+export function purchasingPatch(saved: PurchasingForm, next: PurchasingForm): PurchasingPatch {
+  const patch: PurchasingPatch = {};
+  if (next.require_purchase_order !== saved.require_purchase_order) patch.require_purchase_order = next.require_purchase_order;
+  for (const k of PURCHASING_PCT_FIELDS) if (next[k].trim() !== saved[k]) patch[k] = next[k].trim();
+  return patch;
+}
+
+/** Field errors the browser can see before asking: a percentage must be 0 to 100. */
+export function purchasingErrors(f: PurchasingForm): Partial<Record<PurchasingPctField, string>> {
+  const out: Partial<Record<PurchasingPctField, string>> = {};
+  for (const k of PURCHASING_PCT_FIELDS) if (!isPercent(f[k])) out[k] = 'Enter a percentage from 0 to 100, such as 5 or 2.5.';
+  return out;
+}
+
 export const TAX_ROUNDING_LABEL: Record<string, string> = {
   document_per_code: 'Once per tax code on each document',
   line: 'On every line',
@@ -145,8 +191,15 @@ export const DOCUMENT_TYPES: { value: string; label: string }[] = [
   { value: 'bill', label: 'Supplier bills' },
   { value: 'settlement', label: 'Receipts and payments' },
   { value: 'payment_run', label: 'Payment runs' },
+  { value: 'purchase_requisition', label: 'Purchase requisitions' },
+  { value: 'purchase_order', label: 'Purchase orders' },
 ];
-export const documentTypeLabel = (t: string) => DOCUMENT_TYPES.find((d) => d.value === t)?.label ?? t;
+/**
+ * A revision of an order follows the order's workflow on its new total, so there is no workflow of its own to set up;
+ * it only needs a name where one is listed.
+ */
+const EXTRA_LABELS: Record<string, string> = { purchase_order_revision: 'Purchase order revisions' };
+export const documentTypeLabel = (t: string) => DOCUMENT_TYPES.find((d) => d.value === t)?.label ?? EXTRA_LABELS[t] ?? t;
 
 export const SOURCES: { value: string; label: string }[] = [
   { value: 'any', label: 'Anyone or any integration' },

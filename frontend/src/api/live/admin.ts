@@ -25,6 +25,10 @@ export interface SettingsPatch {
   locale?: string;
   tax_rounding?: string;
   posting_accounts?: Record<string, string | null>;
+  require_purchase_order?: boolean;
+  po_price_tolerance_pct?: string;
+  po_quantity_tolerance_pct?: string;
+  receipt_over_tolerance_pct?: string;
 }
 
 export async function fetchSettings(companyId: string): Promise<ApiSettings> {
