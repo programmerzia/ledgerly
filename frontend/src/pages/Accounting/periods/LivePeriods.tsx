@@ -20,7 +20,8 @@ import { defaultPeriod, defaultYear, type LivePeriod } from '@/api/adapters/fisc
 import { createIntent } from '@/api/idempotency';
 import { describeError } from '@/api/messages';
 import { describeProblem } from '@/api/live/writeProblems';
-import { isSignCancelled, useSignedRunner } from '@/api/live/signedRunner';
+import { SignDialog } from '@/components/domain/SignDialog';
+import { isSigningCancelled, useSignedRun } from '@/data/signing';
 import { cn } from '@/lib/utils';
 
 const btnGhost = 'h-8 px-3 rounded-md border border-border hover:bg-surface-neutral text-[13px] font-medium text-text-secondary cursor-pointer';
@@ -34,7 +35,8 @@ export const LivePeriods: React.FC = () => {
   const myId = useLedgerStore((s) => s.currentUser.id);
   const { data: years, isLoading, error, refetch } = useFiscalYears();
   const actions = useFiscalActions();
-  const signed = useSignedRunner();
+  const signed = useSignedRun();
+  const [signCtx, setSignCtx] = useState<{ title: string; consequence: string; actionTitle?: string } | null>(null);
 
   const [yearId, setYearId] = useState<string | null>(null);
   const [periodId, setPeriodId] = useState<string | null>(null);
@@ -70,12 +72,14 @@ export const LivePeriods: React.FC = () => {
     setBusy(true);
     setProblem(null);
     try {
-      if (ctx) await signed.run(fn, ctx);
-      else await fn();
+      if (ctx) {
+        setSignCtx(ctx);
+        await signed.run(fn);
+      } else await fn();
       if (success) toast.success(success);
       return true;
     } catch (e) {
-      if (!isSignCancelled(e)) setProblem(describeProblem(e));
+      if (!isSigningCancelled(e)) setProblem(describeProblem(e));
       return false;
     } finally {
       setBusy(false);
@@ -140,15 +144,16 @@ export const LivePeriods: React.FC = () => {
     setBusy(true);
     setProblem(null);
     try {
-      const res = await signed.run(() => actions.yearEnd(year, intent.current), {
+      setSignCtx({
         title: `Year-end close for ${year.name}`,
         consequence: 'The server posts the closing journal, moving income and expenses into retained earnings. Posted entries cannot be edited, only reversed.',
         actionTitle: 'Sign and close the year',
       });
+      const res = await signed.run(() => actions.yearEnd(year, intent.current));
       toast.success(res.closingJournalId ? `${year.name} closed. Closing journal ${res.closingJournalId} posted.` : `${year.name} closed.`);
       setModal(null);
     } catch (e) {
-      if (!isSignCancelled(e)) setProblem(describeProblem(e));
+      if (!isSigningCancelled(e)) setProblem(describeProblem(e));
     } finally {
       setBusy(false);
     }
@@ -432,7 +437,7 @@ export const LivePeriods: React.FC = () => {
         </DialogContent>
       </Dialog>
 
-      {signed.dialog}
+      <SignDialog {...signed.signProps} documentTitle={signCtx?.title ?? ''} actionTitle={signCtx?.actionTitle} consequenceText={signCtx?.consequence} />
     </div>
   );
 };

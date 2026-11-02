@@ -10,12 +10,12 @@ use App\Contracts\PermissionChecker;
 use App\Domain\Fiscal\PeriodStatus;
 use App\Domain\Ledger\DraftLine;
 use App\Domain\Ledger\JournalDraft;
+use App\Domain\Ledger\JournalReversal;
 use App\Domain\Ledger\JournalStatus;
 use App\Domain\Ledger\JournalType;
 use App\Domain\Ledger\PostingRejected;
 use App\Domain\Shared\DomainRuleViolation;
 use App\Domain\Shared\Violation;
-use App\Domain\Trade\InvoiceKind;
 use App\Events\Ledger\JournalPosted;
 use App\Events\Ledger\JournalReversed;
 use App\Models\Fiscal\FiscalPeriod;
@@ -144,8 +144,7 @@ final class ReverseJournal
         if ($journal->reversal_of_id !== null) {
             throw DomainRuleViolation::single('journal_not_reversible', 'A reversal cannot itself be reversed; post a new journal.');
         }
-        // An invoice's or bill's journal is undone through the document, which keeps the sub-ledger and the ledger in step.
-        if ($viaDocument === false && in_array($journal->source_type, [...InvoiceKind::values(...InvoiceKind::cases()), 'settlement', 'credit_application'], true)) {
+        if ($viaDocument === false && JournalReversal::belongsToDocument($journal->source_type)) {
             throw DomainRuleViolation::single('journal_not_reversible', 'This journal belongs to a document; reverse the document instead.');
         }
     }

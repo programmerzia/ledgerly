@@ -18891,6 +18891,12 @@
                             "null"
                         ]
                     },
+                    "requested_by_name": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
                     "requested_at": {
                         "type": [
                             "string",
@@ -19235,6 +19241,7 @@
                     "slot",
                     "role",
                     "requested_by",
+                    "requested_by_name",
                     "requested_at",
                     "document"
                 ],
@@ -23697,6 +23704,7 @@
                             "string",
                             "null"
                         ],
+                        "description": "Set on create only; refused when replacing a draft.",
                         "enum": [
                             "manual",
                             "adjustment",
@@ -23730,6 +23738,7 @@
                     },
                     "version": {
                         "type": "integer",
+                        "description": "Required when replacing a draft; refused on create.",
                         "minimum": 0
                     },
                     "lines": {
@@ -23788,14 +23797,10 @@
                                     "maxLength": 1000
                                 },
                                 "dimensions": {
-                                    "type": [
-                                        "array",
-                                        "null"
-                                    ],
-                                    "items": {
+                                    "type": "object",
+                                    "additionalProperties": {
                                         "type": "string"
-                                    },
-                                    "maxItems": 8
+                                    }
                                 }
                             },
                             "required": [

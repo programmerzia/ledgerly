@@ -6,6 +6,7 @@ namespace App\Support\Problem;
 
 use App\Domain\Shared\DomainRuleViolation;
 use App\Domain\Shared\Violation;
+use App\Domain\Signing\SigningLocked;
 use App\Support\UnitOfWork\VersionConflict;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -25,7 +26,7 @@ final class ProblemRenderer
             $body['server_version'] = $e->serverVersion;
         }
 
-        return self::respond($body, $status);
+        return self::respond($body, $status, $e instanceof SigningLocked ? ['Retry-After' => (string) $e->retryAfterSeconds] : []);
     }
 
     public static function validation(ValidationException $e, Request $request): JsonResponse
@@ -57,9 +58,12 @@ final class ProblemRenderer
         ];
     }
 
-    /** @param array<string, mixed> $body */
-    private static function respond(array $body, int $status): JsonResponse
+    /**
+     * @param  array<string, mixed>  $body
+     * @param  array<string, string>  $headers
+     */
+    private static function respond(array $body, int $status, array $headers = []): JsonResponse
     {
-        return new JsonResponse($body, $status, ['Content-Type' => 'application/problem+json']);
+        return new JsonResponse($body, $status, ['Content-Type' => 'application/problem+json', ...$headers]);
     }
 }

@@ -70,6 +70,6 @@ final class ListApprovalInbox
                 ->whereColumn('s.document_id', 'approval_requests.document_id')
                 ->whereColumn('s.document_type', 'approval_requests.document_type')
                 ->where('s.signed_by', $me))
-            ->with(['journal', 'invoice', 'settlement', 'paymentRun']);
+            ->with(['journal', 'invoice', 'settlement', 'paymentRun', 'requester:id,name']);
     }
 }

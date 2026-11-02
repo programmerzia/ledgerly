@@ -3237,6 +3237,7 @@ export interface components {
             slot: number;
             role: string;
             requested_by: string | null;
+            requested_by_name: string | null;
             requested_at: string | null;
             document: {
                 id: string;
@@ -4410,7 +4411,10 @@ export interface components {
          *     Line dimensions are `{"<dimension id>": "<dimension value id>"}`.
          */
         JournalRequest: {
-            /** @enum {string|null} */
+            /**
+             * @description Set on create only; refused when replacing a draft.
+             * @enum {string|null}
+             */
             journal_type?: "manual" | "adjustment" | null;
             /** Format: date */
             journal_date: string;
@@ -4418,6 +4422,7 @@ export interface components {
             fiscal_period_id?: string | null;
             reference?: string | null;
             memo?: string | null;
+            /** @description Required when replacing a draft; refused on create. */
             version?: number;
             lines: {
                 /** Format: uuid */
@@ -4428,7 +4433,9 @@ export interface components {
                 fx_rate?: string | null;
                 amount_fc?: number | null;
                 description?: string | null;
-                dimensions?: string[] | null;
+                dimensions?: {
+                    [key: string]: string;
+                };
             }[];
         };
         /** JournalResource */

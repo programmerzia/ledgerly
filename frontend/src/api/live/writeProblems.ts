@@ -3,7 +3,7 @@ import type { QueryClient, QueryKey } from '@tanstack/react-query';
 import { ApiError } from '@/api/errors';
 import { describeError } from '@/api/messages';
 import { useLedgerStore } from '@/mock/store';
-import { isSignCancelled } from './signedRunner';
+import { isSigningCancelled } from '@/data/signing';
 
 /**
  * Text for a failed live write. Violations the server lists (`violations[].message`) follow the main sentence, so
@@ -40,7 +40,7 @@ export function handleVersionConflict(e: unknown, opts: { subject: string; docum
 
 /** Toast for any failed write that the caller did not already handle. Cancelling the PIN prompt is silent. */
 export function toastProblem(e: unknown): void {
-  if (isSignCancelled(e)) return;
+  if (isSigningCancelled(e)) return;
   toast.error(describeProblem(e));
 }
 

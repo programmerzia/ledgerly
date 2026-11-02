@@ -33,11 +33,13 @@ final class JournalRequest extends CompanyRequest
         $update = $this->isMethod('PUT');
 
         return [
+            /** Set on create only; refused when replacing a draft. */
             'journal_type' => [$update ? 'prohibited' : 'nullable', 'string', Rule::in([JournalType::Manual->value, JournalType::Adjustment->value])],
             'journal_date' => ['required', 'date_format:Y-m-d'],
             'fiscal_period_id' => ['nullable', 'uuid', $this->inCompany('fiscal_periods')],
             'reference' => ['nullable', 'string', 'max:255'],
             'memo' => ['nullable', 'string', 'max:5000'],
+            /** Required when replacing a draft; refused on create. */
             'version' => [$update ? 'required' : 'prohibited', 'integer', 'min:0'],
             'lines' => ['required', 'array', 'min:1', 'max:500'],
             'lines.*.account_id' => ['required', 'uuid', $this->inCompany('accounts')->whereNull('deleted_at')],

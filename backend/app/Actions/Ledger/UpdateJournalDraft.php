@@ -41,6 +41,7 @@ final class UpdateJournalDraft
                 'memo' => $in->memo,
                 'fiscal_period_id' => $in->fiscalPeriodId,
                 'status' => JournalStatus::Draft,
+                ...PostingEngine::totals($in->lines),
                 'lock_version' => $journal->lock_version + 1,
             ])->save();
 

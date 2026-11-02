@@ -28,7 +28,8 @@ it('runs a journal from draft through approval to posting and reversal', functio
         ->assertJsonPath('data.lines.0.debit', ['amount' => 10000, 'currency' => 'USD'])
         ->assertJsonPath('data.lines.1.credit.amount', 10000)
         ->assertJsonPath('data.can.update', true)
-        ->assertJsonPath('data.can.approve', false);
+        ->assertJsonPath('data.can.approve', false)
+        ->assertJsonPath('data.total_debit.amount', 10000)->assertJsonPath('data.total_credit.amount', 10000);
     $id = $draft->json('data.id');
 
     $this->postJson($this->api("journals/{$id}/posting-preview"), [], $this->key())
@@ -40,7 +41,8 @@ it('runs a journal from draft through approval to posting and reversal', functio
 
     // The approver sees it in the inbox; the maker does not.
     $this->asPerson($this->approver, signing: true)->getJson($this->api('approvals'))
-        ->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.document.id', $id)->assertJsonPath('data.0.document.amount.amount', 10000);
+        ->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.document.id', $id)->assertJsonPath('data.0.document.amount.amount', 10000)
+        ->assertJsonPath('data.0.requested_by_name', 'Ann Accountant');
     $this->asPerson($this->accountant, signing: true)->getJson($this->api('approvals'))->assertForbidden();
 
     $this->asPerson($this->approver, signing: true)->postJson($this->api("journals/{$id}/approve"), [], $this->key())
@@ -51,7 +53,8 @@ it('runs a journal from draft through approval to posting and reversal', functio
     // Reversal is for Owner/Finance Manager.
     $reversal = $this->asPerson($this->owner, signing: true)->postJson($this->api("journals/{$id}/reverse"), [], $this->key())
         ->assertCreated()->assertJsonPath('data.status', 'posted')->assertJsonPath('data.reversal_of_id', $id)
-        ->assertJsonPath('data.lines.0.credit.amount', 10000);
+        ->assertJsonPath('data.lines.0.credit.amount', 10000)
+        ->assertJsonPath('data.can.reverse', false);
     expect($reversal->json('data.id'))->not->toBe($id);
     $this->getJson($this->api("journals/{$id}"))->assertJsonPath('data.status', 'reversed')->assertJsonPath('data.reversed_by_id', $reversal->json('data.id'));
 });
@@ -119,7 +122,8 @@ it('updates a draft with its version and answers 409 with the server version on 
 
     $body = [...$this->journalBody(20000), 'version' => 0];
     $this->putJson($this->api("journals/{$id}"), $body, $this->key())
-        ->assertOk()->assertJsonPath('data.version', 1)->assertJsonPath('data.lines.0.debit.amount', 20000);
+        ->assertOk()->assertJsonPath('data.version', 1)->assertJsonPath('data.lines.0.debit.amount', 20000)
+        ->assertJsonPath('data.total_debit.amount', 20000)->assertJsonPath('data.total_credit.amount', 20000);
 
     $this->putJson($this->api("journals/{$id}"), $body, $this->key())
         ->assertStatus(409)->assertJson(['code' => 'version_conflict', 'server_version' => 1]);

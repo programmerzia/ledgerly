@@ -76,9 +76,10 @@ it('locks signing after three wrong PINs, keeps the evidence, and clears the loc
     foreach ([1, 2] as $_) {
         $this->actingAs($this->user)->postJson('/api/v1/signing/verify', ['pin' => '000001'])->assertStatus(403)->assertJson(['code' => 'signing_failed']);
     }
-    $this->actingAs($this->user)->postJson('/api/v1/signing/verify', ['pin' => '000001'])->assertStatus(423)->assertJson(['code' => 'signing_locked']);
+    $this->actingAs($this->user)->postJson('/api/v1/signing/verify', ['pin' => '000001'])->assertStatus(423)->assertJson(['code' => 'signing_locked'])->assertHeader('Retry-After', '900');
     // Even the right PIN is refused while locked, and does not count as a failure.
-    $this->actingAs($this->user)->postJson('/api/v1/signing/verify', ['pin' => '246810'])->assertStatus(423);
+    $this->clock->advance('+5 minutes');
+    $this->actingAs($this->user)->postJson('/api/v1/signing/verify', ['pin' => '246810'])->assertStatus(423)->assertHeader('Retry-After', '600');
 
     expect(signingEvents($this->f))->toBe(['pin_changed', 'failure', 'failure', 'lockout'])
         ->and(app(TenantContext::class)->run($this->f->tenantId, fn () => DB::table('audit_events')->where('action', 'signing.failed')->count()))->toBe(3)

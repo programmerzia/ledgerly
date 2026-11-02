@@ -8,7 +8,6 @@ import { Kbd } from '@/components/ui/kbd';
 import { cn } from '@/lib/utils';
 import { formatDate, formatMoney } from '@/lib/format';
 import { useJournalList, type JournalFilters } from '@/data/journals';
-import { hasHeaderTotals } from '@/api/adapters/journal';
 import { ErrorLine, LoadingLine, inputClass } from './parts';
 
 /** Each tab is a server filter. There are no counts: a count from a partial page would be wrong. */
@@ -149,7 +148,7 @@ export const JournalsListLive: React.FC = () => {
                   <td className="px-3 py-2">
                     <StatusPill status={j.status} />
                   </td>
-                  <td className="px-3 py-2 text-right font-medium tabular-nums text-text-primary">{hasHeaderTotals(j.status) ? formatMoney(j.total_debit, company.base_currency) : '—'}</td>
+                  <td className="px-3 py-2 text-right font-medium tabular-nums text-text-primary">{formatMoney(j.total_debit, company.base_currency)}</td>
                 </tr>
               ))}
             </tbody>

@@ -19,7 +19,7 @@ import { isSigningCancelled, useSignedRun } from '@/data/signing';
 import { ApiError } from '@/api/errors';
 import { IntentSlot } from '@/api/intentSlot';
 import { toApiDate } from '@/api/adapters/dates';
-import { toDuplicateInput, toJournalRequest, withLineTotals, type LiveJournalLine } from '@/api/adapters/journal';
+import { toDuplicateInput, toJournalRequest, type LiveJournalLine } from '@/api/adapters/journal';
 import { ErrorLine, LoadingLine, inputClass, verdictText } from './parts';
 import { RepeatDialog } from './RepeatDialog';
 
@@ -58,7 +58,7 @@ export const JournalViewLive: React.FC = () => {
     return s;
   };
 
-  const journal = journalQ.data ? withLineTotals(journalQ.data) : null;
+  const journal = journalQ.data ?? null;
   if (journalQ.isLoading || accounts.isLoading) return <LoadingLine what="journal" />;
   if (journalQ.error || !journal) {
     const notFound = journalQ.error instanceof ApiError && journalQ.error.status === 404;

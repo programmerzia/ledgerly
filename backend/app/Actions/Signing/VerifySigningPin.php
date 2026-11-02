@@ -8,12 +8,14 @@ use App\Actions\Signing\Inputs\VerifySigningPinInput;
 use App\Contracts\Clock;
 use App\Domain\Shared\DomainRuleViolation;
 use App\Domain\Signing\PinPolicy;
+use App\Domain\Signing\SigningLocked;
 use App\Models\Platform\User;
 use App\Support\Actor;
 use App\Support\ActorType;
 use App\Support\Audit\DetachedAudit;
 use App\Support\Signing\SigningEvents;
 use App\Support\Signing\SigningGrants;
+use Carbon\CarbonImmutable;
 use DateTimeImmutable;
 use Illuminate\Contracts\Hashing\Hasher;
 use Illuminate\Database\DatabaseManager;
@@ -44,12 +46,15 @@ final class VerifySigningPin
         }
         $now = $this->clock->now();
 
-        $outcome = $this->db->connection()->transaction(function () use ($actor, $in, $now): string {
+        $retryAfter = 0;
+        $outcome = $this->db->connection()->transaction(function () use ($actor, $in, $now, &$retryAfter): string {
             $user = User::query()->whereKey($actor->id)->lockForUpdate()->firstOrFail();
             if ($user->signing_pin_hash === null) {
                 return 'unset';
             }
             if ($user->signing_locked_until !== null && $user->signing_locked_until > $now) {
+                $retryAfter = max(1, (int) ceil(CarbonImmutable::parse($user->signing_locked_until)->diffInSeconds($now, true)));
+
                 return 'locked';
             }
             if (! $this->hasher->check($in->pin, $user->signing_pin_hash)) {
@@ -73,15 +78,14 @@ final class VerifySigningPin
             case 'unset':
                 throw DomainRuleViolation::single('signing_pin_not_set', 'Set a signing PIN in Settings → Security first.');
             case 'locked':
-                throw DomainRuleViolation::single('signing_locked', 'Signing is locked after repeated failures. Try again in a few minutes.');
+                throw new SigningLocked('Signing is locked after repeated failures.', $retryAfter);
             case 'failure':
             case 'lockout':
                 $this->events->record($actor->id, $outcome, $actor->ip);
                 $this->audit->record($actor, 'signing.failed', context: ['lockout' => $outcome === 'lockout']);
-                throw DomainRuleViolation::single(
-                    $outcome === 'lockout' ? 'signing_locked' : 'signing_failed',
-                    $outcome === 'lockout' ? 'Wrong PIN. Signing is now locked for 15 minutes.' : 'Wrong PIN.',
-                );
+                throw $outcome === 'lockout'
+                    ? new SigningLocked('Wrong PIN. Signing is now locked for '.PinPolicy::LOCKOUT_MINUTES.' minutes.', PinPolicy::LOCKOUT_MINUTES * 60)
+                    : DomainRuleViolation::single('signing_failed', 'Wrong PIN.');
         }
 
         $this->grants->grant($actor->id, $in->sessionId);

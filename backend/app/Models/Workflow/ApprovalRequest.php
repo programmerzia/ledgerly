@@ -6,6 +6,7 @@ namespace App\Models\Workflow;
 
 use App\Models\BaseModel;
 use App\Models\Ledger\Journal;
+use App\Models\Platform\User;
 use App\Models\Trade\Invoice;
 use App\Models\Trade\PaymentRun;
 use App\Models\Trade\Settlement;
@@ -54,6 +55,12 @@ class ApprovalRequest extends BaseModel
     public function journal(): BelongsTo
     {
         return $this->belongsTo(Journal::class, 'document_id');
+    }
+
+    /** @return BelongsTo<User, $this> */
+    public function requester(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'requested_by');
     }
 
     /** @return BelongsTo<Invoice, $this> null unless the document is an invoice or bill */

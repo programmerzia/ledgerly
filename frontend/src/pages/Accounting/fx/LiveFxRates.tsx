@@ -19,7 +19,8 @@ import { isRateText, type LiveRate } from '@/api/adapters/fx';
 import { createIntent } from '@/api/idempotency';
 import { describeError } from '@/api/messages';
 import { describeProblem } from '@/api/live/writeProblems';
-import { isSignCancelled, useSignedRunner } from '@/api/live/signedRunner';
+import { SignDialog } from '@/components/domain/SignDialog';
+import { isSigningCancelled, useSignedRun } from '@/data/signing';
 import { ApiError } from '@/api/errors';
 
 type Tab = 'rates' | 'revaluation';
@@ -45,7 +46,8 @@ export const LiveFxRates: React.FC = () => {
   const runs = useFxRuns();
   const years = useFiscalYears();
   const actions = useFxActions();
-  const signed = useSignedRunner();
+  const signed = useSignedRun();
+  const [signCtx, setSignCtx] = useState<{ title: string; consequence: string; actionTitle?: string } | null>(null);
 
   const [tab, setTab] = useState<Tab>('rates');
   const [isSyncing, setIsSyncing] = useState(false);
@@ -128,15 +130,16 @@ export const LiveFxRates: React.FC = () => {
     setProblem(null);
     setSuccess(null);
     try {
-      const res = await signed.run(() => actions.runRevaluation(periodId, asOf, runIntent.current), {
+      setSignCtx({
         title: `FX month-end adjustment, ${periodName(periodId)}`,
         consequence: `This posts the exchange gain or loss the server calculated for ${periodName(periodId)} and schedules its automatic reversal. Posted entries cannot be edited, only reversed.`,
         actionTitle: 'Sign and record adjustment',
       });
+      const res = await signed.run(() => actions.runRevaluation(periodId, asOf, runIntent.current));
       runIntent.current = createIntent();
       setSuccess(`Month-end adjustment recorded (journal ${res.journal_id ?? 'pending'}).${res.reversal_pending ? ' Its reversal waits for the next month to exist and be open.' : ' It is reversed automatically at the start of the next month.'}`);
     } catch (e) {
-      if (!isSignCancelled(e)) setProblem(describeProblem(e));
+      if (!isSigningCancelled(e)) setProblem(describeProblem(e));
     } finally {
       setRunning(false);
     }
@@ -375,7 +378,7 @@ export const LiveFxRates: React.FC = () => {
         </DialogContent>
       </Dialog>
 
-      {signed.dialog}
+      <SignDialog {...signed.signProps} documentTitle={signCtx?.title ?? ''} actionTitle={signCtx?.actionTitle} consequenceText={signCtx?.consequence} />
     </div>
   );
 };

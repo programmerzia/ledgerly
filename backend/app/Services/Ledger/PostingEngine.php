@@ -161,12 +161,27 @@ final class PostingEngine
             'source_id' => $draft->sourceId,
             'created_by' => $actor->id,
             'lock_version' => 0,
+            ...self::totals($draft->lines),
             ...$extra,
         ])->save();
 
         $this->insertLines($actor, $journal, $draft->lines, $baseCurrency);
 
         return $journal;
+    }
+
+    /**
+     * What the lines add up to, shown on a journal before it posts. Posting recomputes them from its plan.
+     *
+     * @param  list<DraftLine>  $lines
+     * @return array{total_debit: int, total_credit: int}
+     */
+    public static function totals(array $lines): array
+    {
+        return [
+            'total_debit' => array_sum(array_map(fn (DraftLine $l): int => $l->debit, $lines)),
+            'total_credit' => array_sum(array_map(fn (DraftLine $l): int => $l->credit, $lines)),
+        ];
     }
 
     /** @param list<DraftLine> $lines */

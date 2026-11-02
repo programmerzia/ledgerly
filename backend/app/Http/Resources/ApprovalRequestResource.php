@@ -23,6 +23,7 @@ final class ApprovalRequestResource extends JsonResource
             'slot' => $this->slot,
             'role' => $this->role,
             'requested_by' => $this->requested_by,
+            'requested_by_name' => $this->requester?->name,
             'requested_at' => Json::time($this->requested_at),
             'document' => $this->document($request),
         ];

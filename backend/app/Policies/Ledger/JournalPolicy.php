@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Policies\Ledger;
 
+use App\Domain\Ledger\JournalReversal;
 use App\Domain\Ledger\JournalStatus;
 use App\Models\Ledger\Journal;
 use App\Models\Platform\User;
@@ -79,6 +80,8 @@ final class JournalPolicy
     {
         return $journal->status === JournalStatus::Posted
             && $journal->reversed_by_id === null
+            && $journal->reversal_of_id === null
+            && ! JournalReversal::belongsToDocument($journal->source_type)
             && $this->context->personCan($principal, 'journals.reverse', $journal->company_id);
     }
 }

@@ -155,18 +155,6 @@ export function toJournal(a: ApiJournal, scope: { tenantId: string; companyId: s
   };
 }
 
-/**
- * The API fills a journal's header totals only when it posts: a draft or a journal waiting for approval reads 0 there,
- * in the list and in the single view alike. Screens show a dash for those in a list, and for a single journal the sum of
- * its own lines (integer minor units as stored, no rates), which is display only.
- */
-export const hasHeaderTotals = (status: DocumentStatus): boolean => status === 'posted' || status === 'reversed';
-
-export function withLineTotals<T extends { status: DocumentStatus; total_debit: number; total_credit: number; lines: Array<{ debit: number; credit: number }> }>(j: T): T {
-  if (hasHeaderTotals(j.status)) return j;
-  return { ...j, total_debit: j.lines.reduce((s, l) => s + l.debit, 0), total_credit: j.lines.reduce((s, l) => s + l.credit, 0) };
-}
-
 /** What the form edits. Amounts are integer minor units straight from the money inputs. */
 export interface JournalDraftInput {
   journal_date: string;
@@ -290,6 +278,7 @@ export interface ApprovalItem {
   amount: number;
   currency: string;
   maker_id: string;
+  maker_name: string | null;
   submitted_at: string;
   role: string;
   step: number;
@@ -338,6 +327,7 @@ export function toApprovalItem(a: ApiApproval): ApprovalItem {
     amount: fromApiMoney(money),
     currency: money.currency,
     maker_id: a.requested_by ?? doc.submitted_by ?? doc.created_by ?? '',
+    maker_name: a.requested_by_name ?? null,
     submitted_at: a.requested_at ?? '',
     role: a.role,
     step: a.step,

@@ -11,7 +11,7 @@ import { Kbd } from '@/components/ui/kbd';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { formatDateTime, formatMoney } from '@/lib/format';
-import { useApprovalInbox, useBulkApprove, useMemberNames } from '@/data/approvals';
+import { useApprovalInbox, useBulkApprove } from '@/data/approvals';
 import { useJournalActions } from '@/data/journals';
 import { isSigningCancelled, useSignedRun } from '@/data/signing';
 import { IntentSlot } from '@/api/intentSlot';
@@ -58,7 +58,6 @@ export const ApprovalsInboxLive: React.FC = () => {
   const coSlug = useLedgerStore((s) => s.currentCompany.slug);
   const me = useLedgerStore((s) => s.currentUser);
   const inbox = useApprovalInbox();
-  const names = useMemberNames();
   const bulkApprove = useBulkApprove();
   const journalActions = useJournalActions();
   const { run, signProps } = useSignedRun();
@@ -73,7 +72,7 @@ export const ApprovalsInboxLive: React.FC = () => {
   const returnSlot = useRef(new IntentSlot()).current;
 
   const items = inbox.data;
-  const makerOf = (i: ApprovalItem) => (i.maker_id === me.id ? me.name : (names.get(i.maker_id) ?? 'a colleague'));
+  const makerOf = (i: ApprovalItem) => (i.maker_id === me.id ? me.name : (i.maker_name ?? 'a colleague'));
   const selectedItems = items.filter((i) => selected.has(i.id));
   const allSelected = items.length > 0 && items.every((i) => selected.has(i.id));
   const toggle = (id: string) =>

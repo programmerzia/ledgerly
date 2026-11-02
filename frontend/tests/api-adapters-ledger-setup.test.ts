@@ -3,7 +3,6 @@ import { toAccount, toAccountRequest, toNewAccountRequest, toDimensionRulesReque
 import { toFiscalYear, toCloseBody, toCloseCheck, defaultYear, defaultPeriod, type ApiFiscalYear } from '@/api/adapters/fiscal';
 import { toRate, toRevalPreview, toRevalRun, isRateText, toRateRequest } from '@/api/adapters/fx';
 import { toDimension } from '@/api/adapters/dimension';
-import { describeSigningError } from '@/components/domain/LiveSignDialog';
 import { problemToError } from '@/api/errors';
 import { isLiveRoute } from '@/data/liveRoutes';
 
@@ -129,11 +128,3 @@ describe('dimension adapter and live routes (3.2)', () => {
   });
 });
 
-describe('signing verdicts', () => {
-  it('are keyed on the error code, not the message', () => {
-    const e = (code: string) => problemToError(403, { code, detail: 'whatever the server says' });
-    expect(describeSigningError(e('signing_failed'))).toBe('That PIN is not right.');
-    expect(describeSigningError(e('signing_locked'))).toMatch(/paused/);
-    expect(describeSigningError(e('signing_pin_not_set'))).toMatch(/Settings/);
-  });
-});

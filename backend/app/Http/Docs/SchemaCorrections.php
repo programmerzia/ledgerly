@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Docs;
 
 use Dedoc\Scramble\Support\Generator\OpenApi;
+use Dedoc\Scramble\Support\Generator\Types\ArrayType;
 use Dedoc\Scramble\Support\Generator\Types\BooleanType;
 use Dedoc\Scramble\Support\Generator\Types\ObjectType;
 use Dedoc\Scramble\Support\Generator\Types\StringType;
@@ -18,6 +19,13 @@ final class SchemaCorrections
             // `can` comes from Json::can(): named booleans, which Scramble reads as a plain array.
             if ($schema->type instanceof ObjectType && $schema->type->hasProperty('can')) {
                 $schema->type->addProperty('can', (new ObjectType)->additionalProperties(new BooleanType));
+            }
+            // `lines.*.dimensions` reads as a list; it is dimension id → value id.
+            if ($schema->type instanceof ObjectType && str_ends_with((string) $name, 'JournalRequest') && $schema->type->hasProperty('lines')) {
+                $lines = $schema->type->getProperty('lines');
+                if ($lines instanceof ArrayType && $lines->items instanceof ObjectType) {
+                    $lines->items->addProperty('dimensions', (new ObjectType)->additionalProperties(new StringType));
+                }
             }
             // `waivers.*` reads as a list; it is check code → reason.
             if ($schema->type instanceof ObjectType && str_ends_with((string) $name, 'ClosePeriodRequest')) {

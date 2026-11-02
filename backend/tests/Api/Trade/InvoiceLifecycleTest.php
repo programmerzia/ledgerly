@@ -149,7 +149,8 @@ it('reverses a posted invoice through its journal: a mirror journal, the documen
     $this->asPerson($this->owner)->postJson($this->api("invoices/{$posted['id']}/reverse"), [], $this->key())->assertStatus(403)->assertJson(['code' => 'signature_required']);
     $this->asToken($this->newToken(['*']))->postJson($this->api("invoices/{$posted['id']}/reverse"), [], $this->key())->assertForbidden();
     // Its journal belongs to the document: reversing it on its own would split the ledger from the sub-ledger.
-    $this->asPerson($this->owner, signing: true)->postJson($this->api("journals/{$posted['journal_id']}/reverse"), [], $this->key())->assertStatus(422)->assertJson(['code' => 'journal_not_reversible']);
+    $this->asPerson($this->owner, signing: true)->postJson($this->api("journals/{$posted['journal_id']}/reverse"), [], $this->key())->assertForbidden();
+    $this->getJson($this->api("journals/{$posted['journal_id']}"))->assertJsonPath('data.can.reverse', false);
 
     $reversed = $this->postJson($this->api("invoices/{$posted['id']}/reverse"), [], $this->key())->assertOk()
         ->assertJsonPath('data.status', 'reversed')->assertJsonPath('data.payment_status', 'reversed')->assertJsonPath('data.version', $posted['version'] + 1)->json('data');
