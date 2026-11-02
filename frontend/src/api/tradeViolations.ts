@@ -87,8 +87,71 @@ function tradeText(v: Violation): string | null {
   }
 }
 
+/**
+ * Purchase orders, receipts and the three-way match. Written in purchase words already, so these never go through
+ * `toPurchases` (which would turn "receipt" into "payment").
+ */
+export const MATCH_OVERRIDABLE_CODES: readonly string[] = ['match_price_mismatch', 'match_quantity_exceeds_received', 'purchase_order_required'];
+export const MATCH_FIXED_CODES: readonly string[] = ['bill_order_supplier_mismatch', 'bill_order_currency_mismatch', 'bill_order_not_open'];
+export const isMatchCode = (code: string): boolean => MATCH_OVERRIDABLE_CODES.includes(code) || MATCH_FIXED_CODES.includes(code) || code === 'match_override_forbidden';
+
+function procurementText(v: Violation): string | null {
+  switch (v.code) {
+    case 'match_price_mismatch':
+      return 'The price is not the price on the purchase order, and the difference is more than your company allows.';
+    case 'match_quantity_exceeds_received':
+      return 'More is being billed than has been received on the purchase order. Record the receipt first, or lower the quantity.';
+    case 'purchase_order_required':
+      return 'Your company only pays bills that come from a purchase order. Create the bill from the order, or ask someone who can pass it with a reason.';
+    case 'bill_order_supplier_mismatch':
+      return 'The purchase order is for a different supplier from this bill.';
+    case 'bill_order_currency_mismatch':
+      return 'The purchase order is in a different currency from this bill.';
+    case 'bill_order_not_open':
+      return 'The purchase order is no longer open for bills.';
+    case 'match_override_forbidden':
+      return 'You do not have permission to pass a bill that does not match its order. Ask someone with the override permission.';
+    case 'order_not_open':
+      return 'This order is no longer open for that.';
+    case 'order_has_open_revision':
+      return 'This order has a revision in progress. Void or finish it first.';
+    case 'order_not_cancellable':
+      return 'This order can no longer be cancelled.';
+    case 'order_has_unbilled_receipts':
+      return 'Something received on this order is not billed yet. Bill it or reverse the receipt first.';
+    case 'order_nothing_to_bill':
+      return 'Everything on this order is already on a bill.';
+    case 'order_line_unknown':
+    case 'revision_line_unknown':
+      return 'A line is not on this order.';
+    case 'receipt_quantity_exceeds_open':
+      return 'This is more than is still open on the order.';
+    case 'receipt_line_invalid':
+      return 'This line cannot be received. Check that it is on the order once and has a quantity.';
+    case 'receipt_already_billed':
+      return 'This quantity is already on a bill. Reverse the bill first.';
+    case 'receipt_already_reversed':
+      return 'This receipt has already been reversed.';
+    case 'requisition_not_approved':
+      return 'Only an approved requisition can become an order.';
+    case 'requisition_line_invalid':
+    case 'requisition_line_converted':
+      return 'A line is already on an order, or is not on this requisition.';
+    case 'requisition_line_empty':
+      return 'Every line needs an item or a description.';
+    case 'revision_item_fixed':
+      return 'This line already has receipts or bills, so its item cannot change.';
+    case 'revision_quantity_below_used':
+      return 'This quantity cannot go below what has been received or billed.';
+    case 'revision_line_in_use':
+      return 'A line with receipts or bills cannot be removed.';
+    default:
+      return null;
+  }
+}
+
 export function describeTradeViolation(v: Violation): string {
-  return tradeText(v) ?? describeViolation(v);
+  return procurementText(v) ?? tradeText(v) ?? describeViolation(v);
 }
 
 /** Sales words to purchase words, for the texts written for invoices, credit notes, customers and receipts. */
@@ -105,6 +168,8 @@ const toPurchases = (t: string): string =>
 
 /** The same verdicts for a purchase document or payment: the words are bills, debit notes, suppliers and payments. */
 export function describePurchaseViolation(v: Violation): string {
+  const own = procurementText(v);
+  if (own !== null) return own;
   const t = tradeText(v);
   return t === null ? describeViolation(v) : toPurchases(t);
 }

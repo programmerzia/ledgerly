@@ -115,7 +115,9 @@ export function useDocActions(resource: DocResource = 'invoices') {
     update: (id: string, body: unknown, intent: Intent) => after(live.updateDoc(company.id, resource, id, body, intent)),
     /** Writes nothing on the server, so no refresh. */
     preview: (id: string, intent: Intent) => live.previewDoc(company.id, resource, id, intent),
-    submit: (id: string, version: number, intent: Intent) => after(live.transitionDoc(company.id, resource, id, 'submit', { version }, intent)),
+    /** `matchOverrideReason`: a bill the three-way match refused, passed on by someone who holds the override permission. */
+    submit: (id: string, version: number, intent: Intent, matchOverrideReason?: string) =>
+      after(live.transitionDoc(company.id, resource, id, 'submit', { version, ...(matchOverrideReason ? { match_override_reason: matchOverrideReason } : {}) }, intent)),
     approve: (id: string, version: number, intent: Intent) => after(live.transitionDoc(company.id, resource, id, 'approve', { version }, intent)),
     sendBack: (id: string, comment: string, version: number, intent: Intent) => after(live.transitionDoc(company.id, resource, id, 'return', { comment, version }, intent)),
     voidDraft: (id: string, reason: string, version: number, intent: Intent) => after(live.transitionDoc(company.id, resource, id, 'void', { reason, version }, intent)),
