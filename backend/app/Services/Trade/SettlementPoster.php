@@ -20,8 +20,6 @@ use App\Support\Actor;
 use App\Support\UnitOfWork\AuditBuffer;
 use App\Support\UnitOfWork\LockSet;
 use App\Support\UnitOfWork\Outbox;
-use Brick\Math\BigDecimal;
-use Brick\Math\RoundingMode;
 use Illuminate\Database\DatabaseManager;
 
 /**
@@ -44,6 +42,7 @@ final class SettlementPoster
         private readonly IdGenerator $ids,
         private readonly Clock $clock,
         private readonly DatabaseManager $db,
+        private readonly WhtCertificateShares $wht,
     ) {}
 
     /**
@@ -206,32 +205,12 @@ final class SettlementPoster
     {
         $out = [];
         foreach ($plan->allocations as $a) {
-            $bill = $a['invoice_id'] === null ? null : $invoices[$a['invoice_id']];
-            if ($bill === null || $bill->wht_amount <= 0 || $bill->wht_code_id === null) {
-                continue;
-            }
-            $netFc = $bill->total_fc - $bill->wht_amount_fc;
-            $netBase = $bill->total - $bill->wht_amount;
-            $done = $this->db->connection()->table('wht_certificates')->where('invoice_id', $bill->id)->where('status', 'issued')
-                ->selectRaw('COALESCE(SUM(wht_amount), 0) AS wht, COALESCE(SUM(base_amount), 0) AS base')->first() ?? (object) ['wht' => 0, 'base' => 0];
-            $clears = $bill->settled_fc + $a['amount_fc'] >= $netFc;
-            if ($clears) {
-                $wht = $bill->wht_amount - (int) $done->wht;
-                $base = $bill->subtotal - (int) $done->base;
-            } else {
-                $wht = self::share($bill->wht_amount, $a['amount'], $netBase);
-                $base = self::share($bill->subtotal, $a['amount'], $netBase);
-            }
-            if ($wht > 0) {
-                $out[] = ['invoice_id' => $bill->id, 'tax_code_id' => $bill->wht_code_id, 'base' => max(0, $base), 'wht' => $wht];
+            $share = $a['invoice_id'] === null ? null : $this->wht->of($invoices[$a['invoice_id']], $a['amount_fc'], $a['amount']);
+            if ($share !== null) {
+                $out[] = $share;
             }
         }
 
         return $out;
-    }
-
-    private static function share(int $total, int $part, int $whole): int
-    {
-        return $whole === 0 ? 0 : BigDecimal::of($total)->multipliedBy($part)->dividedBy($whole, 0, RoundingMode::HalfUp)->toInt();
     }
 }

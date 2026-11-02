@@ -73,6 +73,39 @@ it('refuses the whole run when one bill was paid since it was drafted, leaving n
     });
 });
 
+it('certifies the withheld tax when a payment on account pays a WHT bill, and voids it when that is undone', function (): void {
+    [, , $c] = $this->threeBills();   // open 9,000, withheld 1,000
+    $payment = $this->postedSettlement('payment', $this->t->supplierWht, 9000);   // all on account
+    $this->inTenant(fn () => expect(DB::table('wht_certificates')->count())->toBe(0));
+
+    $applied = $this->asPerson($this->accountant, signing: true)->postJson($this->api("settlements/{$payment['id']}/allocate"), ['invoice_id' => $c['id'], 'amount_fc' => 9000], $this->key())->assertCreated();
+    $this->inTenant(function () use ($payment, $c): void {
+        $cert = DB::table('wht_certificates')->first();
+        expect((int) $cert->wht_amount)->toBe(1000)->and((int) $cert->base_amount)->toBe(10000)->and($cert->status)->toBe('issued')
+            ->and($cert->payment_id)->toBe($payment['id'])->and($cert->invoice_id)->toBe($c['id'])->and($cert->number)->toBe('WHT-FY2026-00001');
+        expect(LedgerChecks::problems())->toBe([]);
+    });
+    $this->asPerson($this->owner)->getJson($this->api("wht-certificates?payment_id={$payment['id']}"))->assertOk()->assertJsonCount(1, 'data');
+
+    $this->asPerson($this->owner, signing: true)->postJson($this->api('credit-applications/'.$applied->json('data.id').'/undo'), [], $this->key())->assertOk();
+    $this->inTenant(fn () => expect(DB::table('wht_certificates')->value('status'))->toBe('void'));
+});
+
+it('leaves out of the certificates the withholding a debit note reversed', function (): void {
+    [, , $c] = $this->threeBills();   // open 9,000, withheld 1,000 on a 10,000 base
+    $note = $this->postedDoc('bills', $this->t->body($this->t->supplierWht, [[4000, '1', null, '0', '5000']], '2026-03-16', ['kind' => 'debit_note', 'related_invoice_id' => $c['id'], 'wht_code_id' => $this->t->tax['WHT10']]));
+    expect($note['wht_amount_fc']['amount'] ?? null)->toBe(400);
+
+    // The note's 3,600 and a payment of the remaining 5,400 clear the bill: 1,000 less the note's 400 is certified.
+    $this->asPerson($this->accountant, signing: true)->postJson($this->api("bills/{$note['id']}/allocate"), ['invoice_id' => $c['id'], 'amount_fc' => 3600], $this->key())->assertCreated();
+    $this->inTenant(fn () => expect(DB::table('wht_certificates')->count())->toBe(0));
+    $this->postedSettlement('payment', $this->t->supplierWht, 5400, [[$c['id'], 5400]]);
+    $this->inTenant(function (): void {
+        $cert = DB::table('wht_certificates')->first();
+        expect((int) $cert->wht_amount)->toBe(600)->and((int) $cert->base_amount)->toBe(6000);
+    });
+});
+
 it('issues WHT certificates pro rata to what a payment covers; the payment that clears the bill takes the rest, and reversing voids them', function (): void {
     [, , $c] = $this->threeBills();   // open 9,000, withheld 1,000 on a 10,000 base
     $p1 = $this->postedSettlement('payment', $this->t->supplierWht, 4000, [[$c['id'], 4000]]);   // 4,000 / 9,000 → 444.44 → 444 wht, base 4,444

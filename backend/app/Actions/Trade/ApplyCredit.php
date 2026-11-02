@@ -22,9 +22,11 @@ use App\Models\Organisation\Company;
 use App\Models\Trade\CreditApplication;
 use App\Models\Trade\Invoice;
 use App\Models\Trade\Settlement;
+use App\Models\Trade\WhtCertificate;
 use App\Services\Ledger\PostingEngine;
 use App\Services\Trade\DraftMapper;
 use App\Services\Trade\PostingAccountResolver;
+use App\Services\Trade\WhtCertificateShares;
 use App\Support\Actor;
 use App\Support\UnitOfWork\AuditBuffer;
 use App\Support\UnitOfWork\LockSet;
@@ -48,6 +50,7 @@ final class ApplyCredit
         private readonly PostingAccountResolver $accounts,
         private readonly DraftMapper $mapper,
         private readonly RecordJournal $record,
+        private readonly WhtCertificateShares $wht,
         private readonly IdGenerator $ids,
     ) {}
 
@@ -116,6 +119,14 @@ final class ApplyCredit
             }
 
             $fx = CreditApplicationFx::of($onReceivables, $in->amountFc, $srcRate, $srcFc, $srcBase, (string) $target->fx_rate, $tgtFc, $tgtBase);
+            // Paying a bill from a payment's credit on account is a payment, so it certifies the tax withheld. Numbers come
+            // before the journal's, in the poster's key order. A debit note is not a payment: it reversed its share already.
+            $certificate = $source instanceof Settlement && ! $onReceivables ? $this->wht->of($target, $in->amountFc, $fx->targetBase) : null;
+            $certificateNumber = null;
+            if ($certificate !== null) {
+                $year = $period->fiscalYear()->firstOrFail()->name;
+                $certificateNumber = $locks->sequence($companyId, 'doc:wht_certificate:'.$year, 'WHT-'.$year.'-');
+            }
             $company = Company::query()->findOrFail($companyId);
             $posting = $this->accounts->forSettlement($company, $target->contact_id, $onReceivables);
             $applicationId = $this->ids->next();
@@ -133,6 +144,15 @@ final class ApplyCredit
                 'invoice_id' => $target->id, 'amount_fc' => $in->amountFc, 'source_amount' => $fx->sourceBase, 'amount' => $fx->targetBase,
                 'fx_gain_loss' => $fx->gainLoss, 'applied_on' => $date, 'journal_id' => $journal->id, 'created_by' => $actor->id,
             ])->save();
+
+            if ($certificate !== null) {
+                (new WhtCertificate)->forceFill([
+                    'id' => $this->ids->next(), 'tenant_id' => $actor->tenantId, 'company_id' => $companyId, 'number' => $certificateNumber,
+                    'payment_id' => $source->id, 'credit_application_id' => $applicationId, 'invoice_id' => $target->id, 'contact_id' => $target->contact_id,
+                    'tax_code_id' => $certificate['tax_code_id'], 'base_amount' => $certificate['base'], 'wht_amount' => $certificate['wht'],
+                    'issued_on' => $date, 'status' => 'issued',
+                ])->save();
+            }
 
             $target->forceFill(['settled_fc' => $target->settled_fc + $in->amountFc, 'settled' => $target->settled + $fx->targetBase, 'lock_version' => $target->lock_version + 1])->save();
             if ($source instanceof Settlement) {

@@ -13,14 +13,14 @@ use App\Models\Trade\WhtCertificate;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Routing\Attributes\Controllers\Authorize;
 
-/** WHT certificates: issued when a payment settles a bill that carries withholding; read only. Filters: `contact_id`, `status` (issued|void), `from|to`. */
+/** WHT certificates: issued when a payment settles a bill that carries withholding; read only. Filters: `contact_id`, `payment_id`, `invoice_id`, `status` (issued|void), `from|to`. */
 final class WhtCertificateController extends Controller
 {
     #[Authorize('viewAny', WhtCertificate::class)]
     public function index(ListPaymentRunsRequest $request, Company $company): AnonymousResourceCollection
     {
         $query = WhtCertificate::query()->where('company_id', $company->id);
-        foreach (['contact_id', 'status'] as $column) {
+        foreach (['contact_id', 'status', 'payment_id', 'invoice_id'] as $column) {
             if ($request->filled($column)) {
                 $query->where($column, (string) $request->query($column));
             }

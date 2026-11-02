@@ -4328,8 +4328,8 @@ export interface components {
          *     (default) or debit_note; on `/invoices` sales_invoice (default) or credit_note.
          */
         InvoiceRequest: {
-            /** @enum {string|null} */
-            kind?: "sales_invoice" | "credit_note" | null;
+            /** @enum {string} */
+            kind?: "sales_invoice" | "credit_note" | "purchase_bill" | "debit_note";
             /** Format: uuid */
             contact_id: string;
             /** Format: date */
@@ -4827,8 +4827,8 @@ export interface components {
         RecurringScheduleResource: {
             id: string;
             name: string;
-            /** @constant */
-            document_type: "journal";
+            /** @enum {string} */
+            document_type: "journal" | "invoice" | "bill";
             template_id: string | null;
             /** @enum {string} */
             frequency: "monthly" | "quarterly" | "annual";

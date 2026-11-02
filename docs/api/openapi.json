@@ -23285,14 +23285,12 @@
                 "description": "Create (POST) or replace (PUT, with `version`) a draft invoice, credit note, bill or debit note. Shape only:\nids exist in this company, quantities and rates are decimal strings, prices whole minor units. Totals, tax and\nbase amounts are not accepted: whatever the client sends for them is ignored and the server calculates.\nWhether the contact fits the kind, the tax code has a rate that day, or the rate exists is the Action's call.\n\nLine dimensions are `{\"<dimension id>\": \"<dimension value id>\"}`. On `/bills` the kind is purchase_bill\n(default) or debit_note; on `/invoices` sales_invoice (default) or credit_note.",
                 "properties": {
                     "kind": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
+                        "type": "string",
                         "enum": [
                             "sales_invoice",
                             "credit_note",
-                            null
+                            "purchase_bill",
+                            "debit_note"
                         ]
                     },
                     "contact_id": {
@@ -25312,7 +25310,11 @@
                     },
                     "document_type": {
                         "type": "string",
-                        "const": "journal"
+                        "enum": [
+                            "journal",
+                            "invoice",
+                            "bill"
+                        ]
                     },
                     "template_id": {
                         "type": [

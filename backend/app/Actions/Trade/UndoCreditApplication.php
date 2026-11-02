@@ -12,6 +12,7 @@ use App\Events\Trade\CreditApplicationReversed;
 use App\Models\Trade\CreditApplication;
 use App\Models\Trade\Invoice;
 use App\Models\Trade\Settlement;
+use App\Models\Trade\WhtCertificate;
 use App\Support\Actor;
 use App\Support\UnitOfWork\AuditBuffer;
 use App\Support\UnitOfWork\LockSet;
@@ -74,6 +75,8 @@ final class UndoCreditApplication
             } elseif ($source instanceof Invoice) {
                 $source->forceFill(['settled_fc' => $source->settled_fc - $app->amount_fc, 'settled' => $source->settled - $app->source_amount, 'lock_version' => $source->lock_version + 1])->save();
             }
+
+            WhtCertificate::query()->where('credit_application_id', $app->id)->where('status', 'issued')->update(['status' => 'void']);
 
             $before = $app->attributesToArray();
             $app->forceFill(['reversed_at' => $this->clock->now(), 'reversal_journal_id' => $reversal->id])->save();

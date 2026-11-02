@@ -40,6 +40,13 @@ final class SchemaCorrections
                     $action->addProperty('dimensions', (new ObjectType)->additionalProperties(new StringType));
                 }
             }
+            // Rules differ by route: /bills takes the purchase kinds, recurring documents their own types.
+            if ($schema->type instanceof ObjectType && str_ends_with((string) $name, 'InvoiceRequest') && $schema->type->hasProperty('kind')) {
+                $schema->type->addProperty('kind', (new StringType)->enum(['sales_invoice', 'credit_note', 'purchase_bill', 'debit_note']));
+            }
+            if ($schema->type instanceof ObjectType && str_ends_with((string) $name, 'RecurringScheduleResource') && $schema->type->hasProperty('document_type')) {
+                $schema->type->addProperty('document_type', (new StringType)->enum(['journal', 'invoice', 'bill']));
+            }
             // `waivers.*` reads as a list; it is check code → reason.
             if ($schema->type instanceof ObjectType && str_ends_with((string) $name, 'ClosePeriodRequest')) {
                 $schema->type->addProperty('waivers', (new ObjectType)->additionalProperties(new StringType)
