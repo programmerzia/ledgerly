@@ -28,3 +28,16 @@ it('exports the OpenAPI document without unknown types', function (): void {
     expect($document['paths']['/v1/auth/login']['post']['responses']['200']['content']['application/json']['schema']['properties'])
         ->toHaveKey('two_factor');
 });
+
+it('documents the sign-up body and the cursor parameters of list routes', function (): void {
+    $path = tempnam(sys_get_temp_dir(), 'openapi-');
+    Artisan::call('scramble:export', ['--path' => $path]);
+    $doc = json_decode((string) file_get_contents($path), true);
+    @unlink($path);
+
+    $register = $doc['paths']['/v1/auth/register']['post']['requestBody']['content']['application/json']['schema'];
+    expect(array_keys($register['properties']))->toContain('email', 'organisation_name', 'password_confirmation');
+
+    $names = array_column($doc['paths']['/v1/companies/{company}/journals']['get']['parameters'], 'name');
+    expect($names)->toContain('cursor', 'limit');
+});

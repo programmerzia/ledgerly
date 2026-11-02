@@ -71,6 +71,22 @@
                             ],
                             "maxLength": 100
                         }
+                    },
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "description": "Opaque, from `meta.next_cursor` or `meta.prev_cursor`.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Page size, 1 to 200; default 50.",
+                        "schema": {
+                            "type": "integer"
+                        }
                     }
                 ],
                 "responses": {
@@ -721,6 +737,22 @@
                         "schema": {
                             "type": "string"
                         }
+                    },
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "description": "Opaque, from `meta.next_cursor` or `meta.prev_cursor`.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Page size, 1 to 200; default 50.",
+                        "schema": {
+                            "type": "integer"
+                        }
                     }
                 ],
                 "responses": {
@@ -1150,6 +1182,22 @@
                         "schema": {
                             "type": "string",
                             "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "description": "Opaque, from `meta.next_cursor` or `meta.prev_cursor`.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Page size, 1 to 200; default 50.",
+                        "schema": {
+                            "type": "integer"
                         }
                     }
                 ],
@@ -1693,6 +1741,22 @@
                                 "null"
                             ],
                             "maxLength": 64
+                        }
+                    },
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "description": "Opaque, from `meta.next_cursor` or `meta.prev_cursor`.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Page size, 1 to 200; default 50.",
+                        "schema": {
+                            "type": "integer"
                         }
                     }
                 ],
@@ -2359,6 +2423,22 @@
                             ],
                             "maxLength": 100
                         }
+                    },
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "description": "Opaque, from `meta.next_cursor` or `meta.prev_cursor`.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Page size, 1 to 200; default 50.",
+                        "schema": {
+                            "type": "integer"
+                        }
                     }
                 ],
                 "responses": {
@@ -2880,6 +2960,22 @@
                         "description": "The company ID",
                         "schema": {
                             "type": "string"
+                        }
+                    },
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "description": "Opaque, from `meta.next_cursor` or `meta.prev_cursor`.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Page size, 1 to 200; default 50.",
+                        "schema": {
+                            "type": "integer"
                         }
                     }
                 ],
@@ -5027,6 +5123,22 @@
                             ],
                             "maxLength": 100
                         }
+                    },
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "description": "Opaque, from `meta.next_cursor` or `meta.prev_cursor`.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Page size, 1 to 200; default 50.",
+                        "schema": {
+                            "type": "integer"
+                        }
                     }
                 ],
                 "responses": {
@@ -5996,6 +6108,22 @@
                             ],
                             "format": "date"
                         }
+                    },
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "description": "Opaque, from `meta.next_cursor` or `meta.prev_cursor`.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Page size, 1 to 200; default 50.",
+                        "schema": {
+                            "type": "integer"
+                        }
                     }
                 ],
                 "responses": {
@@ -6779,6 +6907,22 @@
                             ],
                             "format": "uuid"
                         }
+                    },
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "description": "Opaque, from `meta.next_cursor` or `meta.prev_cursor`.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Page size, 1 to 200; default 50.",
+                        "schema": {
+                            "type": "integer"
+                        }
                     }
                 ],
                 "responses": {
@@ -6972,6 +7116,722 @@
                     },
                     "422": {
                         "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/v1/companies/{company}/imports": {
+            "get": {
+                "operationId": "imports.index",
+                "tags": [
+                    "Import"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "kind",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "enum": [
+                                "contacts",
+                                "accounts",
+                                "opening_balances",
+                                "invoices",
+                                "bank_lines",
+                                null
+                            ]
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "enum": [
+                                "uploaded",
+                                "mapped",
+                                "previewed",
+                                "queued",
+                                "applying",
+                                "completed",
+                                "failed",
+                                "pending",
+                                "valid",
+                                "invalid",
+                                "applied",
+                                null
+                            ]
+                        }
+                    },
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "description": "Opaque, from `meta.next_cursor` or `meta.prev_cursor`.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Page size, 1 to 200; default 50.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of `ImportResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/ImportResource"
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "next_cursor": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "prev_cursor": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "limit": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "required": [
+                                                "next_cursor",
+                                                "prev_cursor",
+                                                "limit"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            },
+            "post": {
+                "operationId": "imports.store",
+                "summary": "Upload a file and get its columns, the row count and a suggested mapping (the last one used for this kind when it still fits,\nelse guessed from the header names). Nothing is written to the books",
+                "tags": [
+                    "Import"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UploadImportRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "`ImportResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/ImportResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/v1/companies/{company}/imports/kinds": {
+            "get": {
+                "operationId": "imports.kinds",
+                "summary": "What can be imported: each kind, its target fields (required or not), permission, and whether it is all-or-nothing",
+                "tags": [
+                    "Import"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {}
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/v1/companies/{company}/imports/{import}": {
+            "get": {
+                "operationId": "imports.show",
+                "tags": [
+                    "Import"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "import",
+                        "in": "path",
+                        "required": true,
+                        "description": "The import ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`ImportResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/ImportResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/v1/companies/{company}/imports/{import}/mapping": {
+            "put": {
+                "operationId": "imports.mapping",
+                "summary": "Set which column feeds which field. Clears any earlier preview",
+                "tags": [
+                    "Import"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "import",
+                        "in": "path",
+                        "required": true,
+                        "description": "The import ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/MappingRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`ImportResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/ImportResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/v1/companies/{company}/imports/{import}/preview": {
+            "post": {
+                "operationId": "imports.preview",
+                "summary": "Check every row with the rules of the Action that will write it. Writes nothing to the books; rows carry numbered errors",
+                "tags": [
+                    "Import"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "import",
+                        "in": "path",
+                        "required": true,
+                        "description": "The import ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`ImportResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/ImportResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/v1/companies/{company}/imports/{import}/apply": {
+            "post": {
+                "operationId": "imports.apply",
+                "summary": "Apply the previewed import on the `imports` queue; answers 202 with the import (queued). Asking again changes nothing. Opening\nbalances need a signing grant now, and apply all rows or none",
+                "tags": [
+                    "Import"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "import",
+                        "in": "path",
+                        "required": true,
+                        "description": "The import ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`ImportResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/ImportResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "202": {
+                        "description": "`ImportResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/ImportResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/v1/companies/{company}/imports/{import}/rows": {
+            "get": {
+                "operationId": "imports.rows",
+                "summary": "The rows with their cells (safe for spreadsheets), numbered errors and what each created. Filter by `status`",
+                "tags": [
+                    "Import"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "import",
+                        "in": "path",
+                        "required": true,
+                        "description": "The import ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "kind",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "enum": [
+                                "contacts",
+                                "accounts",
+                                "opening_balances",
+                                "invoices",
+                                "bank_lines",
+                                null
+                            ]
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "enum": [
+                                "uploaded",
+                                "mapped",
+                                "previewed",
+                                "queued",
+                                "applying",
+                                "completed",
+                                "failed",
+                                "pending",
+                                "valid",
+                                "invalid",
+                                "applied",
+                                null
+                            ]
+                        }
+                    },
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "description": "Opaque, from `meta.next_cursor` or `meta.prev_cursor`.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Page size, 1 to 200; default 50.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of `ImportRowResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/ImportRowResource"
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "next_cursor": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "prev_cursor": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "limit": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "required": [
+                                                "next_cursor",
+                                                "prev_cursor",
+                                                "limit"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/v1/companies/{company}/imports/{import}/purge": {
+            "post": {
+                "operationId": "imports.purge",
+                "summary": "Clear the cell text of the rows (retention); their status, errors and results stay. A purged import cannot be applied",
+                "tags": [
+                    "Import"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "import",
+                        "in": "path",
+                        "required": true,
+                        "description": "The import ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`ImportResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/ImportResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
                     }
                 }
             }
@@ -8227,6 +9087,22 @@
                             ],
                             "maxLength": 100
                         }
+                    },
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "description": "Opaque, from `meta.next_cursor` or `meta.prev_cursor`.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Page size, 1 to 200; default 50.",
+                        "schema": {
+                            "type": "integer"
+                        }
                     }
                 ],
                 "responses": {
@@ -8632,6 +9508,22 @@
                                 "null"
                             ],
                             "maxLength": 100
+                        }
+                    },
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "description": "Opaque, from `meta.next_cursor` or `meta.prev_cursor`.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Page size, 1 to 200; default 50.",
+                        "schema": {
+                            "type": "integer"
                         }
                     }
                 ],
@@ -9775,6 +10667,22 @@
                             ],
                             "format": "date"
                         }
+                    },
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "description": "Opaque, from `meta.next_cursor` or `meta.prev_cursor`.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Page size, 1 to 200; default 50.",
+                        "schema": {
+                            "type": "integer"
+                        }
                     }
                 ],
                 "responses": {
@@ -10619,6 +11527,22 @@
                         "schema": {
                             "type": "string"
                         }
+                    },
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "description": "Opaque, from `meta.next_cursor` or `meta.prev_cursor`.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Page size, 1 to 200; default 50.",
+                        "schema": {
+                            "type": "integer"
+                        }
                     }
                 ],
                 "responses": {
@@ -11019,6 +11943,22 @@
                         "description": "The company ID",
                         "schema": {
                             "type": "string"
+                        }
+                    },
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "description": "Opaque, from `meta.next_cursor` or `meta.prev_cursor`.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Page size, 1 to 200; default 50.",
+                        "schema": {
+                            "type": "integer"
                         }
                     }
                 ],
@@ -11432,6 +12372,22 @@
                             ],
                             "format": "uuid"
                         }
+                    },
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "description": "Opaque, from `meta.next_cursor` or `meta.prev_cursor`.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Page size, 1 to 200; default 50.",
+                        "schema": {
+                            "type": "integer"
+                        }
                     }
                 ],
                 "responses": {
@@ -11577,21 +12533,41 @@
         "/v1/auth/register": {
             "post": {
                 "operationId": "register.store",
-                "summary": "Create a new registered user",
+                "summary": "Create an account and its organisation, and sign in",
                 "tags": [
                     "RegisteredUser"
                 ],
                 "requestBody": {
+                    "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
                                 "type": "object",
                                 "properties": {
-                                    "remember": {
-                                        "type": "boolean",
-                                        "default": false
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email"
+                                    },
+                                    "password": {
+                                        "type": "string"
+                                    },
+                                    "password_confirmation": {
+                                        "type": "string"
+                                    },
+                                    "organisation_name": {
+                                        "type": "string"
                                     }
-                                }
+                                },
+                                "required": [
+                                    "name",
+                                    "email",
+                                    "password",
+                                    "password_confirmation",
+                                    "organisation_name"
+                                ]
                             }
                         }
                     }
@@ -12779,6 +13755,22 @@
                                 "pdf",
                                 null
                             ]
+                        }
+                    },
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "description": "Opaque, from `meta.next_cursor` or `meta.prev_cursor`.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Page size, 1 to 200; default 50.",
+                        "schema": {
+                            "type": "integer"
                         }
                     }
                 ],
@@ -14111,6 +15103,22 @@
                                 null
                             ]
                         }
+                    },
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "description": "Opaque, from `meta.next_cursor` or `meta.prev_cursor`.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Page size, 1 to 200; default 50.",
+                        "schema": {
+                            "type": "integer"
+                        }
                     }
                 ],
                 "responses": {
@@ -14818,6 +15826,22 @@
                                 "null"
                             ],
                             "maxLength": 100
+                        }
+                    },
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "description": "Opaque, from `meta.next_cursor` or `meta.prev_cursor`.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Page size, 1 to 200; default 50.",
+                        "schema": {
+                            "type": "integer"
                         }
                     }
                 ],
@@ -15830,6 +16854,22 @@
                                 null
                             ]
                         }
+                    },
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "description": "Opaque, from `meta.next_cursor` or `meta.prev_cursor`.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Page size, 1 to 200; default 50.",
+                        "schema": {
+                            "type": "integer"
+                        }
                     }
                 ],
                 "responses": {
@@ -16239,6 +17279,22 @@
                                 "0",
                                 null
                             ]
+                        }
+                    },
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "description": "Opaque, from `meta.next_cursor` or `meta.prev_cursor`.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Page size, 1 to 200; default 50.",
+                        "schema": {
+                            "type": "integer"
                         }
                     }
                 ],
@@ -16999,6 +18055,22 @@
                                 null
                             ]
                         }
+                    },
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "description": "Opaque, from `meta.next_cursor` or `meta.prev_cursor`.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Page size, 1 to 200; default 50.",
+                        "schema": {
+                            "type": "integer"
+                        }
                     }
                 ],
                 "responses": {
@@ -17187,6 +18259,22 @@
                                 "null"
                             ],
                             "format": "date"
+                        }
+                    },
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "description": "Opaque, from `meta.next_cursor` or `meta.prev_cursor`.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Page size, 1 to 200; default 50.",
+                        "schema": {
+                            "type": "integer"
                         }
                     }
                 ],
@@ -20985,6 +22073,335 @@
                 ],
                 "title": "FxRevaluationResource"
             },
+            "ImportResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "kind": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "source_name": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "source_format": {
+                        "type": "string"
+                    },
+                    "columns": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "suggested_mapping": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "properties": {
+                            "columns": {
+                                "type": "object",
+                                "additionalProperties": {
+                                    "type": "string"
+                                }
+                            },
+                            "defaults": {
+                                "type": "object",
+                                "additionalProperties": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "required": [
+                            "columns",
+                            "defaults"
+                        ]
+                    },
+                    "suggestion_source": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "mapping": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "properties": {
+                            "columns": {
+                                "type": "object",
+                                "additionalProperties": {
+                                    "type": "string"
+                                }
+                            },
+                            "defaults": {
+                                "type": "object",
+                                "additionalProperties": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "required": [
+                            "columns",
+                            "defaults"
+                        ]
+                    },
+                    "options": {
+                        "type": "object",
+                        "additionalProperties": {}
+                    },
+                    "rows_total": {
+                        "type": "integer"
+                    },
+                    "rows_valid": {
+                        "type": "integer"
+                    },
+                    "rows_invalid": {
+                        "type": "integer"
+                    },
+                    "rows_applied": {
+                        "type": "integer"
+                    },
+                    "rows_failed": {
+                        "type": "integer"
+                    },
+                    "errors": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "string"
+                                },
+                                "message": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "code",
+                                "message"
+                            ]
+                        }
+                    },
+                    "result": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "additionalProperties": {}
+                    },
+                    "all_or_nothing": {
+                        "type": "boolean"
+                    },
+                    "needs_signature": {
+                        "type": "boolean"
+                    },
+                    "permission": {
+                        "type": "string"
+                    },
+                    "fields": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "key": {
+                                    "type": "string"
+                                },
+                                "label": {
+                                    "type": "string"
+                                },
+                                "required": {
+                                    "type": "boolean"
+                                },
+                                "note": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ]
+                                }
+                            },
+                            "required": [
+                                "key",
+                                "label",
+                                "required",
+                                "note"
+                            ]
+                        }
+                    },
+                    "created_by": {
+                        "type": "string"
+                    },
+                    "requested_by": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "signed_by": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "signed_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "queued_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "started_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "finished_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "rows_purged_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "created_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "version": {
+                        "type": "integer"
+                    },
+                    "can": {
+                        "type": "array",
+                        "items": {}
+                    }
+                },
+                "required": [
+                    "id",
+                    "kind",
+                    "status",
+                    "source_name",
+                    "source_format",
+                    "columns",
+                    "suggested_mapping",
+                    "suggestion_source",
+                    "mapping",
+                    "options",
+                    "rows_total",
+                    "rows_valid",
+                    "rows_invalid",
+                    "rows_applied",
+                    "rows_failed",
+                    "errors",
+                    "result",
+                    "all_or_nothing",
+                    "needs_signature",
+                    "permission",
+                    "fields",
+                    "created_by",
+                    "requested_by",
+                    "signed_by",
+                    "signed_at",
+                    "queued_at",
+                    "started_at",
+                    "finished_at",
+                    "rows_purged_at",
+                    "created_at",
+                    "version",
+                    "can"
+                ],
+                "title": "ImportResource"
+            },
+            "ImportRowResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "row_number": {
+                        "type": "integer"
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "cells": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        }
+                    },
+                    "errors": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "field": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ]
+                                },
+                                "code": {
+                                    "type": "string"
+                                },
+                                "message": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "field",
+                                "code",
+                                "message"
+                            ]
+                        }
+                    },
+                    "result": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "additionalProperties": {}
+                    },
+                    "applied_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    }
+                },
+                "required": [
+                    "id",
+                    "row_number",
+                    "status",
+                    "cells",
+                    "errors",
+                    "result",
+                    "applied_at"
+                ],
+                "title": "ImportRowResource"
+            },
             "ImportStatementRequest": {
                 "type": "object",
                 "description": "Multipart statement upload: `file` (at most 2 MB), `format` (csv|ofx|camt|auto, default auto), `mapping` for CSV (a JSON object, or\na field per key; see CsvStatementParser), `save_mapping`, and optional `opening_balance` / `closing_balance` in minor units when the\nfile does not state them.",
@@ -22621,6 +24038,79 @@
                     "password"
                 ],
                 "title": "LoginRequest"
+            },
+            "MappingRequest": {
+                "type": "object",
+                "description": "Sets the mapping of an import: `columns` ({field: file header}), optional `defaults` ({field: constant} for empty cells), and\noptionally `options` (replaces the current ones: `number_locale`, `date_format`, and the kind's own, see the upload).\nCarries the `version` the client last read. Setting the mapping clears any earlier preview.",
+                "properties": {
+                    "version": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "columns": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "maxLength": 255
+                        },
+                        "minItems": 1
+                    },
+                    "defaults": {
+                        "type": [
+                            "array",
+                            "null"
+                        ],
+                        "items": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "maxLength": 255
+                        }
+                    },
+                    "options": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "properties": {
+                            "number_locale": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "enum": [
+                                    "us",
+                                    "eu",
+                                    "plain",
+                                    null
+                                ]
+                            },
+                            "date_format": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "enum": [
+                                    "Y-m-d",
+                                    "d/m/Y",
+                                    "m/d/Y",
+                                    "d.m.Y",
+                                    "d-m-Y",
+                                    "Ymd",
+                                    "d/m/y",
+                                    "m/d/y",
+                                    null
+                                ]
+                            }
+                        }
+                    }
+                },
+                "required": [
+                    "version",
+                    "columns"
+                ],
+                "title": "MappingRequest"
             },
             "MatchRequest": {
                 "type": "object",
@@ -24481,6 +25971,83 @@
                 },
                 "title": "TwoFactorLoginRequest"
             },
+            "UploadImportRequest": {
+                "type": "object",
+                "description": "Multipart upload of a CSV or XLSX file: `kind` (contacts, accounts, opening_balances, invoices, bank_lines), `file` (up to\n`imports.max_bytes`), optional `delimiter` for CSV (default: detected), and `options` \u2014 `number_locale` (us|eu|plain, default plain),\n`date_format` (default Y-m-d) and the kind's own: `as_of` for opening balances, `bank_account_id` (and `sign`, `opening_balance`,\n`closing_balance`) for bank lines. The file is read here and only its rows are kept. Row and column limits come from config.",
+                "properties": {
+                    "kind": {
+                        "type": "string",
+                        "enum": [
+                            "contacts",
+                            "accounts",
+                            "opening_balances",
+                            "invoices",
+                            "bank_lines"
+                        ]
+                    },
+                    "file": {
+                        "type": "string",
+                        "format": "binary",
+                        "contentMediaType": "application/octet-stream",
+                        "description": "Maximum file size: 5120 kilobytes."
+                    },
+                    "delimiter": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "enum": [
+                            ",",
+                            ";",
+                            "\t",
+                            "|",
+                            null
+                        ]
+                    },
+                    "options": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "properties": {
+                            "number_locale": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "enum": [
+                                    "us",
+                                    "eu",
+                                    "plain",
+                                    null
+                                ]
+                            },
+                            "date_format": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "enum": [
+                                    "Y-m-d",
+                                    "d/m/Y",
+                                    "m/d/Y",
+                                    "d.m.Y",
+                                    "d-m-Y",
+                                    "Ymd",
+                                    "d/m/y",
+                                    "m/d/y",
+                                    null
+                                ]
+                            }
+                        }
+                    }
+                },
+                "required": [
+                    "kind",
+                    "file"
+                ],
+                "title": "UploadImportRequest"
+            },
             "UploadIntentRequest": {
                 "type": "object",
                 "description": "POST \u2026/attachments/uploads: what is being attached to, and the file's name, claimed type, size and SHA-256.",
@@ -24700,7 +26267,10 @@
                                 "bank_transaction.created",
                                 "bank_reconciliation.finished",
                                 "bank_reconciliation.reopened",
-                                "recurring.occurrence_created"
+                                "recurring.occurrence_created",
+                                "import.created",
+                                "import.applied",
+                                "import.failed"
                             ]
                         },
                         "minItems": 1,

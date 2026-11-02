@@ -29,6 +29,7 @@ use App\Models\Fiscal\FiscalYear;
 use App\Models\Fiscal\PeriodReopenRequest;
 use App\Models\Fx\ExchangeRate;
 use App\Models\Fx\FxRevaluation;
+use App\Models\Imports\Import;
 use App\Models\Ledger\Account;
 use App\Models\Ledger\Dimension;
 use App\Models\Ledger\Journal;
@@ -56,6 +57,7 @@ use App\Policies\Banking\BankingPolicy;
 use App\Policies\Files\AttachmentPolicy;
 use App\Policies\Fiscal\PeriodPolicy;
 use App\Policies\Fx\FxPolicy;
+use App\Policies\Imports\ImportPolicy;
 use App\Policies\Ledger\AccountPolicy;
 use App\Policies\Ledger\DimensionPolicy;
 use App\Policies\Ledger\JournalPolicy;
@@ -200,6 +202,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(TaxGroup::class, TaxGroupPolicy::class);
         Gate::policy(WebhookEndpoint::class, WebhookEndpointPolicy::class);
         Gate::policy(AuditEvent::class, AuditPolicy::class);
+        Gate::policy(Import::class, ImportPolicy::class);
         Gate::policy(RecurringInvoice::class, RecurringSchedulePolicy::class);
         Gate::policy(RecurringJournal::class, RecurringSchedulePolicy::class);
         foreach ([FiscalYear::class, FiscalPeriod::class, PeriodReopenRequest::class] as $model) {

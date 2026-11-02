@@ -15,6 +15,7 @@ use App\Http\Controllers\Fiscal\FiscalYearController;
 use App\Http\Controllers\Fiscal\ReopenRequestController;
 use App\Http\Controllers\Fx\ExchangeRateController;
 use App\Http\Controllers\Fx\FxRevaluationController;
+use App\Http\Controllers\Imports\ImportController;
 use App\Http\Controllers\Ledger\AccountController;
 use App\Http\Controllers\Ledger\ChartTemplateController;
 use App\Http\Controllers\Ledger\DimensionController;
@@ -270,6 +271,17 @@ Route::middleware(['auth:sanctum', 'tenant', 'tenant.writable', 'idempotent', 'c
         }
         Route::get('recurring-runs', [RecurringRunController::class, 'index'])->name('recurring-runs.index');
         Route::post('recurring-runs', [RecurringRunController::class, 'run'])->name('recurring-runs.run');
+
+        // Data imports (plan 2.18): upload → mapping → preview → queued apply; people only
+        Route::get('imports', [ImportController::class, 'index'])->name('imports.index');
+        Route::get('imports/kinds', [ImportController::class, 'kinds'])->name('imports.kinds');
+        Route::post('imports', [ImportController::class, 'store'])->name('imports.store');
+        Route::get('imports/{import}', [ImportController::class, 'show'])->whereUuid('import')->name('imports.show');
+        Route::put('imports/{import}/mapping', [ImportController::class, 'mapping'])->whereUuid('import')->name('imports.mapping');
+        Route::post('imports/{import}/preview', [ImportController::class, 'preview'])->whereUuid('import')->name('imports.preview');
+        Route::post('imports/{import}/apply', [ImportController::class, 'apply'])->whereUuid('import')->name('imports.apply');
+        Route::get('imports/{import}/rows', [ImportController::class, 'rows'])->whereUuid('import')->name('imports.rows');
+        Route::post('imports/{import}/purge', [ImportController::class, 'purge'])->whereUuid('import')->name('imports.purge');
 
         // Audit log of the company, and the chain check (audit.view / audit.verify)
         Route::get('audit-events', [AuditController::class, 'index'])->name('audit-events.index');

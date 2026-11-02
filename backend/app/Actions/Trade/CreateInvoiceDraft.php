@@ -31,6 +31,12 @@ final class CreateInvoiceDraft
         private readonly InvoiceWriter $writer,
     ) {}
 
+    /** Read-only: prices the draft and checks what `handle` checks, writing nothing (imports preview with it). Throws what `handle` would throw. */
+    public function check(InvoiceDraftInput $in): void
+    {
+        $this->writer->checkRelated($in, $this->calculator->compute($in));
+    }
+
     public function handle(Actor $actor, InvoiceDraftInput $in): Invoice
     {
         return $this->uow->run($actor, function (LockSet $locks, AuditBuffer $audit, Outbox $outbox) use ($actor, $in) {

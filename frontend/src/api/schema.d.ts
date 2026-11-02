@@ -1333,6 +1333,147 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/companies/{company}/imports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["imports.index"];
+        put?: never;
+        /**
+         * Upload a file and get its columns, the row count and a suggested mapping (the last one used for this kind when it still fits,
+         *     else guessed from the header names). Nothing is written to the books
+         */
+        post: operations["imports.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/imports/kinds": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** What can be imported: each kind, its target fields (required or not), permission, and whether it is all-or-nothing */
+        get: operations["imports.kinds"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/imports/{import}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["imports.show"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/imports/{import}/mapping": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Set which column feeds which field. Clears any earlier preview */
+        put: operations["imports.mapping"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/imports/{import}/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Check every row with the rules of the Action that will write it. Writes nothing to the books; rows carry numbered errors */
+        post: operations["imports.preview"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/imports/{import}/apply": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Apply the previewed import on the `imports` queue; answers 202 with the import (queued). Asking again changes nothing. Opening
+         *     balances need a signing grant now, and apply all rows or none
+         */
+        post: operations["imports.apply"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/imports/{import}/rows": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The rows with their cells (safe for spreadsheets), numbered errors and what each created. Filter by `status` */
+        get: operations["imports.rows"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/imports/{import}/purge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Clear the cell text of the rows (retention); their status, errors and results stay. A purged import cannot be applied */
+        post: operations["imports.purge"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/invitations": {
         parameters: {
             query?: never;
@@ -2164,7 +2305,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Create a new registered user */
+        /** Create an account and its organisation, and sign in */
         post: operations["register.store"];
         delete?: never;
         options?: never;
@@ -3837,6 +3978,85 @@ export interface components {
             residuals: unknown[];
             created_by: string | null;
         };
+        /** ImportResource */
+        ImportResource: {
+            id: string;
+            kind: string;
+            status: string;
+            source_name: string | null;
+            source_format: string;
+            columns: string[];
+            suggested_mapping: {
+                columns: {
+                    [key: string]: string;
+                };
+                defaults: {
+                    [key: string]: string;
+                };
+            } | null;
+            suggestion_source: string | null;
+            mapping: {
+                columns: {
+                    [key: string]: string;
+                };
+                defaults: {
+                    [key: string]: string;
+                };
+            } | null;
+            options: {
+                [key: string]: unknown;
+            };
+            rows_total: number;
+            rows_valid: number;
+            rows_invalid: number;
+            rows_applied: number;
+            rows_failed: number;
+            errors: {
+                code: string;
+                message: string;
+            }[];
+            result: {
+                [key: string]: unknown;
+            } | null;
+            all_or_nothing: boolean;
+            needs_signature: boolean;
+            permission: string;
+            fields: {
+                key: string;
+                label: string;
+                required: boolean;
+                note: string | null;
+            }[];
+            created_by: string;
+            requested_by: string | null;
+            signed_by: string | null;
+            signed_at: string | null;
+            queued_at: string | null;
+            started_at: string | null;
+            finished_at: string | null;
+            rows_purged_at: string | null;
+            created_at: string | null;
+            version: number;
+            can: unknown[];
+        };
+        /** ImportRowResource */
+        ImportRowResource: {
+            id: string;
+            row_number: number;
+            status: string;
+            cells: {
+                [key: string]: string | null;
+            };
+            errors: {
+                field: string | null;
+                code: string;
+                message: string;
+            }[];
+            result: {
+                [key: string]: unknown;
+            } | null;
+            applied_at: string | null;
+        };
         /**
          * ImportStatementRequest
          * @description Multipart statement upload: `file` (at most 2 MB), `format` (csv|ofx|camt|auto, default auto), `mapping` for CSV (a JSON object, or
@@ -4227,6 +4447,23 @@ export interface components {
             email: string;
             password: string;
             remember?: string;
+        };
+        /**
+         * MappingRequest
+         * @description Sets the mapping of an import: `columns` ({field: file header}), optional `defaults` ({field: constant} for empty cells), and
+         *     optionally `options` (replaces the current ones: `number_locale`, `date_format`, and the kind's own, see the upload).
+         *     Carries the `version` the client last read. Setting the mapping clears any earlier preview.
+         */
+        MappingRequest: {
+            version: number;
+            columns: string[];
+            defaults?: (string | null)[] | null;
+            options?: {
+                /** @enum {string|null} */
+                number_locale?: "us" | "eu" | "plain" | null;
+                /** @enum {string|null} */
+                date_format?: "Y-m-d" | "d/m/Y" | "m/d/Y" | "d.m.Y" | "d-m-Y" | "Ymd" | "d/m/y" | "m/d/y" | null;
+            } | null;
         };
         /**
          * MatchRequest
@@ -4713,6 +4950,30 @@ export interface components {
             recovery_code?: string | null;
         };
         /**
+         * UploadImportRequest
+         * @description Multipart upload of a CSV or XLSX file: `kind` (contacts, accounts, opening_balances, invoices, bank_lines), `file` (up to
+         *     `imports.max_bytes`), optional `delimiter` for CSV (default: detected), and `options` — `number_locale` (us|eu|plain, default plain),
+         *     `date_format` (default Y-m-d) and the kind's own: `as_of` for opening balances, `bank_account_id` (and `sign`, `opening_balance`,
+         *     `closing_balance`) for bank lines. The file is read here and only its rows are kept. Row and column limits come from config.
+         */
+        UploadImportRequest: {
+            /** @enum {string} */
+            kind: "contacts" | "accounts" | "opening_balances" | "invoices" | "bank_lines";
+            /**
+             * Format: binary
+             * @description Maximum file size: 5120 kilobytes.
+             */
+            file: string;
+            /** @enum {string|null} */
+            delimiter?: "," | ";" | "\t" | "|" | null;
+            options?: {
+                /** @enum {string|null} */
+                number_locale?: "us" | "eu" | "plain" | null;
+                /** @enum {string|null} */
+                date_format?: "Y-m-d" | "d/m/Y" | "m/d/Y" | "d.m.Y" | "d-m-Y" | "Ymd" | "d/m/y" | "m/d/y" | null;
+            } | null;
+        };
+        /**
          * UploadIntentRequest
          * @description POST …/attachments/uploads: what is being attached to, and the file's name, claimed type, size and SHA-256.
          */
@@ -4762,7 +5023,7 @@ export interface components {
         WebhookEndpointRequest: {
             url: string;
             description?: string | null;
-            events: ("*" | "journal.posted" | "journal.reversed" | "invoice.posted" | "invoice.reversed" | "bill.posted" | "bill.reversed" | "settlement.posted" | "settlement.reversed" | "payment_run.posted" | "credit_application.created" | "credit_application.reversed" | "document.submitted" | "document.approved" | "document.returned" | "document.voided" | "period.soft_closed" | "period.closed" | "period.reopened" | "fiscal_year.closed" | "fiscal_year.locked" | "bank_statement.imported" | "bank_match.created" | "bank_match.removed" | "bank_transaction.created" | "bank_reconciliation.finished" | "bank_reconciliation.reopened" | "recurring.occurrence_created")[];
+            events: ("*" | "journal.posted" | "journal.reversed" | "invoice.posted" | "invoice.reversed" | "bill.posted" | "bill.reversed" | "settlement.posted" | "settlement.reversed" | "payment_run.posted" | "credit_application.created" | "credit_application.reversed" | "document.submitted" | "document.approved" | "document.returned" | "document.voided" | "period.soft_closed" | "period.closed" | "period.reopened" | "fiscal_year.closed" | "fiscal_year.locked" | "bank_statement.imported" | "bank_match.created" | "bank_match.removed" | "bank_transaction.created" | "bank_reconciliation.finished" | "bank_reconciliation.reopened" | "recurring.occurrence_created" | "import.created" | "import.applied" | "import.failed")[];
             version?: number;
         };
         /** WebhookEndpointResource */
@@ -4867,6 +5128,10 @@ export interface operations {
                 type?: "asset" | "liability" | "equity" | "income" | "expense" | null;
                 active?: "true" | "false" | "1" | "0" | null;
                 search?: string | null;
+                /** @description Opaque, from `meta.next_cursor` or `meta.prev_cursor`. */
+                cursor?: string;
+                /** @description Page size, 1 to 200; default 50. */
+                limit?: number;
             };
             header?: never;
             path: {
@@ -5183,7 +5448,12 @@ export interface operations {
     };
     "approvals.index": {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Opaque, from `meta.next_cursor` or `meta.prev_cursor`. */
+                cursor?: string;
+                /** @description Page size, 1 to 200; default 50. */
+                limit?: number;
+            };
             header?: never;
             path: {
                 /** @description The company ID */
@@ -5386,6 +5656,10 @@ export interface operations {
             query: {
                 attachable_type: "journal" | "invoice" | "bill" | "contact" | "settlement";
                 attachable_id: string;
+                /** @description Opaque, from `meta.next_cursor` or `meta.prev_cursor`. */
+                cursor?: string;
+                /** @description Page size, 1 to 200; default 50. */
+                limit?: number;
             };
             header?: never;
             path: {
@@ -5631,6 +5905,10 @@ export interface operations {
                 subject_id?: string | null;
                 actor_id?: string | null;
                 request_id?: string | null;
+                /** @description Opaque, from `meta.next_cursor` or `meta.prev_cursor`. */
+                cursor?: string;
+                /** @description Page size, 1 to 200; default 50. */
+                limit?: number;
             };
             header?: never;
             path: {
@@ -5955,6 +6233,10 @@ export interface operations {
                 from?: string | null;
                 to?: string | null;
                 search?: string | null;
+                /** @description Opaque, from `meta.next_cursor` or `meta.prev_cursor`. */
+                cursor?: string;
+                /** @description Page size, 1 to 200; default 50. */
+                limit?: number;
             };
             header?: never;
             path: {
@@ -6195,7 +6477,12 @@ export interface operations {
     };
     "bank-transactions.index": {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Opaque, from `meta.next_cursor` or `meta.prev_cursor`. */
+                cursor?: string;
+                /** @description Page size, 1 to 200; default 50. */
+                limit?: number;
+            };
             header?: never;
             path: {
                 /** @description The company ID */
@@ -7208,6 +7495,10 @@ export interface operations {
                 kind?: "customer" | "supplier" | "both" | null;
                 active?: "true" | "false" | "1" | "0" | null;
                 search?: string | null;
+                /** @description Opaque, from `meta.next_cursor` or `meta.prev_cursor`. */
+                cursor?: string;
+                /** @description Page size, 1 to 200; default 50. */
+                limit?: number;
             };
             header?: never;
             path: {
@@ -7651,6 +7942,10 @@ export interface operations {
                 source?: "manual" | "provider" | "document" | null;
                 date_from?: string | null;
                 date_to?: string | null;
+                /** @description Opaque, from `meta.next_cursor` or `meta.prev_cursor`. */
+                cursor?: string;
+                /** @description Page size, 1 to 200; default 50. */
+                limit?: number;
             };
             header?: never;
             path: {
@@ -8006,6 +8301,10 @@ export interface operations {
         parameters: {
             query?: {
                 period_id?: string | null;
+                /** @description Opaque, from `meta.next_cursor` or `meta.prev_cursor`. */
+                cursor?: string;
+                /** @description Page size, 1 to 200; default 50. */
+                limit?: number;
             };
             header?: never;
             path: {
@@ -8101,6 +8400,316 @@ export interface operations {
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             422: components["responses"]["ValidationException"];
+        };
+    };
+    "imports.index": {
+        parameters: {
+            query?: {
+                kind?: "contacts" | "accounts" | "opening_balances" | "invoices" | "bank_lines" | null;
+                status?: "uploaded" | "mapped" | "previewed" | "queued" | "applying" | "completed" | "failed" | "pending" | "valid" | "invalid" | "applied" | null;
+                /** @description Opaque, from `meta.next_cursor` or `meta.prev_cursor`. */
+                cursor?: string;
+                /** @description Page size, 1 to 200; default 50. */
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `ImportResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ImportResource"][];
+                        meta: {
+                            next_cursor: string | null;
+                            prev_cursor: string | null;
+                            limit: number;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "imports.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["UploadImportRequest"];
+            };
+        };
+        responses: {
+            /** @description `ImportResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ImportResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "imports.kinds": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: unknown[];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "imports.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The import ID */
+                import: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `ImportResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ImportResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "imports.mapping": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The import ID */
+                import: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MappingRequest"];
+            };
+        };
+        responses: {
+            /** @description `ImportResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ImportResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "imports.preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The import ID */
+                import: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `ImportResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ImportResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "imports.apply": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The import ID */
+                import: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `ImportResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ImportResource"];
+                    };
+                };
+            };
+            /** @description `ImportResource` */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ImportResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "imports.rows": {
+        parameters: {
+            query?: {
+                kind?: "contacts" | "accounts" | "opening_balances" | "invoices" | "bank_lines" | null;
+                status?: "uploaded" | "mapped" | "previewed" | "queued" | "applying" | "completed" | "failed" | "pending" | "valid" | "invalid" | "applied" | null;
+                /** @description Opaque, from `meta.next_cursor` or `meta.prev_cursor`. */
+                cursor?: string;
+                /** @description Page size, 1 to 200; default 50. */
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The import ID */
+                import: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `ImportRowResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ImportRowResource"][];
+                        meta: {
+                            next_cursor: string | null;
+                            prev_cursor: string | null;
+                            limit: number;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "imports.purge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The import ID */
+                import: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `ImportResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ImportResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
         };
     };
     "invitations.index": {
@@ -8629,6 +9238,10 @@ export interface operations {
                 kind?: "service" | "good" | null;
                 active?: "true" | "false" | "1" | "0" | null;
                 search?: string | null;
+                /** @description Opaque, from `meta.next_cursor` or `meta.prev_cursor`. */
+                cursor?: string;
+                /** @description Page size, 1 to 200; default 50. */
+                limit?: number;
             };
             header?: never;
             path: {
@@ -8803,6 +9416,10 @@ export interface operations {
                 to?: string | null;
                 period_id?: string | null;
                 search?: string | null;
+                /** @description Opaque, from `meta.next_cursor` or `meta.prev_cursor`. */
+                cursor?: string;
+                /** @description Page size, 1 to 200; default 50. */
+                limit?: number;
             };
             header?: never;
             path: {
@@ -9334,6 +9951,10 @@ export interface operations {
                 contact_id?: string | null;
                 from?: string | null;
                 to?: string | null;
+                /** @description Opaque, from `meta.next_cursor` or `meta.prev_cursor`. */
+                cursor?: string;
+                /** @description Page size, 1 to 200; default 50. */
+                limit?: number;
             };
             header?: never;
             path: {
@@ -9748,7 +10369,12 @@ export interface operations {
     };
     "recurring-invoices.index": {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Opaque, from `meta.next_cursor` or `meta.prev_cursor`. */
+                cursor?: string;
+                /** @description Page size, 1 to 200; default 50. */
+                limit?: number;
+            };
             header?: never;
             path: {
                 /** @description The company ID */
@@ -9949,7 +10575,12 @@ export interface operations {
     };
     "recurring-journals.index": {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Opaque, from `meta.next_cursor` or `meta.prev_cursor`. */
+                cursor?: string;
+                /** @description Page size, 1 to 200; default 50. */
+                limit?: number;
+            };
             header?: never;
             path: {
                 /** @description The company ID */
@@ -10152,6 +10783,10 @@ export interface operations {
         parameters: {
             query?: {
                 schedule_id?: string | null;
+                /** @description Opaque, from `meta.next_cursor` or `meta.prev_cursor`. */
+                cursor?: string;
+                /** @description Page size, 1 to 200; default 50. */
+                limit?: number;
             };
             header?: never;
             path: {
@@ -10226,11 +10861,15 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
                 "application/json": {
-                    /** @default false */
-                    remember?: boolean;
+                    name: string;
+                    /** Format: email */
+                    email: string;
+                    password: string;
+                    password_confirmation: string;
+                    organisation_name: string;
                 };
             };
         };
@@ -10502,6 +11141,10 @@ export interface operations {
                 contact_side?: "debit" | "credit" | null;
                 contact_id?: string | null;
                 format?: "xlsx" | "csv" | "pdf" | null;
+                /** @description Opaque, from `meta.next_cursor` or `meta.prev_cursor`. */
+                cursor?: string;
+                /** @description Page size, 1 to 200; default 50. */
+                limit?: number;
             };
             header?: never;
             path: {
@@ -10772,6 +11415,10 @@ export interface operations {
                 contact_side?: "debit" | "credit" | null;
                 contact_id?: string | null;
                 format?: "xlsx" | "csv" | "pdf" | null;
+                /** @description Opaque, from `meta.next_cursor` or `meta.prev_cursor`. */
+                cursor?: string;
+                /** @description Page size, 1 to 200; default 50. */
+                limit?: number;
             };
             header?: never;
             path: {
@@ -10991,6 +11638,10 @@ export interface operations {
                 from?: string | null;
                 to?: string | null;
                 search?: string | null;
+                /** @description Opaque, from `meta.next_cursor` or `meta.prev_cursor`. */
+                cursor?: string;
+                /** @description Page size, 1 to 200; default 50. */
+                limit?: number;
             };
             header?: never;
             path: {
@@ -11452,6 +12103,10 @@ export interface operations {
             query?: {
                 kind?: "vat" | "gst" | "sales" | "wht" | "compound" | "exempt" | "zero" | "reverse_charge" | null;
                 active?: "true" | "false" | "1" | "0" | null;
+                /** @description Opaque, from `meta.next_cursor` or `meta.prev_cursor`. */
+                cursor?: string;
+                /** @description Page size, 1 to 200; default 50. */
+                limit?: number;
             };
             header?: never;
             path: {
@@ -11626,6 +12281,10 @@ export interface operations {
         parameters: {
             query?: {
                 active?: "true" | "false" | "1" | "0" | null;
+                /** @description Opaque, from `meta.next_cursor` or `meta.prev_cursor`. */
+                cursor?: string;
+                /** @description Page size, 1 to 200; default 50. */
+                limit?: number;
             };
             header?: never;
             path: {
@@ -12052,6 +12711,10 @@ export interface operations {
         parameters: {
             query?: {
                 status?: "pending" | "delivered" | "failed" | "cancelled" | null;
+                /** @description Opaque, from `meta.next_cursor` or `meta.prev_cursor`. */
+                cursor?: string;
+                /** @description Page size, 1 to 200; default 50. */
+                limit?: number;
             };
             header?: never;
             path: {
@@ -12121,6 +12784,10 @@ export interface operations {
                 contact_id?: string | null;
                 from?: string | null;
                 to?: string | null;
+                /** @description Opaque, from `meta.next_cursor` or `meta.prev_cursor`. */
+                cursor?: string;
+                /** @description Page size, 1 to 200; default 50. */
+                limit?: number;
             };
             header?: never;
             path: {

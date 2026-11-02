@@ -49,6 +49,14 @@ final class ManageAccount
         });
     }
 
+    /** Read-only: the rules `create` applies to this input (imports preview with it). Throws what `create` would throw. */
+    public function check(AccountInput $in): void
+    {
+        $this->assertShape($in);
+        $this->assertCodeFree($in->companyId, $in->code, null);
+        $this->assertParent($in->companyId, $in->parentId, null);
+    }
+
     public function update(Actor $actor, string $accountId, int $version, AccountInput $in): Account
     {
         return $this->uow->run($actor, function (LockSet $locks, AuditBuffer $audit, Outbox $outbox) use ($actor, $accountId, $version, $in) {

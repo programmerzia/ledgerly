@@ -50,6 +50,12 @@ final class ManageContact
         });
     }
 
+    /** Read-only: the rules `create` applies to this input (imports preview with it). Throws what `create` would throw. */
+    public function check(ContactInput $in): void
+    {
+        $this->validate($in, null);
+    }
+
     public function update(Actor $actor, string $contactId, int $version, ContactInput $in): Contact
     {
         return $this->uow->run($actor, function (LockSet $locks, AuditBuffer $audit, Outbox $outbox) use ($actor, $contactId, $version, $in) {

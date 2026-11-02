@@ -17,6 +17,7 @@ use App\Models\Files\Attachment;
 use App\Models\Fiscal\FiscalPeriod;
 use App\Models\Fiscal\FiscalYear;
 use App\Models\Fiscal\PeriodReopenRequest;
+use App\Models\Imports\Import;
 use App\Models\Ledger\Account;
 use App\Models\Ledger\Dimension;
 use App\Models\Ledger\DimensionValue;
@@ -72,6 +73,7 @@ final class CompanyBindings
         'bankReconciliation' => BankReconciliation::class,
         'recurringInvoice' => RecurringInvoice::class,
         'recurringJournal' => RecurringJournal::class,
+        'import' => Import::class,
         // /invoices/{invoice} holds invoices and credit notes, /bills/{bill} bills and debit notes: the other family is a 404.
         'invoice' => Invoice::class,
         'bill' => Invoice::class,

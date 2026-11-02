@@ -79,3 +79,12 @@ it('makes slugs unique within the tenant', function (): void {
 
     expect([$a->slug, $b->slug, $c->slug])->toBe(['same-name', 'same-name-2', 'same-name-3']);
 });
+
+it('never uses a slug that would shadow a route of the SPA', function (): void {
+    $f = LedgerFixture::create();
+    $company = app(CreateCompany::class)->handle(new Actor(ActorType::User, $f->userId, $f->tenantId), new CreateCompanyInput(
+        name: 'New Company', country: 'GB', baseCurrency: 'GBP', fiscalYearStartMonth: 1,
+    ));
+
+    expect($company->slug)->toBe('new-company-co');
+});

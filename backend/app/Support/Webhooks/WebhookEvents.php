@@ -29,6 +29,7 @@ final class WebhookEvents
         'bank_statement.imported', 'bank_match.created', 'bank_match.removed', 'bank_transaction.created',
         'bank_reconciliation.finished', 'bank_reconciliation.reopened',
         'recurring.occurrence_created',
+        'import.created', 'import.applied', 'import.failed',
     ];
 
     /** @return list<string> what the API accepts in an endpoint's `events` */

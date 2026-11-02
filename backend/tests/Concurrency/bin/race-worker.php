@@ -21,6 +21,8 @@ use App\Actions\Fiscal\Inputs\ClosePeriodInput;
 use App\Actions\Fiscal\YearEndClose;
 use App\Actions\Fx\Inputs\RunFxRevaluationInput;
 use App\Actions\Fx\RunFxRevaluation;
+use App\Actions\Imports\ApplyImport;
+use App\Actions\Imports\RequestImportApply;
 use App\Actions\Ledger\Inputs\PostJournalInput;
 use App\Actions\Ledger\Inputs\ReverseJournalInput;
 use App\Actions\Ledger\PostJournal;
@@ -60,7 +62,7 @@ $spec = json_decode($argv[1], true, flags: JSON_THROW_ON_ERROR);
 $app->instance(PermissionChecker::class, new GrantedPermissions([
     'recurring.manage', 'invoices.create', 'bills.create', 'bills.submit', 'journals.create',
     'journals.submit', 'journals.approve', 'journals.reverse', 'invoices.submit', 'invoices.approve', 'invoices.reverse', 'invoices.void', 'receipts.create', 'payments.create', 'payments.approve', 'receipts.reverse', 'payments.reverse', 'periods.close', 'periods.reopen.request',
-    'banking.reconcile', 'banking.transactions.create', 'journals.submit',
+    'banking.reconcile', 'banking.transactions.create', 'journals.submit', 'contacts.manage', 'contacts.manage_customers', 'settings.manage', 'accounts.manage',
     'periods.reopen.approve', 'periods.year_end', 'periods.post_adjustment', 'periods.post_soft_closed',
 ]));
 $app->instance(RoleChecker::class, new AllowAllRoles);
@@ -99,6 +101,8 @@ foreach ($spec['ops'] as $op) {
             'revalue' => $app->make(RunFxRevaluation::class)->handle(Actor::system($spec['tenant'], $spec['company']), new RunFxRevaluationInput($spec['company'], $op['id'])),
             'recurring_run' => $app->make(RunRecurringSchedules::class)->handle(Actor::system($spec['tenant'], $spec['company']), $spec['company'], new DateTimeImmutable($op['as_of']), $op['id'] ?? null),
             'bulk_approve' => $app->make(BulkApproveDocuments::class)->handle($actor, array_map(fn (string $id) => new DocumentRef('invoice', $id), $op['ids'])),
+            'import_apply' => $app->make(RequestImportApply::class)->handle($actor, $op['id']),
+            'import_job' => $app->make(ApplyImport::class)->handle($spec['tenant'], $spec['company'], $op['id'], retry: (bool) ($op['retry'] ?? false)),
             'close' => $app->make(ClosePeriod::class)->handle($actor, new ClosePeriodInput($op['id'], $op['waivers'] ?? [])),
             'year_end' => $app->make(YearEndClose::class)->handle($actor, $op['id']),
             'reopen_approve' => $app->make(DecidePeriodReopen::class)->approve($actor, $op['id']),

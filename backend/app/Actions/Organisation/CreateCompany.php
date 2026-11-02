@@ -29,6 +29,11 @@ use Illuminate\Support\Str;
  */
 final class CreateCompany
 {
+    private const array RESERVED_SLUGS = [
+        'new-company', 'login', 'logout', 'register', 'admin', 'api', 'sanctum', 'onboarding', 'invitations',
+        'two-factor-challenge', 'forgot-password', 'reset-password', 'assets', 'practice',
+    ];
+
     public function __construct(
         private readonly UnitOfWork $uow,
         private readonly IdGenerator $ids,
@@ -86,6 +91,8 @@ final class CreateCompany
     {
         $base = Str::slug($name);
         $base = $base === '' ? 'company' : $base;
+        // The slug is the first URL segment of the SPA, so it must not shadow one of its own routes.
+        $base = in_array($base, self::RESERVED_SLUGS, true) ? $base.'-co' : $base;
         $taken = Company::query()->where('slug', 'like', $base.'%')->pluck('slug')->all();
 
         $slug = $base;
