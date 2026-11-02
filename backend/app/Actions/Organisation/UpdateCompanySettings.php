@@ -28,7 +28,7 @@ final class UpdateCompanySettings
     /** @var array<string, string|null> posting account key → control type it requires (null: any postable account) */
     public const array POSTING_KEYS = [
         'ar_control' => 'ar', 'ap_control' => 'ap', 'tax_output' => 'tax', 'tax_input' => 'tax', 'wht_payable' => 'tax',
-        'retained_earnings' => 'retained_earnings', 'fx_realised' => null, 'fx_unrealised' => null, 'rounding' => null,
+        'retained_earnings' => 'retained_earnings', 'fx_realised' => null, 'fx_realised_loss' => null, 'fx_unrealised' => null, 'fx_unrealised_loss' => null, 'rounding' => null,
         'suspense' => null, 'bank_clearing' => null,
     ];
 

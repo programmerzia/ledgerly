@@ -69,6 +69,24 @@ it('books realised FX by cash direction: receipts and payments, gains and losses
     'payment gain' => ['payment', '1.05', 10500, 'credit', 500],
 ]);
 
+it('books a realised loss to its own account when the company has one, a gain to the gain account', function (): void {
+    $this->inTenant(function (): void {
+        $row = DB::table('company_settings')->where('company_id', $this->f->companyId);
+        $accounts = json_decode((string) $row->value('posting_accounts'), true);
+        $row->update(['posting_accounts' => json_encode([...$accounts, 'fx_realised_loss' => $this->f->account('5010')])]);
+    });
+    $this->t->rate('EUR', '2026-03-01', '1.10');
+    $invoice = fn () => $this->postedDoc('invoices', $this->t->body($this->t->customer, [[10000, '1', null, '0', '4010']], '2026-03-01', ['currency' => 'EUR', 'fx_rate' => '1.10']));
+
+    $loss = $this->postedSettlement('receipt', $this->t->customer, 10000, [[$invoice()['id'], 10000]], '2026-03-20', '1200', ['currency' => 'EUR', 'fx_rate' => '1.05']);
+    expect($this->t->journalOf($loss['journal_id']))->toHaveKey('5010')->not->toHaveKey('7100');
+    expect($this->t->journalOf($loss['journal_id'])['5010']['debit'])->toBe(500);
+
+    $gain = $this->postedSettlement('receipt', $this->t->customer, 10000, [[$invoice()['id'], 10000]], '2026-03-21', '1200', ['currency' => 'EUR', 'fx_rate' => '1.20']);
+    expect($this->t->journalOf($gain['journal_id'])['7100']['credit'])->toBe(1000);
+    $this->inTenant(fn () => expect(LedgerChecks::problems())->toBe([]));
+});
+
 it('lets the allocation that clears the invoice take its remaining base, so no cent stays on AR', function (): void {
     // EUR 100.00 at 1.005 is 100.5 → 101 (HALF_UP). Two receipts of EUR 50 at the same rate each carry round(50.25) = 50, so the
     // first leaves 51 on AR; the second clears the invoice with its remaining base 51 and books 50 − 51 = a loss of 1.
@@ -178,6 +196,9 @@ it('applies a posted credit note to an open invoice, limited by both open amount
     $draft = $this->draftDoc('invoices', $this->t->body($this->t->customer, [[7500, '1', 'VAT10']], '2026-03-17', ['kind' => 'credit_note', 'related_invoice_id' => $inv['id']]));
     $this->asPerson($this->accountant, signing: true)->postJson($this->api("invoices/{$draft['id']}/submit"), [], $this->key())
         ->assertUnprocessable()->assertJsonPath('code', 'credit_exceeds_original');
+    // The preview says so too, so the maker hears it before any approver does.
+    $this->postJson($this->api("invoices/{$draft['id']}/posting-preview"), [], $this->key())->assertOk()
+        ->assertJsonPath('data.valid', false)->assertJsonPath('data.violations.0.code', 'credit_exceeds_original');
 });
 
 it('credits a fully paid invoice, leaving a credit that can be refunded', function (): void {

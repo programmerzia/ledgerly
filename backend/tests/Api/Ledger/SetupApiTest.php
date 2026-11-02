@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+use App\Actions\Organisation\UpdateCompanySettings;
+use Illuminate\Support\Facades\DB;
+
 /*
  * Accounts, dimensions, account dimension rules, chart templates and approval workflows over HTTP.
  * Real seeded roles: Finance Manager manages, Accountant and Viewer only read.
@@ -97,6 +100,24 @@ it('takes true and false as text in report query strings, and nothing looser', f
     $this->getJson($this->api('reports/trial-balance?as_of=2026-01-31&hide_zero=maybe'))->assertStatus(422)->assertJsonValidationErrors(['hide_zero']);
 });
 
+it('names real accounts of the right kind as posting accounts in every chart template', function (string $file): void {
+    $chart = require database_path("seeders/charts/{$file}.php");
+    $lines = collect($chart['lines'])->keyBy('code');
+    $postable = $lines->reject(fn (array $l) => $lines->contains('parent_code', $l['code']));
+
+    expect($chart['posting_accounts'])->toHaveKeys(['ar_control', 'ap_control', 'tax_output', 'retained_earnings', 'rounding', 'fx_realised', 'fx_unrealised']);
+    foreach ($chart['posting_accounts'] as $key => $code) {
+        $required = UpdateCompanySettings::POSTING_KEYS[$key];
+        expect($postable->has($code))->toBeTrue("{$key} → {$code}");
+        if ($required !== null) {
+            expect($postable[$code]['control_type'])->toBe($required, "{$key} → {$code}");
+        }
+    }
+    foreach (['fx_realised' => 'income', 'fx_realised_loss' => 'expense', 'fx_unrealised' => 'income', 'fx_unrealised_loss' => 'expense'] as $key => $type) {
+        expect($postable[$chart['posting_accounts'][$key]]['account_type'])->toBe($type, $key);
+    }
+})->with(['ifrs_sme', 'insurance', 'non_profit', 'us_small_business']);
+
 it('lets only an account manager change the chart', function (): void {
     $this->asPerson($this->accountant)->getJson($this->api('accounts'))->assertOk();
     $this->postJson($this->api('accounts'), NEW_ACCOUNT, $this->key())->assertForbidden()->assertJson(['code' => 'forbidden']);
@@ -117,6 +138,11 @@ it('lists chart templates and applies one to a company with no accounts', functi
     $this->postJson($this->api('apply-chart-template', $beta->id), ['template_code' => $code], $this->key())
         ->assertCreated()->assertJsonPath('data.accounts_created', fn ($n) => $n > 0);
     $this->postJson($this->api('apply-chart-template', $beta->id), ['template_code' => $code], $this->key())->assertStatus(422)->assertJson(['code' => 'chart_not_empty']);
+
+    // The company can post straight away: the template's posting accounts are set on it.
+    $settings = $this->inTenant(fn () => json_decode((string) DB::table('company_settings')->where('company_id', $beta->id)->value('posting_accounts'), true));
+    expect($settings)->toHaveKeys(['ar_control', 'ap_control', 'tax_output', 'rounding', 'fx_realised', 'fx_realised_loss', 'suspense'])
+        ->and($this->getJson($this->api("accounts/{$settings['ar_control']}", $beta->id))->assertOk()->json('data.control_type'))->toBe('ar');
     $this->getJson($this->api('accounts', $beta->id))->assertOk()->assertJsonPath('meta.limit', 50);
 
     // A viewer of company A may not even list the templates.

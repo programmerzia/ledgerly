@@ -13,6 +13,7 @@ use App\Models\Ledger\Account;
 use App\Models\Ledger\Dimension;
 use App\Models\Ledger\DimensionValue;
 use App\Models\Organisation\Company;
+use App\Models\Organisation\CompanySettings;
 use App\Models\Platform\ChartTemplate;
 use App\Support\Actor;
 use App\Support\UnitOfWork\AuditBuffer;
@@ -63,11 +64,29 @@ final class ApplyChartTemplate
             $rows = $this->accountRows($actor, $company, $template);
             Account::query()->insert($rows);
             $this->createDimensions($actor, $company, $template);
+            $this->setPostingAccounts($actor, $company, $template);
 
             $audit->add('chart.applied', $company, context: ['template' => $template->code, 'accounts' => count($rows)]);
 
             return count($rows);
         });
+    }
+
+    /** The template's posting accounts, without overwriting any the company has already chosen. */
+    private function setPostingAccounts(Actor $actor, Company $company, ChartTemplate $template): void
+    {
+        $idByCode = Account::query()->where('company_id', $company->id)->pluck('id', 'code')->all();
+        $settings = CompanySettings::query()->where('company_id', $company->id)->first()
+            ?? (new CompanySettings)->forceFill(['tenant_id' => $actor->tenantId, 'company_id' => $company->id]);
+        $chosen = $settings->getAttribute('posting_accounts');
+        $chosen = is_array($chosen) ? $chosen : [];
+
+        foreach ($template->posting_accounts as $key => $code) {
+            if (($chosen[$key] ?? '') === '' && isset($idByCode[$code])) {
+                $chosen[$key] = $idByCode[$code];
+            }
+        }
+        $settings->forceFill(['posting_accounts' => $chosen])->save();
     }
 
     /** Dimensions the template brings, placed after any the company already has. */

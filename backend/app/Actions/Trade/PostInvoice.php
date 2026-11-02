@@ -14,6 +14,7 @@ use App\Domain\Workflow\DocumentStatus;
 use App\Events\Trade\TradeDocumentPosted;
 use App\Models\Trade\Invoice;
 use App\Services\Ledger\PostingEngine;
+use App\Services\Trade\CreditNoteLimit;
 use App\Services\Trade\TradePosting;
 use App\Support\Actor;
 use App\Support\UnitOfWork\AuditBuffer;
@@ -42,6 +43,7 @@ final class PostInvoice
         private readonly TradePosting $trade,
         private readonly RecordJournal $record,
         private readonly Clock $clock,
+        private readonly CreditNoteLimit $creditLimit,
     ) {}
 
     public function handle(Actor $actor, string $invoiceId, ?int $lockVersion = null): Invoice
@@ -113,15 +115,9 @@ final class PostInvoice
      */
     private function assertWithinOriginal(Invoice $note): void
     {
-        if ($note->related_invoice_id === null) {
-            return;
-        }
-        $original = Invoice::query()->findOrFail($note->related_invoice_id);
-        $others = (int) $original->getConnection()->table('invoices')
-            ->where('related_invoice_id', $original->id)->where('status', DocumentStatus::Posted->value)->where('id', '<>', $note->id)
-            ->sum($original->getConnection()->raw('total_fc - wht_amount_fc'));
-        if ($others + $note->total_fc - $note->wht_amount_fc > $original->total_fc - $original->wht_amount_fc) {
-            throw DomainRuleViolation::single('credit_exceeds_original', "The {$note->kind->label()}s against {$original->number} would be more than the document itself.");
+        $refusal = $this->creditLimit->refusal($note);
+        if ($refusal !== null) {
+            throw DomainRuleViolation::single('credit_exceeds_original', $refusal);
         }
     }
 

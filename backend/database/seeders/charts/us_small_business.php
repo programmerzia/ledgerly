@@ -12,6 +12,13 @@ use Database\Seeders\ChartLine as L;
  */
 return [
     'code' => 'us_small_business',
+    // posting key → the line that plays that role, set on the company when the template is applied.
+    'posting_accounts' => [
+        'ar_control' => '1200', 'ap_control' => '2000', 'tax_output' => '2100',
+        'retained_earnings' => '3900', 'fx_realised' => '4900', 'fx_realised_loss' => '6900',
+        'fx_unrealised' => '4800', 'fx_unrealised_loss' => '6850', 'rounding' => '6890',
+        'suspense' => '9999', 'bank_clearing' => '1090',
+    ],
     'name' => 'US small business',
     'country' => 'US',
     'standard' => 'US GAAP',

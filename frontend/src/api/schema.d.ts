@@ -4318,6 +4318,10 @@ export interface components {
                 amount: number;
                 currency: string;
             };
+            amount_due_fc: {
+                amount: number;
+                currency: string;
+            };
             related_invoice_id: string | null;
             journal_id: string | null;
             reversal_journal_id: string | null;

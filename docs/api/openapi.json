@@ -23275,6 +23275,21 @@
                             "currency"
                         ]
                     },
+                    "amount_due_fc": {
+                        "type": "object",
+                        "properties": {
+                            "amount": {
+                                "type": "integer"
+                            },
+                            "currency": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "amount",
+                            "currency"
+                        ]
+                    },
                     "related_invoice_id": {
                         "type": [
                             "string",
@@ -23365,6 +23380,7 @@
                     "settled_fc",
                     "settled",
                     "amount_due",
+                    "amount_due_fc",
                     "related_invoice_id",
                     "journal_id",
                     "reversal_journal_id",

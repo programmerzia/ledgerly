@@ -81,6 +81,12 @@ class Invoice extends BaseModel implements Postable
         return max(0, $this->total - $this->wht_amount - $this->settled);
     }
 
+    /** The same in the document currency. */
+    public function amountDueFc(): int
+    {
+        return max(0, $this->total_fc - $this->wht_amount_fc - $this->settled_fc);
+    }
+
     public function documentType(): string
     {
         return $this->kind->documentType();

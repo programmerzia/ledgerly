@@ -149,19 +149,20 @@ final class RunFxRevaluation
         $raw = CompanySettings::query()->where('company_id', $company->id)->first()?->getAttribute('posting_accounts');
         /** @var array<string, mixed> $settings */
         $settings = is_string($raw) ? (json_decode($raw, true) ?: []) : (is_array($raw) ? $raw : []);
-        $ref = $settings['fx_unrealised'] ?? null;
-
-        $account = is_string($ref) && $ref !== ''
-            ? Account::query()->where('company_id', $company->id)->where(fn ($q) => $q->where('code', $ref)->when(
-                preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/', $ref) === 1,
-                fn ($q2) => $q2->orWhere('id', $ref),
-            ))->first()
-            : null;
+        $find = function (mixed $ref) use ($company): ?Account {
+            return is_string($ref) && $ref !== ''
+                ? Account::query()->where('company_id', $company->id)->where(fn ($q) => $q->where('code', $ref)->when(
+                    preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/', $ref) === 1,
+                    fn ($q2) => $q2->orWhere('id', $ref),
+                ))->first()
+                : null;
+        };
+        $account = $find($settings['fx_unrealised'] ?? null);
         if ($account === null) {
             throw DomainRuleViolation::single('posting_account_missing', 'Set the unrealised FX gain/loss account (posting_accounts.fx_unrealised) in the company settings.');
         }
 
-        return new PostingAccounts('', '', '', '', '', $account->id, '', '');
+        return new PostingAccounts('', '', '', '', '', $account->id, '', '', fxUnrealisedLoss: $find($settings['fx_unrealised_loss'] ?? null)->id ?? '');
     }
 
     /**

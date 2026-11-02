@@ -52,6 +52,7 @@ final class InvoiceResource extends JsonResource
             'settled_fc' => Json::money($this->settled_fc, $cur),
             'settled' => Json::money($this->settled, $base),
             'amount_due' => Json::money($this->status->value === 'posted' ? $this->amountDue() : 0, $base),
+            'amount_due_fc' => Json::money($this->status->value === 'posted' ? $this->amountDueFc() : 0, $this->currency),
             'related_invoice_id' => $this->related_invoice_id,
             'journal_id' => $this->journal_id,
             'reversal_journal_id' => $this->reversal_journal_id,

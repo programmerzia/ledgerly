@@ -16,5 +16,7 @@ final readonly class PostingAccounts
         public string $fxUnrealised,
         public string $rounding,
         public string $whtPayable,
+        public string $fxRealisedLoss = '',
+        public string $fxUnrealisedLoss = '',
     ) {}
 }

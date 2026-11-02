@@ -40,7 +40,7 @@ final class SettlementPosting
             if ($a->fxGainLoss !== 0) {
                 $isGain = $a->fxGainLoss > 0;
                 $lines[] = new ProposedLine(
-                    $accounts->fxRealised, $isGain ? 0 : abs($a->fxGainLoss), $isGain ? $a->fxGainLoss : 0, $baseCurrency, '1',
+                    $isGain || $accounts->fxRealisedLoss === '' ? $accounts->fxRealised : $accounts->fxRealisedLoss, $isGain ? 0 : abs($a->fxGainLoss), $isGain ? $a->fxGainLoss : 0, $baseCurrency, '1',
                     -$a->fxGainLoss, $dims, 'Realised FX '.($isGain ? 'Gain' : 'Loss')." on {$a->invoiceNumber}",
                 );
             }

@@ -12,6 +12,7 @@ use App\Domain\Workflow\DocumentStatus;
 use App\Models\Fiscal\FiscalPeriod;
 use App\Models\Trade\Invoice;
 use App\Services\Ledger\PostingEngine;
+use App\Services\Trade\CreditNoteLimit;
 use App\Services\Trade\TradePosting;
 use App\Support\Actor;
 
@@ -26,6 +27,7 @@ final class PreviewInvoicePosting
         private readonly PostingEngine $engine,
         private readonly PostingValidator $validator,
         private readonly TradePosting $trade,
+        private readonly CreditNoteLimit $creditLimit,
     ) {}
 
     public function of(Actor $actor, string $invoiceId): InvoicePostingPreview
@@ -40,6 +42,10 @@ final class PreviewInvoicePosting
 
         if (! in_array($doc->status, [DocumentStatus::Draft, DocumentStatus::PendingApproval], true)) {
             $violations[] = new Violation('document_not_postable', "A {$doc->status->value} {$doc->kind->label()} cannot be posted.");
+        }
+        $refusal = $this->creditLimit->refusal($doc);
+        if ($refusal !== null) {
+            $violations[] = new Violation('credit_exceeds_original', $refusal);
         }
         try {
             $draft = $this->trade->draft($doc, $doc->number);

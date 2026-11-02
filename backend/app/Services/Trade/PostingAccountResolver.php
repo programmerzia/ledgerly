@@ -30,6 +30,7 @@ final class PostingAccountResolver
             taxOutput: '', taxInput: '',
             fxRealised: $this->account($company, $settings, 'fx_realised'), fxUnrealised: '',
             rounding: $this->account($company, $settings, 'rounding'), whtPayable: '',
+            fxRealisedLoss: ($settings['fx_realised_loss'] ?? '') !== '' ? $this->account($company, $settings, 'fx_realised_loss') : '',
         );
     }
 
