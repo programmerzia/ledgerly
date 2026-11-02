@@ -88,6 +88,28 @@ it('leaves the order unchanged until the revision is approved, and receipts stil
     $this->receive($order['id'], [[$order['lines'][0]['id'], '3']])->assertCreated();
 });
 
+it('approves a revision, an order and a requisition from the inbox and says so', function (): void {
+    $order = $this->approvedOrder();
+    $this->workflow('purchase_order');
+    $this->workflow('purchase_requisition');
+    $revision = $this->draftDoc("purchase-orders/{$order['id']}/revisions", $this->reviseBody($order, [0 => ['unit_price_fc' => 12000]]));
+    $this->submitDoc('purchase-order-revisions', $revision['id']);
+    $next = $this->draftDoc('purchase-orders', $this->orderBody());
+    $this->submitDoc('purchase-orders', $next['id']);
+    $requisition = $this->draftDoc('purchase-requisitions', $this->reqBody());
+    $this->submitDoc('purchase-requisitions', $requisition['id']);
+
+    $this->asPerson($this->approver)->getJson($this->api('approvals'))->assertOk()->assertJsonCount(3, 'data');
+    $this->asPerson($this->approver, signing: true)->postJson($this->api('approvals/bulk-approve'), ['documents' => [
+        ['type' => 'purchase_order_revision', 'id' => $revision['id']],
+        ['type' => 'purchase_order', 'id' => $next['id']],
+        ['type' => 'purchase_requisition', 'id' => $requisition['id']],
+    ]], $this->key())->assertOk()
+        ->assertJsonPath('meta.approved', 3)->assertJsonPath('meta.skipped', 0)
+        ->assertJsonPath('data.0.number', null)->assertJsonPath('data.1.number', 'PO-2026-00002')->assertJsonPath('data.2.number', 'PR-2026-00001');
+    $this->getJson($this->api("purchase-orders/{$order['id']}"))->assertJsonPath('data.revision', 1)->assertJsonPath('data.lines.0.unit_price_fc.amount', 12000);
+});
+
 it('allows one open revision per order', function (): void {
     $order = $this->approvedOrder();
     $body = $this->reviseBody($order, [0 => ['unit_price_fc' => 12000]]);

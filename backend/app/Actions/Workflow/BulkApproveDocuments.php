@@ -76,7 +76,10 @@ final class BulkApproveDocuments
             }
             $doc = $this->approve->handle($actor, $ref, $comment);
 
-            return BulkApprovalResult::approved($ref, $doc->documentStatus()->value, $doc->getAttribute('number') === null ? null : (string) $doc->getAttribute('number'));
+            // A revision has no number of its own, and strict models throw on a missing attribute.
+            $number = $doc->getAttributes()['number'] ?? null;
+
+            return BulkApprovalResult::approved($ref, $doc->documentStatus()->value, is_string($number) ? $number : null);
         } catch (DomainRuleViolation $e) {
             return BulkApprovalResult::failed($ref, $e->errorCode, $e->getMessage());
         } catch (Throwable $e) {
