@@ -1,13 +1,16 @@
 import React from 'react';
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation, useParams } from 'react-router-dom';
 import { AppShell } from './layouts/AppShell';
 import { AdminShell } from './layouts/AdminShell';
-import { useLedgerStore } from './mock/store';
+import { IS_LIVE } from './api/config';
+import { selectByMode } from './data/select';
+import { useAuthStatus, useHomePath, useLiveStoreSync } from './data/session';
 import { useAdminStore } from './mock/store/adminStore';
 
 // Tenant Auth
 import { Login } from './pages/Auth/Login';
 import { TwoFactor } from './pages/Auth/TwoFactor';
+import { LiveLogin, LiveTwoFactor, LiveRegister, LiveNewCompany } from './pages/Auth/LiveAuthPages';
 import { Dashboard } from './pages/Dashboard/Dashboard';
 
 // Sales
@@ -84,13 +87,24 @@ import { FeatureFlags } from './pages/Admin/Flags/FeatureFlags';
 import { StaffSecurity } from './pages/Admin/Staff/StaffSecurity';
 import { ComplianceCenter } from './pages/Admin/Compliance/ComplianceCenter';
 
+const useGuardSync = selectByMode<(slug: string | undefined) => { unknownCompany: boolean }>({
+  mock: () => ({ unknownCompany: false }),
+  live: useLiveStoreSync,
+});
+
 function RequireTenantAuth() {
-  const isAuthenticated = useLedgerStore((s) => s.isAuthenticated);
+  const { status, needsCompany } = useAuthStatus();
+  const { co } = useParams();
+  const { unknownCompany } = useGuardSync(co);
+  const home = useHomePath();
   const location = useLocation();
 
-  if (!isAuthenticated) {
+  if (status === 'loading') return null;
+  if (status === 'anonymous') {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
+  if (needsCompany) return <Navigate to="/new-company" replace />;
+  if (unknownCompany && home) return <Navigate to={home} replace />;
   return <AppShell />;
 }
 
@@ -105,12 +119,11 @@ function RequireAdminAuth() {
 }
 
 function RootRedirect() {
-  const isAuthenticated = useLedgerStore((s) => s.isAuthenticated);
-  const currentCompany = useLedgerStore((s) => s.currentCompany);
+  const { status } = useAuthStatus();
+  const home = useHomePath();
 
-  if (isAuthenticated) {
-    return <Navigate to={`/${currentCompany.slug}/dashboard`} replace />;
-  }
+  if (status === 'loading') return null;
+  if (status === 'authenticated' && home) return <Navigate to={home} replace />;
   return <Navigate to="/login" replace />;
 }
 
@@ -120,8 +133,10 @@ export default function App() {
       <Toaster />
       <Routes>
         {/* Tenant Auth */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/two-factor-challenge" element={<TwoFactor />} />
+        <Route path="/login" element={IS_LIVE ? <LiveLogin /> : <Login />} />
+        <Route path="/two-factor-challenge" element={IS_LIVE ? <LiveTwoFactor /> : <TwoFactor />} />
+        {IS_LIVE && <Route path="/register" element={<LiveRegister />} />}
+        {IS_LIVE && <Route path="/new-company" element={<LiveNewCompany />} />}
 
         {/* Platform Admin Auth */}
         <Route path="/admin/login" element={<AdminLogin />} />

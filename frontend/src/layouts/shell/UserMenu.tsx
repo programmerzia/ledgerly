@@ -1,6 +1,7 @@
 import React from 'react';
 import { ChevronDown, User, Users, Keyboard, Moon, Sun, LogOut, ShieldCheck, Check, CloudOff, Cloud } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { IS_LIVE } from '@/api/config';
 import { Avatar } from '@/components/ui/avatar';
 import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
@@ -57,7 +58,7 @@ export const UserMenu: React.FC<Props> = ({ user, isDark, isOffline, onToggleThe
       </div>
       <DropdownMenuSeparator />
       <DropdownMenuItem onSelect={onProfile}><User className="size-4 text-text-muted" />Profile &amp; settings</DropdownMenuItem>
-      <DropdownMenuSub>
+      {!IS_LIVE && <DropdownMenuSub>
         <DropdownMenuSubTrigger><Users className="size-4 text-text-muted" />Switch persona</DropdownMenuSubTrigger>
         <DropdownMenuSubContent className="w-64">
           <DropdownMenuLabel>Demo: view as</DropdownMenuLabel>
@@ -68,7 +69,7 @@ export const UserMenu: React.FC<Props> = ({ user, isDark, isOffline, onToggleThe
             </DropdownMenuItem>
           ))}
         </DropdownMenuSubContent>
-      </DropdownMenuSub>
+      </DropdownMenuSub>}
       <DropdownMenuItem onSelect={onShortcuts}><Keyboard className="size-4 text-text-muted" />Keyboard shortcuts<DropdownMenuShortcut>?</DropdownMenuShortcut></DropdownMenuItem>
       <DropdownMenuItem onSelect={onToggleTheme}>
         {isDark ? <Sun className="size-4 text-text-muted" /> : <Moon className="size-4 text-text-muted" />}

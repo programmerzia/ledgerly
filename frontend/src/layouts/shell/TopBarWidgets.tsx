@@ -30,7 +30,7 @@ export const TopBarClock: React.FC<{ periodName: string }> = ({ periodName }) =>
         <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-xs">
           <dt className="text-text-muted">Local ({tz})</dt><dd className="text-right tabular-nums text-text-primary">{hm}</dd>
           <dt className="text-text-muted">UTC</dt><dd className="text-right tabular-nums text-text-primary">{utc}</dd>
-          <dt className="text-text-muted">Fiscal period</dt><dd className="text-right text-text-primary">{periodName}</dd>
+          {periodName && <><dt className="text-text-muted">Fiscal period</dt><dd className="text-right text-text-primary">{periodName}</dd></>}
         </dl>
       </TooltipContent>
     </Tooltip>

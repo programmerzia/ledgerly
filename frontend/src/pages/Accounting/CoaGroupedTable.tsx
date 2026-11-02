@@ -68,7 +68,8 @@ const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 interface Props {
   accounts: Account[];
   currency: string;
-  balanceOf: (id: string) => number;
+  /** Omit when balances are not available (live mode before reports are wired); the column shows a dash. */
+  balanceOf?: (id: string) => number;
   activeId: string | null;
   onSelect: (a: Account) => void;
   onOpen: (a: Account) => void;
@@ -106,7 +107,7 @@ export const CoaGroupedTable: React.FC<Props> = ({
 
   /** Balance signed so it reads correctly inside its section: contra accounts come out negative. */
   const signed = (a: Account, normalOfGroup: 'debit' | 'credit') =>
-    balanceOf(a.id) * (a.normal_balance === normalOfGroup ? 1 : -1);
+    (balanceOf?.(a.id) ?? 0) * (a.normal_balance === normalOfGroup ? 1 : -1);
 
   const groups = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -233,7 +234,7 @@ export const CoaGroupedTable: React.FC<Props> = ({
   });
 
   const allSelected = flat.length > 0 && selectedIds.size === flat.length;
-  const fmt = (n: number) => formatMoney(n, currency, { parenthesesNegative: true });
+  const fmt = (n: number) => (balanceOf ? formatMoney(n, currency, { parenthesesNegative: true }) : '—');
   const COLS = 7;
   const COLSPAN_ALL = COLS + 2;
 

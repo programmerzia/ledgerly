@@ -4,6 +4,7 @@ import {
   BookMarked, UserPlus, Truck, Settings2, ArrowUpRight,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { IS_LIVE } from '@/api/config';
 import type { UIRowDensity } from '@/mock/store';
 import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
@@ -14,12 +15,8 @@ import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip
 import { ThemeSwitcher } from './ThemeSwitcher';
 import { NotificationsMenu, type AppNotification } from './NotificationsMenu';
 import { UserMenu } from './UserMenu';
+import { useCompanyList } from '@/data/session';
 import { TopBarClock, FullscreenToggle, SyncIndicator, ICON_BTN } from './TopBarWidgets';
-
-const COMPANIES = [
-  { id: 'co-1', slug: 'acme', name: 'Acme Trading Ltd', meta: 'Somalia', currency: 'USD' },
-  { id: 'co-2', slug: 'acme-log', name: 'Acme Logistics', meta: 'Kenya', currency: 'KES' },
-];
 
 export interface TopBarProps {
   coSlug: string;
@@ -31,7 +28,6 @@ export interface TopBarProps {
   onToggleSidebar: () => void;
   onOpenCommand: () => void;
   navigate: (to: string) => void;
-  switchCompany: (id: string) => void;
   theme: { currentTheme: string; isDark: boolean; applyTheme: (t: string) => void; toggleTheme: () => void };
   uiDensity: UIRowDensity;
   setUiDensity: (d: UIRowDensity) => void;
@@ -48,6 +44,7 @@ export interface TopBarProps {
 
 export const TopBar: React.FC<TopBarProps> = (p) => {
   const { coSlug, navigate } = p;
+  const { companies, organisations, switchCompany, switchOrganisation } = useCompanyList();
   const periodShort = p.period.name.replace(/^(\w{3})\w*\s+(\d{4})$/, '$1 $2');
   const periodStatus = p.period.status.charAt(0).toUpperCase() + p.period.status.slice(1);
   const periodTone = p.period.status === 'open' ? 'bg-success' : p.period.status === 'closed' ? 'bg-danger' : 'bg-warning';
@@ -85,8 +82,8 @@ export const TopBar: React.FC<TopBarProps> = (p) => {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" sideOffset={8} className="w-72">
             <DropdownMenuLabel>Companies</DropdownMenuLabel>
-            {COMPANIES.map((c) => (
-              <DropdownMenuItem key={c.id} onSelect={() => { p.switchCompany(c.id); navigate(`/${c.slug}/dashboard`); }} className="h-auto py-1.5 gap-3">
+            {companies.map((c) => (
+              <DropdownMenuItem key={c.id} onSelect={() => { switchCompany(c.id); navigate(`/${c.slug}/dashboard`); }} className="h-auto py-1.5 gap-3">
                 <span className="flex flex-col min-w-0 flex-1">
                   <span className="font-medium truncate">{c.name}</span>
                   <span className="text-[11px] text-text-muted">{c.meta} · {c.currency}</span>
@@ -94,11 +91,24 @@ export const TopBar: React.FC<TopBarProps> = (p) => {
                 {p.company.id === c.id && <Check className="size-4 text-accent" />}
               </DropdownMenuItem>
             ))}
+            {organisations.length > 1 && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuLabel>Organisations</DropdownMenuLabel>
+                {organisations.map((o) => (
+                  <DropdownMenuItem key={o.id} onSelect={() => { void switchOrganisation(o.id).then(() => navigate('/')); }} className="gap-3">
+                    <span className="flex-1 truncate font-medium">{o.name}</span>
+                    {o.current && <Check className="size-4 text-accent" />}
+                  </DropdownMenuItem>
+                ))}
+              </>
+            )}
             <DropdownMenuSeparator />
             <DropdownMenuItem onSelect={() => navigate(`/${coSlug}/settings`)}><Settings2 className="size-4 text-text-muted" />Manage companies</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
 
+        {!IS_LIVE && (
         <Popover>
           <PopoverTrigger asChild>
             <button type="button" className="hidden md:flex items-center gap-1.5 h-7 px-2 rounded-md hover:bg-surface-neutral transition text-xs text-text-secondary outline-none focus-visible:ring-2 focus-visible:ring-accent/50 cursor-pointer">
@@ -119,6 +129,7 @@ export const TopBar: React.FC<TopBarProps> = (p) => {
             </button>
           </PopoverContent>
         </Popover>
+        )}
       </div>
 
       {/* Center search */}
@@ -157,7 +168,7 @@ export const TopBar: React.FC<TopBarProps> = (p) => {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <TopBarClock periodName={p.period.name} />
+        <TopBarClock periodName={IS_LIVE ? '' : p.period.name} />
         <SyncIndicator isOffline={p.isOffline} isSyncing={p.isSyncing} outboxCount={p.outboxCount} onToggle={p.onToggleOffline} />
         <ThemeSwitcher currentTheme={p.theme.currentTheme} isDark={p.theme.isDark} applyTheme={p.theme.applyTheme} uiDensity={p.uiDensity} setUiDensity={p.setUiDensity} />
         <FullscreenToggle />

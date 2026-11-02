@@ -1,6 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLedgerStore } from '@/mock/store';
+import { useAccounts } from '@/data/accounts';
+import { IS_LIVE } from '@/api/config';
+import { describeError } from '@/api/messages';
 import { Account } from '@/types';
 import { CoaGroupedTable, TypePill, type CoaAction } from './CoaGroupedTable';
 import { SplitPane } from '@/components/domain/SplitPane';
@@ -13,7 +16,10 @@ import { toast } from 'sonner';
 
 export const ChartOfAccounts: React.FC = () => {
   const navigate = useNavigate();
-  const { currentCompany, accounts, balanceOf, journals, uiDensity, openTab } = useLedgerStore();
+  const { currentCompany, balanceOf, journals, uiDensity, openTab } = useLedgerStore();
+  const { data: accounts, isLoading, error, refetch } = useAccounts();
+  // Live mode reads accounts from the API; balances, postings and edits arrive with step 3.2 / 3.8.
+  const readOnly = IS_LIVE;
   const [dialog, setDialog] = useState<AccountDialogMode | null>(null);
   const [deactivating, setDeactivating] = useState<Account | null>(null);
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
@@ -33,14 +39,14 @@ export const ChartOfAccounts: React.FC = () => {
     const onKey = (e: KeyboardEvent) => {
       const el = document.activeElement;
       const typing = el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement || el instanceof HTMLSelectElement;
-      if (e.key.toLowerCase() === 'n' && !typing && !e.ctrlKey && !e.metaKey && !e.altKey && !dialog && !deactivating) {
+      if (!readOnly && e.key.toLowerCase() === 'n' && !typing && !e.ctrlKey && !e.metaKey && !e.altKey && !dialog && !deactivating) {
         e.preventDefault();
         setDialog({ kind: 'new' });
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [dialog, deactivating]);
+  }, [dialog, deactivating, readOnly]);
 
   const rowActions = (a: Account): CoaAction[] => {
     const bal = balanceOf(a.id);
@@ -89,7 +95,7 @@ export const ChartOfAccounts: React.FC = () => {
         title="Chart of accounts"
         subtitle={`${currentCompany.name} · the list of accounts your books are organised by`}
         actions={
-          <button
+          readOnly ? undefined : <button
             type="button"
             onClick={() => setDialog({ kind: 'new' })}
             className="flex items-center gap-1.5 h-8 px-3 bg-accent hover:bg-accent-hover text-white rounded-md text-[13px] font-medium transition-colors cursor-pointer"
@@ -140,7 +146,7 @@ export const ChartOfAccounts: React.FC = () => {
               </div>
 
               {/* Balance KPI */}
-              <div className="p-3 rounded-md bg-accent/5 border border-accent/20 flex items-center justify-between">
+              {!readOnly && <div className="p-3 rounded-md bg-accent/5 border border-accent/20 flex items-center justify-between">
                 <div>
                   <span className="text-[10px] text-text-muted block">Balance</span>
                   <span className="font-mono font-semibold text-text-primary text-base mt-0.5 block">
@@ -151,10 +157,10 @@ export const ChartOfAccounts: React.FC = () => {
                   <ShieldCheck className="w-3.5 h-3.5" />
                   <span>Live balance</span>
                 </div>
-              </div>
+              </div>}
 
               {/* Dimension Rules */}
-              <div className="p-3 bg-surface border border-border rounded-md flex flex-col gap-1.5">
+              {!readOnly && <div className="p-3 bg-surface border border-border rounded-md flex flex-col gap-1.5">
                 <span className="text-[10px] font-semibold text-text-muted flex items-center gap-1">
                   <Tag className="w-3 h-3 text-accent" />
                   Dimension rules
@@ -164,7 +170,7 @@ export const ChartOfAccounts: React.FC = () => {
                     ? 'Branch dimension is mandatory for all postings. Cost center is optional.'
                     : 'Standard balance sheet account. Dimension allocation optional.'}
                 </p>
-              </div>
+              </div>}
 
               {/* Manual journals toggle */}
               <div className="p-3 bg-surface border border-border rounded-md flex flex-col gap-2">
@@ -182,6 +188,7 @@ export const ChartOfAccounts: React.FC = () => {
                   <input
                     type="checkbox"
                     checked={Boolean(selectedAccount.allow_manual_journals)}
+                    disabled={readOnly}
                     onChange={(e) => {
                       const isChecked = e.target.checked;
                       const updated = accounts.map((a) =>
@@ -198,7 +205,7 @@ export const ChartOfAccounts: React.FC = () => {
               </div>
 
               {/* Recent Activity */}
-              <div className="flex flex-col gap-1.5">
+              {!readOnly && <div className="flex flex-col gap-1.5">
                 <span className="text-xs font-semibold text-text-primary flex items-center gap-1.5">
                   <Layers className="w-3.5 h-3.5 text-text-muted" />
                   Recent postings ({recentPostings.length})
@@ -235,21 +242,30 @@ export const ChartOfAccounts: React.FC = () => {
                     </table>
                   </div>
                 )}
-              </div>
+              </div>}
             </div>
           )
         }
       >
+        {isLoading ? (
+          <p className="p-4 text-[13px] text-text-muted" role="status">Loading accounts…</p>
+        ) : error ? (
+          <div className="p-4 text-[13px] text-danger" role="alert">
+            {describeError(error)}{' '}
+            <button type="button" onClick={refetch} className="text-accent hover:underline cursor-pointer">Try again</button>
+          </div>
+        ) : (
         <CoaGroupedTable
           accounts={accounts}
           currency={currentCompany.base_currency}
-          balanceOf={balanceOf}
+          balanceOf={readOnly ? undefined : balanceOf}
           activeId={selectedAccountId}
           rowHeightClass={uiDensity === 'compact' ? 'h-8' : uiDensity === 'comfortable' ? 'h-10' : 'h-9'}
           onSelect={(row) => setSelectedAccountId(row.id)}
-          onOpen={handleOpenDrillDown}
-          rowActions={rowActions}
+          onOpen={readOnly ? () => {} : handleOpenDrillDown}
+          rowActions={readOnly ? undefined : rowActions}
         />
+        )}
       </SplitPane>
     </div>
   );

@@ -16,7 +16,10 @@ import { UsabilityTracker } from '@/components/domain/UsabilityTracker';
 import { shortcutRegistry } from '@/lib/shortcuts';
 import { toast } from 'sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { IS_LIVE } from '@/api/config';
 import { TopBar } from './shell/TopBar';
+import { LiveRouteGate } from './shell/LiveRouteGate';
+import { useSignOut } from '@/data/session';
 import { Sidebar } from './shell/Sidebar';
 import { buildNavSections } from './shell/nav';
 import { useTheme } from './shell/useTheme';
@@ -36,9 +39,10 @@ export const AppShell: React.FC = () => {
 
   const {
     currentUser, currentCompany, currentPeriod, uiDensity, setUiDensity, isOffline, toggleOffline, outbox,
-    isSyncing, replayOutbox, switchUser, switchCompany, invoices, bills, journals, closeTab, nextTab,
-    activeTabId, openTab, logoutUser,
+    isSyncing, replayOutbox, switchUser, invoices, bills, journals, closeTab, nextTab,
+    activeTabId, openTab,
   } = useLedgerStore();
+  const signOut = useSignOut();
 
   const activeImpersonation = useAdminStore((s) => s.activeImpersonation);
   const coSlug = currentCompany.slug;
@@ -60,8 +64,8 @@ export const AppShell: React.FC = () => {
     }
   };
 
-  const handleSignOut = () => {
-    logoutUser();
+  const handleSignOut = async () => {
+    await signOut();
     toast.info('Signed out of session');
     navigate('/login');
   };
@@ -92,7 +96,7 @@ export const AppShell: React.FC = () => {
     return () => unregister();
   }, [coSlug, navigate, activeTabId, closeTab, nextTab, location.pathname, toggleTheme, toggleSidebar]);
 
-  const [notifications, setNotifications] = useState<AppNotification[]>([
+  const [notifications, setNotifications] = useState<AppNotification[]>(IS_LIVE ? [] : [
     { id: 'notif-1', kind: 'approval', title: 'Invoice waiting for your approval', desc: 'Salaam Bank · $4,200.00 · submitted by Rahim', time: '12m ago', unread: true, link: `/${coSlug}/approvals` },
     { id: 'notif-2', kind: 'period', title: 'October close is almost done', desc: '5 of 6 checklist items complete. Closes on Nov 5.', time: '1h ago', unread: true, link: `/${coSlug}/periods` },
     { id: 'notif-3', kind: 'bank', title: 'New bank transactions', desc: '7 transactions from Premier Bank USD are ready to reconcile.', time: '3h ago', unread: true, link: `/${coSlug}/banking/bnk-1/reconcile` },
@@ -103,7 +107,7 @@ export const AppShell: React.FC = () => {
     bills.filter((b) => b.status === 'pending_approval').length +
     journals.filter((j) => j.status === 'pending_approval').length;
 
-  const navSections = buildNavSections(coSlug, pendingApprovalsCount);
+  const navSections = buildNavSections(coSlug, IS_LIVE ? 0 : pendingApprovalsCount);
 
   return (
     <TooltipProvider delayDuration={200}>
@@ -143,7 +147,6 @@ export const AppShell: React.FC = () => {
           onToggleSidebar={toggleSidebar}
           onOpenCommand={() => setIsCommandOpen(true)}
           navigate={navigate}
-          switchCompany={switchCompany}
           theme={{ currentTheme, isDark, applyTheme, toggleTheme }}
           uiDensity={uiDensity}
           setUiDensity={setUiDensity}
@@ -182,7 +185,9 @@ export const AppShell: React.FC = () => {
 
           <main className="flex-1 overflow-y-auto bg-canvas p-3 sm:p-4 md:p-5">
             <div className="w-full h-full">
-              <Outlet />
+              <LiveRouteGate>
+                <Outlet />
+              </LiveRouteGate>
             </div>
           </main>
         </div>
