@@ -292,6 +292,8 @@ const InvoiceFormInner: React.FC<{ side: Side }> = ({ side }) => {
       // Highlight the lines, and say what to do about it: fix the bill, or pass it with a reason if allowed.
       setRefusal({ ...refused, sig: contentSig });
       showViolations(refused.violations);
+      // The notice below carries the line detail; a second generic banner would only repeat it.
+      setHeaderErrors([]);
       return;
     }
     if (isMatchOverrideForbidden(e)) {
