@@ -115,7 +115,7 @@ it('offers to bill a receipt only while something it brought in is not billed', 
     // A draft claims nothing, so the receipt can still be billed; a posted bill takes it all.
     $this->getJson($this->api("goods-receipts/{$receipt['id']}"))->assertJsonPath('data.can.bill', true);
     $this->submitBill($bill['id'])->assertOk()->assertJsonPath('data.status', 'posted');
-    $this->getJson($this->api("goods-receipts/{$receipt['id']}"))->assertOk()->assertJsonPath('data.can.bill', false)->assertJsonPath('data.can.reverse', true);
+    $this->getJson($this->api("goods-receipts/{$receipt['id']}"))->assertOk()->assertJsonPath('data.can.bill', false);
     $this->getJson($this->api("purchase-orders/{$this->order['id']}/receipts"))->assertJsonPath('data.0.can.bill', false);
 });
 

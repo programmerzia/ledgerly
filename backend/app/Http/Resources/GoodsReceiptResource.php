@@ -7,6 +7,7 @@ namespace App\Http\Resources;
 use App\Domain\Procurement\Quantity;
 use App\Http\Support\Json;
 use App\Models\Procurement\GoodsReceipt;
+use App\Models\Procurement\GoodsReceiptLine;
 use App\Queries\Procurement\OrderLineFigures;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -48,7 +49,8 @@ final class GoodsReceiptResource extends JsonResource
         $can = Json::can($request, $this->resource, ['reverse' => 'reverse', 'bill' => 'bill']);
         if ($can['bill']) {
             $figures = app(OrderLineFigures::class)->forOrder($this->purchase_order_id);
-            $can['bill'] = $this->lines->contains(fn ($line): bool => isset($figures[$line->purchase_order_line_id]) && ! Quantity::isZero($figures[$line->purchase_order_line_id]->receivedNotBilled()));
+            $lineIds = GoodsReceiptLine::query()->where('goods_receipt_id', $this->id)->pluck('purchase_order_line_id');
+            $can['bill'] = $lineIds->contains(fn ($id): bool => isset($figures[$id]) && ! Quantity::isZero($figures[$id]->receivedNotBilled()));
         }
 
         return $can;
