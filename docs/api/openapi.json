@@ -19820,6 +19820,12 @@
                             "null"
                         ]
                     },
+                    "actor_name": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
                     "action": {
                         "type": "string"
                     },
@@ -19883,6 +19889,7 @@
                     "occurred_at",
                     "actor_type",
                     "actor_id",
+                    "actor_name",
                     "action",
                     "subject_type",
                     "subject_id",

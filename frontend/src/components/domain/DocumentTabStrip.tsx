@@ -39,7 +39,7 @@ export const DocumentTabStrip: React.FC = () => {
   if (tabs.every((t) => t.pinned)) return null;
 
   return (
-    <div className="h-10 bg-canvas border-b border-border flex items-center px-3 overflow-x-auto no-scrollbar select-none z-10 shrink-0">
+    <div className="no-print h-10 bg-canvas border-b border-border flex items-center px-3 overflow-x-auto no-scrollbar select-none z-10 shrink-0">
       <div className="flex items-center gap-1">
         {tabs.map((tab) => {
           const isActive = tab.pinned

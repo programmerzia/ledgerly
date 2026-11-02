@@ -34,7 +34,7 @@ export const DocPayments: React.FC<{
   if (error) return <ErrorLine error={error} onRetry={onRetry} />;
   if (rows.length === 0) return null;
   return (
-    <section className={cn(CARD, 'overflow-hidden')} aria-label="Payments" data-testid="doc-payments">
+    <section className={cn(CARD, 'no-print overflow-hidden')} aria-label="Payments" data-testid="doc-payments">
       <h2 className="border-b border-border px-5 py-3 text-sm font-semibold text-text-primary">Payments</h2>
       <table className="w-full text-left text-xs">
         <thead>

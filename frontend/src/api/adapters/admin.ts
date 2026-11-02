@@ -297,6 +297,8 @@ export interface AuditRow {
   at: string | null;
   actorType: string;
   actorId: string | null;
+  /** The person's name; null for system and API-client events. */
+  actorName: string | null;
   action: string;
   actionText: string;
   subject: string;
@@ -311,10 +313,13 @@ export interface AuditRow {
 
 export const actionText = (action: string): string => humanKey(action.replace(/[._]/g, ' ').trim());
 
+/** Who did it: the person's name, or the actor kind with a short id when there is no name (system, API client). */
+export const actorLabel = (r: Pick<AuditRow, 'actorType' | 'actorId' | 'actorName'>): string => r.actorName ?? `${r.actorType}${r.actorId ? ` ${r.actorId.slice(0, 8)}` : ''}`;
+
 export function toAuditRow(e: ApiAuditEvent): AuditRow {
   const subject = e.subject_type ? `${humanKey(e.subject_type)}${e.subject_id ? ` ${e.subject_id.slice(0, 8)}` : ''}` : '';
   return {
-    id: e.id, at: e.occurred_at, actorType: e.actor_type, actorId: e.actor_id, action: e.action, actionText: actionText(e.action), subject,
+    id: e.id, at: e.occurred_at, actorType: e.actor_type, actorId: e.actor_id, actorName: e.actor_name ?? null, action: e.action, actionText: actionText(e.action), subject,
     requestId: e.request_id, ip: e.ip, before: e.before, after: e.after, context: e.context, hash: e.hash, prevHash: e.prev_hash,
   };
 }

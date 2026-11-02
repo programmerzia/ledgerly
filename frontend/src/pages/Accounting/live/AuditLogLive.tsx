@@ -5,7 +5,7 @@ import { ApiError } from '@/api/errors';
 import { describeError } from '@/api/messages';
 import { IntentSlot } from '@/api/intentSlot';
 import type { ApiAuditReport, AuditFilters } from '@/api/live/admin';
-import { cleanFilters, verifyLines, type AuditRow } from '@/api/adapters/admin';
+import { actorLabel, cleanFilters, verifyLines, type AuditRow } from '@/api/adapters/admin';
 import { formatDateTime } from '@/lib/format';
 import { useAuditEvents, useVerifyAudit } from '@/data/admin';
 import { useRouteCompany } from '@/data/session';
@@ -82,7 +82,7 @@ export const AuditLogLive: React.FC = () => {
                     <td className="whitespace-nowrap px-3 py-2 text-text-secondary">{formatDateTime(r.at)}</td>
                     <td className="px-3 py-2 text-text-primary">{r.actionText}<span className="ml-2 font-mono text-[11px] text-text-muted">{r.action}</span></td>
                     <td className="px-3 py-2 text-text-secondary">{r.subject}</td>
-                    <td className="px-3 py-2 text-text-secondary">{r.actorType}{r.actorId ? ` ${r.actorId.slice(0, 8)}` : ''}</td>
+                    <td className="px-3 py-2 text-text-secondary">{actorLabel(r)}</td>
                   </tr>
                   {openId === r.id && <tr><td colSpan={5} className="bg-canvas px-4 py-3"><Detail row={r} /></td></tr>}
                 </React.Fragment>

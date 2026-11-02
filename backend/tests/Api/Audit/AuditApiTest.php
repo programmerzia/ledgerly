@@ -29,6 +29,16 @@ it('lists the company\'s audit events newest first, filtered, with a stable curs
 
     // Each event carries its place in the chain.
     expect($all[0]['hash'])->toHaveLength(64)->and($all[0])->toHaveKeys(['actor_type', 'actor_id', 'before', 'after', 'context', 'prev_hash', 'request_id']);
+    // The person's name comes with the event (not part of the hashed record); only user actors have one.
+    expect($all[0])->toHaveKey('actor_name');
+    foreach ($all as $event) {
+        if ($event['actor_type'] === 'user') {
+            expect($event['actor_name'])->toBeString()->not->toBe('');
+        } else {
+            expect($event['actor_name'])->toBeNull();
+        }
+    }
+    expect(array_filter($all, fn (array $e): bool => $e['actor_type'] === 'user'))->not->toBeEmpty();
     $this->getJson($this->api('audit-events?subject_id=nope'))->assertStatus(422)->assertJsonValidationErrors(['subject_id']);
 });
 
