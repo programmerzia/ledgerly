@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\DB;
 /** HTTP helpers for the procurement tests; used with MakesApiCalls and TradeApi. */
 trait ProcurementApi
 {
+    public ?User $viewer = null;
+
     /**
      * A requisition body. Lines: [estimated unit price, quantity?, description?, account code?].
      *
@@ -129,6 +131,12 @@ trait ProcurementApi
         }
 
         return ['reason' => 'Supplier changed the price', 'lines' => $lines, ...$extra];
+    }
+
+    /** A person who can only read. */
+    protected function viewerUser(): User
+    {
+        return $this->viewer ??= $this->person('Vic Viewer', ['Viewer']);
     }
 
     /** Company settings for the match: a tolerance, require_purchase_order. @param array<string, mixed> $values */
