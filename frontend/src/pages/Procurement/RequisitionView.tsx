@@ -20,7 +20,7 @@ import { useMemberNames } from '@/data/approvals';
 import { useRequisition, useRequisitionActions } from '@/data/procurement';
 import { ApiError } from '@/api/errors';
 import { toApiDate } from '@/api/adapters/dates';
-import { convertibleLines, toConvertRequest, type ConvertInput, type Requisition } from '@/api/adapters/procurement';
+import { convertibleLines, statusLabel, toConvertRequest, type ConvertInput, type Requisition } from '@/api/adapters/procurement';
 import type { Intent } from '@/api/idempotency';
 import { ErrorLine, LoadingLine, ProcStatusPill, ReasonDialog, inputClass, showQty, useActionRunner } from './parts';
 
@@ -58,7 +58,7 @@ export const RequisitionView: React.FC = () => {
     const a = accounts.data.find((x) => x.id === aid);
     return a ? `${a.code} ${a.name}` : '';
   };
-  const numberLabel = r.number ?? (r.status === 'void' ? 'Discarded' : 'Draft');
+  const numberLabel = r.number ?? statusLabel('requisition', r.status);
   const makerName = names.get(r.submitted_by ?? r.created_by ?? '');
   const isMine = r.created_by === me.id || r.submitted_by === me.id;
   const can = r.can;

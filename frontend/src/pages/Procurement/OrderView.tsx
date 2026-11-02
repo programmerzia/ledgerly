@@ -64,7 +64,7 @@ export const OrderView: React.FC = () => {
     return a ? `${a.code} ${a.name}` : '';
   };
   const taxCode = (tid: string | null) => refs.taxCodes.find((t) => t.id === tid)?.code ?? '';
-  const numberLabel = o.number ?? (o.status === 'draft' ? 'Draft' : 'No number yet');
+  const numberLabel = o.number ?? statusLabel('order', o.status);
   const makerName = names.get(o.submitted_by ?? o.created_by ?? '');
   const isMine = o.created_by === me.id || o.submitted_by === me.id;
   const foreign = o.currency !== o.baseCurrency;
@@ -327,7 +327,7 @@ export const OrderView: React.FC = () => {
                       <FilePlus className="size-4 text-text-muted" /> Create bill
                     </button>
                   )}
-                  {can.revise && (
+                  {can.revise && !o.open_revision_id && (
                     <button type="button" onClick={() => navigate(`/${co}/purchase-orders/${o.id}/revise`)} className={BTN_SECONDARY}>
                       <Pencil className="size-4 text-text-muted" /> Revise
                     </button>
