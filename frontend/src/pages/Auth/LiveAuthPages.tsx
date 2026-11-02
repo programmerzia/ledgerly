@@ -3,29 +3,18 @@
  * Same layout and field styling as the mock Login/TwoFactor pages.
  */
 import React, { useState } from 'react';
-import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { AuthLayout } from './AuthLayout';
 import { createCompany, login, register, submitTwoFactor } from '@/api/live/session';
-import { describeError, fieldError } from '@/api/messages';
+import { fieldError } from '@/api/messages';
+import { Field, FormError, field, primary as primaryBase } from '@/components/live/form';
 import { companiesKey, meKey, useAuthStatus, useHomePath, useMe } from '@/data/session';
 import { currentTenant, type ApiCompany } from '@/api/adapters/session';
+import { takeNextPath } from '@/api/adapters/security';
 
-const field =
-  'h-9 px-3 bg-surface border border-border-strong rounded-md text-[14px] text-text-primary transition focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/15';
-const primary =
-  'mt-1 h-9 rounded-md bg-accent text-[14px] font-medium text-white transition hover:bg-accent-hover cursor-pointer disabled:opacity-60 disabled:cursor-default';
-
-const Field: React.FC<{ id: string; label: string; error?: string; children: React.ReactNode }> = ({ id, label, error, children }) => (
-  <div className="flex flex-col gap-1.5">
-    <label htmlFor={id} className="text-[13px] font-medium text-text-primary">{label}</label>
-    {children}
-    {error && <span role="alert" className="text-xs text-danger">{error}</span>}
-  </div>
-);
-
-const FormError: React.FC<{ error: unknown }> = ({ error }) =>
-  error ? <p role="alert" className="text-[13px] text-danger">{describeError(error)}</p> : null;
+const primary = `mt-1 ${primaryBase}`;
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
 /** Sends a signed-in visitor to their books instead of showing a sign-in form. */
 const AlreadySignedIn: React.FC = () => {
@@ -36,7 +25,8 @@ const AlreadySignedIn: React.FC = () => {
 };
 
 export const LiveLogin: React.FC = () => {
-  const [email, setEmail] = useState('');
+  const [params] = useSearchParams();
+  const [email, setEmail] = useState(params.get('email') ?? '');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<unknown>(null);
   const [busy, setBusy] = useState(false);
@@ -54,7 +44,7 @@ export const LiveLogin: React.FC = () => {
         return;
       }
       await qc.invalidateQueries({ queryKey: meKey });
-      navigate('/');
+      navigate(takeNextPath() ?? '/');
     } catch (err) {
       setError(err);
     } finally {
@@ -75,6 +65,7 @@ export const LiveLogin: React.FC = () => {
         </Field>
         <FormError error={fieldError(error, 'email') || fieldError(error, 'password') ? null : error} />
         <button type="submit" disabled={busy} className={primary}>{busy ? 'Signing in…' : 'Sign in'}</button>
+        <Link to={`/forgot-password${email ? `?email=${encodeURIComponent(email)}` : ''}`} className="text-[13px] text-text-muted hover:text-accent">Forgot your password?</Link>
       </form>
       <p className="mt-4 text-[13px] text-text-muted">
         New to Ledgerly? <Link to="/register" className="text-accent hover:underline">Create an account</Link>
@@ -98,7 +89,7 @@ export const LiveTwoFactor: React.FC = () => {
     try {
       await submitTwoFactor(recovery ? { recoveryCode: code.trim() } : { code: code.trim() });
       await qc.invalidateQueries({ queryKey: meKey });
-      navigate('/');
+      navigate(takeNextPath() ?? '/');
     } catch (err) {
       setError(err);
     } finally {
@@ -183,9 +174,9 @@ export const LiveRegister: React.FC = () => {
   );
 };
 
-/** First company of an organisation. The full onboarding wizard moves to live in step 3.1's remainder. */
+/** Step 1 of onboarding: create a company. The wizard (chart, tax codes, team) continues at /:co/onboarding. */
 export const LiveNewCompany: React.FC = () => {
-  const [form, setForm] = useState({ name: '', country: 'US', base_currency: 'USD', fiscal_year_start_month: 1 });
+  const [form, setForm] = useState({ name: '', legal_name: '', tax_id: '', country: 'US', base_currency: 'USD', fiscal_year_start_month: 1 });
   const [error, setError] = useState<unknown>(null);
   const [busy, setBusy] = useState(false);
   const navigate = useNavigate();
@@ -198,24 +189,31 @@ export const LiveNewCompany: React.FC = () => {
     setBusy(true);
     setError(null);
     try {
-      const company = await createCompany({ ...form, country: form.country.toUpperCase(), base_currency: form.base_currency.toUpperCase() });
+      const company = await createCompany({
+        name: form.name,
+        legal_name: form.legal_name.trim() || null,
+        tax_id: form.tax_id.trim() || null,
+        country: form.country.toUpperCase(),
+        base_currency: form.base_currency.toUpperCase(),
+        fiscal_year_start_month: form.fiscal_year_start_month,
+      });
       if (tenant) {
         // Seed the cache so the route guard sees the new company immediately, then let it refresh.
         qc.setQueryData<ApiCompany[]>(companiesKey(tenant.id), (old) => [...(old ?? []), company]);
         void qc.invalidateQueries({ queryKey: companiesKey(tenant.id) });
       }
-      navigate(`/${company.slug}/dashboard`);
+      navigate(`/${company.slug}/onboarding`);
     } catch (err) {
       setError(err);
     } finally {
       setBusy(false);
     }
   };
-  const anyField = ['name', 'country', 'base_currency', 'fiscal_year_start_month'].some((f) => fieldError(error, f));
+  const anyField = ['name', 'country', 'base_currency', 'fiscal_year_start_month', 'legal_name', 'tax_id'].some((f) => fieldError(error, f));
 
   return (
     <AuthLayout>
-      <h1 className="text-[22px] font-semibold text-text-primary">Set up your first company</h1>
+      <h1 className="text-[22px] font-semibold text-text-primary">Set up your company</h1>
       <p className="mt-1 text-[13px] text-text-muted">{tenant ? `It will belong to ${tenant.name}.` : 'Companies hold the books.'}</p>
       <form onSubmit={submit} className="mt-6 flex flex-col gap-4">
         <Field id="company-name" label="Company name" error={fieldError(error, 'name')}>
@@ -229,8 +227,16 @@ export const LiveNewCompany: React.FC = () => {
             <input id="currency" maxLength={3} value={form.base_currency} onChange={(e) => setForm({ ...form, base_currency: e.target.value })} required className={field} />
           </Field>
         </div>
-        <Field id="fy" label="Financial year starts in month" error={fieldError(error, 'fiscal_year_start_month')}>
-          <input id="fy" type="number" min={1} max={12} value={form.fiscal_year_start_month} onChange={(e) => setForm({ ...form, fiscal_year_start_month: Number(e.target.value) })} required className={field} />
+        <Field id="fy" label="Financial year starts in" error={fieldError(error, 'fiscal_year_start_month')}>
+          <select id="fy" value={form.fiscal_year_start_month} onChange={(e) => setForm({ ...form, fiscal_year_start_month: Number(e.target.value) })} className={field}>
+            {MONTHS.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
+          </select>
+        </Field>
+        <Field id="legal-name" label="Legal name (optional)" error={fieldError(error, 'legal_name')}>
+          <input id="legal-name" value={form.legal_name} onChange={(e) => setForm({ ...form, legal_name: e.target.value })} className={field} />
+        </Field>
+        <Field id="tax-id" label="Tax ID (optional)" error={fieldError(error, 'tax_id')}>
+          <input id="tax-id" value={form.tax_id} onChange={(e) => setForm({ ...form, tax_id: e.target.value })} className={field} />
         </Field>
         <FormError error={anyField ? null : error} />
         <button type="submit" disabled={busy} className={primary}>{busy ? 'Creating…' : 'Create company'}</button>

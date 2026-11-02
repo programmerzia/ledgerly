@@ -12,8 +12,14 @@ const BUCKET_TONE: Record<string, string> = {
   d90p: 'bg-danger',
 };
 
-export const ReceivablesAging: React.FC<{ d: DashboardData; index: number; className?: string }> = ({ d, index, className }) => {
-  const total = d.aging.reduce((t, b) => t + b.amount, 0);
+export const ReceivablesAging: React.FC<{
+  d: Pick<DashboardData, 'aging' | 'base'>;
+  index: number;
+  className?: string;
+  /** Live mode passes the server's total; the demo sums its own rows. */
+  total?: number;
+}> = ({ d, index, className, total: serverTotal }) => {
+  const total = serverTotal ?? d.aging.reduce((t, b) => t + b.amount, 0);
   return (
     <Card index={index} className={className}>
       <CardHeader title="Receivables aging" sub="By days overdue" />

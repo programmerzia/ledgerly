@@ -103,6 +103,11 @@ export interface Account {
   is_active: boolean;
   allow_manual_journals?: boolean;
   description?: string;
+  /** Live mode only (API fields the mock does not have). */
+  version?: number;
+  parent_id?: string | null;
+  dimension_rules?: Record<string, 'required' | 'optional' | 'forbidden'>;
+  can?: { update?: boolean; deactivate?: boolean };
 }
 
 export interface DimensionValue {

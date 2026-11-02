@@ -18,7 +18,7 @@ export interface Figure {
 export const KeyFigures: React.FC<{ figures: Figure[]; className?: string }> = ({ figures, className = '' }) => {
   const navigate = useNavigate();
   return (
-    <section className={`bg-surface border border-border rounded-lg grid grid-cols-2 lg:grid-cols-4 divide-x divide-y lg:divide-y-0 divide-border ${className}`}>
+    <section className={`bg-surface border border-border rounded-lg grid grid-cols-2 ${figures.length === 3 ? 'lg:grid-cols-3' : 'lg:grid-cols-4'} divide-x divide-y lg:divide-y-0 divide-border ${className}`}>
       {figures.map((f) => (
         <button
           key={f.label}

@@ -1,3 +1,5 @@
+import { selectByMode } from '@/data/select';
+import { ApprovalsInboxLive } from './live/ApprovalsInboxLive';
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '@/mock/api';
@@ -21,7 +23,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 
-export const ApprovalsInbox: React.FC = () => {
+const MockApprovalsInbox: React.FC = () => {
   const navigate = useNavigate();
   const {
     currentCompany, currentUser, companySettings, invoices, bills, journals, contacts,
@@ -603,3 +605,6 @@ export const ApprovalsInbox: React.FC = () => {
     </div>
   );
 };
+
+/** The demo keeps its store-backed screen; live mode reads the API (docs/15). */
+export const ApprovalsInbox: React.FC = selectByMode({ mock: MockApprovalsInbox, live: ApprovalsInboxLive });

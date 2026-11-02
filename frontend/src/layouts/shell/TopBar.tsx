@@ -15,6 +15,8 @@ import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip
 import { ThemeSwitcher } from './ThemeSwitcher';
 import { NotificationsMenu, type AppNotification } from './NotificationsMenu';
 import { UserMenu } from './UserMenu';
+import { toast } from 'sonner';
+import { describeError } from '@/api/messages';
 import { useCompanyList } from '@/data/session';
 import { TopBarClock, FullscreenToggle, SyncIndicator, ICON_BTN } from './TopBarWidgets';
 
@@ -44,7 +46,7 @@ export interface TopBarProps {
 
 export const TopBar: React.FC<TopBarProps> = (p) => {
   const { coSlug, navigate } = p;
-  const { companies, organisations, switchCompany, switchOrganisation } = useCompanyList();
+  const { companies, organisations, canCreateCompany, switchCompany, switchOrganisation } = useCompanyList();
   const periodShort = p.period.name.replace(/^(\w{3})\w*\s+(\d{4})$/, '$1 $2');
   const periodStatus = p.period.status.charAt(0).toUpperCase() + p.period.status.slice(1);
   const periodTone = p.period.status === 'open' ? 'bg-success' : p.period.status === 'closed' ? 'bg-danger' : 'bg-warning';
@@ -96,7 +98,13 @@ export const TopBar: React.FC<TopBarProps> = (p) => {
                 <DropdownMenuSeparator />
                 <DropdownMenuLabel>Organisations</DropdownMenuLabel>
                 {organisations.map((o) => (
-                  <DropdownMenuItem key={o.id} onSelect={() => { void switchOrganisation(o.id).then(() => navigate('/')); }} className="gap-3">
+                  <DropdownMenuItem key={o.id} onSelect={() => {
+                    if (o.current) return;
+                    // The server starts a new session for the new organisation, so a signing approval given before is gone.
+                    void switchOrganisation(o.id)
+                      .then(() => { navigate('/'); toast.success(`Switched to ${o.name}. Your signing approval was cleared; you will be asked for your PIN again.`); })
+                      .catch((e: unknown) => toast.error(describeError(e)));
+                  }} className="gap-3">
                     <span className="flex-1 truncate font-medium">{o.name}</span>
                     {o.current && <Check className="size-4 text-accent" />}
                   </DropdownMenuItem>
@@ -104,7 +112,11 @@ export const TopBar: React.FC<TopBarProps> = (p) => {
               </>
             )}
             <DropdownMenuSeparator />
-            <DropdownMenuItem onSelect={() => navigate(`/${coSlug}/settings`)}><Settings2 className="size-4 text-text-muted" />Manage companies</DropdownMenuItem>
+            {IS_LIVE ? (
+              canCreateCompany && <DropdownMenuItem onSelect={() => navigate('/new-company')}><Plus className="size-4 text-text-muted" />New company</DropdownMenuItem>
+            ) : (
+              <DropdownMenuItem onSelect={() => navigate(`/${coSlug}/settings`)}><Settings2 className="size-4 text-text-muted" />Manage companies</DropdownMenuItem>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
 

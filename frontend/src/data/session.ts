@@ -7,8 +7,10 @@
  * files that still read those from the store see the real user and company without being touched.
  */
 import { useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { useLedgerStore } from '@/mock/store';
+import type { Company } from '@/types';
 import { fetchCompanies, fetchMe, logout, switchTenant } from '@/api/live/session';
 import { currentTenant, toCompany, toUser } from '@/api/adapters/session';
 import { setUnauthenticatedListener } from '@/api/http';
@@ -35,6 +37,8 @@ export interface CompanyList {
   companies: CompanyChoice[];
   /** Only live mode has organisations; mock returns an empty list and the menu hides the section. */
   organisations: Organisation[];
+  /** Live: the current organisation lets this person add companies (`can.create_companies`). */
+  canCreateCompany: boolean;
   switchCompany: (companyId: string) => void;
   switchOrganisation: (tenantId: string) => Promise<void>;
 }
@@ -65,7 +69,7 @@ function useMockAuthStatus(): { status: AuthStatus; needsCompany: boolean } {
 
 function useMockCompanyList(): CompanyList {
   const switchCompany = useLedgerStore((s) => s.switchCompany);
-  return { companies: MOCK_COMPANIES, organisations: [], switchCompany, switchOrganisation: async () => {} };
+  return { companies: MOCK_COMPANIES, organisations: [], canCreateCompany: false, switchCompany, switchOrganisation: async () => {} };
 }
 
 function useMockSignOut(): () => Promise<void> {
@@ -123,6 +127,7 @@ function useLiveCompanyList(): CompanyList {
   return {
     companies: choices,
     organisations: (me.data?.tenants ?? []).map((t) => ({ id: t.id, name: t.name, current: t.current })),
+    canCreateCompany: Boolean(me.data?.tenants.find((t) => t.current)?.can.create_companies),
     switchCompany,
     switchOrganisation: async (tenantId) => {
       await switchOrg.mutateAsync(tenantId);
@@ -140,6 +145,18 @@ function useLiveSignOut(): () => Promise<void> {
       forgetSession(qc);
     }
   };
+}
+
+/**
+ * The company named by the URL, from the company list. Unlike the mirrored store value it is right on the
+ * first render after a reload, so screens that fetch by company id never ask for the previous one.
+ */
+export function useRouteCompany(): Company {
+  const { co } = useParams();
+  const { tenantId, companies } = useLiveCompanies();
+  const fallback = useLedgerStore((s) => s.currentCompany);
+  const found = companies.data?.find((c) => c.slug === co);
+  return found && tenantId ? toCompany(found, tenantId) : fallback;
 }
 
 /** Mirrors the live session into the zustand slice for pages that have not been migrated yet. */

@@ -1,3 +1,5 @@
+import { selectByMode } from '@/data/select';
+import { RecurringJournalsLive } from './live/RecurringJournalsLive';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLedgerStore } from '@/mock/store';
@@ -43,7 +45,7 @@ interface PrepaymentSchedule {
   status: 'active' | 'completed';
 }
 
-export const RecurringJournals: React.FC = () => {
+const MockRecurringJournals: React.FC = () => {
   const navigate = useNavigate();
   const { currentCompany, currentUser, companySettings, postJournalDirect } = useLedgerStore();
   const coSlug = currentCompany.slug;
@@ -360,3 +362,6 @@ export const RecurringJournals: React.FC = () => {
     </div>
   );
 };
+
+/** The demo keeps its store-backed screen; live mode reads the API (docs/15). */
+export const RecurringJournals: React.FC = selectByMode({ mock: MockRecurringJournals, live: RecurringJournalsLive });

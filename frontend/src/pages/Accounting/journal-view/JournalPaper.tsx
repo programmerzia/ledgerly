@@ -7,10 +7,12 @@ interface Props {
   journal: Journal;
   accounts: Account[];
   company: Company;
+  /** Live mode passes the real period (or `null` before one is set); the demo omits it and shows its fixed month. */
+  periodName?: string | null;
 }
 
 /** The journal rendered as a printable paper sheet with Dr/Cr lines and totals. */
-export const JournalPaper: React.FC<Props> = ({ journal, accounts, company }) => {
+export const JournalPaper: React.FC<Props> = ({ journal, accounts, company, periodName }) => {
   const reversed = journal.status === 'reversed';
   const balanced = journal.total_debit === journal.total_credit;
   const cur = company.base_currency;
@@ -53,7 +55,7 @@ export const JournalPaper: React.FC<Props> = ({ journal, accounts, company }) =>
         </div>
         <div>
           <dt className="text-[11px] font-semibold text-text-muted">Period</dt>
-          <dd className="mt-1 text-[13px] text-text-primary">Oct 2026</dd>
+          <dd className="mt-1 text-[13px] text-text-primary">{periodName === undefined ? 'Oct 2026' : (periodName ?? 'Set when posted')}</dd>
         </div>
       </dl>
 

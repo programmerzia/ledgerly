@@ -227,8 +227,11 @@ describe('live route allowlist', () => {
     const { isLiveRoute } = await import('../src/data/liveRoutes');
     expect(isLiveRoute('/acme/accounts')).toBe(true);
     expect(isLiveRoute('/acme/accounts/')).toBe(true);
-    expect(isLiveRoute('/acme/dashboard')).toBe(false);
+    expect(isLiveRoute('/acme/dashboard')).toBe(true);
+    expect(isLiveRoute('/acme/onboarding')).toBe(true);
+    expect(isLiveRoute('/acme/settings/security')).toBe(true);
+    expect(isLiveRoute('/acme/settings/import')).toBe(false);
     expect(isLiveRoute('/acme/invoices')).toBe(false);
-    expect(isLiveRoute('/accounts/dashboard')).toBe(false);
+    expect(isLiveRoute('/accounts/invoices')).toBe(false);
   });
 });

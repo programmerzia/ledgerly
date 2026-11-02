@@ -15,12 +15,13 @@ interface PeriodLite {
 
 const TONE: Record<string, string> = {
   open: 'border-success/40 bg-success-soft text-success',
+  soft_closed: 'border-warning/40 bg-warning-soft text-warning',
   closed: 'border-border bg-surface-neutral text-text-secondary',
   locked: 'border-border bg-surface-neutral text-text-secondary',
   future: 'border-dashed border-border bg-surface text-text-muted',
 };
 
-const STATUS_LABEL: Record<string, string> = { open: 'Open', closed: 'Closed', locked: 'Locked', future: 'Not started' };
+const STATUS_LABEL: Record<string, string> = { open: 'Open', soft_closed: 'Soft closed', closed: 'Closed', locked: 'Locked', future: 'Not started' };
 
 interface Props {
   periods: PeriodLite[];

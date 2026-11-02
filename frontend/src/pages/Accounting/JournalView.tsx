@@ -1,3 +1,5 @@
+import { selectByMode } from '@/data/select';
+import { JournalViewLive } from './live/JournalViewLive';
 import { BUSINESS_TODAY } from '@/lib/docStatus';
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -21,7 +23,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 
-export const JournalView: React.FC = () => {
+const MockJournalView: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { currentCompany, currentUser, companySettings, accounts, journals, users, bankStatementLines, approveJournal, returnJournal, submitJournalForApproval } = useLedgerStore();
@@ -428,3 +430,6 @@ export const JournalView: React.FC = () => {
     </div>
   );
 };
+
+/** The demo keeps its store-backed screen; live mode reads the API (docs/15). */
+export const JournalView: React.FC = selectByMode({ mock: MockJournalView, live: JournalViewLive });

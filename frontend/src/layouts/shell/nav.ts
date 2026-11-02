@@ -1,4 +1,5 @@
 import type React from 'react';
+import { IS_LIVE } from '@/api/config';
 import {
   LayoutDashboard, FileSpreadsheet, CreditCard, BookMarked, BarChart3, CheckSquare, Settings,
   Building, ShieldCheck, Package, Layers, Coins, FileText, Calendar, History, RefreshCw, Upload, ClipboardList,
@@ -67,7 +68,7 @@ export const buildNavSections = (coSlug: string, pendingApprovalsCount: number):
   {
     id: 'settings', title: 'Settings', defaultCollapsed: true,
     items: [
-      { label: 'Company settings', to: `/${coSlug}/settings`, icon: Settings },
+      { label: IS_LIVE ? 'Security & team' : 'Company settings', to: `/${coSlug}/settings`, icon: Settings },
       { label: 'Import data', to: `/${coSlug}/settings/import`, icon: Upload },
       { label: 'Audit log', to: `/${coSlug}/audit-log`, icon: History },
       { label: 'Company setup', to: `/${coSlug}/onboarding`, icon: ClipboardList },

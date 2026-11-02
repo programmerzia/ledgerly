@@ -1,7 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { AlertTriangle } from 'lucide-react';
-import { useLedgerStore } from '@/mock/store';
+import { useAccounts, useAccountActions } from '@/data/accounts';
+import { IS_LIVE } from '@/api/config';
+import { createIntent } from '@/api/idempotency';
+import { Handled, describeProblem } from '@/api/live/writeProblems';
+import { fieldError } from '@/api/messages';
 import { Account } from '@/types';
 import {
   Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription,
@@ -28,7 +32,13 @@ export type AccountDialogMode =
 
 /** New account / add sub-account / edit account. */
 export const AccountDialog: React.FC<{ mode: AccountDialogMode | null; onClose: () => void }> = ({ mode, onClose }) => {
-  const { accounts, addAccount, updateAccount, currentCompany } = useLedgerStore();
+  const { data: accounts } = useAccounts();
+  const actions = useAccountActions();
+  const accountsRef = useRef(accounts);
+  accountsRef.current = accounts;
+  const intent = useRef(createIntent());
+  const [busy, setBusy] = useState(false);
+  const [problem, setProblem] = useState<unknown>(null);
   const [code, setCode] = useState('');
   const [name, setName] = useState('');
   const [type, setType] = useState<Account['account_type']>('asset');
@@ -37,6 +47,9 @@ export const AccountDialog: React.FC<{ mode: AccountDialogMode | null; onClose: 
 
   useEffect(() => {
     if (!mode) return;
+    intent.current = createIntent();
+    setProblem(null);
+    const accounts = accountsRef.current;
     if (mode.kind === 'edit') {
       setCode(mode.account.code); setName(mode.account.name); setType(mode.account.account_type);
       setSubtype(mode.account.account_subtype); setDescription(mode.account.description ?? '');
@@ -49,7 +62,7 @@ export const AccountDialog: React.FC<{ mode: AccountDialogMode | null; onClose: 
     } else {
       setCode(''); setName(''); setType('asset'); setSubtype(''); setDescription('');
     }
-  }, [mode, accounts]);
+  }, [mode]);
 
   if (!mode) return null;
   const editing = mode.kind === 'edit' ? mode.account : null;
@@ -57,33 +70,42 @@ export const AccountDialog: React.FC<{ mode: AccountDialogMode | null; onClose: 
   const valid = code.trim() && name.trim() && !dupe;
   const title = mode.kind === 'edit' ? 'Edit account' : mode.kind === 'sub' ? 'Add sub-account' : 'New account';
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!valid) return;
+    if (!valid || busy) return;
     const normal = CLASSIFICATIONS.find((c) => c.value === type)!.normal;
-    if (editing) {
-      updateAccount({ ...editing, code: code.trim(), name: name.trim(), account_subtype: subtype.trim() || editing.account_subtype, description: description.trim() || undefined });
-      toast.success(`Account ${code.trim()} updated`);
-    } else {
-      addAccount({
-        id: `acc-${code.trim()}-${Date.now()}`,
-        tenant_id: currentCompany.tenant_id,
-        company_id: currentCompany.id,
-        code: code.trim(),
-        name: name.trim(),
-        account_type: type,
-        account_subtype: subtype.trim() || 'General',
-        normal_balance: normal,
-        control_type: null as unknown as Account['control_type'],
-        currency_policy: 'base_only',
-        is_postable: true,
-        is_active: true,
-        allow_manual_journals: true,
-        description: description.trim() || undefined,
-      });
-      toast.success(`Account ${code.trim()} ${name.trim()} created`);
+    setBusy(true);
+    setProblem(null);
+    try {
+      if (editing) {
+        await actions.update(
+          editing,
+          { code: code.trim(), name: name.trim(), account_subtype: subtype.trim() || editing.account_subtype, description: description.trim() || undefined },
+          intent.current,
+        );
+        toast.success(`Account ${code.trim()} updated`);
+      } else {
+        await actions.create(
+          {
+            code: code.trim(),
+            name: name.trim(),
+            account_type: type,
+            normal_balance: normal,
+            account_subtype: subtype.trim(),
+            description: description.trim(),
+            parent_id: mode.kind === 'sub' ? mode.parent.id : null,
+          },
+          intent.current,
+        );
+        toast.success(`Account ${code.trim()} ${name.trim()} created`);
+      }
+      onClose();
+    } catch (err) {
+      if (err instanceof Handled) onClose();
+      else setProblem(err);
+    } finally {
+      setBusy(false);
     }
-    onClose();
   };
 
   return (
@@ -105,6 +127,9 @@ export const AccountDialog: React.FC<{ mode: AccountDialogMode | null; onClose: 
             </Row>
           </div>
           {dupe && <p className="-mt-2 text-xs text-danger">That code is already used by another account.</p>}
+          {Boolean(problem) && (
+            <p className="-mt-2 text-xs text-danger" role="alert">{fieldError(problem, 'code') ?? fieldError(problem, 'name') ?? describeProblem(problem)}</p>
+          )}
           <div className="grid grid-cols-2 gap-3">
             <Row label="Type">
               <select value={type} onChange={(e) => setType(e.target.value as Account['account_type'])} disabled={mode.kind !== 'new'} className={inputCls}>
@@ -120,7 +145,7 @@ export const AccountDialog: React.FC<{ mode: AccountDialogMode | null; onClose: 
           </Row>
           <DialogFooter>
             <button type="button" onClick={onClose} className={btnGhost}>Cancel</button>
-            <button type="submit" disabled={!valid} className={btnPrimary}>{editing ? 'Save changes' : 'Create account'}</button>
+            <button type="submit" disabled={!valid || busy} className={btnPrimary}>{editing ? 'Save changes' : 'Create account'}</button>
           </DialogFooter>
         </form>
       </DialogContent>
@@ -130,9 +155,16 @@ export const AccountDialog: React.FC<{ mode: AccountDialogMode | null; onClose: 
 
 /** Deactivate an account; a reason is required. */
 export const DeactivateAccountDialog: React.FC<{ account: Account | null; onClose: () => void }> = ({ account, onClose }) => {
-  const { updateAccount } = useLedgerStore();
+  const actions = useAccountActions();
+  const intent = useRef(createIntent());
   const [reason, setReason] = useState('');
-  useEffect(() => setReason(''), [account]);
+  const [busy, setBusy] = useState(false);
+  const [problem, setProblem] = useState<unknown>(null);
+  useEffect(() => {
+    setReason('');
+    setProblem(null);
+    intent.current = createIntent();
+  }, [account?.id]);
   if (!account) return null;
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
@@ -145,9 +177,10 @@ export const DeactivateAccountDialog: React.FC<{ account: Account | null; onClos
         </DialogHeader>
         <div className="flex items-start gap-2.5 rounded-lg bg-warning-soft px-3 py-2.5 text-[13px] text-text-primary">
           <AlertTriangle className="mt-0.5 size-4 shrink-0 text-warning" />
-          You can turn it back on later from the account&apos;s edit menu.
+          {IS_LIVE ? 'Turning an account back on is not available yet, so check before you confirm.' : "You can turn it back on later from the account's edit menu."}
         </div>
-        <label className="flex flex-col gap-1.5">
+        {Boolean(problem) && <p className="text-xs text-danger" role="alert">{describeProblem(problem)}</p>}
+        {!IS_LIVE && <label className="flex flex-col gap-1.5">
           <span className="text-[13px] font-medium text-text-primary">Reason</span>
           <textarea
             autoFocus
@@ -157,16 +190,25 @@ export const DeactivateAccountDialog: React.FC<{ account: Account | null; onClos
             placeholder="Why is this account no longer needed?"
             className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-[13px] text-text-primary focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
           />
-        </label>
+        </label>}
         <DialogFooter>
           <button type="button" onClick={onClose} className={btnGhost}>Cancel</button>
           <button
             type="button"
-            disabled={!reason.trim()}
-            onClick={() => {
-              updateAccount({ ...account, is_active: false, description: `${account.description ? account.description + ' · ' : ''}Deactivated: ${reason.trim()}` });
-              toast.success(`${account.code} ${account.name} deactivated`);
-              onClose();
+            disabled={(!IS_LIVE && !reason.trim()) || busy}
+            onClick={async () => {
+              setBusy(true);
+              setProblem(null);
+              try {
+                await actions.deactivate(account, reason, intent.current);
+                toast.success(`${account.code} ${account.name} deactivated`);
+                onClose();
+              } catch (err) {
+                if (err instanceof Handled) onClose();
+                else setProblem(err);
+              } finally {
+                setBusy(false);
+              }
             }}
             className="h-8 px-4 rounded-md bg-danger text-white text-[13px] font-medium cursor-pointer hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
           >

@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { ColumnDef } from '@tanstack/react-table';
 import { useLedgerStore } from '@/mock/store';
 import { ExchangeRate, FxRevaluationItem } from '@/types';
+import { IS_LIVE } from '@/api/config';
+import { LiveFxRates } from './fx/LiveFxRates';
 import { PageHeader } from '@/components/domain/PageHeader';
 import { toast } from 'sonner';
 import { DataTable } from '@/components/domain/DataTable';
@@ -17,7 +19,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 
-export const FxRates: React.FC = () => {
+const MockFxRates: React.FC = () => {
   const navigate = useNavigate();
   const {
     currentCompany,
@@ -488,3 +490,6 @@ export const FxRates: React.FC = () => {
     </div>
   );
 };
+
+/** Mock mode keeps the original screen; live mode reads and writes the API (docs/15). */
+export const FxRates: React.FC = IS_LIVE ? LiveFxRates : MockFxRates;

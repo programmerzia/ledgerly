@@ -11,6 +11,9 @@ import { useAdminStore } from './mock/store/adminStore';
 import { Login } from './pages/Auth/Login';
 import { TwoFactor } from './pages/Auth/TwoFactor';
 import { LiveLogin, LiveTwoFactor, LiveRegister, LiveNewCompany } from './pages/Auth/LiveAuthPages';
+import { LiveForgotPassword, LiveResetPassword, LiveAcceptInvitation } from './pages/Auth/LiveAccountPages';
+import { LiveOnboarding } from './pages/Onboarding/LiveOnboarding';
+import { LiveSettings } from './pages/Settings/live/LiveSettings';
 import { Dashboard } from './pages/Dashboard/Dashboard';
 
 // Sales
@@ -40,6 +43,7 @@ import { JournalView } from './pages/Accounting/JournalView';
 import { ChartOfAccounts } from './pages/Accounting/ChartOfAccounts';
 import { Periods } from './pages/Accounting/Periods';
 import { FxRates } from './pages/Accounting/FxRates';
+import { Dimensions } from './pages/Accounting/Dimensions';
 import { FixedAssets } from './pages/Accounting/FixedAssets';
 import { Budgets } from './pages/Accounting/Budgets';
 import { AuditLog } from './pages/Accounting/AuditLog';
@@ -137,6 +141,9 @@ export default function App() {
         <Route path="/two-factor-challenge" element={IS_LIVE ? <LiveTwoFactor /> : <TwoFactor />} />
         {IS_LIVE && <Route path="/register" element={<LiveRegister />} />}
         {IS_LIVE && <Route path="/new-company" element={<LiveNewCompany />} />}
+        {IS_LIVE && <Route path="/forgot-password" element={<LiveForgotPassword />} />}
+        {IS_LIVE && <Route path="/reset-password/:token" element={<LiveResetPassword />} />}
+        {IS_LIVE && <Route path="/invitations/:token" element={<LiveAcceptInvitation />} />}
 
         {/* Platform Admin Auth */}
         <Route path="/admin/login" element={<AdminLogin />} />
@@ -198,6 +205,7 @@ export default function App() {
           <Route path="periods" element={<Periods />} />
           <Route path="periods/close-pack" element={<ClosePack />} />
           <Route path="fx-rates" element={<FxRates />} />
+          {IS_LIVE && <Route path="dimensions" element={<Dimensions />} />}
           <Route path="assets" element={<FixedAssets />} />
           <Route path="budgets" element={<Budgets />} />
 
@@ -216,10 +224,11 @@ export default function App() {
           <Route path="reports/tax-return" element={<TaxReturn />} />
 
           {/* Settings & Audit */}
-          <Route path="settings" element={<CompanySettings />} />
+          <Route path="settings" element={IS_LIVE ? <Navigate to="security" replace /> : <CompanySettings />} />
+          {IS_LIVE && <Route path="settings/*" element={<LiveSettings />} />}
           <Route path="settings/import" element={<ImportWizard />} />
           <Route path="import" element={<ImportWizard />} />
-          <Route path="onboarding" element={<OnboardingWizard />} />
+          <Route path="onboarding" element={IS_LIVE ? <LiveOnboarding /> : <OnboardingWizard />} />
           <Route path="audit-log" element={<AuditLog />} />
 
           {/* Fallback */}

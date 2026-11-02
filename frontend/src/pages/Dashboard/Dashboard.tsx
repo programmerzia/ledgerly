@@ -13,6 +13,8 @@ import { ExpenseDonut } from './widgets/ExpenseDonut';
 import { TopCustomers } from './widgets/TopCustomers';
 import { ActivityFeed } from './widgets/ActivityFeed';
 import { BankAccountsCard } from './widgets/BankAccountsCard';
+import { LiveDashboard } from './LiveDashboard';
+import { selectByMode } from '@/data/select';
 
 const DAY_MS = 86_400_000;
 
@@ -20,7 +22,7 @@ function plural(n: number, one: string, many = `${one}s`): string {
   return `${n} ${n === 1 ? one : many}`;
 }
 
-export const Dashboard: React.FC = () => {
+const MockDashboard: React.FC = () => {
   const navigate = useNavigate();
   const { currentCompany, currentPeriod, bankAccounts, bankStatementLines, invoices, bills, accounts, periods } = useLedgerStore();
   const d = useDashboardData();
@@ -147,3 +149,6 @@ export const Dashboard: React.FC = () => {
     </div>
   );
 };
+
+/** Demo build: the mock books. Live build: only figures that come from the API (LiveDashboard). */
+export const Dashboard: React.FC = selectByMode<React.FC>({ mock: MockDashboard, live: LiveDashboard });

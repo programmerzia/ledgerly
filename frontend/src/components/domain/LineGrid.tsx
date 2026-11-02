@@ -38,6 +38,8 @@ export interface GridLineItem {
     project?: string;
   };
   errors?: Record<string, string>;
+  /** Live mode: dimensions the three chips cannot show, carried through edits untouched. */
+  extraDimensions?: Record<string, string>;
 }
 
 interface LineGridProps {

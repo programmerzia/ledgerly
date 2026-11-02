@@ -1,16 +1,20 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLedgerStore } from '@/mock/store';
-import { useAccounts } from '@/data/accounts';
+import { useAccounts, useAccountActions, useAccountBalances } from '@/data/accounts';
 import { IS_LIVE } from '@/api/config';
 import { describeError } from '@/api/messages';
+import { toApiDate } from '@/api/adapters/dates';
+import { Handled, describeProblem } from '@/api/live/writeProblems';
 import { Account } from '@/types';
 import { CoaGroupedTable, TypePill, type CoaAction } from './CoaGroupedTable';
 import { SplitPane } from '@/components/domain/SplitPane';
 import { formatMoney } from '@/lib/format';
-import { Plus, Layers, ShieldCheck, Tag, FileText, Pencil, ListPlus, Ban } from 'lucide-react';
+import { Plus, Layers, ShieldCheck, Tag, FileText, Pencil, ListPlus, Ban, Tags } from 'lucide-react';
 import { PageHeader } from '@/components/domain/PageHeader';
+import { EmptyState } from '@/components/domain/EmptyState';
 import { Kbd } from '@/components/ui/kbd';
+import { AccountDimensionRules } from './AccountDimensionRules';
 import { AccountDialog, DeactivateAccountDialog, type AccountDialogMode } from './AccountDialogs';
 import { toast } from 'sonner';
 
@@ -18,11 +22,19 @@ export const ChartOfAccounts: React.FC = () => {
   const navigate = useNavigate();
   const { currentCompany, balanceOf, journals, uiDensity, openTab } = useLedgerStore();
   const { data: accounts, isLoading, error, refetch } = useAccounts();
-  // Live mode reads accounts from the API; balances, postings and edits arrive with step 3.2 / 3.8.
-  const readOnly = IS_LIVE;
+  const actions = useAccountActions();
+  // Live mode: accounts, edits, deactivation, rules and the manual-journal switch are the API's. Not wired yet, so
+  // hidden rather than faked: the per-row balance column and subtotals (browser arithmetic on money), recent
+  // postings, and the ledger drill-down (those reports are other steps).
+  const live = IS_LIVE;
+  // `can` hints decide; the list has no "can create" hint, so use the update hint of the accounts we can see.
+  const canManage = !live || accounts.length === 0 || accounts.some((a) => a.can?.update);
+  const asOf = useMemo(() => toApiDate(new Date()), []);
+  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
+  const balances = useAccountBalances(live && selectedAccountId !== null, asOf);
+  const [problem, setProblem] = useState<string | null>(null);
   const [dialog, setDialog] = useState<AccountDialogMode | null>(null);
   const [deactivating, setDeactivating] = useState<Account | null>(null);
-  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
   const coSlug = currentCompany.slug;
 
   const handleOpenDrillDown = (account: Account) => {
@@ -39,16 +51,31 @@ export const ChartOfAccounts: React.FC = () => {
     const onKey = (e: KeyboardEvent) => {
       const el = document.activeElement;
       const typing = el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement || el instanceof HTMLSelectElement;
-      if (!readOnly && e.key.toLowerCase() === 'n' && !typing && !e.ctrlKey && !e.metaKey && !e.altKey && !dialog && !deactivating) {
+      if (canManage && e.key.toLowerCase() === 'n' && !typing && !e.ctrlKey && !e.metaKey && !e.altKey && !dialog && !deactivating) {
         e.preventDefault();
         setDialog({ kind: 'new' });
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [dialog, deactivating, readOnly]);
+  }, [dialog, deactivating, canManage]);
 
   const rowActions = (a: Account): CoaAction[] => {
+    if (live) {
+      const can = a.can?.update === true;
+      return [
+        { label: 'Edit', icon: Pencil, onClick: () => setDialog({ kind: 'edit', account: a }), disabled: !can, disabledReason: !can ? 'You do not have permission to change accounts' : undefined },
+        { label: 'Add sub-account', icon: ListPlus, onClick: () => setDialog({ kind: 'sub', parent: a }), disabled: !can, disabledReason: !can ? 'You do not have permission to change accounts' : undefined },
+        {
+          label: 'Deactivate',
+          icon: Ban,
+          destructive: true,
+          onClick: () => setDeactivating(a),
+          disabled: !a.is_active || a.can?.deactivate !== true,
+          disabledReason: !a.is_active ? 'Already inactive' : a.can?.deactivate !== true ? 'You cannot deactivate this account' : undefined,
+        },
+      ];
+    }
     const bal = balanceOf(a.id);
     return [
       { label: 'View ledger', icon: FileText, onClick: () => handleOpenDrillDown(a) },
@@ -95,15 +122,29 @@ export const ChartOfAccounts: React.FC = () => {
         title="Chart of accounts"
         subtitle={`${currentCompany.name} · the list of accounts your books are organised by`}
         actions={
-          readOnly ? undefined : <button
-            type="button"
-            onClick={() => setDialog({ kind: 'new' })}
-            className="flex items-center gap-1.5 h-8 px-3 bg-accent hover:bg-accent-hover text-white rounded-md text-[13px] font-medium transition-colors cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            <span>New account</span>
-            <Kbd className="ml-1 border-white/30 bg-white/20 text-white">N</Kbd>
-          </button>
+          <>
+            {live && (
+              <button
+                type="button"
+                onClick={() => navigate(`/${coSlug}/dimensions`)}
+                className="flex items-center gap-1.5 h-8 px-3 border border-border bg-surface hover:bg-surface-neutral rounded-md text-[13px] font-medium text-text-primary transition-colors cursor-pointer"
+              >
+                <Tags className="w-4 h-4 text-text-muted" />
+                <span>Dimensions</span>
+              </button>
+            )}
+            {canManage && (
+              <button
+                type="button"
+                onClick={() => setDialog({ kind: 'new' })}
+                className="flex items-center gap-1.5 h-8 px-3 bg-accent hover:bg-accent-hover text-white rounded-md text-[13px] font-medium transition-colors cursor-pointer"
+              >
+                <Plus className="w-4 h-4" />
+                <span>New account</span>
+                <Kbd className="ml-1 border-white/30 bg-white/20 text-white">N</Kbd>
+              </button>
+            )}
+          </>
         }
       />
       <AccountDialog mode={dialog} onClose={() => setDialog(null)} />
@@ -121,7 +162,7 @@ export const ChartOfAccounts: React.FC = () => {
             : undefined
         }
         icon={<Layers className="w-4 h-4" />}
-        onOpenFull={() => selectedAccount && handleOpenDrillDown(selectedAccount)}
+        onOpenFull={live ? undefined : () => selectedAccount && handleOpenDrillDown(selectedAccount)}
         openFullLabel="Open ledger"
         badge={
           selectedAccount ? (
@@ -146,7 +187,36 @@ export const ChartOfAccounts: React.FC = () => {
               </div>
 
               {/* Balance KPI */}
-              {!readOnly && <div className="p-3 rounded-md bg-accent/5 border border-accent/20 flex items-center justify-between">
+              {live && (
+                <div className="p-3 rounded-md bg-accent/5 border border-accent/20 flex items-center justify-between">
+                  <div>
+                    <span className="text-[10px] text-text-muted block">Balance</span>
+                    {balances.isLoading ? (
+                      <span className="text-[11px] text-text-muted mt-0.5 block" role="status">Loading balance…</span>
+                    ) : balances.error ? (
+                      <span className="text-[11px] text-danger mt-0.5 block" role="alert">
+                        {describeError(balances.error)}{' '}
+                        <button type="button" onClick={balances.refetch} className="text-accent hover:underline cursor-pointer">Try again</button>
+                      </span>
+                    ) : (
+                      <div className="mt-0.5 flex items-baseline gap-4 font-mono text-text-primary">
+                        {(() => {
+                          const b = balances.data[selectedAccount.id];
+                          if (!b) return <span className="text-sm text-text-muted">—</span>;
+                          return (
+                            <>
+                              <span className="text-sm"><span className="mr-1 font-sans text-[10px] text-text-muted">Debit</span>{formatMoney(b.debit, b.currency)}</span>
+                              <span className="text-sm"><span className="mr-1 font-sans text-[10px] text-text-muted">Credit</span>{formatMoney(b.credit, b.currency)}</span>
+                            </>
+                          );
+                        })()}
+                      </div>
+                    )}
+                  </div>
+                  <span className="text-[10px] text-text-muted">As of {asOf}</span>
+                </div>
+              )}
+              {!live && <div className="p-3 rounded-md bg-accent/5 border border-accent/20 flex items-center justify-between">
                 <div>
                   <span className="text-[10px] text-text-muted block">Balance</span>
                   <span className="font-mono font-semibold text-text-primary text-base mt-0.5 block">
@@ -160,7 +230,8 @@ export const ChartOfAccounts: React.FC = () => {
               </div>}
 
               {/* Dimension Rules */}
-              {!readOnly && <div className="p-3 bg-surface border border-border rounded-md flex flex-col gap-1.5">
+              {live && <AccountDimensionRules account={selectedAccount} />}
+              {!live && <div className="p-3 bg-surface border border-border rounded-md flex flex-col gap-1.5">
                 <span className="text-[10px] font-semibold text-text-muted flex items-center gap-1">
                   <Tag className="w-3 h-3 text-accent" />
                   Dimension rules
@@ -188,24 +259,30 @@ export const ChartOfAccounts: React.FC = () => {
                   <input
                     type="checkbox"
                     checked={Boolean(selectedAccount.allow_manual_journals)}
-                    disabled={readOnly}
+                    disabled={live && selectedAccount.can?.update !== true}
                     onChange={(e) => {
                       const isChecked = e.target.checked;
-                      const updated = accounts.map((a) =>
-                        a.id === selectedAccount.id ? { ...a, allow_manual_journals: isChecked } : a
-                      );
-                      useLedgerStore.setState({ accounts: updated });
-                      toast.success(
-                        `Updated ${selectedAccount.code}: Allow manual journals set to ${isChecked ? 'Allowed' : 'Prohibited'}`
-                      );
+                      setProblem(null);
+                      actions
+                        .setAllowManual(selectedAccount, isChecked)
+                        .then(() =>
+                          toast.success(
+                            `Updated ${selectedAccount.code}: Allow manual journals set to ${isChecked ? 'Allowed' : 'Prohibited'}`
+                          ),
+                        )
+                        .catch((err) => {
+                          if (!(err instanceof Handled)) setProblem(describeProblem(err));
+                        });
                     }}
                     className="h-4 w-4 rounded text-accent focus:ring-accent cursor-pointer"
                   />
                 </div>
               </div>
 
+              {problem && <p className="text-[11px] text-danger" role="alert">{problem}</p>}
+
               {/* Recent Activity */}
-              {!readOnly && <div className="flex flex-col gap-1.5">
+              {!live && <div className="flex flex-col gap-1.5">
                 <span className="text-xs font-semibold text-text-primary flex items-center gap-1.5">
                   <Layers className="w-3.5 h-3.5 text-text-muted" />
                   Recent postings ({recentPostings.length})
@@ -254,16 +331,24 @@ export const ChartOfAccounts: React.FC = () => {
             {describeError(error)}{' '}
             <button type="button" onClick={refetch} className="text-accent hover:underline cursor-pointer">Try again</button>
           </div>
+        ) : live && accounts.length === 0 ? (
+          <EmptyState
+            icon={Layers}
+            title="No accounts yet"
+            description="Your chart of accounts is empty. Add your first account, or apply a chart template from the setup guide."
+            actionLabel={canManage ? 'New account' : undefined}
+            onAction={canManage ? () => setDialog({ kind: 'new' }) : undefined}
+          />
         ) : (
         <CoaGroupedTable
           accounts={accounts}
           currency={currentCompany.base_currency}
-          balanceOf={readOnly ? undefined : balanceOf}
+          balanceOf={live ? undefined : balanceOf}
           activeId={selectedAccountId}
           rowHeightClass={uiDensity === 'compact' ? 'h-8' : uiDensity === 'comfortable' ? 'h-10' : 'h-9'}
           onSelect={(row) => setSelectedAccountId(row.id)}
-          onOpen={readOnly ? () => {} : handleOpenDrillDown}
-          rowActions={readOnly ? undefined : rowActions}
+          onOpen={live ? () => {} : handleOpenDrillDown}
+          rowActions={rowActions}
         />
         )}
       </SplitPane>

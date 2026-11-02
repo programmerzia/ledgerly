@@ -5,6 +5,8 @@ import { useLedgerStore } from '@/mock/store';
 import { StatusPill } from '@/components/domain/StatusPill';
 import { formatDate } from '@/lib/format';
 import { PageHeader } from '@/components/domain/PageHeader';
+import { IS_LIVE } from '@/api/config';
+import { LivePeriods } from './periods/LivePeriods';
 import { PeriodTimeline } from './periods/PeriodTimeline';
 import { CloseChecklistCard } from './periods/CloseChecklistCard';
 import { SignDialog } from '@/components/domain/SignDialog';
@@ -23,7 +25,7 @@ import {
   TooltipContent,
 } from '@/components/ui/tooltip';
 
-export const Periods: React.FC = () => {
+const MockPeriods: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { currentCompany, currentUser, fiscalYear, closeChecks, reopenRequests, users, companySettings, postJournalDirect } = useLedgerStore();
@@ -583,3 +585,6 @@ export const Periods: React.FC = () => {
     </div>
   );
 };
+
+/** Mock mode keeps the original screen; live mode reads and writes the API (docs/15). */
+export const Periods: React.FC = IS_LIVE ? LivePeriods : MockPeriods;

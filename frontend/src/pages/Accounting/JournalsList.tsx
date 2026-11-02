@@ -1,3 +1,5 @@
+import { selectByMode } from '@/data/select';
+import { JournalsListLive } from './live/JournalsListLive';
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLedgerStore } from '@/mock/store';
@@ -15,7 +17,7 @@ import { toast } from 'sonner';
 import { BUSINESS_TODAY } from '@/lib/docStatus';
 import { CoachPanel } from '@/components/domain/CoachPanel';
 
-export const JournalsList: React.FC = () => {
+const MockJournalsList: React.FC = () => {
   const navigate = useNavigate();
   const { currentCompany, journals, accounts, openTab, uiDensity } = useLedgerStore();
   const [activeTab, setActiveTab] = useState('all');
@@ -335,3 +337,6 @@ export const JournalsList: React.FC = () => {
     </div>
   );
 };
+
+/** The demo keeps its store-backed screen; live mode reads the API (docs/15). */
+export const JournalsList: React.FC = selectByMode({ mock: MockJournalsList, live: JournalsListLive });

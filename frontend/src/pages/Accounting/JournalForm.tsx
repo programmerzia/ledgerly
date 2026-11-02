@@ -1,3 +1,5 @@
+import { selectByMode } from '@/data/select';
+import { JournalFormLive } from './live/JournalFormLive';
 import React, { useState, useEffect, useMemo } from 'react';
 import { PageHeader } from '@/components/domain/PageHeader';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -11,7 +13,7 @@ import { formatMoney } from '@/lib/format';
 import { Send, AlertTriangle, ShieldAlert, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 
-export const JournalForm: React.FC = () => {
+const MockJournalForm: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { currentCompany, accounts, dimensions, fiscalYear } = useLedgerStore();
@@ -469,3 +471,6 @@ export const JournalForm: React.FC = () => {
     </div>
   );
 };
+
+/** The demo keeps its store-backed screen; live mode reads the API (docs/15). */
+export const JournalForm: React.FC = selectByMode({ mock: MockJournalForm, live: JournalFormLive });

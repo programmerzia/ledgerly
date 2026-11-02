@@ -13,6 +13,8 @@ import { Avatar } from '@/components/ui/avatar';
 import { Kbd } from '@/components/ui/kbd';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { selectByMode } from '@/data/select';
+import { SignDialogLive } from './SignDialogLive';
 import {
   Dialog,
   DialogContent,
@@ -23,7 +25,12 @@ import {
 export interface SignDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: (pin: string, reason?: string) => void;
+  /**
+   * Mock: receives the PIN the dialog checked locally. Live: the dialog has already had the server accept the PIN at
+   * POST /signing/verify and passes an empty string (the PIN is never kept); the caller retries its action with the
+   * same Idempotency intent. May return a promise.
+   */
+  onConfirm: (pin: string, reason?: string) => void | Promise<void>;
   documentTitle: string;
   documentNumber?: string;
   amount?: number;
@@ -35,7 +42,7 @@ export interface SignDialogProps {
   requireReason?: boolean;
 }
 
-export const SignDialog: React.FC<SignDialogProps> = ({
+const MockSignDialog: React.FC<SignDialogProps> = ({
   isOpen,
   onClose,
   onConfirm,
@@ -395,3 +402,6 @@ export const SignDialog: React.FC<SignDialogProps> = ({
     </Dialog>
   );
 };
+
+/** Chosen once from VITE_API_MODE: the demo keeps its local PIN check, live mode uses the server (docs/15). */
+export const SignDialog: React.FC<SignDialogProps> = selectByMode({ mock: MockSignDialog, live: SignDialogLive });
