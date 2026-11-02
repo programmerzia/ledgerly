@@ -105,7 +105,9 @@ final class LedgerChecks
         // Journals and trade documents (invoices, credit notes, bills, debit notes) number from sequences of their own.
         $numbers = [...DB::table('journals')->whereNotNull('number')->pluck('number')->all(), ...DB::table('invoices')->whereNotNull('number')->pluck('number')->all(),
             ...DB::table('settlements')->whereNotNull('number')->pluck('number')->all(), ...DB::table('payment_runs')->whereNotNull('number')->pluck('number')->all(),
-            ...DB::table('wht_certificates')->pluck('number')->all()];
+            ...DB::table('wht_certificates')->pluck('number')->all(),
+            ...DB::table('purchase_requisitions')->whereNotNull('number')->pluck('number')->all(), ...DB::table('purchase_orders')->whereNotNull('number')->pluck('number')->all(),
+            ...DB::table('goods_receipts')->pluck('number')->all()];
         foreach ($numbers as $number) {
             preg_match('/^(.*-)(\d+)$/', (string) $number, $m);
             $byPrefix[$m[1]][] = (int) $m[2];
