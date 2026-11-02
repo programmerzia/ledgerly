@@ -908,6 +908,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/companies/{company}/bills/{bill}/match": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** How this bill stands against its purchase orders, and what the last submit found. Writes nothing */
+        get: operations["bills.match"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/companies/{company}/bills/{bill}/allocate": {
         parameters: {
             query?: never;
@@ -1377,6 +1394,72 @@ export interface paths {
         get: operations["fx-revaluations.preview"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/goods-receipts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["goods-receipts.index"];
+        put?: never;
+        post: operations["goods-receipts.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/goods-receipts/{goodsReceipt}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["goods-receipts.show"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/goods-receipts/{goodsReceipt}/reverse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Takes the receipt out of the figures; the row stays, marked reversed. Not while a bill claims it */
+        post: operations["goods-receipts.reverse"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/goods-receipts/{goodsReceipt}/bill": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Makes a bill draft from what this receipt brought in and is not billed yet */
+        post: operations["goods-receipts.bill"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2183,6 +2266,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/companies/{company}/procurement/open-commitments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Ordered and not yet billed, by supplier and account, net of tax */
+        get: operations["procurement.open-commitments"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/procurement/awaiting-receipt": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Order lines with goods still to come */
+        get: operations["procurement.awaiting-receipt"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/procurement/received-not-billed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** What the ledger did not know on `as_of` (default today): received, not on a posted bill */
+        get: operations["procurement.received-not-billed"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/auth/user/profile-information": {
         parameters: {
             query?: never;
@@ -2194,6 +2328,399 @@ export interface paths {
         /** Update the user's profile information */
         put: operations["user-profile-information.update"];
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/purchase-orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["purchase-orders.index"];
+        put?: never;
+        post: operations["purchase-orders.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/purchase-orders/{purchaseOrder}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One order with its lines and what has been received and billed on each. Print from this */
+        get: operations["purchase-orders.show"];
+        put: operations["purchase-orders.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/purchase-orders/{purchaseOrder}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["purchase-orders.submit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/purchase-orders/{purchaseOrder}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["purchase-orders.approve"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/purchase-orders/{purchaseOrder}/return": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["purchase-orders.return"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/purchase-orders/{purchaseOrder}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancels an order nothing has happened on; an approved order keeps its number */
+        post: operations["purchase-orders.cancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/purchase-orders/{purchaseOrder}/close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Closes an order whose received goods are all billed */
+        post: operations["purchase-orders.close"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/purchase-orders/{purchaseOrder}/bill": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Makes a bill draft from what this order received and has not billed (or what was ordered, if nothing arrived yet) */
+        post: operations["purchase-orders.bill"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/purchase-orders/{purchaseOrder}/receipts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["purchase-orders.receipts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/purchase-orders/{purchaseOrder}/bills": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Bills with a line on this order, as summaries */
+        get: operations["purchase-orders.bills"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/purchase-orders/{purchaseOrder}/revisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["purchase-orders.revisions"];
+        put?: never;
+        /** Proposes a change to this approved order. The order stays as it is until the revision is approved */
+        post: operations["purchase-orders.revise"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/purchase-order-revisions/{purchaseOrderRevision}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["purchase-order-revisions.show"];
+        put: operations["purchase-order-revisions.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/purchase-order-revisions/{purchaseOrderRevision}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["purchase-order-revisions.submit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/purchase-order-revisions/{purchaseOrderRevision}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["purchase-order-revisions.approve"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/purchase-order-revisions/{purchaseOrderRevision}/return": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["purchase-order-revisions.return"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/purchase-order-revisions/{purchaseOrderRevision}/void": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["purchase-order-revisions.void"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/purchase-requisitions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["purchase-requisitions.index"];
+        put?: never;
+        post: operations["purchase-requisitions.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/purchase-requisitions/{purchaseRequisition}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["purchase-requisitions.show"];
+        put: operations["purchase-requisitions.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/purchase-requisitions/{purchaseRequisition}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approves at once when no workflow applies (a person needs a signing grant), else waits for approval */
+        post: operations["purchase-requisitions.submit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/purchase-requisitions/{purchaseRequisition}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["purchase-requisitions.approve"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/purchase-requisitions/{purchaseRequisition}/return": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["purchase-requisitions.return"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/purchase-requisitions/{purchaseRequisition}/void": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["purchase-requisitions.void"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/purchase-requisitions/{purchaseRequisition}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Turns the requisition down for good, with a reason. A person other than whoever made or submitted it */
+        post: operations["purchase-requisitions.reject"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/purchase-requisitions/{purchaseRequisition}/convert": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Makes a draft order for one supplier from lines of this approved requisition */
+        post: operations["purchase-requisitions.convert"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3256,7 +3783,7 @@ export interface components {
             name: string;
             company_ids: string[];
             token_name?: string | null;
-            abilities: ("accounts:read" | "accounts:write" | "attachments:read" | "attachments:write" | "banking:read" | "banking:write" | "bills:read" | "bills:write" | "bills:submit" | "contacts:read" | "contacts:write" | "dimensions:read" | "dimensions:write" | "fx:read" | "fx:write" | "invoices:read" | "invoices:write" | "invoices:submit" | "items:read" | "items:write" | "journals:read" | "journals:write" | "journals:submit" | "periods:read" | "recurring:read" | "recurring:write" | "reports:read" | "settlements:read" | "settlements:write" | "settlements:submit" | "tax:read")[];
+            abilities: ("accounts:read" | "accounts:write" | "attachments:read" | "attachments:write" | "banking:read" | "banking:write" | "bills:read" | "bills:write" | "bills:submit" | "contacts:read" | "contacts:write" | "dimensions:read" | "dimensions:write" | "fx:read" | "fx:write" | "invoices:read" | "invoices:write" | "invoices:submit" | "items:read" | "items:write" | "journals:read" | "journals:write" | "journals:submit" | "periods:read" | "recurring:read" | "recurring:write" | "purchase_orders:read" | "purchase_orders:write" | "purchase_orders:submit" | "purchase_requisitions:read" | "purchase_requisitions:write" | "purchase_requisitions:submit" | "goods_receipts:read" | "goods_receipts:write" | "reports:read" | "settlements:read" | "settlements:write" | "settlements:submit" | "tax:read")[];
             expires_at?: string | null;
         };
         /** ApiClientResource */
@@ -3279,6 +3806,14 @@ export interface components {
             can: {
                 [key: string]: boolean;
             };
+        };
+        /**
+         * App.Http.Requests.Procurement.ReasonRequest
+         * @description A transition that must say why: reject a requisition, cancel an order, reverse a receipt.
+         */
+        "App.Http.Requests.Procurement.ReasonRequest": {
+            reason: string;
+            version?: number | null;
         };
         /** ApplyChartTemplateRequest */
         ApplyChartTemplateRequest: {
@@ -3312,6 +3847,46 @@ export interface components {
                 journal_type: "manual" | "sales" | "purchase" | "receipt" | "payment" | "bank" | "fx" | "depreciation" | "closing" | "adjustment" | "reversal" | "opening";
                 journal_date: string | null;
                 reference: string | null;
+                memo: string | null;
+                amount: {
+                    amount: number;
+                    currency: string;
+                };
+                created_by: string | null;
+                submitted_by: string | null;
+                version: number;
+            } | {
+                id: string;
+                purchase_order_id: string;
+                number: string | null;
+                order_date: string | null;
+                contact_id: string;
+                memo: string;
+                amount: {
+                    amount: number;
+                    currency: string;
+                };
+                created_by: string | null;
+                submitted_by: string | null;
+                version: number;
+            } | {
+                id: string;
+                number: string | null;
+                order_date: string | null;
+                contact_id: string;
+                reference: string | null;
+                memo: string | null;
+                amount: {
+                    amount: number;
+                    currency: string;
+                };
+                created_by: string | null;
+                submitted_by: string | null;
+                version: number;
+            } | {
+                id: string;
+                number: string | null;
+                requisition_date: string | null;
                 memo: string | null;
                 amount: {
                     amount: number;
@@ -3372,7 +3947,7 @@ export interface components {
          */
         ApprovalWorkflowRequest: {
             /** @enum {string} */
-            document_type: "journal" | "invoice" | "bill" | "settlement" | "payment_run";
+            document_type: "journal" | "invoice" | "bill" | "settlement" | "payment_run" | "purchase_requisition" | "purchase_order";
             name: string;
             /** @enum {string} */
             source: "any" | "user" | "api";
@@ -3456,6 +4031,39 @@ export interface components {
             request_id: string | null;
             prev_hash: string | null;
             hash: string;
+        };
+        /** AwaitingReceiptResource */
+        AwaitingReceiptResource: {
+            data: {
+                purchase_order_id: string;
+                number: string | null;
+                contact_id: string;
+                contact_name: string;
+                order_date: string;
+                expected_date: string | null;
+                order_line_id: string;
+                line_no: number;
+                description: string | null;
+                item_id: string | null;
+                ordered: string;
+                received: string;
+                open: string;
+                currency: string;
+                open_fc: {
+                    amount: number;
+                    currency: string;
+                };
+                open_base: {
+                    amount: number;
+                    currency: string;
+                };
+            }[];
+            meta: {
+                total_base: {
+                    amount: number;
+                    currency: string;
+                };
+            };
         };
         /**
          * BankAccountRequest
@@ -3712,13 +4320,67 @@ export interface components {
             created_by: string | null;
         };
         /**
+         * BillFromOrderRequest
+         * @description Make a bill draft from an order, or from one receipt. Everything else is copied from the order; nothing is claimed until the bill is submitted.
+         */
+        BillFromOrderRequest: {
+            /**
+             * Format: date
+             * @description Default: today.
+             */
+            issue_date?: string | null;
+            /** Format: date */
+            due_date?: string | null;
+            fx_rate?: string | null;
+            reference?: string | null;
+        };
+        /** BillMatchResource */
+        BillMatchResource: {
+            /** @description False: a bill with no order lines, in a company that does not require them. */
+            applies: boolean;
+            /** @description Never overridable: fix the bill. */
+            refusals: {
+                code: string;
+                message: string;
+                line_no?: number;
+            }[];
+            /** @description A person allowed to may override these with a reason. */
+            mismatches: {
+                code: string;
+                message: string;
+                line_no?: number;
+            }[];
+            lines: {
+                line_no: number;
+                purchase_order_id: string;
+                order_line_id: string;
+                order_number: string | null;
+                order_price_fc: {
+                    amount: number;
+                    currency: string;
+                };
+                ordered: string;
+                received: string;
+                billed_elsewhere: string;
+            }[];
+            last_result: {
+                outcome: string;
+                reason: string | null;
+                violations: {
+                    [key: string]: unknown;
+                }[];
+                decided_by: string | null;
+                created_at: string | null;
+            } | null;
+        };
+        /**
          * BulkApproveRequest
          * @description `{documents: [{type, id}, …]}`, up to 50, approved on the caller's signing grant.
          */
         BulkApproveRequest: {
             documents: {
                 /** @enum {string} */
-                type: "journal" | "invoice" | "bill" | "settlement" | "payment_run";
+                type: "journal" | "invoice" | "bill" | "settlement" | "payment_run" | "purchase_requisition" | "purchase_order" | "purchase_order_revision";
                 /** Format: uuid */
                 id: string;
             }[];
@@ -3791,6 +4453,11 @@ export interface components {
                 amount: number | null;
                 currency: string;
             } | null;
+            require_purchase_order: boolean;
+            /** @description Decimal strings, percent. */
+            po_price_tolerance_pct: string;
+            po_quantity_tolerance_pct: string;
+            receipt_over_tolerance_pct: string;
             version: number;
             can: {
                 [key: string]: boolean;
@@ -3887,6 +4554,31 @@ export interface components {
          * @enum {string}
          */
         ControlType: "none" | "ar" | "ap" | "bank" | "cash" | "tax" | "retained_earnings" | "suspense" | "fixed_asset" | "accum_depr";
+        /**
+         * ConvertRequisitionRequest
+         * @description Turn lines of an approved requisition into a draft order for one supplier. A line goes whole. The estimate is in the
+         *     company's base currency, so an order in another currency states `unit_price_fc` on every line.
+         */
+        ConvertRequisitionRequest: {
+            /** Format: uuid */
+            contact_id: string;
+            /** Format: date */
+            order_date: string;
+            /** Format: date */
+            expected_date?: string | null;
+            currency?: string | null;
+            fx_rate?: string | null;
+            reference?: string | null;
+            memo?: string | null;
+            lines: {
+                /** Format: uuid */
+                requisition_line_id: string;
+                /** @description In the order's currency. Default: the requisition's estimate, when the order is in base currency. */
+                unit_price_fc?: number | null;
+                /** Format: uuid */
+                tax_code_id?: string | null;
+            }[];
+        };
         /** CreateCompanyRequest */
         CreateCompanyRequest: {
             name: string;
@@ -4113,6 +4805,54 @@ export interface components {
             residuals: unknown[];
             created_by: string | null;
         };
+        /** GoodsReceiptLineResource */
+        GoodsReceiptLineResource: {
+            id: string;
+            line_no: number;
+            order_line_id: string;
+            quantity: string;
+            description: string | null;
+        };
+        /**
+         * GoodsReceiptRequest
+         * @description Record goods received against an approved order. Receipts are not edited: a mistake is reversed and re-entered.
+         *     `order_version` is the order version the person was looking at; a stale one is a 409.
+         */
+        GoodsReceiptRequest: {
+            /** Format: uuid */
+            purchase_order_id: string;
+            /** Format: date */
+            receipt_date: string;
+            order_version?: number | null;
+            reference?: string | null;
+            memo?: string | null;
+            lines: {
+                /** Format: uuid */
+                order_line_id: string;
+                quantity: string;
+            }[];
+        };
+        /** GoodsReceiptResource */
+        GoodsReceiptResource: {
+            id: string;
+            number: string;
+            /** @enum {string} */
+            status: "recorded" | "reversed";
+            purchase_order_id: string;
+            order_number: string | null;
+            contact_name: string;
+            receipt_date: string | null;
+            reference: string | null;
+            memo: string | null;
+            reversal_reason: string | null;
+            reversed_by: string | null;
+            reversed_at: string | null;
+            version: number;
+            lines?: components["schemas"]["GoodsReceiptLineResource"][];
+            can: {
+                [key: string]: boolean;
+            };
+        };
         /** ImportResource */
         ImportResource: {
             id: string;
@@ -4278,6 +5018,8 @@ export interface components {
             dimensions: {
                 [key: string]: string;
             };
+            purchase_order_line_id: string | null;
+            goods_receipt_line_id: string | null;
         };
         /** InvoicePostingPreviewResource */
         InvoicePostingPreviewResource: {
@@ -4357,6 +5099,13 @@ export interface components {
                 /** Format: uuid */
                 tax_code_id?: string | null;
                 dimensions?: string[] | null;
+                /**
+                 * Format: uuid
+                 * @description The purchase order line this bill line bills. A PUT replaces the lines: send it again or the link is gone.
+                 */
+                purchase_order_line_id?: string;
+                /** Format: uuid */
+                goods_receipt_line_id?: string;
             }[];
         };
         /** InvoiceResource */
@@ -4638,6 +5387,31 @@ export interface components {
             status: string;
             company_roles: unknown;
         };
+        /** OpenCommitmentsResource */
+        OpenCommitmentsResource: {
+            data: {
+                contact_id: string;
+                contact_name: string;
+                account_id: string;
+                account_code: string;
+                account_name: string;
+                currency: string;
+                open_fc: {
+                    amount: number;
+                    currency: string;
+                };
+                open_base: {
+                    amount: number;
+                    currency: string;
+                };
+            }[];
+            meta: {
+                total_base: {
+                    amount: number;
+                    currency: string;
+                };
+            };
+        };
         /**
          * PaymentRunRequest
          * @description Create (POST) or replace (PUT, with `version`) a draft payment run: the bills and how much of each to pay (net of tax withheld when the bill posted).
@@ -4758,6 +5532,207 @@ export interface components {
                 }[];
             }[];
         };
+        /** PurchaseOrderLineResource */
+        PurchaseOrderLineResource: {
+            id: string;
+            line_no: number;
+            item_id: string | null;
+            account_id: string;
+            description: string | null;
+            quantity: string;
+            unit_price_fc: {
+                amount: number;
+                currency: string;
+            };
+            tax_code_id: string | null;
+            line_total_fc: {
+                amount: number;
+                currency: string;
+            };
+            tax_amount_fc: {
+                amount: number;
+                currency: string;
+            };
+            /** @description dimension id → dimension value id */
+            dimensions: {
+                [key: string]: string;
+            };
+            requisition_line_id: string | null;
+            received: string | null;
+            billed: string | null;
+            open_to_receive: string | null;
+            received_not_billed: string | null;
+        };
+        /**
+         * PurchaseOrderRequest
+         * @description Create (POST) or replace (PUT, with `version`) a draft purchase order. Shape only; the server prices the lines,
+         *     ignores any totals sent, and the Action decides whether the supplier, currency and tax codes fit.
+         */
+        PurchaseOrderRequest: {
+            /** Format: uuid */
+            contact_id: string;
+            /** Format: date */
+            order_date: string;
+            /** Format: date */
+            expected_date?: string | null;
+            currency?: string | null;
+            fx_rate?: string | null;
+            reference?: string | null;
+            memo?: string | null;
+            version?: number;
+            lines: {
+                /**
+                 * Format: uuid
+                 * @description Only on a PUT: the id of a line the draft already has. A new order's lines get their ids from the server.
+                 */
+                id?: string;
+                /** Format: uuid */
+                item_id?: string | null;
+                /** Format: uuid */
+                account_id?: string | null;
+                description?: string | null;
+                quantity: string;
+                unit_price_fc?: number | null;
+                /** Format: uuid */
+                tax_code_id?: string | null;
+                dimensions?: string[] | null;
+            }[];
+        };
+        /** PurchaseOrderResource */
+        PurchaseOrderResource: {
+            id: string;
+            number: string | null;
+            /** @enum {string} */
+            status: "draft" | "pending_approval" | "approved" | "partly_received" | "received" | "closed" | "cancelled";
+            contact_id: string;
+            contact_name: string | null;
+            order_date: string | null;
+            expected_date: string | null;
+            currency: string;
+            fx_rate: string;
+            reference: string | null;
+            memo: string | null;
+            subtotal_fc: {
+                amount: number;
+                currency: string;
+            };
+            tax_total_fc: {
+                amount: number;
+                currency: string;
+            };
+            total_fc: {
+                amount: number;
+                currency: string;
+            };
+            subtotal: {
+                amount: number;
+                currency: string;
+            };
+            tax_total: {
+                amount: number;
+                currency: string;
+            };
+            total: {
+                amount: number;
+                currency: string;
+            };
+            revision: number;
+            created_by: string | null;
+            submitted_by: string | null;
+            approved_by: string | null;
+            approved_at: string | null;
+            cancelled_at: string | null;
+            cancel_reason: string | null;
+            closed_at: string | null;
+            version: number;
+            lines?: components["schemas"]["PurchaseOrderLineResource"][];
+            /** @description Only on one order: the draft or pending revision, if there is one. */
+            open_revision_id?: string | null;
+            can: {
+                [key: string]: boolean;
+            };
+        };
+        /** PurchaseOrderRevisionResource */
+        PurchaseOrderRevisionResource: {
+            id: string;
+            purchase_order_id: string;
+            revision_no: number | null;
+            /** @enum {string} */
+            status: "draft" | "pending_approval" | "applied" | "void";
+            reason: string;
+            proposed: {
+                [key: string]: unknown;
+            };
+            before: {
+                [key: string]: unknown;
+            } | null;
+            after: {
+                [key: string]: unknown;
+            } | null;
+            total: {
+                amount: number;
+                currency: string;
+            };
+            created_by: string | null;
+            submitted_by: string | null;
+            approved_by: string | null;
+            applied_at: string | null;
+            version: number;
+            can: {
+                [key: string]: boolean;
+            };
+        };
+        /** PurchaseRequisitionLineResource */
+        PurchaseRequisitionLineResource: {
+            id: string;
+            line_no: number;
+            item_id: string | null;
+            description: string | null;
+            quantity: string;
+            estimated_unit_price: {
+                amount: number;
+                currency: string;
+            };
+            line_total: {
+                amount: number;
+                currency: string;
+            };
+            account_id: string | null;
+            /** @description dimension id → dimension value id */
+            dimensions: {
+                [key: string]: string;
+            };
+            needed_by: string | null;
+            /** @description the live (not cancelled) order this line is on, if any */
+            purchase_order: {
+                id: string;
+                number: string | null;
+            } | null;
+        };
+        /** PurchaseRequisitionResource */
+        PurchaseRequisitionResource: {
+            id: string;
+            number: string | null;
+            /** @enum {string} */
+            status: "draft" | "pending_approval" | "approved" | "rejected" | "void";
+            requisition_date: string | null;
+            currency: string;
+            memo: string | null;
+            total: {
+                amount: number;
+                currency: string;
+            };
+            rejection_reason: string | null;
+            created_by: string | null;
+            submitted_by: string | null;
+            approved_by: string | null;
+            approved_at: string | null;
+            version: number;
+            lines?: components["schemas"]["PurchaseRequisitionLineResource"][];
+            can: {
+                [key: string]: boolean;
+            };
+        };
         /**
          * ReasonRequest
          * @description A required free-text explanation: `reason` for a reopen request, `comment` for rejecting one.
@@ -4765,6 +5740,41 @@ export interface components {
         ReasonRequest: {
             reason?: string | null;
             comment?: string | null;
+        };
+        /** ReceivedNotBilledResource */
+        ReceivedNotBilledResource: {
+            data: {
+                purchase_order_id: string;
+                number: string | null;
+                contact_id: string;
+                contact_name: string;
+                order_line_id: string;
+                line_no: number;
+                description: string | null;
+                account_id: string;
+                account_code: string;
+                account_name: string;
+                received: string;
+                billed: string;
+                unbilled: string;
+                currency: string;
+                fx_rate: string;
+                unbilled_fc: {
+                    amount: number;
+                    currency: string;
+                };
+                unbilled_base: {
+                    amount: number;
+                    currency: string;
+                };
+            }[];
+            meta: {
+                as_of: string;
+                total_base: {
+                    amount: number;
+                    currency: string;
+                };
+            };
         };
         /**
          * ReconciliationRequest
@@ -4862,6 +5872,29 @@ export interface components {
                 [key: string]: boolean;
             };
         };
+        /**
+         * RequisitionRequest
+         * @description Create (POST) or replace (PUT, with `version`) a draft purchase requisition. The estimate is in the company's base
+         *     currency; totals are the server's. A line needs an item or a description.
+         */
+        RequisitionRequest: {
+            /** Format: date */
+            requisition_date: string;
+            memo?: string | null;
+            version?: number;
+            lines: {
+                /** Format: uuid */
+                item_id?: string | null;
+                description?: string | null;
+                /** Format: uuid */
+                account_id?: string | null;
+                quantity: string;
+                estimated_unit_price: number;
+                /** Format: date */
+                needed_by?: string | null;
+                dimensions?: string[] | null;
+            }[];
+        };
         /** ReturnJournalRequest */
         ReturnJournalRequest: {
             comment: string;
@@ -4876,6 +5909,37 @@ export interface components {
             date?: string | null;
             memo?: string | null;
             version?: number | null;
+        };
+        /**
+         * RevisionRequest
+         * @description Propose (POST /purchase-orders/{id}/revisions) or replace (PUT /purchase-order-revisions/{id}) a revision of an approved
+         *     order. Supplier, currency, rate and order date are fixed. `version` is the order's version on POST (optional) and the
+         *     revision's on PUT (required). Lines carry the `id` of the order line they change; a line without one is new.
+         */
+        RevisionRequest: {
+            reason: string;
+            /** Format: date */
+            expected_date?: string | null;
+            reference?: string | null;
+            memo?: string | null;
+            version?: number | null;
+            lines: {
+                /**
+                 * Format: uuid
+                 * @description The id of a line this order already has; send it to keep the line's identity and what was received.
+                 */
+                id?: string | null;
+                /** Format: uuid */
+                item_id?: string | null;
+                /** Format: uuid */
+                account_id?: string | null;
+                description?: string | null;
+                quantity: string;
+                unit_price_fc?: number | null;
+                /** Format: uuid */
+                tax_code_id?: string | null;
+                dimensions?: string[] | null;
+            }[];
         };
         /** RoleResource */
         RoleResource: {
@@ -5014,6 +6078,16 @@ export interface components {
         SigningGrantResource: {
             granted: boolean;
             expires_at: string;
+        };
+        /**
+         * SubmitBillRequest
+         * @description Submit a bill: a transition, plus the reason for going past a purchase order mismatch.
+         */
+        SubmitBillRequest: {
+            version?: number | null;
+            comment?: string | null;
+            /** @description Needs `bills.match_override`. Ignored when the bill matches. */
+            match_override_reason?: string | null;
         };
         /**
          * TaxCodeRequest
@@ -5190,7 +6264,7 @@ export interface components {
         WebhookEndpointRequest: {
             url: string;
             description?: string | null;
-            events: ("*" | "journal.posted" | "journal.reversed" | "invoice.posted" | "invoice.reversed" | "bill.posted" | "bill.reversed" | "settlement.posted" | "settlement.reversed" | "payment_run.posted" | "credit_application.created" | "credit_application.reversed" | "document.submitted" | "document.approved" | "document.returned" | "document.voided" | "period.soft_closed" | "period.closed" | "period.reopened" | "fiscal_year.closed" | "fiscal_year.locked" | "bank_statement.imported" | "bank_match.created" | "bank_match.removed" | "bank_transaction.created" | "bank_reconciliation.finished" | "bank_reconciliation.reopened" | "recurring.occurrence_created" | "import.created" | "import.applied" | "import.failed")[];
+            events: ("*" | "journal.posted" | "journal.reversed" | "invoice.posted" | "invoice.reversed" | "bill.posted" | "bill.reversed" | "settlement.posted" | "settlement.reversed" | "payment_run.posted" | "credit_application.created" | "credit_application.reversed" | "document.submitted" | "document.approved" | "document.returned" | "document.voided" | "period.soft_closed" | "period.closed" | "period.reopened" | "fiscal_year.closed" | "fiscal_year.locked" | "bank_statement.imported" | "bank_match.created" | "bank_match.removed" | "bank_transaction.created" | "bank_reconciliation.finished" | "bank_reconciliation.reopened" | "recurring.occurrence_created" | "import.created" | "import.applied" | "import.failed" | "purchase_requisition.approved" | "purchase_requisition.rejected" | "purchase_order.approved" | "purchase_order.revised" | "purchase_order.cancelled" | "purchase_order.closed" | "goods_receipt.recorded" | "goods_receipt.reversed" | "bill.match_overridden")[];
             version?: number;
         };
         /** WebhookEndpointResource */
@@ -7317,7 +8391,7 @@ export interface operations {
         };
         requestBody?: {
             content: {
-                "application/json": components["schemas"]["TransitionRequest"];
+                "application/json": components["schemas"]["SubmitBillRequest"];
             };
         };
         responses: {
@@ -7476,6 +8550,36 @@ export interface operations {
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             422: components["responses"]["ValidationException"];
+        };
+    };
+    "bills.match": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The bill ID */
+                bill: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `BillMatchResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["BillMatchResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
         };
     };
     "bills.allocate": {
@@ -8662,6 +9766,181 @@ export interface operations {
                 content: {
                     "application/json": {
                         data: components["schemas"]["FxRevaluationPreviewResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "goods-receipts.index": {
+        parameters: {
+            query?: {
+                status?: "" | null;
+                contact_id?: string | null;
+                purchase_order_id?: string | null;
+                /** @description Opaque, from `meta.next_cursor` or `meta.prev_cursor`. */
+                cursor?: string;
+                /** @description Page size, 1 to 200; default 50. */
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `GoodsReceiptResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["GoodsReceiptResource"][];
+                        meta: {
+                            next_cursor: string | null;
+                            prev_cursor: string | null;
+                            limit: number;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "goods-receipts.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GoodsReceiptRequest"];
+            };
+        };
+        responses: {
+            /** @description `GoodsReceiptResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["GoodsReceiptResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "goods-receipts.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The goods receipt ID */
+                goodsReceipt: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `GoodsReceiptResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["GoodsReceiptResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "goods-receipts.reverse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The goods receipt ID */
+                goodsReceipt: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["App.Http.Requests.Procurement.ReasonRequest"];
+            };
+        };
+        responses: {
+            /** @description `GoodsReceiptResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["GoodsReceiptResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "goods-receipts.bill": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The goods receipt ID */
+                goodsReceipt: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["BillFromOrderRequest"];
+            };
+        };
+        responses: {
+            /** @description `InvoiceResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["InvoiceResource"] & Record<string, never>;
                     };
                 };
             };
@@ -10606,6 +11885,96 @@ export interface operations {
             403: components["responses"]["AuthorizationException"];
         };
     };
+    "procurement.open-commitments": {
+        parameters: {
+            query?: {
+                contact_id?: string | null;
+                as_of?: string | null;
+            };
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `OpenCommitmentsResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpenCommitmentsResource"];
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "procurement.awaiting-receipt": {
+        parameters: {
+            query?: {
+                contact_id?: string | null;
+                as_of?: string | null;
+            };
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `AwaitingReceiptResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AwaitingReceiptResource"];
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "procurement.received-not-billed": {
+        parameters: {
+            query?: {
+                contact_id?: string | null;
+                as_of?: string | null;
+            };
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `ReceivedNotBilledResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReceivedNotBilledResource"];
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
     "user-profile-information.update": {
         parameters: {
             query?: never;
@@ -10624,6 +11993,1036 @@ export interface operations {
                 };
             };
             401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "purchase-orders.index": {
+        parameters: {
+            query?: {
+                status?: "" | null;
+                contact_id?: string | null;
+                purchase_order_id?: string | null;
+                /** @description Opaque, from `meta.next_cursor` or `meta.prev_cursor`. */
+                cursor?: string;
+                /** @description Page size, 1 to 200; default 50. */
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `PurchaseOrderResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PurchaseOrderResource"][];
+                        meta: {
+                            next_cursor: string | null;
+                            prev_cursor: string | null;
+                            limit: number;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "purchase-orders.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PurchaseOrderRequest"];
+            };
+        };
+        responses: {
+            /** @description `PurchaseOrderResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PurchaseOrderResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "purchase-orders.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The purchase order ID */
+                purchaseOrder: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `PurchaseOrderResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PurchaseOrderResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "purchase-orders.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The purchase order ID */
+                purchaseOrder: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PurchaseOrderRequest"];
+            };
+        };
+        responses: {
+            /** @description `PurchaseOrderResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PurchaseOrderResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "purchase-orders.submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The purchase order ID */
+                purchaseOrder: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["TransitionRequest"];
+            };
+        };
+        responses: {
+            /** @description `PurchaseOrderResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PurchaseOrderResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "purchase-orders.approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The purchase order ID */
+                purchaseOrder: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["TransitionRequest"];
+            };
+        };
+        responses: {
+            /** @description `PurchaseOrderResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PurchaseOrderResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "purchase-orders.return": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The purchase order ID */
+                purchaseOrder: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReturnJournalRequest"];
+            };
+        };
+        responses: {
+            /** @description `PurchaseOrderResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PurchaseOrderResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "purchase-orders.cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The purchase order ID */
+                purchaseOrder: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["App.Http.Requests.Procurement.ReasonRequest"];
+            };
+        };
+        responses: {
+            /** @description `PurchaseOrderResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PurchaseOrderResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "purchase-orders.close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The purchase order ID */
+                purchaseOrder: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["TransitionRequest"];
+            };
+        };
+        responses: {
+            /** @description `PurchaseOrderResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PurchaseOrderResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "purchase-orders.bill": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The purchase order ID */
+                purchaseOrder: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["BillFromOrderRequest"];
+            };
+        };
+        responses: {
+            /** @description `InvoiceResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["InvoiceResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "purchase-orders.receipts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The purchase order ID */
+                purchaseOrder: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `GoodsReceiptResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["GoodsReceiptResource"][];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "purchase-orders.bills": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The purchase order ID */
+                purchaseOrder: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `InvoiceResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["InvoiceResource"][];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "purchase-orders.revisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The purchase order ID */
+                purchaseOrder: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `PurchaseOrderRevisionResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PurchaseOrderRevisionResource"][];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "purchase-orders.revise": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The purchase order ID */
+                purchaseOrder: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RevisionRequest"];
+            };
+        };
+        responses: {
+            /** @description `PurchaseOrderRevisionResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PurchaseOrderRevisionResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "purchase-order-revisions.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The purchase order revision ID */
+                purchaseOrderRevision: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `PurchaseOrderRevisionResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PurchaseOrderRevisionResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "purchase-order-revisions.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The purchase order revision ID */
+                purchaseOrderRevision: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RevisionRequest"];
+            };
+        };
+        responses: {
+            /** @description `PurchaseOrderRevisionResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PurchaseOrderRevisionResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "purchase-order-revisions.submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The purchase order revision ID */
+                purchaseOrderRevision: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["TransitionRequest"];
+            };
+        };
+        responses: {
+            /** @description `PurchaseOrderRevisionResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PurchaseOrderRevisionResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "purchase-order-revisions.approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The purchase order revision ID */
+                purchaseOrderRevision: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["TransitionRequest"];
+            };
+        };
+        responses: {
+            /** @description `PurchaseOrderRevisionResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PurchaseOrderRevisionResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "purchase-order-revisions.return": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The purchase order revision ID */
+                purchaseOrderRevision: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReturnJournalRequest"];
+            };
+        };
+        responses: {
+            /** @description `PurchaseOrderRevisionResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PurchaseOrderRevisionResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "purchase-order-revisions.void": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The purchase order revision ID */
+                purchaseOrderRevision: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["VoidJournalRequest"];
+            };
+        };
+        responses: {
+            /** @description `PurchaseOrderRevisionResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PurchaseOrderRevisionResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "purchase-requisitions.index": {
+        parameters: {
+            query?: {
+                status?: "" | null;
+                contact_id?: string | null;
+                purchase_order_id?: string | null;
+                /** @description Opaque, from `meta.next_cursor` or `meta.prev_cursor`. */
+                cursor?: string;
+                /** @description Page size, 1 to 200; default 50. */
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `PurchaseRequisitionResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PurchaseRequisitionResource"][];
+                        meta: {
+                            next_cursor: string | null;
+                            prev_cursor: string | null;
+                            limit: number;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "purchase-requisitions.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RequisitionRequest"];
+            };
+        };
+        responses: {
+            /** @description `PurchaseRequisitionResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PurchaseRequisitionResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "purchase-requisitions.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The purchase requisition ID */
+                purchaseRequisition: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `PurchaseRequisitionResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PurchaseRequisitionResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "purchase-requisitions.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The purchase requisition ID */
+                purchaseRequisition: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RequisitionRequest"];
+            };
+        };
+        responses: {
+            /** @description `PurchaseRequisitionResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PurchaseRequisitionResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "purchase-requisitions.submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The purchase requisition ID */
+                purchaseRequisition: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["TransitionRequest"];
+            };
+        };
+        responses: {
+            /** @description `PurchaseRequisitionResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PurchaseRequisitionResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "purchase-requisitions.approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The purchase requisition ID */
+                purchaseRequisition: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["TransitionRequest"];
+            };
+        };
+        responses: {
+            /** @description `PurchaseRequisitionResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PurchaseRequisitionResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "purchase-requisitions.return": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The purchase requisition ID */
+                purchaseRequisition: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReturnJournalRequest"];
+            };
+        };
+        responses: {
+            /** @description `PurchaseRequisitionResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PurchaseRequisitionResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "purchase-requisitions.void": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The purchase requisition ID */
+                purchaseRequisition: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["VoidJournalRequest"];
+            };
+        };
+        responses: {
+            /** @description `PurchaseRequisitionResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PurchaseRequisitionResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "purchase-requisitions.reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The purchase requisition ID */
+                purchaseRequisition: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["App.Http.Requests.Procurement.ReasonRequest"];
+            };
+        };
+        responses: {
+            /** @description `PurchaseRequisitionResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PurchaseRequisitionResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "purchase-requisitions.convert": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The purchase requisition ID */
+                purchaseRequisition: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConvertRequisitionRequest"];
+            };
+        };
+        responses: {
+            /** @description `PurchaseOrderResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PurchaseOrderResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
         };
     };
     "two-factor.recovery-codes": {
