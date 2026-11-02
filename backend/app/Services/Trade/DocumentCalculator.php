@@ -81,7 +81,7 @@ final class DocumentCalculator
             $lineTax = $result->lines[$i];
             $lines[] = new ComputedLine(
                 $accountId, $item?->id, $line->description, $line->quantity, $unit, $line->discountPct, $taxCodeId,
-                $net, $lineTax->tax, $lineTax->byCode, $line->dims,
+                $net, $lineTax->tax, $lineTax->byCode, $line->dims, $line->purchaseOrderLineId, $line->goodsReceiptLineId,
             );
         }
 

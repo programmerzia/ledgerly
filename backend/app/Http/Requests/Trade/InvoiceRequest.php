@@ -54,6 +54,9 @@ final class InvoiceRequest extends CompanyRequest
             'lines.*.discount_pct' => ['nullable', 'string', 'regex:/^\d{1,3}(\.\d{1,4})?$/'],
             'lines.*.tax_code_id' => ['nullable', 'uuid', $this->inCompany('tax_codes')],
             'lines.*.dimensions' => ['nullable', 'array', 'max:8'],
+            /** The purchase order line this bill line bills. A PUT replaces the lines: send it again or the link is gone. */
+            'lines.*.purchase_order_line_id' => [$sales ? 'prohibited' : 'nullable', 'uuid', $this->inCompany('purchase_order_lines')],
+            'lines.*.goods_receipt_line_id' => [$sales ? 'prohibited' : 'nullable', 'uuid', $this->inCompany('goods_receipt_lines')],
         ];
     }
 
@@ -91,6 +94,8 @@ final class InvoiceRequest extends CompanyRequest
                 taxCodeId: isset($line['tax_code_id']) ? (string) $line['tax_code_id'] : null,
                 taxCodeGiven: array_key_exists('tax_code_id', $line),
                 dims: $dims,
+                purchaseOrderLineId: isset($line['purchase_order_line_id']) ? (string) $line['purchase_order_line_id'] : null,
+                goodsReceiptLineId: isset($line['goods_receipt_line_id']) ? (string) $line['goods_receipt_line_id'] : null,
             );
         }, array_values($v['lines']));
 

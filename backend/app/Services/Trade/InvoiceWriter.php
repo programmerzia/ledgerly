@@ -8,7 +8,10 @@ use App\Actions\Trade\Inputs\InvoiceDraftInput;
 use App\Contracts\Clock;
 use App\Contracts\IdGenerator;
 use App\Domain\Shared\DomainRuleViolation;
+use App\Domain\Trade\InvoiceKind;
 use App\Domain\Workflow\DocumentStatus;
+use App\Models\Procurement\GoodsReceiptLine;
+use App\Models\Procurement\PurchaseOrderLine;
 use App\Models\Trade\Invoice;
 use App\Support\Actor;
 use Illuminate\Database\DatabaseManager;
@@ -46,6 +49,7 @@ final class InvoiceWriter
      */
     public function checkRelated(InvoiceDraftInput $in, ComputedDocument $c): void
     {
+        $this->checkOrderLinks($in, $c);
         if ($in->relatedInvoiceId === null) {
             return;
         }
@@ -59,6 +63,41 @@ final class InvoiceWriter
         }
         if ($related->status !== DocumentStatus::Posted) {
             throw DomainRuleViolation::single('related_document_not_posted', 'The document the note refers to is not posted.');
+        }
+    }
+
+    /**
+     * A bill line may point at a line of an open order with the same supplier and currency, and at a receipt line of that order
+     * line. Fails early here; the match checks the order's state again at submit. Documents with no links run no query.
+     */
+    private function checkOrderLinks(InvoiceDraftInput $in, ComputedDocument $c): void
+    {
+        $links = array_values(array_filter($c->lines, fn (ComputedLine $l) => $l->purchaseOrderLineId !== null || $l->goodsReceiptLineId !== null));
+        if ($links === []) {
+            return;
+        }
+        if ($in->kind !== InvoiceKind::PurchaseBill) {
+            throw DomainRuleViolation::single('order_link_invalid', 'Only a bill can refer to a purchase order.');
+        }
+        foreach ($links as $line) {
+            $orderLine = $line->purchaseOrderLineId === null ? null : PurchaseOrderLine::query()->with('order')->where('company_id', $in->companyId)->find($line->purchaseOrderLineId);
+            if ($orderLine === null) {
+                throw DomainRuleViolation::single('order_link_invalid', 'A bill line refers to an order line that does not exist.');
+            }
+            $order = $orderLine->order;
+            if ($order->contact_id !== $in->contactId) {
+                throw DomainRuleViolation::single('bill_order_supplier_mismatch', 'A bill line refers to an order with a different supplier.');
+            }
+            if ($order->currency !== $c->currency) {
+                throw DomainRuleViolation::single('bill_order_currency_mismatch', "A bill line refers to an order in {$order->currency}, not {$c->currency}.");
+            }
+            if (! $order->status->isOpen()) {
+                throw DomainRuleViolation::single('bill_order_not_open', "A {$order->status->value} order takes no more bills.");
+            }
+            if ($line->goodsReceiptLineId !== null
+                && ! GoodsReceiptLine::query()->whereKey($line->goodsReceiptLineId)->where('purchase_order_line_id', $orderLine->id)->exists()) {
+                throw DomainRuleViolation::single('order_link_invalid', 'A bill line refers to a receipt of a different order line.');
+            }
         }
     }
 
@@ -83,6 +122,8 @@ final class InvoiceWriter
                 'line_total_fc' => $line->lineTotalFc,
                 'tax_amount_fc' => $line->taxAmountFc,
                 'tax_detail' => json_encode((object) $line->taxDetail, JSON_THROW_ON_ERROR),
+                'purchase_order_line_id' => $line->purchaseOrderLineId,
+                'goods_receipt_line_id' => $line->goodsReceiptLineId,
                 'created_at' => $now,
                 'updated_at' => $now,
             ];

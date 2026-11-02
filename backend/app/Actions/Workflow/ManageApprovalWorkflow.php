@@ -92,7 +92,7 @@ final class ManageApprovalWorkflow
 
     private function assertValid(ApprovalWorkflowInput $in): void
     {
-        if (! in_array($in->documentType, Documents::TYPES, true)) {
+        if (! in_array($in->documentType, Documents::WORKFLOW_TYPES, true)) {
             throw DomainRuleViolation::single('document_type_unknown', "Unknown document type {$in->documentType}.");
         }
         if ($in->maxAmount !== null && $in->maxAmount <= $in->minAmount) {

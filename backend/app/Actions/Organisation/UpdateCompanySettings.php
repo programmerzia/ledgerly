@@ -50,7 +50,7 @@ final class UpdateCompanySettings
             if ($in->version !== null && $in->version !== $server) {
                 throw new VersionConflict($server, $in->version);
             }
-            $before = ['company' => $company->only(array_keys($in->profile)), 'settings' => $settings->only(['tax_rounding', 'posting_accounts'])];
+            $before = ['company' => $company->only(array_keys($in->profile)), 'settings' => $settings->only(['tax_rounding', 'posting_accounts', 'require_purchase_order', 'po_price_tolerance_pct', 'po_quantity_tolerance_pct', 'receipt_over_tolerance_pct'])];
 
             if ($in->profile !== []) {
                 $company->forceFill($in->profile)->save();
@@ -77,10 +77,18 @@ final class UpdateCompanySettings
                 $defaults = is_array($defaults) ? $defaults : [];
                 $settings->forceFill(['approval_defaults' => array_filter(['journal_threshold' => $in->journalThreshold] + $defaults, fn ($v) => $v !== null)]);
             }
+            foreach ([
+                'require_purchase_order' => $in->requirePurchaseOrder, 'po_price_tolerance_pct' => $in->poPriceTolerancePct,
+                'po_quantity_tolerance_pct' => $in->poQuantityTolerancePct, 'receipt_over_tolerance_pct' => $in->receiptOverTolerancePct,
+            ] as $column => $value) {
+                if ($value !== null) {
+                    $settings->forceFill([$column => $value]);
+                }
+            }
             $settings->forceFill(['lock_version' => $server + 1])->save();
             $settings->refresh();
 
-            $audit->add('company_settings.updated', $company, before: $before, after: ['company' => $company->only(array_keys($in->profile)), 'settings' => $settings->only(['tax_rounding', 'posting_accounts'])]);
+            $audit->add('company_settings.updated', $company, before: $before, after: ['company' => $company->only(array_keys($in->profile)), 'settings' => $settings->only(['tax_rounding', 'posting_accounts', 'require_purchase_order', 'po_price_tolerance_pct', 'po_quantity_tolerance_pct', 'receipt_over_tolerance_pct'])]);
 
             return $settings;
         });

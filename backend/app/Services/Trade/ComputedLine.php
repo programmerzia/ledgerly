@@ -23,5 +23,7 @@ final readonly class ComputedLine
         public int $taxAmountFc,
         public array $taxDetail,
         public array $dims,
+        public ?string $purchaseOrderLineId = null,
+        public ?string $goodsReceiptLineId = null,
     ) {}
 }

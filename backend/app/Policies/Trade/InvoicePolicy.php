@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Policies\Trade;
 
+use App\Domain\Trade\InvoiceKind;
 use App\Domain\Workflow\DocumentStatus;
 use App\Models\Platform\User;
 use App\Models\Trade\Invoice;
@@ -97,6 +98,13 @@ final class InvoicePolicy
     {
         return $invoice->status === DocumentStatus::Posted
             && $this->context->personCan($principal, $this->module($invoice).'.reverse', $invoice->company_id);
+    }
+
+    /** Submit this draft bill past a purchase order mismatch, with a reason (13 §10). People only. */
+    public function overrideMatch(Authenticatable $principal, Invoice $invoice): bool
+    {
+        return $invoice->status === DocumentStatus::Draft && $invoice->kind === InvoiceKind::PurchaseBill
+            && $this->context->personCan($principal, 'bills.match_override', $invoice->company_id);
     }
 
     /** Apply a posted credit note (`/invoices`) or debit note (`/bills`) to an open document of the same contact. */

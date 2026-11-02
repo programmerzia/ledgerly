@@ -7,6 +7,9 @@ namespace App\Models\Workflow;
 use App\Models\BaseModel;
 use App\Models\Ledger\Journal;
 use App\Models\Platform\User;
+use App\Models\Procurement\PurchaseOrder;
+use App\Models\Procurement\PurchaseOrderRevision;
+use App\Models\Procurement\PurchaseRequisition;
 use App\Models\Trade\Invoice;
 use App\Models\Trade\PaymentRun;
 use App\Models\Trade\Settlement;
@@ -55,6 +58,24 @@ class ApprovalRequest extends BaseModel
     public function journal(): BelongsTo
     {
         return $this->belongsTo(Journal::class, 'document_id');
+    }
+
+    /** @return BelongsTo<PurchaseRequisition, $this> */
+    public function purchaseRequisition(): BelongsTo
+    {
+        return $this->belongsTo(PurchaseRequisition::class, 'document_id');
+    }
+
+    /** @return BelongsTo<PurchaseOrder, $this> */
+    public function purchaseOrder(): BelongsTo
+    {
+        return $this->belongsTo(PurchaseOrder::class, 'document_id');
+    }
+
+    /** @return BelongsTo<PurchaseOrderRevision, $this> */
+    public function orderRevision(): BelongsTo
+    {
+        return $this->belongsTo(PurchaseOrderRevision::class, 'document_id');
     }
 
     /** @return BelongsTo<User, $this> */

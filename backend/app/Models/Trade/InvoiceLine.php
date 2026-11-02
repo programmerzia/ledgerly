@@ -21,6 +21,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $line_total_fc net of discount, before tax
  * @property int $tax_amount_fc
  * @property array<string, int> $tax_detail tax code id → this line's share of the tax
+ * @property string|null $purchase_order_line_id
+ * @property string|null $goods_receipt_line_id
  * @property-read Invoice $invoice
  */
 class InvoiceLine extends BaseModel

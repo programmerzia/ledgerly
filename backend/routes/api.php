@@ -237,6 +237,7 @@ Route::middleware(['auth:sanctum', 'tenant', 'tenant.writable', 'idempotent', 'c
             Route::post("{$path}/{{$param}}/reverse", [$controller, 'reverse'])->whereUuid($param)->name("{$path}.reverse");
         }
 
+        Route::get('bills/{bill}/match', [BillController::class, 'match'])->whereUuid('bill')->name('bills.match');
         foreach (['invoices' => 'invoice', 'bills' => 'bill'] as $path => $param) {
             Route::post("{$path}/{{$param}}/allocate", [$path === 'invoices' ? InvoiceController::class : BillController::class, 'allocate'])->whereUuid($param)->name("{$path}.allocate");
         }

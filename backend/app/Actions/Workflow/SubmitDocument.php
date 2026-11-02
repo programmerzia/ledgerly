@@ -43,9 +43,9 @@ final class SubmitDocument
         private readonly IdGenerator $ids,
     ) {}
 
-    public function handle(Actor $actor, DocumentRef $ref): Postable&Model
+    public function handle(Actor $actor, DocumentRef $ref, ?string $matchOverrideReason = null): Postable&Model
     {
-        return $this->uow->run($actor, function (LockSet $locks, AuditBuffer $audit, Outbox $outbox) use ($actor, $ref) {
+        return $this->uow->run($actor, function (LockSet $locks, AuditBuffer $audit, Outbox $outbox) use ($actor, $ref, $matchOverrideReason) {
             $unlocked = $this->documents->find($ref);
             $companyId = $unlocked->documentCompanyId();
             if (! $actor->isApiClient() && ! $this->permissions->allows($actor, $this->documents->permission($unlocked, 'submit'), $companyId)) {
@@ -63,13 +63,16 @@ final class SubmitDocument
                 throw PostingRejected::because($violations);
             }
 
+            $this->documents->beforeSubmit($actor, $locks, $audit, $outbox, $doc, $matchOverrideReason);
+
             $source = $actor->isApiClient() ? DocumentSource::Api : DocumentSource::User;
-            $workflow = WorkflowResolver::resolve($this->activeWorkflows($companyId, $ref->type), $ref->type, $source, $doc->documentAmount());
+            $workflowType = $this->documents->workflowType($ref->type);
+            $workflow = WorkflowResolver::resolve($this->activeWorkflows($companyId, $workflowType), $workflowType, $source, $doc->documentAmount());
             $now = $this->clock->now();
 
             if ($workflow === null) {
                 if (! $actor->isApiClient() && ! $actor->hasSigningGrant) {
-                    throw DomainRuleViolation::single('signature_required', 'Posting needs your signing PIN.');
+                    throw DomainRuleViolation::single('signature_required', $this->documents->signingPrompt($doc));
                 }
                 $before = $doc->attributesToArray();
                 $doc->forceFill(['submitted_by' => $actor->id, 'lock_version' => $doc->documentLockVersion() + 1])->save();

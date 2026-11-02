@@ -16,7 +16,7 @@ final class ApprovalWorkflowRequest extends CompanyRequest
     public function rules(): array
     {
         return [
-            'document_type' => ['required', 'string', Rule::in(Documents::TYPES)],
+            'document_type' => ['required', 'string', Rule::in(Documents::WORKFLOW_TYPES)],
             'name' => ['required', 'string', 'max:255'],
             'source' => ['required', 'string', Rule::in(['any', 'user', 'api'])],
             'min_amount' => ['required', 'integer', 'min:0', 'max:999999999999999'],

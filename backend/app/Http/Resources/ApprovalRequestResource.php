@@ -79,6 +79,49 @@ final class ApprovalRequestResource extends JsonResource
                 'version' => $run->lock_version,
             ];
         }
+        $requisition = $this->purchaseRequisition;
+        if ($requisition !== null) {
+            return [
+                'id' => $requisition->id,
+                'number' => $requisition->number,
+                'requisition_date' => Json::date($requisition->requisition_date),
+                'memo' => $requisition->memo,
+                'amount' => $amount,
+                'created_by' => $requisition->created_by,
+                'submitted_by' => $requisition->submitted_by,
+                'version' => $requisition->lock_version,
+            ];
+        }
+        $order = $this->purchaseOrder;
+        if ($order !== null) {
+            return [
+                'id' => $order->id,
+                'number' => $order->number,
+                'order_date' => Json::date($order->order_date),
+                'contact_id' => $order->contact_id,
+                'reference' => $order->reference,
+                'memo' => $order->memo,
+                'amount' => $amount,
+                'created_by' => $order->created_by,
+                'submitted_by' => $order->submitted_by,
+                'version' => $order->lock_version,
+            ];
+        }
+        $revision = $this->orderRevision;
+        if ($revision !== null) {
+            return [
+                'id' => $revision->id,
+                'purchase_order_id' => $revision->purchase_order_id,
+                'number' => $revision->order->number,
+                'order_date' => Json::date($revision->order->order_date),
+                'contact_id' => $revision->order->contact_id,
+                'memo' => $revision->reason,
+                'amount' => $amount,
+                'created_by' => $revision->created_by,
+                'submitted_by' => $revision->submitted_by,
+                'version' => $revision->lock_version,
+            ];
+        }
         $journal = $this->journal;
 
         return [

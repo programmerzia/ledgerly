@@ -19,5 +19,8 @@ final readonly class InvoiceLineInput
         public bool $taxCodeGiven = false,
         /** @var array<int, string> dimension slot → value id */
         public array $dims = [],
+        /** The purchase order line this bill line bills; only on a purchase bill. */
+        public ?string $purchaseOrderLineId = null,
+        public ?string $goodsReceiptLineId = null,
     ) {}
 }

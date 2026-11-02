@@ -47,6 +47,11 @@ final class CompanySettingsResource extends JsonResource
             'posting_accounts' => $posting,
             /** Above it a bank transaction needs a covering journal workflow; null: no limit. */
             'journal_threshold' => $threshold === null ? null : Json::money($threshold, $this->base_currency),
+            'require_purchase_order' => $settings !== null && (bool) $settings->getAttribute('require_purchase_order'),
+            /** Decimal strings, percent. */
+            'po_price_tolerance_pct' => $settings === null ? '0.0000' : (string) $settings->getAttribute('po_price_tolerance_pct'),
+            'po_quantity_tolerance_pct' => $settings === null ? '0.0000' : (string) $settings->getAttribute('po_quantity_tolerance_pct'),
+            'receipt_over_tolerance_pct' => $settings === null ? '0.0000' : (string) $settings->getAttribute('receipt_over_tolerance_pct'),
             'version' => $settings === null ? 0 : (int) $settings->getAttribute('lock_version'),
             'can' => ['update' => (bool) $request->user()?->can('update', $this->resource)],
         ];

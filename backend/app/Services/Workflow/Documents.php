@@ -6,6 +6,9 @@ namespace App\Services\Workflow;
 
 use App\Actions\Ledger\Inputs\PostJournalInput;
 use App\Actions\Ledger\PostJournal;
+use App\Actions\Procurement\ApplyOrderRevision;
+use App\Actions\Procurement\FinalizePurchaseOrder;
+use App\Actions\Procurement\FinalizeRequisition;
 use App\Actions\Trade\PostInvoice;
 use App\Actions\Trade\PostPaymentRun;
 use App\Actions\Trade\PostSettlement;
@@ -18,15 +21,22 @@ use App\Domain\Shared\Violation;
 use App\Domain\Trade\InvoiceKind;
 use App\Domain\Workflow\DocumentStatus;
 use App\Models\Ledger\Journal;
+use App\Models\Procurement\PurchaseOrder;
+use App\Models\Procurement\PurchaseOrderRevision;
+use App\Models\Procurement\PurchaseRequisition;
 use App\Models\Trade\Invoice;
 use App\Models\Trade\PaymentRun;
 use App\Models\Trade\Settlement;
 use App\Queries\Ledger\PreviewJournalPosting;
+use App\Queries\Procurement\DocumentReadiness;
 use App\Queries\Trade\PreviewInvoicePosting;
 use App\Queries\Trade\PreviewSettlementPosting;
 use App\Services\Ledger\PostingEngine;
+use App\Services\Procurement\BillMatchGate;
 use App\Support\Actor;
+use App\Support\UnitOfWork\AuditBuffer;
 use App\Support\UnitOfWork\LockSet;
+use App\Support\UnitOfWork\Outbox;
 use DateTimeImmutable;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Eloquent\Model;
@@ -39,7 +49,10 @@ use Illuminate\Database\Eloquent\Model;
  */
 final class Documents
 {
-    public const array TYPES = ['journal', 'invoice', 'bill', 'settlement', 'payment_run'];
+    public const array TYPES = ['journal', 'invoice', 'bill', 'settlement', 'payment_run', 'purchase_requisition', 'purchase_order', 'purchase_order_revision'];
+
+    /** The types a workflow can be set up for. A revision has none of its own: it goes through its order's (workflowType). */
+    public const array WORKFLOW_TYPES = ['journal', 'invoice', 'bill', 'settlement', 'payment_run', 'purchase_requisition', 'purchase_order'];
 
     public function __construct(
         private readonly Container $container,
@@ -56,6 +69,9 @@ final class Documents
             'bill' => Invoice::query()->with('lines')->whereIn('kind', InvoiceKind::values(...InvoiceKind::purchases()))->find($ref->id),
             'settlement' => Settlement::query()->with('allocations')->find($ref->id),
             'payment_run' => PaymentRun::query()->with('items')->find($ref->id),
+            'purchase_requisition' => PurchaseRequisition::query()->with('lines')->find($ref->id),
+            'purchase_order' => PurchaseOrder::query()->with('lines')->find($ref->id),
+            'purchase_order_revision' => PurchaseOrderRevision::query()->find($ref->id),
             default => throw DomainRuleViolation::single('document_type_unknown', "Unknown document type {$ref->type}."),
         };
         if ($doc === null) {
@@ -102,6 +118,9 @@ final class Documents
 
             return $locks->document($doc, $expectedVersion)->load('items');
         }
+        if ($doc instanceof PurchaseOrderRevision) {
+            return $locks->document($doc, $expectedVersion);
+        }
 
         return $locks->document($doc, $expectedVersion)->load('lines');
     }
@@ -118,6 +137,9 @@ final class Documents
             $doc instanceof Invoice => $this->container->make(PreviewInvoicePosting::class)->of($actor, $doc->id)->violations,
             $doc instanceof Settlement => $this->container->make(PreviewSettlementPosting::class)->of($actor, $doc->id)->violations,
             $doc instanceof PaymentRun => $this->container->make(PreviewSettlementPosting::class)->ofRun($actor, $doc->id)->violations,
+            $doc instanceof PurchaseRequisition => $this->container->make(DocumentReadiness::class)->ofRequisition($doc),
+            $doc instanceof PurchaseOrder => $this->container->make(DocumentReadiness::class)->ofOrder($doc),
+            $doc instanceof PurchaseOrderRevision => $this->container->make(DocumentReadiness::class)->ofRevision($doc),
             default => throw new \LogicException("No preview for {$doc->documentType()}."),
         };
     }
@@ -130,8 +152,36 @@ final class Documents
             $doc instanceof Invoice => $this->container->make(PostInvoice::class)->handle($actor, $doc->documentId()),
             $doc instanceof Settlement => $this->container->make(PostSettlement::class)->handle($actor, $doc->documentId()),
             $doc instanceof PaymentRun => $this->container->make(PostPaymentRun::class)->handle($actor, $doc->documentId()),
+            $doc instanceof PurchaseRequisition => $this->container->make(FinalizeRequisition::class)->handle($actor, $doc->documentId()),
+            $doc instanceof PurchaseOrder => $this->container->make(FinalizePurchaseOrder::class)->handle($actor, $doc->documentId()),
+            $doc instanceof PurchaseOrderRevision => $this->container->make(ApplyOrderRevision::class)->handle($actor, $doc->documentId()),
             default => throw new \LogicException("No poster for {$doc->documentType()}."),
         };
+    }
+
+    /**
+     * The three-way match of a purchase bill, under the bill's lock, after the posting checks (13 §10). Every other document
+     * passes straight through.
+     */
+    public function beforeSubmit(Actor $actor, LockSet $locks, AuditBuffer $audit, Outbox $outbox, Postable&Model $doc, ?string $matchOverrideReason): void
+    {
+        if ($doc instanceof Invoice && $doc->kind === InvoiceKind::PurchaseBill) {
+            $this->container->make(BillMatchGate::class)->enforce($actor, $locks, $audit, $outbox, $doc, $matchOverrideReason);
+        }
+    }
+
+    /** Which document type's workflow applies. */
+    public function workflowType(string $type): string
+    {
+        return $type === 'purchase_order_revision' ? 'purchase_order' : $type;
+    }
+
+    /** What asking for the PIN says when no workflow applies and submit finishes the document. */
+    public function signingPrompt(Postable&Model $doc): string
+    {
+        return in_array($doc->documentType(), ['purchase_requisition', 'purchase_order', 'purchase_order_revision'], true)
+            ? 'Approving needs your signing PIN.'
+            : 'Posting needs your signing PIN.';
     }
 
     /**
@@ -147,6 +197,10 @@ final class Documents
         }
         if ($doc instanceof PaymentRun) {
             return in_array($action, ['approve', 'return', 'void'], true) ? 'payments.approve' : 'payments.create';
+        }
+
+        if ($doc instanceof PurchaseOrderRevision) {
+            return 'purchase_orders.'.(in_array($action, ['return', 'void'], true) ? 'approve' : $action);
         }
 
         // Returning and voiding are an approver's act (13 §10): they follow `<type>s.approve`.

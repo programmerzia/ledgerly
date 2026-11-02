@@ -34,6 +34,8 @@ final class InvoiceLineResource extends JsonResource
             'tax_detail' => (object) ($this->tax_detail ?? []),
             /** @var array<string, string> dimension id → dimension value id */
             'dimensions' => (object) $this->dimensions($request),
+            'purchase_order_line_id' => $this->purchase_order_line_id,
+            'goods_receipt_line_id' => $this->goods_receipt_line_id,
         ];
     }
 

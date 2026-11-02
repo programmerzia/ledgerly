@@ -19,5 +19,9 @@ final readonly class CompanySettingsInput
         public ?int $version = null,
         public bool $setsJournalThreshold = false,
         public ?int $journalThreshold = null,
+        public ?bool $requirePurchaseOrder = null,
+        public ?string $poPriceTolerancePct = null,
+        public ?string $poQuantityTolerancePct = null,
+        public ?string $receiptOverTolerancePct = null,
     ) {}
 }

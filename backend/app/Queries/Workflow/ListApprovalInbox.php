@@ -37,6 +37,9 @@ final class ListApprovalInbox
                 THEN (SELECT GREATEST(COALESCE(SUM(l.debit), 0), COALESCE(SUM(l.credit), 0)) FROM journal_lines l WHERE l.journal_id = approval_requests.document_id)
                 WHEN approval_requests.document_type = 'settlement' THEN (SELECT s.amount FROM settlements s WHERE s.id = approval_requests.document_id)
                 WHEN approval_requests.document_type = 'payment_run' THEN (SELECT r.total FROM payment_runs r WHERE r.id = approval_requests.document_id)
+                WHEN approval_requests.document_type = 'purchase_requisition' THEN (SELECT q.total FROM purchase_requisitions q WHERE q.id = approval_requests.document_id)
+                WHEN approval_requests.document_type = 'purchase_order' THEN (SELECT o.total FROM purchase_orders o WHERE o.id = approval_requests.document_id)
+                WHEN approval_requests.document_type = 'purchase_order_revision' THEN (SELECT v.total FROM purchase_order_revisions v WHERE v.id = approval_requests.document_id)
                 ELSE (SELECT i.total FROM invoices i WHERE i.id = approval_requests.document_id) END AS document_amount")
             ->where('approval_requests.company_id', $companyId)
             ->where('approval_requests.status', 'pending')
@@ -65,11 +68,23 @@ final class ListApprovalInbox
                     ->whereColumn('payment_runs.id', 'approval_requests.document_id')
                     ->where('payment_runs.status', 'pending_approval')
                     ->whereRaw('payment_runs.created_by IS DISTINCT FROM ?', [$me])
-                    ->whereRaw('payment_runs.submitted_by IS DISTINCT FROM ?', [$me])))
+                    ->whereRaw('payment_runs.submitted_by IS DISTINCT FROM ?', [$me]))
+                ->orWhereExists(fn (QueryBuilder $q) => $this->waiting($q, 'purchase_requisitions', $me))
+                ->orWhereExists(fn (QueryBuilder $q) => $this->waiting($q, 'purchase_orders', $me))
+                ->orWhereExists(fn (QueryBuilder $q) => $this->waiting($q, 'purchase_order_revisions', $me)))
             ->whereNotExists(fn (QueryBuilder $q) => $q->from('approval_requests as s')->selectRaw('1')
                 ->whereColumn('s.document_id', 'approval_requests.document_id')
                 ->whereColumn('s.document_type', 'approval_requests.document_type')
                 ->where('s.signed_by', $me))
-            ->with(['journal', 'invoice', 'settlement', 'paymentRun', 'requester:id,name']);
+            ->with(['journal', 'invoice', 'settlement', 'paymentRun', 'purchaseRequisition', 'purchaseOrder', 'orderRevision.order', 'requester:id,name']);
+    }
+
+    private function waiting(QueryBuilder $q, string $table, string $me): QueryBuilder
+    {
+        return $q->from($table)->selectRaw('1')
+            ->whereColumn("{$table}.id", 'approval_requests.document_id')
+            ->where("{$table}.status", 'pending_approval')
+            ->where(fn (QueryBuilder $w) => $w->whereNull("{$table}.created_by")->orWhere("{$table}.created_by", '<>', $me))
+            ->where(fn (QueryBuilder $w) => $w->whereNull("{$table}.submitted_by")->orWhere("{$table}.submitted_by", '<>', $me));
     }
 }

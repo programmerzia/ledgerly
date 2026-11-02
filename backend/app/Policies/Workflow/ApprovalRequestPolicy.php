@@ -20,7 +20,7 @@ final class ApprovalRequestPolicy
     /** Anyone who may approve some kind of document; each document is checked again when it is approved. */
     public function bulkApprove(Authenticatable $principal): bool
     {
-        foreach (['journals.approve', 'invoices.approve', 'bills.approve', 'payments.approve'] as $permission) {
+        foreach (['journals.approve', 'invoices.approve', 'bills.approve', 'payments.approve', 'purchase_requisitions.approve', 'purchase_orders.approve'] as $permission) {
             if ($this->context->personCan($principal, $permission)) {
                 return true;
             }
