@@ -240,6 +240,12 @@ export function toRequisitionInput(r: Requisition): RequisitionDraftInput {
   };
 }
 
+/** A copy of a requisition as a new draft dated `today`: no number, no order links. A "needed by" date already past is dropped. */
+export function toRequisitionCopy(r: Requisition, today: string): RequisitionDraftInput {
+  const input = toRequisitionInput(r);
+  return { ...input, requisition_date: today, lines: input.lines.map((l) => ({ ...l, needed_by: l.needed_by >= today ? l.needed_by : '' })) };
+}
+
 /** Lines of an approved requisition that are not on an order: the ones "Create order" offers. */
 export const convertibleLines = (r: Requisition): RequisitionLine[] => r.lines.filter((l) => l.order === null);
 
@@ -458,6 +464,18 @@ export function toOrderInput(o: PurchaseOrder): OrderDraftInput {
       tax_code_id: l.tax_code_id ?? undefined,
       dimensions: l.dimensions,
     })),
+  };
+}
+
+/** A copy of an order as a new draft dated `today`: no number, no receipts, bills or revisions, no stored exchange rate (the server uses its rate for the day), no line ids. An expected date already past is dropped. */
+export function toOrderCopy(o: PurchaseOrder, today: string): OrderDraftInput {
+  const input = toOrderInput(o);
+  return {
+    ...input,
+    order_date: today,
+    expected_date: input.expected_date >= today ? input.expected_date : '',
+    fx_rate: '',
+    lines: input.lines.map(({ id: _id, ...l }) => l),
   };
 }
 

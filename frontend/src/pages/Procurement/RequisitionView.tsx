@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { CheckCircle, Clock, FilePlus, Pencil, RotateCcw, Send, Trash2, XCircle } from 'lucide-react';
+import { CheckCircle, Clock, Copy, FilePlus, Pencil, RotateCcw, Send, Trash2, XCircle } from 'lucide-react';
 import { PageHeader } from '@/components/domain/PageHeader';
 import { SignDialog } from '@/components/domain/SignDialog';
 import { MoneyInput } from '@/components/domain/MoneyInput';
@@ -20,7 +20,7 @@ import { useMemberNames } from '@/data/approvals';
 import { useRequisition, useRequisitionActions } from '@/data/procurement';
 import { ApiError } from '@/api/errors';
 import { toApiDate } from '@/api/adapters/dates';
-import { convertibleLines, statusLabel, toConvertRequest, type ConvertInput, type Requisition } from '@/api/adapters/procurement';
+import { convertibleLines, statusLabel, toConvertRequest, toRequisitionCopy, toRequisitionRequest, type ConvertInput, type Requisition } from '@/api/adapters/procurement';
 import type { Intent } from '@/api/idempotency';
 import { ErrorLine, LoadingLine, ProcStatusPill, ReasonDialog, inputClass, showQty, useActionRunner } from './parts';
 
@@ -68,6 +68,16 @@ export const RequisitionView: React.FC = () => {
   const doSubmit = async () => {
     const x = await perform('submit', sig, 'submit', (intent) => actions.submit(r.id, r.version, intent));
     if (x) toast.success(x.status === 'approved' ? `Approved as ${x.number}` : 'Sent for approval');
+  };
+  /** A draft made at once from this one, dated today, then the form opens on it. */
+  const doCopy = async () => {
+    const today = toApiDate(new Date());
+    const body = toRequisitionRequest(toRequisitionCopy(r, today));
+    const copy = await perform('copy', `${sig}:${today}`, null, (intent) => actions.create(body, intent));
+    if (copy) {
+      toast.success('Draft copy created');
+      navigate(`/${co}/requisitions/${copy.id}/edit`);
+    }
   };
   const doApprove = async () => {
     const x = await perform('approve', sig, 'approve', (intent) => actions.approve(r.id, r.version, intent));
@@ -250,6 +260,10 @@ export const RequisitionView: React.FC = () => {
                 </div>
               </div>
             )}
+
+            <button type="button" onClick={() => void doCopy()} disabled={busy} className={BTN_SECONDARY}>
+              <Copy className="size-4 text-text-muted" /> Copy to a new draft
+            </button>
 
             {pendingApproval && can.void && (
               <button type="button" onClick={() => { runner.setProblem(''); setText(''); setDialog('void'); }} className={cn(BTN_SECONDARY, 'hover:border-danger/50 hover:text-danger')}>

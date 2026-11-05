@@ -263,6 +263,38 @@ export function toDraftInput(d: LiveDoc): DocDraftInput {
   };
 }
 
+/**
+ * A copy of any document as a new draft (plan 3c.34): the same contact, lines, prices, tax codes and dimensions, dated
+ * `today`, with nothing that belongs to the source. No number, no due date (the server works it out from the
+ * contact's terms for the new date), no stored exchange rate (the server uses its rate for the new day), no link to a
+ * purchase order or goods receipt, no link to the invoice a credit note was raised against. Tax rates are not carried
+ * either: only the tax code is sent, and the server finds the rate in force on the new date. A bill's reference is the
+ * supplier's own invoice number, so it is not copied.
+ */
+export function toCopyInput(d: LiveDoc, today: string): DocDraftInput {
+  return {
+    kind: d.kind,
+    contact_id: d.contact_id,
+    issue_date: today,
+    due_date: '',
+    currency: d.currency,
+    fx_rate: '',
+    reference: d.kind === 'purchase_bill' ? '' : d.reference,
+    memo: d.memo,
+    ...(d.wht_code_id ? { wht_code_id: d.wht_code_id } : {}),
+    lines: d.lines.map((l) => ({
+      item_id: l.item_id ?? undefined,
+      account_id: l.account_id,
+      description: l.description,
+      quantity: trimDecimal(l.quantity),
+      unit_price_fc: l.unit_price_fc,
+      discount_pct: trimDecimal(l.discount_pct),
+      tax_code_id: l.tax_code_id ?? undefined,
+      dimensions: l.dimensions,
+    })),
+  };
+}
+
 /** "2.000000" -> "2", "0.0000" -> "" for discount, "12.50" -> "12.5". Text only, no arithmetic. */
 export function trimDecimal(s: string): string {
   if (!s.includes('.')) return s;
