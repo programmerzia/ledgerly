@@ -51,7 +51,7 @@ final class SchemaCorrections
             // `waivers.*` reads as a list; it is check code → reason.
             if ($schema->type instanceof ObjectType && str_ends_with((string) $name, 'ClosePeriodRequest')) {
                 $schema->type->addProperty('waivers', (new ObjectType)->additionalProperties(new StringType)
-                    ->setDescription('Check code (DRAFTS, APPROVALS, FX_REVAL, BANK_REC) → the reason it is acceptable.'));
+                    ->setDescription('Check code (DRAFTS, APPROVALS, FX_REVAL, DEPR_RUN, BANK_REC) → the reason it is acceptable.'));
             }
         }
     }

@@ -79,6 +79,19 @@ final class ApprovalRequestResource extends JsonResource
                 'version' => $run->lock_version,
             ];
         }
+        $depreciation = $this->depreciationRun;
+        if ($depreciation !== null) {
+            return [
+                'id' => $depreciation->id,
+                'number' => $depreciation->number,
+                'as_of' => Json::date($depreciation->as_of),
+                'memo' => $depreciation->memo,
+                'amount' => $amount,
+                'created_by' => $depreciation->created_by,
+                'submitted_by' => $depreciation->submitted_by,
+                'version' => $depreciation->lock_version,
+            ];
+        }
         $requisition = $this->purchaseRequisition;
         if ($requisition !== null) {
             return [

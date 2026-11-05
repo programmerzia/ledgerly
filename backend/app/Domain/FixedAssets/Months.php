@@ -25,6 +25,12 @@ final class Months
         return substr($date, 0, 7).'-01';
     }
 
+    /** The last day of the month with this index (see index()). */
+    public static function endOfIndex(int $index): string
+    {
+        return self::endOf(sprintf('%04d-%02d-01', intdiv($index, 12), $index % 12 + 1));
+    }
+
     /** The last day of the month before the one $date falls in. */
     public static function endOfPrevious(string $date): string
     {
@@ -40,7 +46,7 @@ final class Months
     {
         $out = [];
         for ($i = self::index($firstMonthDate); $i <= self::index($lastDate); $i++) {
-            $out[] = self::endOf(sprintf('%04d-%02d-01', intdiv($i, 12), $i % 12 + 1));
+            $out[] = self::endOfIndex($i);
         }
 
         return $out;

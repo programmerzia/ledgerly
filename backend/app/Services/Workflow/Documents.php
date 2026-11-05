@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Workflow;
 
+use App\Actions\FixedAssets\PostDepreciationRun;
 use App\Actions\Ledger\Inputs\PostJournalInput;
 use App\Actions\Ledger\PostJournal;
 use App\Actions\Procurement\ApplyOrderRevision;
@@ -20,6 +21,7 @@ use App\Domain\Shared\DomainRuleViolation;
 use App\Domain\Shared\Violation;
 use App\Domain\Trade\InvoiceKind;
 use App\Domain\Workflow\DocumentStatus;
+use App\Models\FixedAssets\DepreciationRun;
 use App\Models\Ledger\Journal;
 use App\Models\Procurement\PurchaseOrder;
 use App\Models\Procurement\PurchaseOrderRevision;
@@ -31,6 +33,7 @@ use App\Queries\Ledger\PreviewJournalPosting;
 use App\Queries\Procurement\DocumentReadiness;
 use App\Queries\Trade\PreviewInvoicePosting;
 use App\Queries\Trade\PreviewSettlementPosting;
+use App\Services\FixedAssets\DepreciationRunReadiness;
 use App\Services\Ledger\PostingEngine;
 use App\Services\Procurement\BillMatchGate;
 use App\Support\Actor;
@@ -49,10 +52,10 @@ use Illuminate\Database\Eloquent\Model;
  */
 final class Documents
 {
-    public const array TYPES = ['journal', 'invoice', 'bill', 'settlement', 'payment_run', 'purchase_requisition', 'purchase_order', 'purchase_order_revision'];
+    public const array TYPES = ['journal', 'invoice', 'bill', 'settlement', 'payment_run', 'purchase_requisition', 'purchase_order', 'purchase_order_revision', 'depreciation_run'];
 
     /** The types a workflow can be set up for. A revision has none of its own: it goes through its order's (workflowType). */
-    public const array WORKFLOW_TYPES = ['journal', 'invoice', 'bill', 'settlement', 'payment_run', 'purchase_requisition', 'purchase_order'];
+    public const array WORKFLOW_TYPES = ['journal', 'invoice', 'bill', 'settlement', 'payment_run', 'purchase_requisition', 'purchase_order', 'depreciation_run'];
 
     public function __construct(
         private readonly Container $container,
@@ -72,6 +75,7 @@ final class Documents
             'purchase_requisition' => PurchaseRequisition::query()->with('lines')->find($ref->id),
             'purchase_order' => PurchaseOrder::query()->with('lines')->find($ref->id),
             'purchase_order_revision' => PurchaseOrderRevision::query()->find($ref->id),
+            'depreciation_run' => DepreciationRun::query()->with('lines')->find($ref->id),
             default => throw DomainRuleViolation::single('document_type_unknown', "Unknown document type {$ref->type}."),
         };
         if ($doc === null) {
@@ -121,6 +125,12 @@ final class Documents
         if ($doc instanceof PurchaseOrderRevision) {
             return $locks->document($doc, $expectedVersion);
         }
+        if ($doc instanceof DepreciationRun) {
+            // The whole period is held for the run (13 §8), then the run.
+            $locks->periodsById($doc->company_id, [$doc->fiscal_period_id], forUpdate: true);
+
+            return $locks->document($doc, $expectedVersion)->load('lines');
+        }
 
         return $locks->document($doc, $expectedVersion)->load('lines');
     }
@@ -140,6 +150,7 @@ final class Documents
             $doc instanceof PurchaseRequisition => $this->container->make(DocumentReadiness::class)->ofRequisition($doc),
             $doc instanceof PurchaseOrder => $this->container->make(DocumentReadiness::class)->ofOrder($doc),
             $doc instanceof PurchaseOrderRevision => $this->container->make(DocumentReadiness::class)->ofRevision($doc),
+            $doc instanceof DepreciationRun => $this->container->make(DepreciationRunReadiness::class)->of($doc),
             default => throw new \LogicException("No preview for {$doc->documentType()}."),
         };
     }
@@ -155,6 +166,7 @@ final class Documents
             $doc instanceof PurchaseRequisition => $this->container->make(FinalizeRequisition::class)->handle($actor, $doc->documentId()),
             $doc instanceof PurchaseOrder => $this->container->make(FinalizePurchaseOrder::class)->handle($actor, $doc->documentId()),
             $doc instanceof PurchaseOrderRevision => $this->container->make(ApplyOrderRevision::class)->handle($actor, $doc->documentId()),
+            $doc instanceof DepreciationRun => $this->container->make(PostDepreciationRun::class)->handle($actor, $doc->documentId()),
             default => throw new \LogicException("No poster for {$doc->documentType()}."),
         };
     }
@@ -197,6 +209,14 @@ final class Documents
         }
         if ($doc instanceof PaymentRun) {
             return in_array($action, ['approve', 'return', 'void'], true) ? 'payments.approve' : 'payments.create';
+        }
+
+        if ($doc instanceof DepreciationRun) {
+            return match ($action) {
+                'submit' => 'fixed_assets.run_depreciation',
+                'approve', 'return', 'void' => 'fixed_assets.approve',
+                default => 'fixed_assets.'.$action,
+            };
         }
 
         if ($doc instanceof PurchaseOrderRevision) {

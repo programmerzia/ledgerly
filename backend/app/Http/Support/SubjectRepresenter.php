@@ -15,6 +15,7 @@ use App\Http\Resources\BankRuleResource;
 use App\Http\Resources\BankTransactionResource;
 use App\Http\Resources\CompanyResource;
 use App\Http\Resources\ContactResource;
+use App\Http\Resources\DepreciationRunResource;
 use App\Http\Resources\DimensionResource;
 use App\Http\Resources\DimensionValueResource;
 use App\Http\Resources\FiscalPeriodResource;
@@ -39,6 +40,7 @@ use App\Models\Fiscal\FiscalPeriod;
 use App\Models\Fiscal\FiscalYear;
 use App\Models\Fiscal\PeriodReopenRequest;
 use App\Models\FixedAssets\AssetCategory;
+use App\Models\FixedAssets\DepreciationRun;
 use App\Models\FixedAssets\FixedAsset;
 use App\Models\Ledger\Account;
 use App\Models\Ledger\Dimension;
@@ -74,6 +76,7 @@ final class SubjectRepresenter
         'invitations' => [Invitation::class, InvitationResource::class, []],
         'api_clients' => [ApiClient::class, ApiClientResource::class, ['tokens']],
         'asset_categories' => [AssetCategory::class, AssetCategoryResource::class, []],
+        'depreciation_runs' => [DepreciationRun::class, DepreciationRunResource::class, ['lines.asset']],
         'fixed_assets' => [FixedAsset::class, FixedAssetResource::class, ['category:id,name']],
         'journals' => [Journal::class, JournalResource::class, ['lines']],
         'accounts' => [Account::class, AccountResource::class, ['dimensionRules']],

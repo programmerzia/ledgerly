@@ -18,6 +18,7 @@ use App\Models\Fiscal\FiscalPeriod;
 use App\Models\Fiscal\FiscalYear;
 use App\Models\Fiscal\PeriodReopenRequest;
 use App\Models\FixedAssets\AssetCategory;
+use App\Models\FixedAssets\DepreciationRun;
 use App\Models\FixedAssets\FixedAsset;
 use App\Models\Imports\Import;
 use App\Models\Ledger\Account;
@@ -70,6 +71,7 @@ final class CompanyBindings
         'paymentRun' => PaymentRun::class,
         'assetCategory' => AssetCategory::class,
         'fixedAsset' => FixedAsset::class,
+        'depreciationRun' => DepreciationRun::class,
         'whtCertificate' => WhtCertificate::class,
         'creditApplication' => CreditApplication::class,
         'attachment' => Attachment::class,

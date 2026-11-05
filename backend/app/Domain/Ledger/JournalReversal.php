@@ -12,6 +12,6 @@ final class JournalReversal
     /** An invoice's or bill's journal is undone through the document, which keeps the sub-ledger and the ledger in step. */
     public static function belongsToDocument(?string $sourceType): bool
     {
-        return in_array($sourceType, [...InvoiceKind::values(...InvoiceKind::cases()), 'settlement', 'credit_application'], true);
+        return in_array($sourceType, [...InvoiceKind::values(...InvoiceKind::cases()), 'settlement', 'credit_application', 'depreciation_run', 'asset_disposal', 'asset_impairment', 'asset_revaluation'], true);
     }
 }

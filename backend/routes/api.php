@@ -14,6 +14,7 @@ use App\Http\Controllers\Fiscal\FiscalPeriodController;
 use App\Http\Controllers\Fiscal\FiscalYearController;
 use App\Http\Controllers\Fiscal\ReopenRequestController;
 use App\Http\Controllers\FixedAssets\AssetCategoryController;
+use App\Http\Controllers\FixedAssets\DepreciationRunController;
 use App\Http\Controllers\FixedAssets\FixedAssetController;
 use App\Http\Controllers\Fx\ExchangeRateController;
 use App\Http\Controllers\Fx\FxRevaluationController;
@@ -182,6 +183,13 @@ Route::middleware(['auth:sanctum', 'tenant', 'tenant.writable', 'idempotent', 'c
         Route::get('fixed-assets/reconciliation', [FixedAssetController::class, 'reconciliation'])->name('fixed-assets.reconciliation');
         Route::get('fixed-assets/{fixedAsset}', [FixedAssetController::class, 'show'])->whereUuid('fixedAsset')->name('fixed-assets.show');
         Route::put('fixed-assets/{fixedAsset}', [FixedAssetController::class, 'update'])->whereUuid('fixedAsset')->name('fixed-assets.update');
+        Route::get('depreciation-runs', [DepreciationRunController::class, 'index'])->name('depreciation-runs.index');
+        Route::post('depreciation-runs', [DepreciationRunController::class, 'store'])->name('depreciation-runs.store');
+        Route::get('depreciation-runs/preview', [DepreciationRunController::class, 'preview'])->name('depreciation-runs.preview');
+        Route::get('depreciation-runs/{depreciationRun}', [DepreciationRunController::class, 'show'])->whereUuid('depreciationRun')->name('depreciation-runs.show');
+        foreach (['submit', 'approve', 'return', 'void', 'reverse'] as $verb) {
+            Route::post("depreciation-runs/{depreciationRun}/{$verb}", [DepreciationRunController::class, $verb])->whereUuid('depreciationRun')->name("depreciation-runs.{$verb}");
+        }
         Route::get('fx-revaluations', [FxRevaluationController::class, 'index'])->name('fx-revaluations.index');
         Route::get('fx-revaluations/preview', [FxRevaluationController::class, 'preview'])->name('fx-revaluations.preview');
         Route::post('fx-revaluations', [FxRevaluationController::class, 'run'])->name('fx-revaluations.run');

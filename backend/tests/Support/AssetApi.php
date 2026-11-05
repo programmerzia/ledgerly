@@ -89,4 +89,43 @@ trait AssetApi
             'useful_life_months' => 120, ...$over,
         ], $this->key())->assertCreated()->json('data');
     }
+
+    protected function periodId(string $date): string
+    {
+        return $this->inTenant(fn () => $this->f->period($date)->id);
+    }
+
+    /**
+     * Drafts the depreciation run for the period containing $date, as the accountant.
+     *
+     * @param  array<string, int>  $units
+     * @return array<string, mixed>
+     */
+    protected function draftRun(string $date, array $units = []): array
+    {
+        return $this->asPerson($this->accountant)->postJson($this->api('depreciation-runs'), ['period_id' => $this->periodId($date), 'units' => $units], $this->key())
+            ->assertCreated()->json('data');
+    }
+
+    /**
+     * Drafts and submits a run; with no workflow it posts.
+     *
+     * @param  array<string, int>  $units
+     * @return array<string, mixed>
+     */
+    protected function postedRun(string $date, array $units = []): array
+    {
+        $run = $this->draftRun($date, $units);
+
+        return $this->asPerson($this->accountant, signing: true)->postJson($this->api("depreciation-runs/{$run['id']}/submit"), [], $this->key())->assertOk()->json('data');
+    }
+
+    /** @return list<array{account: string, debit: int, credit: int}> a journal's lines by account code */
+    protected function journalLines(string $journalId): array
+    {
+        $codes = array_flip($this->f->accounts);
+
+        return $this->inTenant(fn () => DB::table('journal_lines')->where('journal_id', $journalId)->orderBy('line_no')->get()
+            ->map(fn ($l) => ['account' => (string) $codes[$l->account_id], 'debit' => (int) $l->debit, 'credit' => (int) $l->credit])->all());
+    }
 }
