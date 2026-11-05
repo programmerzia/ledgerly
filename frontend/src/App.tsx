@@ -56,6 +56,7 @@ import { BankRules } from './pages/Banking/BankRules';
 import { BankImportLive } from './pages/Banking/live/BankImportLive';
 import { RecurringInvoices } from './pages/Sales/RecurringInvoices';
 import { ReceiptViewLive } from './pages/Sales/live/ReceiptViewLive';
+import { StatementRunLive } from './pages/Sales/live/StatementRunLive';
 import { InvoicesListLive } from './pages/Sales/live/InvoicesListLive';
 import { NewCreditNoteLive } from './pages/Sales/live/InvoiceFormLive';
 import { BillsListLive, PaymentFormLive, PaymentViewLive, RecurringBillsLive } from './pages/Purchases/live';
@@ -192,6 +193,7 @@ export default function App() {
           <Route path="invoices/recurring" element={<RecurringInvoices />} />
           <Route path="invoices/:id" element={<InvoiceView />} />
           <Route path="customers" element={<CustomersList />} />
+          {IS_LIVE && <Route path="customers/statement-run" element={<StatementRunLive />} />}
           <Route path="customers/:id" element={<CustomerCard />} />
           <Route path="receipts/new" element={<ReceiptForm />} />
           {IS_LIVE && <Route path="receipts/:id" element={<ReceiptViewLive />} />}

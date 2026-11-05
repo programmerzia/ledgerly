@@ -11,6 +11,7 @@ use App\Http\Controllers\Banking\BankRuleController;
 use App\Http\Controllers\Documents\DocumentEmailController;
 use App\Http\Controllers\Documents\DocumentPdfController;
 use App\Http\Controllers\Documents\DunningController;
+use App\Http\Controllers\Documents\StatementRunController;
 use App\Http\Controllers\Files\AttachmentBlobController;
 use App\Http\Controllers\Files\AttachmentController;
 use App\Http\Controllers\Fiscal\FiscalPeriodController;
@@ -147,6 +148,11 @@ Route::middleware(['auth:sanctum', 'tenant', 'tenant.writable', 'idempotent', 'c
         Route::get('dunning', [DunningController::class, 'show'])->name('dunning.show');
         Route::put('dunning', [DunningController::class, 'update'])->name('dunning.update');
         Route::get('dunning/preview', [DunningController::class, 'preview'])->name('dunning.preview');
+
+        // Statement run (plan 3c.7a): customers with a balance, send the chosen ones, follow the results
+        Route::get('statement-run', [StatementRunController::class, 'index'])->name('statement-run.index');
+        Route::post('statement-run', [StatementRunController::class, 'store'])->name('statement-run.store');
+        Route::get('statement-run/sends', [StatementRunController::class, 'sends'])->name('statement-run.sends');
 
         // Chart of accounts
         Route::get('chart-templates', [ChartTemplateController::class, 'index'])->name('chart-templates.index');
