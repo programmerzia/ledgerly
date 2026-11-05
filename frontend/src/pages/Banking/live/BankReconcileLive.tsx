@@ -19,6 +19,8 @@ import { describeError } from '@/api/messages';
 import { bankingErrorText, describeExplanation, describeImportWarning, lineTitle, transactionOutcome, type LiveBankLine, type LiveReconciliation } from '@/api/adapters/banking';
 import { ErrorLine, LoadingLine, verdictText } from '@/pages/Accounting/live/parts';
 import { CodeLineForm } from './CodeLineForm';
+import { CreateDocFromLine } from './CreateDocFromLine';
+import { usePaymentRunList } from '@/data/paymentRuns';
 
 type Filter = 'to_match' | 'waiting' | 'matched' | 'excluded';
 
@@ -59,7 +61,7 @@ export const BankReconcileLive: React.FC = () => {
   const lines = useMemo(() => linesQ.data.filter((l) => scope.has(l.statement_id)), [linesQ.data, scope]);
 
   const [filter, setFilter] = useState<Filter>('to_match');
-  const [tab, setTab] = useState<'match' | 'create'>('match');
+  const [tab, setTab] = useState<'match' | 'create' | 'document'>('match');
   const [activePick, setActiveId] = useState<string | null>(null);
   const [pickedLines, setPickedLines] = useState<Set<string>>(new Set());
   const [pickedBook, setPickedBook] = useState<Set<string>>(new Set());
@@ -92,6 +94,11 @@ export const BankReconcileLive: React.FC = () => {
   const activeId = lines.some((l) => l.id === activePick && (filter !== 'to_match' || toMatch.some((m) => m.id === l.id))) ? activePick : filter === 'to_match' ? (toMatch[0]?.id ?? null) : null;
   const active = lines.find((l) => l.id === activeId) ?? null;
   const finished = rec?.status === 'finished';
+  const openLine = active !== null && active.status === 'unmatched' && !active.pending_journal_id;
+  // Posted payment runs paid from this bank account: a line for money out may be the whole run (plan 3c.35).
+  const runs = usePaymentRunList({ status: 'posted' });
+  const runsHere = runs.rows.filter((r) => r.bank_account_id === id);
+  const runSlot = useRef(new IntentSlot()).current;
   const suggestions = useLineSuggestions(active && active.status === 'unmatched' && !active.pending_journal_id ? active.id : undefined);
   const currency = bank?.currency ?? company.base_currency;
 
@@ -153,6 +160,22 @@ export const BankReconcileLive: React.FC = () => {
       toast.success('Matched.');
       setPickedLines(new Set());
       setPickedBook(new Set());
+    } catch (e) {
+      fail(e);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  /** One statement line against every payment of a run. The server adds the payments up and refuses anything but an exact match. */
+  const matchRun = async (runId: string) => {
+    if (!active) return;
+    const body = { statement_line_ids: [active.id], payment_run_id: runId };
+    setBusy(true);
+    try {
+      await actions.match(body, runSlot.for(JSON.stringify(body)));
+      runSlot.clear();
+      toast.success('Matched to the whole payment run.');
     } catch (e) {
       fail(e);
     } finally {
@@ -534,11 +557,12 @@ export const BankReconcileLive: React.FC = () => {
                     </button>
                   </div>
                 )}
-                <Tabs value={tab} onValueChange={(v) => setTab(v as 'match' | 'create')} className="flex flex-1 flex-col">
+                <Tabs value={tab} onValueChange={(v) => setTab(v as 'match' | 'create' | 'document')} className="flex flex-1 flex-col">
                   <div className="flex items-center justify-between border-b border-border px-4 py-2">
                     <TabsList>
                       <TabsTrigger value="match">Match</TabsTrigger>
                       <TabsTrigger value="create">Record</TabsTrigger>
+                      {openLine && active && <TabsTrigger value="document">{active.amount < 0 ? 'New bill' : 'New invoice'}</TabsTrigger>}
                     </TabsList>
                   </div>
                   <TabsContent value="match" className="mt-0 flex flex-1 flex-col">
@@ -555,6 +579,30 @@ export const BankReconcileLive: React.FC = () => {
                         <BookRow key={b.journal_line_id} checked={pickedBook.has(b.journal_line_id)} onToggle={() => setPickedBook((p) => toggle(p, b.journal_line_id))} number={b.number} journalId={b.journal_id} slug={company.slug} description={b.description} date={b.date} amount={b.amount} currency={currency} />
                       ))}
                     </div>
+                    {openLine && active && active.amount < 0 && runsHere.length > 0 && (
+                      <div className="border-t border-border" data-testid="payment-runs">
+                        <div className="bg-surface-neutral/40 px-4 py-1.5 text-[11px] font-medium text-text-muted">Payment runs paid from this account</div>
+                        {runsHere.map((r) => {
+                          const same = r.currency === active.currency && r.total_net === Math.abs(active.amount);
+                          return (
+                            <div key={r.id} className="flex items-center justify-between gap-3 px-4 py-2.5 text-[13px]" data-run={r.number ?? r.id}>
+                              <div className="min-w-0">
+                                <Link to={`/${company.slug}/payment-run/${r.id}`} className="font-medium text-text-primary hover:underline">{r.number ?? 'Payment run'}</Link>
+                                <span className="ml-2 text-xs tabular-nums text-text-muted">{formatDate(r.run_date)}</span>
+                                {same && <span className="ml-2 rounded-[3px] bg-success-soft px-1.5 py-0.5 text-[11px] font-medium text-success">Same amount as this line</span>}
+                              </div>
+                              <div className="flex shrink-0 items-center gap-3">
+                                <span className="font-semibold tabular-nums text-text-primary">{formatMoney(r.total_net, r.currency)}</span>
+                                <button type="button" disabled={busy || finished || !active.can.match} onClick={() => void matchRun(r.id)} className={btnSecondary}>
+                                  <Link2 className="size-4" /> Match whole run
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                        <p className="px-4 pb-2 text-[11px] text-text-muted">All of the run's payments are matched to this one line. The server adds them up and refuses the match unless they equal the line exactly.</p>
+                      </div>
+                    )}
                     <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-border bg-surface-neutral/40 px-4 py-3">
                       <span className="text-xs text-text-muted" data-testid="selection-totals">
                         Your selection: {chosenLines.length} {chosenLines.length === 1 ? 'line' : 'lines'} {formatMoney(linesTotal, currency)} and {chosenBook.length} {chosenBook.length === 1 ? 'entry' : 'entries'} {formatMoney(bookTotal, currency)}. The server checks they match exactly.
@@ -563,6 +611,13 @@ export const BankReconcileLive: React.FC = () => {
                         <Link2 className="size-4" /> Match selected
                       </button>
                     </div>
+                  </TabsContent>
+                  <TabsContent value="document" className="mt-0">
+                    {openLine && active && active.can.match && active.can.code ? (
+                      <CreateDocFromLine key={active.id} line={active} bank={bank} run={run} onMatched={() => setTab('match')} />
+                    ) : (
+                      <div className="px-4 py-12 text-center text-xs text-text-muted">{openLine ? 'You do not have permission to do this.' : 'Pick a line to match on the left.'}</div>
+                    )}
                   </TabsContent>
                   <TabsContent value="create" className="mt-0">
                     {active && active.status === 'unmatched' && !active.pending_journal_id ? (

@@ -790,6 +790,10 @@ export function describeBankingCode(code: string): string | null {
       return 'That entry cannot be matched to this account.';
     case 'match_empty':
       return 'Choose at least one entry from your books.';
+    case 'match_amount_mismatch':
+      return 'The two sides do not add up to exactly the same amount, so nothing was matched.';
+    case 'payment_run_not_matchable':
+      return 'That payment run is not posted, or none of its payments is still posted, so it cannot be matched.';
     case 'match_accounts_differ':
       return 'Everything in one match has to belong to the same bank account.';
     case 'line_not_open':

@@ -53,6 +53,7 @@ final class MatchStatementLine
             }
             $account = BankAccount::query()->findOrFail($accountId);
 
+            $in = $this->withRunPayments($in);
             $bookIds = $this->bookLineIds($in, $account);
             if ($bookIds === []) {
                 throw DomainRuleViolation::single('match_empty', 'A match needs at least one statement line and one book line.');
@@ -106,6 +107,28 @@ final class MatchStatementLine
 
             return $match;
         });
+    }
+
+    /**
+     * A payment run names its payments: one posted payment per supplier. They join the settlements of the match, so the
+     * same exact-sum rule (MatchBalance) decides, in integer minor units. A run that is not posted, or has no posted
+     * payment left (reversed), cannot be matched.
+     */
+    private function withRunPayments(MatchInput $in): MatchInput
+    {
+        if ($in->paymentRunIds === []) {
+            return $in;
+        }
+        $ids = $in->settlementIds;
+        foreach (array_unique($in->paymentRunIds) as $runId) {
+            $found = Settlement::query()->where('company_id', $in->companyId)->where('payment_run_id', $runId)->where('status', 'posted')->pluck('id')->all();
+            if ($found === []) {
+                throw DomainRuleViolation::single('payment_run_not_matchable', 'The payment run is not posted, or none of its payments is still posted.');
+            }
+            array_push($ids, ...$found);
+        }
+
+        return new MatchInput($in->companyId, $in->statementLineIds, $in->journalLineIds, array_values(array_unique($ids)), []);
     }
 
     /** @return list<string> */
