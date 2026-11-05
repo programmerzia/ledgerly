@@ -990,6 +990,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/companies/{company}/settings/logo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The image itself */
+        get: operations["settings.logo.show"];
+        put?: never;
+        /** Multipart upload, field `file`: PNG or JPEG, at most 512 KB */
+        post: operations["settings.logo.store"];
+        delete: operations["settings.logo.destroy"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/companies/{company}/settings": {
         parameters: {
             query?: never;
@@ -1211,6 +1229,349 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["dimensions.values.deactivate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/invoices/{invoice}/email-draft": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The message as it would go out, with the contact's address as the default recipient. Nothing is sent */
+        get: operations["invoices.email-draft"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/invoices/{invoice}/emails": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The send log of this document, newest first */
+        get: operations["invoices.emails.index"];
+        put?: never;
+        /** Queue the email */
+        post: operations["invoices.emails.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/settlements/{settlement}/email-draft": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The message as it would go out, with the contact's address as the default recipient. Nothing is sent */
+        get: operations["settlements.email-draft"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/settlements/{settlement}/emails": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The send log of this document, newest first */
+        get: operations["settlements.emails.index"];
+        put?: never;
+        /** Queue the email */
+        post: operations["settlements.emails.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/contacts/{contact}/statement/email-draft": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The message as it would go out, with the contact's address as the default recipient. Nothing is sent */
+        get: operations["contacts.statement.email-draft"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/contacts/{contact}/statement/emails": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The send log of this document, newest first */
+        get: operations["contacts.statement.emails.index"];
+        put?: never;
+        /** Queue the email */
+        post: operations["contacts.statement.emails.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/invoices/{invoice}/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Queue the PDF */
+        post: operations["invoices.pdf.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/invoices/{invoice}/pdf/{pdfId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Status of a queued PDF; the file itself once it is ready */
+        get: operations["invoices.pdf.show"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/bills/{bill}/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Queue the PDF */
+        post: operations["bills.pdf.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/bills/{bill}/pdf/{pdfId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Status of a queued PDF; the file itself once it is ready */
+        get: operations["bills.pdf.show"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/settlements/{settlement}/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Queue the PDF */
+        post: operations["settlements.pdf.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/settlements/{settlement}/pdf/{pdfId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Status of a queued PDF; the file itself once it is ready */
+        get: operations["settlements.pdf.show"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/purchase-orders/{purchaseOrder}/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Queue the PDF */
+        post: operations["purchase-orders.pdf.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/purchase-orders/{purchaseOrder}/pdf/{pdfId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Status of a queued PDF; the file itself once it is ready */
+        get: operations["purchase-orders.pdf.show"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/journals/{journal}/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Queue the PDF */
+        post: operations["journals.pdf.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/journals/{journal}/pdf/{pdfId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Status of a queued PDF; the file itself once it is ready */
+        get: operations["journals.pdf.show"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/wht-certificates/{whtCertificate}/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Queue the PDF */
+        post: operations["wht-certificates.pdf.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/wht-certificates/{whtCertificate}/pdf/{pdfId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Status of a queued PDF; the file itself once it is ready */
+        get: operations["wht-certificates.pdf.show"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/contacts/{contact}/statement/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Queue the PDF */
+        post: operations["contacts.statement.pdf.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/contacts/{contact}/statement/pdf/{pdfId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Status of a queued PDF; the file itself once it is ready */
+        get: operations["contacts.statement.pdf.show"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -4459,6 +4820,49 @@ export interface components {
             po_price_tolerance_pct: string;
             po_quantity_tolerance_pct: string;
             receipt_over_tolerance_pct: string;
+            /** @description Printed on every PDF (plan 3c.4). `has_logo`: upload with `POST settings/logo`, show with `GET settings/logo`. */
+            document_look: {
+                accent_color: string;
+                footer_text: string;
+                payment_instructions: string;
+                has_logo: boolean;
+            };
+            /** @description Subject and body per family (invoice, credit_note, statement, payment_advice), defaults filled in. */
+            email_templates: {
+                [key: string]: {
+                    subject: string;
+                    body: string;
+                };
+            };
+            /** @description The only `{{ placeholders }}` a template may use, with what each stands for. */
+            email_placeholders: {
+                /** @constant */
+                company_name: "Your company name";
+                /** @constant */
+                contact_name: "The customer or supplier";
+                /** @constant */
+                document_number: "Invoice, credit note or payment number";
+                /** @constant */
+                document_type: "Invoice, Credit note, Statement or Payment advice";
+                /** @constant */
+                issue_date: "Date of the document";
+                /** @constant */
+                due_date: "Due date (invoices)";
+                /** @constant */
+                total: "Document total with currency";
+                /** @constant */
+                amount_due: "Amount still unpaid, with currency";
+                /** @constant */
+                period_from: "Statement start date";
+                /** @constant */
+                period_to: "Statement end date";
+                /** @constant */
+                closing_balance: "Statement closing balance";
+                /** @constant */
+                sender_name: "The person sending";
+                /** @constant */
+                payment_instructions: "Payment instructions from your document settings";
+            };
             version: number;
             can: {
                 [key: string]: boolean;
@@ -4703,6 +5107,35 @@ export interface components {
             can: {
                 [key: string]: boolean;
             };
+        };
+        /**
+         * DocumentPdfRequest
+         * @description Only statements take parameters: the period, and which side when a contact is both customer and supplier.
+         */
+        DocumentPdfRequest: {
+            /** Format: date */
+            from?: string;
+            /** Format: date */
+            to?: string;
+            /** @enum {string} */
+            side?: "customer" | "supplier";
+        };
+        /** DocumentSendResource */
+        DocumentSendResource: {
+            id: string;
+            document_type: string;
+            document_id: string;
+            recipients: string[];
+            subject: string;
+            attachment_name: string;
+            /** @description queued, sent (the mail server accepted it) or failed. A later bounce is not tracked. */
+            status: string;
+            /** @description Why it failed, in the mail system's words; null otherwise. */
+            error: string | null;
+            queued_by: string | null;
+            queued_by_name: string | null;
+            queued_at: string | null;
+            sent_at: string | null;
         };
         /**
          * ExchangeRateRequest
@@ -5971,6 +6404,24 @@ export interface components {
             as_of?: string | null;
             /** Format: uuid */
             schedule_id?: string | null;
+        };
+        /**
+         * SendDocumentRequest
+         * @description Recipients, and optionally the subject and message as edited; absent means the company's template.
+         */
+        SendDocumentRequest: {
+            recipients: string[];
+            subject?: string | null;
+            body?: string | null;
+            /**
+             * Format: date
+             * @description Statements only: the period, and the side when the contact is both customer and supplier.
+             */
+            from?: string;
+            /** Format: date */
+            to?: string;
+            /** @enum {string} */
+            side?: "customer" | "supplier";
         };
         /** SendPasswordResetLinkRequest */
         SendPasswordResetLinkRequest: {
@@ -8738,6 +9189,100 @@ export interface operations {
             422: components["responses"]["ValidationException"];
         };
     };
+    "settings.logo.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "X-Content-Type-Options"?: "nosniff";
+                    "Cache-Control"?: "private, max-age=300";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": string;
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "settings.logo.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /**
+                     * Format: binary
+                     * @description Maximum file size: 512 kilobytes.
+                     */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            /** @description `CompanySettingsResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["CompanySettingsResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "settings.logo.destroy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `CompanySettingsResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["CompanySettingsResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
     "settings.show": {
         parameters: {
             query?: never;
@@ -9312,6 +9857,851 @@ export interface operations {
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
             422: components["responses"]["ValidationException"];
+        };
+    };
+    "invoices.email-draft": {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+                side?: "customer" | "supplier";
+            };
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The invoice ID */
+                invoice: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            /** @enum {string} */
+                            document_type: "credit_note" | "invoice" | "payment_advice" | "statement";
+                            recipients: string[] | [
+                                string | null
+                            ];
+                            subject: string;
+                            body: string;
+                            contact_name: string;
+                            can_send: boolean;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "invoices.emails.index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The invoice ID */
+                invoice: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `DocumentSendResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["DocumentSendResource"][];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "invoices.emails.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The invoice ID */
+                invoice: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SendDocumentRequest"];
+            };
+        };
+        responses: {
+            /** @description `DocumentSendResource` */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["DocumentSendResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "settlements.email-draft": {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+                side?: "customer" | "supplier";
+            };
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The settlement ID */
+                settlement: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            /** @enum {string} */
+                            document_type: "credit_note" | "invoice" | "payment_advice" | "statement";
+                            recipients: string[] | [
+                                string | null
+                            ];
+                            subject: string;
+                            body: string;
+                            contact_name: string;
+                            can_send: boolean;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "settlements.emails.index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The settlement ID */
+                settlement: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `DocumentSendResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["DocumentSendResource"][];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "settlements.emails.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The settlement ID */
+                settlement: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SendDocumentRequest"];
+            };
+        };
+        responses: {
+            /** @description `DocumentSendResource` */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["DocumentSendResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "contacts.statement.email-draft": {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+                side?: "customer" | "supplier";
+            };
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The contact ID */
+                contact: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            /** @enum {string} */
+                            document_type: "credit_note" | "invoice" | "payment_advice" | "statement";
+                            recipients: string[] | [
+                                string | null
+                            ];
+                            subject: string;
+                            body: string;
+                            contact_name: string;
+                            can_send: boolean;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "contacts.statement.emails.index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The contact ID */
+                contact: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `DocumentSendResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["DocumentSendResource"][];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "contacts.statement.emails.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The contact ID */
+                contact: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SendDocumentRequest"];
+            };
+        };
+        responses: {
+            /** @description `DocumentSendResource` */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["DocumentSendResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "invoices.pdf.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The invoice ID */
+                invoice: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["DocumentPdfRequest"];
+            };
+        };
+        responses: {
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            id: string;
+                            /** @constant */
+                            status: "queued";
+                            document_type: string | ("invoice" | "credit_note" | "bill" | "debit_note" | "receipt" | "payment_advice" | "purchase_order" | "journal_voucher" | "wht_certificate");
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "invoices.pdf.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The invoice ID */
+                invoice: number;
+                pdfId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "Transfer-Encoding"?: "chunked";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": string;
+                    "application/json": {
+                        data: {
+                            id: string;
+                            status: unknown;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "bills.pdf.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The bill ID */
+                bill: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["DocumentPdfRequest"];
+            };
+        };
+        responses: {
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            id: string;
+                            /** @constant */
+                            status: "queued";
+                            document_type: string | ("invoice" | "credit_note" | "bill" | "debit_note" | "receipt" | "payment_advice" | "purchase_order" | "journal_voucher" | "wht_certificate");
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "bills.pdf.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The bill ID */
+                bill: number;
+                pdfId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "Transfer-Encoding"?: "chunked";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": string;
+                    "application/json": {
+                        data: {
+                            id: string;
+                            status: unknown;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "settlements.pdf.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The settlement ID */
+                settlement: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["DocumentPdfRequest"];
+            };
+        };
+        responses: {
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            id: string;
+                            /** @constant */
+                            status: "queued";
+                            document_type: string | ("invoice" | "credit_note" | "bill" | "debit_note" | "receipt" | "payment_advice" | "purchase_order" | "journal_voucher" | "wht_certificate");
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "settlements.pdf.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The settlement ID */
+                settlement: number;
+                pdfId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "Transfer-Encoding"?: "chunked";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": string;
+                    "application/json": {
+                        data: {
+                            id: string;
+                            status: unknown;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "purchase-orders.pdf.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The purchase order ID */
+                purchaseOrder: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["DocumentPdfRequest"];
+            };
+        };
+        responses: {
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            id: string;
+                            /** @constant */
+                            status: "queued";
+                            document_type: string | ("invoice" | "credit_note" | "bill" | "debit_note" | "receipt" | "payment_advice" | "purchase_order" | "journal_voucher" | "wht_certificate");
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "purchase-orders.pdf.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The purchase order ID */
+                purchaseOrder: number;
+                pdfId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "Transfer-Encoding"?: "chunked";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": string;
+                    "application/json": {
+                        data: {
+                            id: string;
+                            status: unknown;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "journals.pdf.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The journal ID */
+                journal: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["DocumentPdfRequest"];
+            };
+        };
+        responses: {
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            id: string;
+                            /** @constant */
+                            status: "queued";
+                            document_type: string | ("invoice" | "credit_note" | "bill" | "debit_note" | "receipt" | "payment_advice" | "purchase_order" | "journal_voucher" | "wht_certificate");
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "journals.pdf.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The journal ID */
+                journal: number;
+                pdfId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "Transfer-Encoding"?: "chunked";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": string;
+                    "application/json": {
+                        data: {
+                            id: string;
+                            status: unknown;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "wht-certificates.pdf.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The wht certificate ID */
+                whtCertificate: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["DocumentPdfRequest"];
+            };
+        };
+        responses: {
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            id: string;
+                            /** @constant */
+                            status: "queued";
+                            document_type: string | ("invoice" | "credit_note" | "bill" | "debit_note" | "receipt" | "payment_advice" | "purchase_order" | "journal_voucher" | "wht_certificate");
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "wht-certificates.pdf.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The wht certificate ID */
+                whtCertificate: number;
+                pdfId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "Transfer-Encoding"?: "chunked";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": string;
+                    "application/json": {
+                        data: {
+                            id: string;
+                            status: unknown;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "contacts.statement.pdf.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The contact ID */
+                contact: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["DocumentPdfRequest"];
+            };
+        };
+        responses: {
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            id: string;
+                            /** @constant */
+                            status: "queued";
+                            document_type: string | ("invoice" | "credit_note" | "bill" | "debit_note" | "receipt" | "payment_advice" | "purchase_order" | "journal_voucher" | "wht_certificate");
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "contacts.statement.pdf.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The contact ID */
+                contact: number;
+                pdfId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "Transfer-Encoding"?: "chunked";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": string;
+                    "application/json": {
+                        data: {
+                            id: string;
+                            status: unknown;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
         };
     };
     "fx-rates.index": {
