@@ -1242,6 +1242,1173 @@
                 }
             }
         },
+        "/v1/companies/{company}/asset-categories": {
+            "get": {
+                "operationId": "asset-categories.index",
+                "summary": "All the company's categories (there are few), by name",
+                "tags": [
+                    "AssetCategory"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of `AssetCategoryResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/AssetCategoryResource"
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "next_cursor": {
+                                                    "type": "null"
+                                                },
+                                                "prev_cursor": {
+                                                    "type": "null"
+                                                },
+                                                "limit": {
+                                                    "type": "integer",
+                                                    "const": 200
+                                                }
+                                            },
+                                            "required": [
+                                                "next_cursor",
+                                                "prev_cursor",
+                                                "limit"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            },
+            "post": {
+                "operationId": "asset-categories.store",
+                "tags": [
+                    "AssetCategory"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AssetCategoryRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "`AssetCategoryResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/AssetCategoryResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/v1/companies/{company}/asset-categories/{assetCategory}": {
+            "put": {
+                "operationId": "asset-categories.update",
+                "tags": [
+                    "AssetCategory"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "assetCategory",
+                        "in": "path",
+                        "required": true,
+                        "description": "The asset category ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AssetCategoryRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`AssetCategoryResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/AssetCategoryResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/v1/companies/{company}/asset-tax-classes": {
+            "get": {
+                "operationId": "asset-tax-classes.index",
+                "tags": [
+                    "AssetTaxClass"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of `AssetTaxClassResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/AssetTaxClassResource"
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "next_cursor": {
+                                                    "type": "null"
+                                                },
+                                                "prev_cursor": {
+                                                    "type": "null"
+                                                },
+                                                "limit": {
+                                                    "type": "integer",
+                                                    "const": 200
+                                                }
+                                            },
+                                            "required": [
+                                                "next_cursor",
+                                                "prev_cursor",
+                                                "limit"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            },
+            "post": {
+                "operationId": "asset-tax-classes.store",
+                "tags": [
+                    "AssetTaxClass"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AssetTaxClassRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "`AssetTaxClassResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/AssetTaxClassResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/v1/companies/{company}/asset-tax-classes/{assetTaxClass}": {
+            "put": {
+                "operationId": "asset-tax-classes.update",
+                "tags": [
+                    "AssetTaxClass"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "assetTaxClass",
+                        "in": "path",
+                        "required": true,
+                        "description": "The asset tax class ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AssetTaxClassRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`AssetTaxClassResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/AssetTaxClassResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/v1/companies/{company}/fixed-assets/tax-schedule": {
+            "get": {
+                "operationId": "fixed-assets.tax-schedule",
+                "summary": "Per asset with a tax class: the allowance and tax written-down value for each year. Optional `from_year` and `to_year`",
+                "tags": [
+                    "AssetTaxClass"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "from_year",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ],
+                            "minimum": 1900,
+                            "maximum": 2200
+                        }
+                    },
+                    {
+                        "name": "to_year",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ],
+                            "minimum": 1900,
+                            "maximum": 2200
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`TaxScheduleResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/TaxScheduleResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/v1/companies/{company}/asset-transactions": {
+            "get": {
+                "operationId": "asset-transactions.index",
+                "tags": [
+                    "AssetTransaction"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "description": "Opaque, from `meta.next_cursor` or `meta.prev_cursor`.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Page size, 1 to 200; default 50.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of `AssetTransactionResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/AssetTransactionResource"
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "next_cursor": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "prev_cursor": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "limit": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "required": [
+                                                "next_cursor",
+                                                "prev_cursor",
+                                                "limit"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            },
+            "post": {
+                "operationId": "asset-transactions.store",
+                "tags": [
+                    "AssetTransaction"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AssetTransactionRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "`AssetTransactionResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/components/schemas/AssetTransactionResource"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "lines"
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/v1/companies/{company}/asset-transactions/preview": {
+            "post": {
+                "operationId": "asset-transactions.preview",
+                "summary": "What the document would do, per asset, with its journal lines; writes nothing",
+                "tags": [
+                    "AssetTransaction"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AssetTransactionRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`AssetTransactionPreviewResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/AssetTransactionPreviewResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/v1/companies/{company}/asset-transactions/{assetTransaction}": {
+            "get": {
+                "operationId": "asset-transactions.show",
+                "tags": [
+                    "AssetTransaction"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "assetTransaction",
+                        "in": "path",
+                        "required": true,
+                        "description": "The asset transaction ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`AssetTransactionResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/components/schemas/AssetTransactionResource"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "lines"
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/v1/companies/{company}/asset-transactions/{assetTransaction}/submit": {
+            "post": {
+                "operationId": "asset-transactions.submit",
+                "tags": [
+                    "AssetTransaction"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "assetTransaction",
+                        "in": "path",
+                        "required": true,
+                        "description": "The asset transaction ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TransitionRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`AssetTransactionResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/components/schemas/AssetTransactionResource"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "lines"
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/v1/companies/{company}/asset-transactions/{assetTransaction}/approve": {
+            "post": {
+                "operationId": "asset-transactions.approve",
+                "tags": [
+                    "AssetTransaction"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "assetTransaction",
+                        "in": "path",
+                        "required": true,
+                        "description": "The asset transaction ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TransitionRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`AssetTransactionResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/components/schemas/AssetTransactionResource"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "lines"
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/v1/companies/{company}/asset-transactions/{assetTransaction}/return": {
+            "post": {
+                "operationId": "asset-transactions.return",
+                "tags": [
+                    "AssetTransaction"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "assetTransaction",
+                        "in": "path",
+                        "required": true,
+                        "description": "The asset transaction ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ReturnJournalRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`AssetTransactionResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/components/schemas/AssetTransactionResource"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "lines"
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/v1/companies/{company}/asset-transactions/{assetTransaction}/void": {
+            "post": {
+                "operationId": "asset-transactions.void",
+                "tags": [
+                    "AssetTransaction"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "assetTransaction",
+                        "in": "path",
+                        "required": true,
+                        "description": "The asset transaction ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/VoidJournalRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`AssetTransactionResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/components/schemas/AssetTransactionResource"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "lines"
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/v1/companies/{company}/asset-transactions/{assetTransaction}/reverse": {
+            "post": {
+                "operationId": "asset-transactions.reverse",
+                "summary": "Mirrors the journal and puts the register back (a disposed asset is active again); refused while later activity stands on the same assets",
+                "tags": [
+                    "AssetTransaction"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "assetTransaction",
+                        "in": "path",
+                        "required": true,
+                        "description": "The asset transaction ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ReverseJournalRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`AssetTransactionResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/components/schemas/AssetTransactionResource"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "lines"
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
         "/v1/companies/{company}/attachments": {
             "get": {
                 "operationId": "attachments.index",
@@ -5873,6 +7040,715 @@
                 }
             }
         },
+        "/v1/companies/{company}/depreciation-runs": {
+            "get": {
+                "operationId": "depreciation-runs.index",
+                "tags": [
+                    "DepreciationRun"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "description": "Opaque, from `meta.next_cursor` or `meta.prev_cursor`.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Page size, 1 to 200; default 50.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of `DepreciationRunResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/DepreciationRunResource"
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "next_cursor": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "prev_cursor": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "limit": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "required": [
+                                                "next_cursor",
+                                                "prev_cursor",
+                                                "limit"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            },
+            "post": {
+                "operationId": "depreciation-runs.store",
+                "tags": [
+                    "DepreciationRun"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DepreciationRunRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "`DepreciationRunResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/components/schemas/DepreciationRunResource"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "lines"
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/v1/companies/{company}/depreciation-runs/preview": {
+            "get": {
+                "operationId": "depreciation-runs.preview",
+                "summary": "Per asset, what a run for the period would charge, including skipped months; writes nothing",
+                "tags": [
+                    "DepreciationRun"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "period_id",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "units[]",
+                        "in": "query",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer",
+                                "minimum": 0
+                            }
+                        }
+                    },
+                    {
+                        "name": "memo",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "maxLength": 2000
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`DepreciationPreviewResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/DepreciationPreviewResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/v1/companies/{company}/depreciation-runs/{depreciationRun}": {
+            "get": {
+                "operationId": "depreciation-runs.show",
+                "tags": [
+                    "DepreciationRun"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "depreciationRun",
+                        "in": "path",
+                        "required": true,
+                        "description": "The depreciation run ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`DepreciationRunResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/components/schemas/DepreciationRunResource"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "lines"
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/v1/companies/{company}/depreciation-runs/{depreciationRun}/submit": {
+            "post": {
+                "operationId": "depreciation-runs.submit",
+                "tags": [
+                    "DepreciationRun"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "depreciationRun",
+                        "in": "path",
+                        "required": true,
+                        "description": "The depreciation run ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TransitionRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`DepreciationRunResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/components/schemas/DepreciationRunResource"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "lines"
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/v1/companies/{company}/depreciation-runs/{depreciationRun}/approve": {
+            "post": {
+                "operationId": "depreciation-runs.approve",
+                "tags": [
+                    "DepreciationRun"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "depreciationRun",
+                        "in": "path",
+                        "required": true,
+                        "description": "The depreciation run ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TransitionRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`DepreciationRunResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/components/schemas/DepreciationRunResource"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "lines"
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/v1/companies/{company}/depreciation-runs/{depreciationRun}/return": {
+            "post": {
+                "operationId": "depreciation-runs.return",
+                "tags": [
+                    "DepreciationRun"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "depreciationRun",
+                        "in": "path",
+                        "required": true,
+                        "description": "The depreciation run ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ReturnJournalRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`DepreciationRunResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/components/schemas/DepreciationRunResource"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "lines"
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/v1/companies/{company}/depreciation-runs/{depreciationRun}/void": {
+            "post": {
+                "operationId": "depreciation-runs.void",
+                "tags": [
+                    "DepreciationRun"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "depreciationRun",
+                        "in": "path",
+                        "required": true,
+                        "description": "The depreciation run ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/VoidJournalRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`DepreciationRunResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/components/schemas/DepreciationRunResource"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "lines"
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/v1/companies/{company}/depreciation-runs/{depreciationRun}/reverse": {
+            "post": {
+                "operationId": "depreciation-runs.reverse",
+                "summary": "Mirrors the journal and takes each asset's charge back out of the register; refused while later activity stands on the same assets",
+                "tags": [
+                    "DepreciationRun"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "depreciationRun",
+                        "in": "path",
+                        "required": true,
+                        "description": "The depreciation run ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ReverseJournalRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`DepreciationRunResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/components/schemas/DepreciationRunResource"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "lines"
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
         "/v1/companies/{company}/dimensions": {
             "get": {
                 "operationId": "dimensions.index",
@@ -7235,6 +9111,686 @@
                     },
                     "401": {
                         "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/v1/companies/{company}/fixed-assets": {
+            "get": {
+                "operationId": "fixed-assets.index",
+                "tags": [
+                    "FixedAsset"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "description": "Opaque, from `meta.next_cursor` or `meta.prev_cursor`.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Page size, 1 to 200; default 50.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of `FixedAssetResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/FixedAssetResource"
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "next_cursor": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "prev_cursor": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "limit": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "required": [
+                                                "next_cursor",
+                                                "prev_cursor",
+                                                "limit"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            },
+            "post": {
+                "operationId": "fixed-assets.store",
+                "tags": [
+                    "FixedAsset"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/FixedAssetRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "`FixedAssetResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/FixedAssetResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/v1/companies/{company}/fixed-assets/capitalisable": {
+            "get": {
+                "operationId": "fixed-assets.capitalisable",
+                "summary": "Posted bill and journal lines on fixed asset accounts that are not in the register yet",
+                "tags": [
+                    "FixedAsset"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "anyOf": [
+                                                    {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "source_type": {
+                                                                "type": "string",
+                                                                "const": "bill_line"
+                                                            },
+                                                            "source_id": {
+                                                                "type": "string"
+                                                            },
+                                                            "document_number": {
+                                                                "type": "string"
+                                                            },
+                                                            "date": {
+                                                                "type": "string"
+                                                            },
+                                                            "line_no": {
+                                                                "type": "integer"
+                                                            },
+                                                            "description": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "account_id": {
+                                                                "type": "string"
+                                                            },
+                                                            "account_code": {
+                                                                "type": "string"
+                                                            },
+                                                            "account_name": {
+                                                                "type": "string"
+                                                            },
+                                                            "category_id": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "amount": {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "amount": {
+                                                                        "type": "integer"
+                                                                    },
+                                                                    "currency": {
+                                                                        "type": "string"
+                                                                    }
+                                                                },
+                                                                "required": [
+                                                                    "amount",
+                                                                    "currency"
+                                                                ]
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "source_type",
+                                                            "source_id",
+                                                            "document_number",
+                                                            "date",
+                                                            "line_no",
+                                                            "description",
+                                                            "account_id",
+                                                            "account_code",
+                                                            "account_name",
+                                                            "category_id",
+                                                            "amount"
+                                                        ]
+                                                    },
+                                                    {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "source_type": {
+                                                                "type": "string",
+                                                                "const": "journal_line"
+                                                            },
+                                                            "source_id": {
+                                                                "type": "string"
+                                                            },
+                                                            "document_number": {
+                                                                "type": "string"
+                                                            },
+                                                            "date": {
+                                                                "type": "string"
+                                                            },
+                                                            "line_no": {
+                                                                "type": "integer"
+                                                            },
+                                                            "description": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "account_id": {
+                                                                "type": "string"
+                                                            },
+                                                            "account_code": {
+                                                                "type": "string"
+                                                            },
+                                                            "account_name": {
+                                                                "type": "string"
+                                                            },
+                                                            "category_id": {
+                                                                "type": [
+                                                                    "string",
+                                                                    "null"
+                                                                ]
+                                                            },
+                                                            "amount": {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "amount": {
+                                                                        "type": "integer"
+                                                                    },
+                                                                    "currency": {
+                                                                        "type": "string"
+                                                                    }
+                                                                },
+                                                                "required": [
+                                                                    "amount",
+                                                                    "currency"
+                                                                ]
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "source_type",
+                                                            "source_id",
+                                                            "document_number",
+                                                            "date",
+                                                            "line_no",
+                                                            "description",
+                                                            "account_id",
+                                                            "account_code",
+                                                            "account_name",
+                                                            "category_id",
+                                                            "amount"
+                                                        ]
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/v1/companies/{company}/fixed-assets/reconciliation": {
+            "get": {
+                "operationId": "fixed-assets.reconciliation",
+                "summary": "Register cost and accumulated depreciation against the ledger's fixed asset and accumulated depreciation accounts, as of a date",
+                "tags": [
+                    "FixedAsset"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "as_of",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "format": "date"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "as_of": {
+                                                    "type": "string"
+                                                },
+                                                "currency": {
+                                                    "type": "string"
+                                                },
+                                                "rows": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "account": {
+                                                                "type": [
+                                                                    "object",
+                                                                    "null"
+                                                                ],
+                                                                "properties": {
+                                                                    "id": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "code": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "name": {
+                                                                        "type": "string"
+                                                                    }
+                                                                },
+                                                                "required": [
+                                                                    "id",
+                                                                    "code",
+                                                                    "name"
+                                                                ]
+                                                            },
+                                                            "kind": {
+                                                                "type": "string"
+                                                            },
+                                                            "categories": {
+                                                                "type": "string"
+                                                            },
+                                                            "register": {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "amount": {
+                                                                        "type": "integer"
+                                                                    },
+                                                                    "currency": {
+                                                                        "type": "string"
+                                                                    }
+                                                                },
+                                                                "required": [
+                                                                    "amount",
+                                                                    "currency"
+                                                                ]
+                                                            },
+                                                            "ledger": {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "amount": {
+                                                                        "type": "integer"
+                                                                    },
+                                                                    "currency": {
+                                                                        "type": "string"
+                                                                    }
+                                                                },
+                                                                "required": [
+                                                                    "amount",
+                                                                    "currency"
+                                                                ]
+                                                            },
+                                                            "difference": {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "amount": {
+                                                                        "type": "number"
+                                                                    },
+                                                                    "currency": {
+                                                                        "type": "string"
+                                                                    }
+                                                                },
+                                                                "required": [
+                                                                    "amount",
+                                                                    "currency"
+                                                                ]
+                                                            },
+                                                            "opening_assets": {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "amount": {
+                                                                        "type": "integer"
+                                                                    },
+                                                                    "currency": {
+                                                                        "type": "string"
+                                                                    }
+                                                                },
+                                                                "required": [
+                                                                    "amount",
+                                                                    "currency"
+                                                                ]
+                                                            },
+                                                            "reconciles": {
+                                                                "type": "boolean"
+                                                            },
+                                                            "drill": {
+                                                                "type": "object",
+                                                                "description": "Drill: the account's journal lines up to the date.",
+                                                                "properties": {
+                                                                    "account_id": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "to": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "exclude_closing": {
+                                                                        "type": "boolean"
+                                                                    }
+                                                                },
+                                                                "required": [
+                                                                    "account_id",
+                                                                    "to",
+                                                                    "exclude_closing"
+                                                                ]
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "account",
+                                                            "kind",
+                                                            "categories",
+                                                            "register",
+                                                            "ledger",
+                                                            "difference",
+                                                            "opening_assets",
+                                                            "reconciles",
+                                                            "drill"
+                                                        ]
+                                                    }
+                                                },
+                                                "reconciles": {
+                                                    "type": "boolean"
+                                                }
+                                            },
+                                            "required": [
+                                                "as_of",
+                                                "currency",
+                                                "rows",
+                                                "reconciles"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/v1/companies/{company}/fixed-assets/{fixedAsset}": {
+            "get": {
+                "operationId": "fixed-assets.show",
+                "tags": [
+                    "FixedAsset"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "fixedAsset",
+                        "in": "path",
+                        "required": true,
+                        "description": "The fixed asset ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`FixedAssetResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/FixedAssetResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            },
+            "put": {
+                "operationId": "fixed-assets.update",
+                "tags": [
+                    "FixedAsset"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "fixedAsset",
+                        "in": "path",
+                        "required": true,
+                        "description": "The fixed asset ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/FixedAssetRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`FixedAssetResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/FixedAssetResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
                     }
                 }
             }
@@ -18272,6 +20828,222 @@
                 }
             }
         },
+        "/v1/companies/{company}/reports/asset-schedule": {
+            "get": {
+                "operationId": "reports.asset-schedule",
+                "summary": "The fixed asset schedule by category and asset, from the register's movements, tied to the ledger",
+                "tags": [
+                    "Report"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "period_id",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "as_of",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "from",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "to",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "basis",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "enum": [
+                                "month",
+                                "ytd",
+                                null
+                            ]
+                        }
+                    },
+                    {
+                        "name": "comparison",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "enum": [
+                                "none",
+                                "previous_period",
+                                "previous_year",
+                                null
+                            ]
+                        }
+                    },
+                    {
+                        "name": "dimensions[]",
+                        "in": "query",
+                        "description": "Dimension id \u2192 a value id or a list of them; withValidator checks the shape.",
+                        "schema": {
+                            "type": [
+                                "array",
+                                "null"
+                            ],
+                            "items": {
+                                "type": "string"
+                            },
+                            "maxItems": 8
+                        }
+                    },
+                    {
+                        "name": "hide_zero",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "boolean",
+                                "null"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "account_id",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "exclude_closing",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "boolean",
+                                "null"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "contact_side",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "enum": [
+                                "debit",
+                                "credit",
+                                null
+                            ]
+                        }
+                    },
+                    {
+                        "name": "contact_id",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "format",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "enum": [
+                                "xlsx",
+                                "csv",
+                                "pdf",
+                                null
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "additionalProperties": {}
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
         "/v1/companies/{company}/reports/drill": {
             "get": {
                 "operationId": "reports.drill",
@@ -22347,7 +25119,8 @@
                                             "closing",
                                             "adjustment",
                                             "reversal",
-                                            "opening"
+                                            "opening",
+                                            "asset"
                                         ]
                                     },
                                     "journal_date": {
@@ -22637,6 +25410,142 @@
                                             "null"
                                         ]
                                     },
+                                    "as_of": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    },
+                                    "memo": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    },
+                                    "amount": {
+                                        "type": "object",
+                                        "properties": {
+                                            "amount": {
+                                                "type": "integer"
+                                            },
+                                            "currency": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "required": [
+                                            "amount",
+                                            "currency"
+                                        ]
+                                    },
+                                    "created_by": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    },
+                                    "submitted_by": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    },
+                                    "version": {
+                                        "type": "integer"
+                                    }
+                                },
+                                "required": [
+                                    "id",
+                                    "number",
+                                    "as_of",
+                                    "memo",
+                                    "amount",
+                                    "created_by",
+                                    "submitted_by",
+                                    "version"
+                                ]
+                            },
+                            {
+                                "type": "object",
+                                "properties": {
+                                    "id": {
+                                        "type": "string"
+                                    },
+                                    "kind": {
+                                        "type": "string"
+                                    },
+                                    "number": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    },
+                                    "tx_date": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    },
+                                    "memo": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    },
+                                    "amount": {
+                                        "type": "object",
+                                        "properties": {
+                                            "amount": {
+                                                "type": "integer"
+                                            },
+                                            "currency": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "required": [
+                                            "amount",
+                                            "currency"
+                                        ]
+                                    },
+                                    "created_by": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    },
+                                    "submitted_by": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    },
+                                    "version": {
+                                        "type": "integer"
+                                    }
+                                },
+                                "required": [
+                                    "id",
+                                    "kind",
+                                    "number",
+                                    "tx_date",
+                                    "memo",
+                                    "amount",
+                                    "created_by",
+                                    "submitted_by",
+                                    "version"
+                                ]
+                            },
+                            {
+                                "type": "object",
+                                "properties": {
+                                    "id": {
+                                        "type": "string"
+                                    },
+                                    "number": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    },
                                     "run_date": {
                                         "type": [
                                             "string",
@@ -22896,7 +25805,9 @@
                             "settlement",
                             "payment_run",
                             "purchase_requisition",
-                            "purchase_order"
+                            "purchase_order",
+                            "depreciation_run",
+                            "asset_transaction"
                         ]
                     },
                     "name": {
@@ -23043,6 +25954,651 @@
                     "can"
                 ],
                 "title": "ApprovalWorkflowResource"
+            },
+            "AssetCategoryRequest": {
+                "type": "object",
+                "description": "Create (POST) and replace (PUT, with the `version` it was based on) an asset category.",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "maxLength": 120
+                    },
+                    "asset_account_id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "accumulated_account_id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "expense_account_id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "measurement_model": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "enum": [
+                            "cost",
+                            "revaluation",
+                            null
+                        ]
+                    },
+                    "default_method": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "enum": [
+                            "straight_line",
+                            "declining_balance",
+                            "units_of_production",
+                            null
+                        ]
+                    },
+                    "default_life_months": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
+                        "minimum": 1,
+                        "maximum": 1200
+                    },
+                    "default_declining_rate_bp": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
+                        "description": "Annual rate in basis points: 2000 = 20% a year.",
+                        "minimum": 1,
+                        "maximum": 10000
+                    },
+                    "is_depreciable": {
+                        "type": [
+                            "boolean",
+                            "null"
+                        ]
+                    },
+                    "is_active": {
+                        "type": [
+                            "boolean",
+                            "null"
+                        ]
+                    },
+                    "version": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                },
+                "required": [
+                    "name",
+                    "asset_account_id",
+                    "accumulated_account_id",
+                    "expense_account_id"
+                ],
+                "title": "AssetCategoryRequest"
+            },
+            "AssetCategoryResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "asset_account_id": {
+                        "type": "string"
+                    },
+                    "accumulated_account_id": {
+                        "type": "string"
+                    },
+                    "expense_account_id": {
+                        "type": "string"
+                    },
+                    "measurement_model": {
+                        "type": "string"
+                    },
+                    "default_method": {
+                        "type": "string"
+                    },
+                    "default_life_months": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "default_declining_rate_bp": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "is_depreciable": {
+                        "type": "boolean"
+                    },
+                    "is_active": {
+                        "type": "boolean"
+                    },
+                    "version": {
+                        "type": "integer"
+                    },
+                    "can": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "boolean"
+                        }
+                    }
+                },
+                "required": [
+                    "id",
+                    "name",
+                    "asset_account_id",
+                    "accumulated_account_id",
+                    "expense_account_id",
+                    "measurement_model",
+                    "default_method",
+                    "default_life_months",
+                    "default_declining_rate_bp",
+                    "is_depreciable",
+                    "is_active",
+                    "version",
+                    "can"
+                ],
+                "title": "AssetCategoryResource"
+            },
+            "AssetTaxClassRequest": {
+                "type": "object",
+                "description": "Create (POST) and replace (PUT, with `version`) a tax depreciation class. Rates are basis points a year: 2000 = 20%.",
+                "properties": {
+                    "code": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z0-9._-]+$",
+                        "maxLength": 32
+                    },
+                    "name": {
+                        "type": "string",
+                        "maxLength": 120
+                    },
+                    "annual_rate_bp": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 10000
+                    },
+                    "first_year_rate_bp": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
+                        "description": "Optional rate for the first year only.",
+                        "minimum": 1,
+                        "maximum": 10000
+                    },
+                    "is_active": {
+                        "type": [
+                            "boolean",
+                            "null"
+                        ]
+                    },
+                    "version": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                },
+                "required": [
+                    "code",
+                    "name",
+                    "annual_rate_bp"
+                ],
+                "title": "AssetTaxClassRequest"
+            },
+            "AssetTaxClassResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "code": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "annual_rate_bp": {
+                        "type": "integer"
+                    },
+                    "first_year_rate_bp": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "source": {
+                        "type": "string"
+                    },
+                    "is_active": {
+                        "type": "boolean"
+                    },
+                    "version": {
+                        "type": "integer"
+                    },
+                    "can": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "boolean"
+                        }
+                    }
+                },
+                "required": [
+                    "id",
+                    "code",
+                    "name",
+                    "annual_rate_bp",
+                    "first_year_rate_bp",
+                    "source",
+                    "is_active",
+                    "version",
+                    "can"
+                ],
+                "title": "AssetTaxClassResource"
+            },
+            "AssetTransactionLineResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "line_no": {
+                        "type": "integer"
+                    },
+                    "asset_id": {
+                        "type": "string"
+                    },
+                    "asset_number": {
+                        "type": "string"
+                    },
+                    "asset_name": {
+                        "type": "string"
+                    },
+                    "input_amount": {
+                        "type": "object",
+                        "properties": {
+                            "amount": {
+                                "type": "integer"
+                            },
+                            "currency": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "amount",
+                            "currency"
+                        ]
+                    },
+                    "carrying_before": {
+                        "type": "object",
+                        "properties": {
+                            "amount": {
+                                "type": "integer"
+                            },
+                            "currency": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "amount",
+                            "currency"
+                        ]
+                    },
+                    "carrying_after": {
+                        "type": "object",
+                        "properties": {
+                            "amount": {
+                                "type": "integer"
+                            },
+                            "currency": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "amount",
+                            "currency"
+                        ]
+                    },
+                    "gain_or_loss": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "properties": {
+                            "amount": {
+                                "type": "integer"
+                            },
+                            "currency": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "amount",
+                            "currency"
+                        ]
+                    }
+                },
+                "required": [
+                    "id",
+                    "line_no",
+                    "asset_id",
+                    "asset_number",
+                    "asset_name",
+                    "input_amount",
+                    "carrying_before",
+                    "carrying_after",
+                    "gain_or_loss"
+                ],
+                "title": "AssetTransactionLineResource"
+            },
+            "AssetTransactionPreviewResource": {
+                "type": "object",
+                "properties": {
+                    "kind": {
+                        "type": "string"
+                    },
+                    "tx_date": {
+                        "type": "string"
+                    },
+                    "total": {
+                        "type": "object",
+                        "properties": {
+                            "amount": {
+                                "type": "integer"
+                            },
+                            "currency": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "amount",
+                            "currency"
+                        ]
+                    },
+                    "assets": {
+                        "type": "array",
+                        "items": {}
+                    }
+                },
+                "required": [
+                    "kind",
+                    "tx_date",
+                    "total",
+                    "assets"
+                ],
+                "title": "AssetTransactionPreviewResource"
+            },
+            "AssetTransactionRequest": {
+                "type": "object",
+                "description": "A disposal (one asset, proceeds), an impairment or its reversal (one asset, an amount, a reason) or a revaluation (a category and\na revalued amount for every asset in it). Also the body of the preview.",
+                "properties": {
+                    "kind": {
+                        "type": "string",
+                        "enum": [
+                            "disposal",
+                            "impairment",
+                            "impairment_reversal",
+                            "revaluation"
+                        ]
+                    },
+                    "tx_date": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "reason": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 2000
+                    },
+                    "asset_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "uuid"
+                    },
+                    "amount": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
+                        "description": "Minor units: the impairment or the reversal.",
+                        "minimum": 1
+                    },
+                    "proceeds": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
+                        "description": "Disposal proceeds in minor units; none (0) when scrapped.",
+                        "minimum": 0
+                    },
+                    "proceeds_account_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "uuid"
+                    },
+                    "transfer_reserve": {
+                        "type": [
+                            "boolean",
+                            "null"
+                        ],
+                        "description": "Move the asset's remaining revaluation reserve straight to retained earnings."
+                    },
+                    "category_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "uuid"
+                    },
+                    "values": {
+                        "type": [
+                            "array",
+                            "null"
+                        ],
+                        "description": "Revaluation: the new carrying amount of every asset in the category.",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "asset_id": {
+                                    "type": "string",
+                                    "format": "uuid"
+                                },
+                                "value": {
+                                    "type": "integer",
+                                    "minimum": 1
+                                }
+                            },
+                            "required": [
+                                "asset_id",
+                                "value"
+                            ]
+                        },
+                        "maxItems": 500
+                    }
+                },
+                "required": [
+                    "kind",
+                    "tx_date"
+                ],
+                "title": "AssetTransactionRequest"
+            },
+            "AssetTransactionResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "number": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "kind": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "draft",
+                            "pending_approval",
+                            "posted",
+                            "reversed",
+                            "void"
+                        ]
+                    },
+                    "tx_date": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "category_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "amount": {
+                        "type": "object",
+                        "properties": {
+                            "amount": {
+                                "type": "integer"
+                            },
+                            "currency": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "amount",
+                            "currency"
+                        ]
+                    },
+                    "reason": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "proceeds": {
+                        "type": "object",
+                        "properties": {
+                            "amount": {
+                                "type": "integer"
+                            },
+                            "currency": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "amount",
+                            "currency"
+                        ]
+                    },
+                    "proceeds_account_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "transfer_reserve": {
+                        "type": "boolean"
+                    },
+                    "journal_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "reversal_journal_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "created_by": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "submitted_by": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "approved_by": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "posted_by": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "posted_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "version": {
+                        "type": "integer"
+                    },
+                    "lines": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/AssetTransactionLineResource"
+                        }
+                    },
+                    "can": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "boolean"
+                        }
+                    }
+                },
+                "required": [
+                    "id",
+                    "number",
+                    "kind",
+                    "status",
+                    "tx_date",
+                    "category_id",
+                    "amount",
+                    "reason",
+                    "proceeds",
+                    "proceeds_account_id",
+                    "transfer_reserve",
+                    "journal_id",
+                    "reversal_journal_id",
+                    "created_by",
+                    "submitted_by",
+                    "approved_by",
+                    "posted_by",
+                    "posted_at",
+                    "version",
+                    "can"
+                ],
+                "title": "AssetTransactionResource"
             },
             "AttachmentResource": {
                 "type": "object",
@@ -24695,7 +28251,9 @@
                                         "payment_run",
                                         "purchase_requisition",
                                         "purchase_order",
-                                        "purchase_order_revision"
+                                        "purchase_order_revision",
+                                        "depreciation_run",
+                                        "asset_transaction"
                                     ]
                                 },
                                 "id": {
@@ -24790,7 +28348,7 @@
                 "properties": {
                     "waivers": {
                         "type": "object",
-                        "description": "Check code (DRAFTS, APPROVALS, FX_REVAL, BANK_REC) \u2192 the reason it is acceptable.",
+                        "description": "Check code (DRAFTS, APPROVALS, FX_REVAL, DEPR_RUN, BANK_REC) \u2192 the reason it is acceptable.",
                         "additionalProperties": {
                             "type": "string"
                         }
@@ -25676,6 +29234,278 @@
                 ],
                 "title": "CurrencyPolicy"
             },
+            "DepreciationPreviewResource": {
+                "type": "object",
+                "properties": {
+                    "period_id": {
+                        "type": "string"
+                    },
+                    "period_name": {
+                        "type": "string"
+                    },
+                    "as_of": {
+                        "type": "string"
+                    },
+                    "total": {
+                        "type": "object",
+                        "properties": {
+                            "amount": {
+                                "type": "integer"
+                            },
+                            "currency": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "amount",
+                            "currency"
+                        ]
+                    },
+                    "lines": {
+                        "type": "array",
+                        "items": {}
+                    },
+                    "pending_units": {
+                        "type": "array",
+                        "items": {}
+                    },
+                    "blockers": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "required": [
+                    "period_id",
+                    "period_name",
+                    "as_of",
+                    "total",
+                    "lines",
+                    "pending_units",
+                    "blockers"
+                ],
+                "title": "DepreciationPreviewResource"
+            },
+            "DepreciationRunLineResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "line_no": {
+                        "type": "integer"
+                    },
+                    "asset_id": {
+                        "type": "string"
+                    },
+                    "asset_number": {
+                        "type": "string"
+                    },
+                    "asset_name": {
+                        "type": "string"
+                    },
+                    "amount": {
+                        "type": "object",
+                        "properties": {
+                            "amount": {
+                                "type": "integer"
+                            },
+                            "currency": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "amount",
+                            "currency"
+                        ]
+                    },
+                    "months": {
+                        "type": "integer"
+                    },
+                    "units": {
+                        "type": "integer"
+                    },
+                    "catch_up_months": {
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "id",
+                    "line_no",
+                    "asset_id",
+                    "asset_number",
+                    "asset_name",
+                    "amount",
+                    "months",
+                    "units",
+                    "catch_up_months"
+                ],
+                "title": "DepreciationRunLineResource"
+            },
+            "DepreciationRunRequest": {
+                "type": "object",
+                "description": "A depreciation run for a period, with the units used this period for units-of-production assets. Also the preview's query.",
+                "properties": {
+                    "period_id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "units": {
+                        "type": [
+                            "array",
+                            "null"
+                        ],
+                        "description": "Asset id \u2192 units used in the period.",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        },
+                        "maxItems": 500
+                    },
+                    "memo": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 2000
+                    }
+                },
+                "required": [
+                    "period_id"
+                ],
+                "title": "DepreciationRunRequest"
+            },
+            "DepreciationRunResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "number": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "draft",
+                            "pending_approval",
+                            "posted",
+                            "reversed",
+                            "void"
+                        ]
+                    },
+                    "fiscal_period_id": {
+                        "type": "string"
+                    },
+                    "as_of": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "total": {
+                        "type": "object",
+                        "properties": {
+                            "amount": {
+                                "type": "integer"
+                            },
+                            "currency": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "amount",
+                            "currency"
+                        ]
+                    },
+                    "journal_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "reversal_journal_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "memo": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "created_by": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "submitted_by": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "approved_by": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "posted_by": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "posted_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "version": {
+                        "type": "integer"
+                    },
+                    "lines": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/DepreciationRunLineResource"
+                        }
+                    },
+                    "can": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "boolean"
+                        }
+                    }
+                },
+                "required": [
+                    "id",
+                    "number",
+                    "status",
+                    "fiscal_period_id",
+                    "as_of",
+                    "total",
+                    "journal_id",
+                    "reversal_journal_id",
+                    "memo",
+                    "created_by",
+                    "submitted_by",
+                    "approved_by",
+                    "posted_by",
+                    "posted_at",
+                    "version",
+                    "can"
+                ],
+                "title": "DepreciationRunResource"
+            },
             "DimensionRequest": {
                 "type": "object",
                 "description": "Create (code and name) or rename (PUT: name and the `version` it was based on) a dimension.",
@@ -26151,6 +29981,428 @@
                     "can"
                 ],
                 "title": "FiscalYearResource"
+            },
+            "FixedAssetRequest": {
+                "type": "object",
+                "description": "Create (POST) a register entry, from a posted line (`source_type` + `source_id`) or as an opening asset (cost, acquisition\ndate, accumulated depreciation and the date it is stated at), and replace its editable part (PUT, with `version`).",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "maxLength": 200
+                    },
+                    "description": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 2000
+                    },
+                    "category_id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "source_type": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "enum": [
+                            "bill_line",
+                            "journal_line",
+                            null
+                        ]
+                    },
+                    "source_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "uuid"
+                    },
+                    "acquired_on": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date"
+                    },
+                    "available_from": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date"
+                    },
+                    "cost": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
+                        "description": "Minor units. Defaults to the posted line's amount when capitalising.",
+                        "minimum": 1
+                    },
+                    "residual": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
+                        "minimum": 0
+                    },
+                    "method": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "enum": [
+                            "straight_line",
+                            "declining_balance",
+                            "units_of_production",
+                            null
+                        ]
+                    },
+                    "useful_life_months": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
+                        "minimum": 1,
+                        "maximum": 1200
+                    },
+                    "declining_rate_bp": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
+                        "description": "Annual rate in basis points: 2000 = 20% a year.",
+                        "minimum": 1,
+                        "maximum": 10000
+                    },
+                    "units_total": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
+                        "minimum": 1
+                    },
+                    "tax_class_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "uuid",
+                        "description": "A tax depreciation class, for the tax schedule only."
+                    },
+                    "dimensions": {
+                        "type": [
+                            "array",
+                            "null"
+                        ],
+                        "description": "Dimension id \u2192 value id.",
+                        "items": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "maxItems": 8
+                    },
+                    "opening_accumulated": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
+                        "minimum": 0
+                    },
+                    "opening_as_of": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date"
+                    },
+                    "version": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                },
+                "required": [
+                    "name",
+                    "category_id"
+                ],
+                "title": "FixedAssetRequest"
+            },
+            "FixedAssetResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "number": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "category_id": {
+                        "type": "string"
+                    },
+                    "category_name": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "fully_depreciated": {
+                        "type": "boolean"
+                    },
+                    "acquired_on": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "available_from": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "disposed_on": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "cost": {
+                        "type": "object",
+                        "properties": {
+                            "amount": {
+                                "type": "integer"
+                            },
+                            "currency": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "amount",
+                            "currency"
+                        ]
+                    },
+                    "residual": {
+                        "type": "object",
+                        "properties": {
+                            "amount": {
+                                "type": "integer"
+                            },
+                            "currency": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "amount",
+                            "currency"
+                        ]
+                    },
+                    "accumulated_depreciation": {
+                        "type": "object",
+                        "properties": {
+                            "amount": {
+                                "type": "integer"
+                            },
+                            "currency": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "amount",
+                            "currency"
+                        ]
+                    },
+                    "accumulated_impairment": {
+                        "type": "object",
+                        "properties": {
+                            "amount": {
+                                "type": "integer"
+                            },
+                            "currency": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "amount",
+                            "currency"
+                        ]
+                    },
+                    "carrying_amount": {
+                        "type": "object",
+                        "properties": {
+                            "amount": {
+                                "type": "integer"
+                            },
+                            "currency": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "amount",
+                            "currency"
+                        ]
+                    },
+                    "revaluation_reserve": {
+                        "type": "object",
+                        "properties": {
+                            "amount": {
+                                "type": "integer"
+                            },
+                            "currency": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "amount",
+                            "currency"
+                        ]
+                    },
+                    "method": {
+                        "type": "string"
+                    },
+                    "useful_life_months": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "declining_rate_bp": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
+                        "description": "Annual rate in basis points."
+                    },
+                    "units_total": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "units_used": {
+                        "type": "integer"
+                    },
+                    "months_charged": {
+                        "type": "integer"
+                    },
+                    "depreciated_through": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "is_opening": {
+                        "type": "boolean"
+                    },
+                    "opening_accumulated": {
+                        "type": "object",
+                        "properties": {
+                            "amount": {
+                                "type": "integer"
+                            },
+                            "currency": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "amount",
+                            "currency"
+                        ]
+                    },
+                    "opening_as_of": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "source_type": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "source_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "source_journal_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "tax_class_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "dimensions": {
+                        "type": "array",
+                        "description": "Dimension position \u2192 value id.",
+                        "items": {}
+                    },
+                    "version": {
+                        "type": "integer"
+                    },
+                    "can": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "boolean"
+                        }
+                    }
+                },
+                "required": [
+                    "id",
+                    "number",
+                    "name",
+                    "description",
+                    "category_id",
+                    "status",
+                    "fully_depreciated",
+                    "acquired_on",
+                    "available_from",
+                    "disposed_on",
+                    "cost",
+                    "residual",
+                    "accumulated_depreciation",
+                    "accumulated_impairment",
+                    "carrying_amount",
+                    "revaluation_reserve",
+                    "method",
+                    "useful_life_months",
+                    "declining_rate_bp",
+                    "units_total",
+                    "units_used",
+                    "months_charged",
+                    "depreciated_through",
+                    "is_opening",
+                    "opening_accumulated",
+                    "opening_as_of",
+                    "source_type",
+                    "source_id",
+                    "source_journal_id",
+                    "tax_class_id",
+                    "dimensions",
+                    "version",
+                    "can"
+                ],
+                "title": "FixedAssetResource"
             },
             "FxRevaluationPreviewResource": {
                 "type": "object",
@@ -28311,7 +32563,8 @@
                             "closing",
                             "adjustment",
                             "reversal",
-                            "opening"
+                            "opening",
+                            "asset"
                         ]
                     },
                     "journal_date": {
@@ -28489,7 +32742,8 @@
                     "closing",
                     "adjustment",
                     "reversal",
-                    "opening"
+                    "opening",
+                    "asset"
                 ],
                 "title": "JournalType"
             },
@@ -31738,6 +35992,24 @@
                     "effective_to"
                 ],
                 "title": "TaxRateResource"
+            },
+            "TaxScheduleResource": {
+                "type": "object",
+                "properties": {
+                    "assets": {
+                        "type": "array",
+                        "items": {}
+                    },
+                    "by_year": {
+                        "type": "array",
+                        "items": {}
+                    }
+                },
+                "required": [
+                    "assets",
+                    "by_year"
+                ],
+                "title": "TaxScheduleResource"
             },
             "TransitionRequest": {
                 "type": "object",
