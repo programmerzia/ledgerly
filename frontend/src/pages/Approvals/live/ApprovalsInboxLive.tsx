@@ -29,6 +29,8 @@ const GROUPS = [
   { type: 'purchase_requisition', label: 'Purchase requisitions' },
   { type: 'purchase_order', label: 'Purchase orders' },
   { type: 'purchase_order_revision', label: 'Purchase order revisions' },
+  { type: 'depreciation_run', label: 'Depreciation runs' },
+  { type: 'asset_transaction', label: 'Asset sales, write-downs and revaluations' },
 ] as const;
 
 /** The server's reason codes for a skipped document, in words. Unknown codes fall back to the server's reason. */
@@ -147,6 +149,10 @@ export const ApprovalsInboxLive: React.FC = () => {
   };
 
   const openDoc = (i: ApprovalItem) => {
+    if (i.link?.path === 'assets') {
+      navigate(`/${coSlug}/assets?tab=${i.link.tab ?? 'register'}`);
+      return;
+    }
     if (i.link) {
       navigate(`/${coSlug}/${i.link.path}/${i.link.id}${i.document_type === 'purchase_order_revision' ? '?tab=revisions' : ''}`);
       return;

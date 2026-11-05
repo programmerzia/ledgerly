@@ -8,6 +8,7 @@ import { Kbd } from '@/components/ui/kbd';
 import { cn } from '@/lib/utils';
 import { formatDate, formatMoney } from '@/lib/format';
 import { useJournalList, type JournalFilters } from '@/data/journals';
+import { journalTypeLabel } from '@/api/adapters/journal';
 import { ErrorLine, LoadingLine, inputClass } from './parts';
 
 /** Each tab is a server filter. There are no counts: a count from a partial page would be wrong. */
@@ -18,6 +19,7 @@ const TABS: Array<{ value: string; label: string; filters: JournalFilters }> = [
   { value: 'posted', label: 'Posted', filters: { status: 'posted' } },
   { value: 'reversed', label: 'Reversed', filters: { status: 'reversed' } },
   { value: 'manual', label: 'Manual', filters: { type: 'manual' } },
+  { value: 'asset', label: 'Fixed asset', filters: { type: 'asset' } },
 ];
 
 function useDebounced<T>(value: T, ms: number): T {
@@ -143,7 +145,7 @@ export const JournalsListLive: React.FC = () => {
                   <td className="px-3 py-2 text-text-secondary">{j.reference || '—'}</td>
                   <td className="max-w-xs truncate px-3 py-2 text-text-primary">{j.memo || '—'}</td>
                   <td className="px-3 py-2">
-                    <span className="rounded-[3px] bg-surface-neutral px-2 py-0.5 text-xs capitalize text-text-secondary">{j.journal_type}</span>
+                    <span className="rounded-[3px] bg-surface-neutral px-2 py-0.5 text-xs capitalize text-text-secondary">{journalTypeLabel(j.journal_type)}</span>
                   </td>
                   <td className="px-3 py-2">
                     <StatusPill status={j.status} />
