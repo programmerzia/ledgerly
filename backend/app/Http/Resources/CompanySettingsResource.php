@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Http\Resources;
 
 use App\Actions\Organisation\UpdateCompanySettings;
+use App\Domain\Documents\MessageTemplate;
 use App\Http\Support\Json;
 use App\Models\Ledger\Account;
 use App\Models\Organisation\Company;
 use App\Models\Organisation\CompanySettings;
+use App\Services\Documents\DocumentLook;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -30,6 +32,7 @@ final class CompanySettingsResource extends JsonResource
             ->where(fn ($q) => $q->whereIn('id', array_filter($stored, fn ($v) => preg_match('/^[0-9a-f-]{36}$/', (string) $v) === 1))->orWhereIn('code', array_values($stored)))->get();
 
         $posting = $this->postingAccounts($stored, $accounts);
+        $look = DocumentLook::normalise($settings === null ? [] : (array) $settings->getAttribute('document_templates'));
         $defaults = $settings === null ? [] : $settings->getAttribute('approval_defaults');
         $threshold = is_array($defaults) && isset($defaults['journal_threshold']) ? (int) $defaults['journal_threshold'] : null;
 
@@ -52,6 +55,19 @@ final class CompanySettingsResource extends JsonResource
             'po_price_tolerance_pct' => $settings === null ? '0.0000' : (string) $settings->getAttribute('po_price_tolerance_pct'),
             'po_quantity_tolerance_pct' => $settings === null ? '0.0000' : (string) $settings->getAttribute('po_quantity_tolerance_pct'),
             'receipt_over_tolerance_pct' => $settings === null ? '0.0000' : (string) $settings->getAttribute('receipt_over_tolerance_pct'),
+            /** Printed on every PDF (plan 3c.4). `has_logo`: upload with `POST settings/logo`, show with `GET settings/logo`. */
+            'document_look' => [
+                'accent_color' => (string) $look['accent_color'], 'footer_text' => (string) $look['footer_text'],
+                'payment_instructions' => (string) $look['payment_instructions'], 'has_logo' => $this->getAttribute('logo_path') !== null,
+            ],
+            /**
+             * Subject and body per family (invoice, credit_note, statement, payment_advice), defaults filled in.
+             *
+             * @var array<string, array{subject: string, body: string}>
+             */
+            'email_templates' => $look['email'],
+            /** The only `{{ placeholders }}` a template may use, with what each stands for. */
+            'email_placeholders' => MessageTemplate::PLACEHOLDERS,
             'version' => $settings === null ? 0 : (int) $settings->getAttribute('lock_version'),
             'can' => ['update' => (bool) $request->user()?->can('update', $this->resource)],
         ];

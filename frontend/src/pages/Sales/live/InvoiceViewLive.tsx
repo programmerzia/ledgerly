@@ -1,10 +1,11 @@
 import React, { useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { CheckCircle, Clock, Copy, FilePlus, Link2, Pencil, Printer, Receipt, RotateCcw, Send, Trash2 } from 'lucide-react';
+import { CheckCircle, Clock, Copy, FilePlus, Link2, Pencil, Receipt, RotateCcw, Send, Trash2 } from 'lucide-react';
 import { PageHeader } from '@/components/domain/PageHeader';
 import { SignDialog } from '@/components/domain/SignDialog';
 import { AttachmentsPanel } from '@/components/live/AttachmentsPanel';
+import { EmailButton, PdfButton, SendLog } from '@/components/live/DocumentActions';
 import { MoneyInput } from '@/components/domain/MoneyInput';
 import { ConflictDialog, type VersionConflict } from '@/components/domain/ConflictDialog';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -249,9 +250,12 @@ export const InvoiceViewLive: React.FC<{ side?: Side }> = ({ side = 'sales' }) =
         subtitle={customer?.name}
         meta={<DocStatusPill doc={doc} />}
         actions={
-          <button type="button" onClick={() => window.print()} className={BTN_SECONDARY}>
-            <Printer className="size-4 text-text-muted" /> Print
-          </button>
+          <>
+            <PdfButton family={side === 'sales' ? 'invoices' : 'bills'} id={doc.id} />
+            {side === 'sales' && doc.can.send && (
+              <EmailButton family="invoices" id={doc.id} disabled={doc.status !== 'posted'} why="Post it first, then send it." />
+            )}
+          </>
         }
       />
 
@@ -482,6 +486,8 @@ export const InvoiceViewLive: React.FC<{ side?: Side }> = ({ side = 'sales' }) =
         busy={busy}
         onUndo={(p) => { setProblem(''); setUndoTarget(p); setDialog('undo'); }}
       />
+
+      {side === 'sales' && <SendLog family="invoices" id={doc.id} />}
 
       <AttachmentsPanel type={side === 'sales' ? 'invoice' : 'bill'} parentId={doc.id} posted={doc.status === 'posted' || doc.status === 'reversed'} />
 

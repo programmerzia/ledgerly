@@ -57,7 +57,7 @@ final class SettlementResource extends JsonResource
             'allocations' => $this->whenLoaded('allocations', fn () => $this->allocationRows((string) $cur, $base)),
             'can' => Json::can($request, $this->resource, [
                 'update' => 'update', 'submit' => 'submit', 'approve' => 'approve', 'return' => 'return',
-                'void' => 'void', 'reverse' => 'reverse', 'allocate' => 'allocate',
+                'void' => 'void', 'reverse' => 'reverse', 'allocate' => 'allocate', 'send' => 'send',
             ]),
         ];
     }

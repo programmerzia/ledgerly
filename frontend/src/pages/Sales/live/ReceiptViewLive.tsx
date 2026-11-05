@@ -1,11 +1,12 @@
 import React, { useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { CheckCircle, Clock, FilePlus, Pencil, Printer, RotateCcw, Send, Trash2 } from 'lucide-react';
+import { CheckCircle, Clock, FilePlus, Pencil, RotateCcw, Send, Trash2 } from 'lucide-react';
 import { PageHeader } from '@/components/domain/PageHeader';
 import { StatusPill } from '@/components/domain/StatusPill';
 import { SignDialog } from '@/components/domain/SignDialog';
 import { AttachmentsPanel } from '@/components/live/AttachmentsPanel';
+import { EmailButton, PdfButton, SendLog } from '@/components/live/DocumentActions';
 import { MoneyInput } from '@/components/domain/MoneyInput';
 import { ConflictDialog, type VersionConflict } from '@/components/domain/ConflictDialog';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -177,7 +178,14 @@ export const ReceiptViewLive: React.FC<{ side?: Side }> = ({ side = 'sales' }) =
         title={r.number || `Draft ${what}`}
         subtitle={customer?.name}
         meta={<StatusPill status={r.status} />}
-        actions={<button type="button" onClick={() => window.print()} className={BTN_SECONDARY}><Printer className="size-4 text-text-muted" /> Print</button>}
+        actions={
+          <>
+            <PdfButton family="settlements" id={r.id} />
+            {(r.kind === 'payment' || r.kind === 'refund') && r.can.send && (
+              <EmailButton family="settlements" id={r.id} label="Email advice" disabled={r.status !== 'posted'} why="Post it first, then send it." />
+            )}
+          </>
+        }
       />
 
       {r.status === 'reversed' && (
@@ -292,6 +300,8 @@ export const ReceiptViewLive: React.FC<{ side?: Side }> = ({ side = 'sales' }) =
           </section>
         </aside>
       </div>
+
+      {(r.kind === 'payment' || r.kind === 'refund') && <SendLog family="settlements" id={r.id} />}
 
       <AttachmentsPanel type="settlement" parentId={r.id} posted={r.status === 'posted' || r.status === 'reversed'} />
 

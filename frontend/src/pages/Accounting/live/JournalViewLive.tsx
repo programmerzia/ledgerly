@@ -1,9 +1,10 @@
 import React, { useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { CheckCircle, Clock, Copy, Hash, Pencil, Printer, Repeat, RotateCcw, Send, Trash2, Wrench } from 'lucide-react';
+import { CheckCircle, Clock, Copy, Hash, Pencil, Repeat, RotateCcw, Send, Trash2, Wrench } from 'lucide-react';
 import { useLedgerStore } from '@/mock/store';
 import { PageHeader } from '@/components/domain/PageHeader';
+import { PdfButton } from '@/components/live/DocumentActions';
 import { StatusPill } from '@/components/domain/StatusPill';
 import { SignDialog } from '@/components/domain/SignDialog';
 import { AttachmentsPanel } from '@/components/live/AttachmentsPanel';
@@ -197,9 +198,7 @@ export const JournalViewLive: React.FC = () => {
         subtitle={journal.memo}
         meta={<StatusPill status={journal.status} />}
         actions={
-          <button type="button" onClick={() => window.print()} className={BTN_SECONDARY}>
-            <Printer className="size-4 text-text-muted" /> Download PDF
-          </button>
+          <PdfButton family="journals" id={journal.id} label="Download voucher" />
         }
       />
 
@@ -289,9 +288,7 @@ export const JournalViewLive: React.FC = () => {
             )}
 
             <div className="grid grid-cols-2 gap-2">
-              <button type="button" onClick={() => window.print()} className={BTN_SECONDARY}>
-                <Printer className="size-4 text-text-muted" /> Print
-              </button>
+              <PdfButton family="journals" id={journal.id} label="Voucher PDF" />
               <button type="button" onClick={() => void doDuplicate()} disabled={busy} className={BTN_SECONDARY}>
                 <Copy className="size-4 text-text-muted" /> Duplicate
               </button>

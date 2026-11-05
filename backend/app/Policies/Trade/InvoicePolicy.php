@@ -100,6 +100,13 @@ final class InvoicePolicy
             && $this->context->personCan($principal, $this->module($invoice).'.reverse', $invoice->company_id);
     }
 
+    /** Email a sales document (plan 3c.5): the route asks for the right; whether it is posted is the Action's call, so the client sees why. */
+    public function send(Authenticatable $principal, Invoice $invoice): bool
+    {
+        return $invoice->kind->isSales() && $this->context->personCan($principal, 'documents.send', $invoice->company_id)
+            && $this->view($principal, $invoice);
+    }
+
     /** Submit this draft bill past a purchase order mismatch, with a reason (13 §10). People only, and never its own maker. */
     public function overrideMatch(Authenticatable $principal, Invoice $invoice): bool
     {

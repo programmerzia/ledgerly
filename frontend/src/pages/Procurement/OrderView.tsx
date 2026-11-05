@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { CheckCircle, Clock, Copy, FilePlus, Lock, Package, Pencil, Printer, RotateCcw, Send, Trash2, XCircle } from 'lucide-react';
+import { CheckCircle, Clock, Copy, FilePlus, Lock, Package, Pencil, RotateCcw, Send, Trash2, XCircle } from 'lucide-react';
 import { PageHeader } from '@/components/domain/PageHeader';
+import { PdfButton } from '@/components/live/DocumentActions';
 import { SignDialog } from '@/components/domain/SignDialog';
 import { ConflictDialog } from '@/components/domain/ConflictDialog';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -167,9 +168,7 @@ export const OrderView: React.FC = () => {
         subtitle={supplier?.name ?? (o.contact_name || undefined)}
         meta={<ProcStatusPill kind="order" status={o.status} />}
         actions={
-          <button type="button" onClick={() => window.print()} className={BTN_SECONDARY}>
-            <Printer className="size-4 text-text-muted" /> Print
-          </button>
+          <PdfButton family="purchase-orders" id={o.id} label="Download PDF" />
         }
       />
 

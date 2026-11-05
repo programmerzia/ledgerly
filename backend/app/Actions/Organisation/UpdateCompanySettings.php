@@ -50,7 +50,7 @@ final class UpdateCompanySettings
             if ($in->version !== null && $in->version !== $server) {
                 throw new VersionConflict($server, $in->version);
             }
-            $before = ['company' => $company->only(array_keys($in->profile)), 'settings' => $settings->only(['tax_rounding', 'posting_accounts', 'require_purchase_order', 'po_price_tolerance_pct', 'po_quantity_tolerance_pct', 'receipt_over_tolerance_pct'])];
+            $before = ['company' => $company->only(array_keys($in->profile)), 'settings' => $settings->only(['tax_rounding', 'posting_accounts', 'require_purchase_order', 'po_price_tolerance_pct', 'po_quantity_tolerance_pct', 'receipt_over_tolerance_pct', 'document_templates'])];
 
             if ($in->profile !== []) {
                 $company->forceFill($in->profile)->save();
@@ -85,13 +85,40 @@ final class UpdateCompanySettings
                     $settings->forceFill([$column => $value]);
                 }
             }
+            if ($in->documentLook !== []) {
+                $settings->forceFill(['document_templates' => $this->documentLook($settings, $in->documentLook)]);
+            }
             $settings->forceFill(['lock_version' => $server + 1])->save();
             $settings->refresh();
 
-            $audit->add('company_settings.updated', $company, before: $before, after: ['company' => $company->only(array_keys($in->profile)), 'settings' => $settings->only(['tax_rounding', 'posting_accounts', 'require_purchase_order', 'po_price_tolerance_pct', 'po_quantity_tolerance_pct', 'receipt_over_tolerance_pct'])]);
+            $audit->add('company_settings.updated', $company, before: $before, after: ['company' => $company->only(array_keys($in->profile)), 'settings' => $settings->only(['tax_rounding', 'posting_accounts', 'require_purchase_order', 'po_price_tolerance_pct', 'po_quantity_tolerance_pct', 'receipt_over_tolerance_pct', 'document_templates'])]);
 
             return $settings;
         });
+    }
+
+    /**
+     * The stored look with the given keys replaced. A cleared footer or instruction is stored empty; email templates replace
+     * their family as a whole.
+     *
+     * @param  array<string, mixed>  $change
+     * @return array<string, mixed>
+     */
+    private function documentLook(CompanySettings $settings, array $change): array
+    {
+        $raw = $settings->getAttribute('document_templates');
+        $raw = is_string($raw) ? json_decode($raw, true) : $raw;
+        $stored = is_array($raw) ? $raw : [];
+        foreach (['accent_color', 'footer_text', 'payment_instructions'] as $key) {
+            if (array_key_exists($key, $change)) {
+                $stored[$key] = $change[$key] === null ? '' : (string) $change[$key];
+            }
+        }
+        foreach ((array) ($change['email_templates'] ?? []) as $type => $template) {
+            $stored['email'][$type] = ['subject' => trim((string) $template['subject']), 'body' => trim((string) $template['body'])];
+        }
+
+        return $stored;
     }
 
     /** @return array<string, string> */

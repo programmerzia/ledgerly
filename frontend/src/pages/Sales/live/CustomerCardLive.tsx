@@ -16,6 +16,7 @@ import { ApiError } from '@/api/errors';
 import { IntentSlot } from '@/api/intentSlot';
 import { tradeVerdictText, DocStatusPill, numberOf, BTN_ACCENT, BTN_GHOST, ErrorLine, LoadMore, LoadingLine, TableCard } from './parts';
 import { ContactDialog } from './ContactDialog';
+import { StatementCard } from '@/components/live/StatementCard';
 import { SIDES, type Side } from './side';
 
 type Tab = 'overview' | 'invoices' | 'receipts';
@@ -132,6 +133,8 @@ export const CustomerCardLive: React.FC<{ side?: Side }> = ({ side = 'sales' }) 
           </button>
         ))}
       </div>
+
+      {tab === 'overview' && <StatementCard contactId={c.id} side={side === 'sales' ? 'customer' : 'supplier'} canSend={c.can.send} />}
 
       {tab === 'overview' && (
         <dl className="grid gap-x-8 gap-y-3 rounded-lg border border-border bg-surface p-5 text-[13px] sm:grid-cols-2">

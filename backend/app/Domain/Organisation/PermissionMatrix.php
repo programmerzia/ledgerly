@@ -9,6 +9,7 @@ namespace App\Domain\Organisation;
  *
  * Narrow permissions the matrix describes in prose:
  *  - `contacts.manage_customers`: Sales Assistant's "customers" right; every `contacts.manage` role holds it too.
+ *  - `documents.send`: emailing a posted document (plan 3c.5); existing companies got it from a backfill migration.
  *  - `invoices.void_own`: Sales Assistant's "own drafts" right; every `invoices.void` role holds it too.
  */
 final class PermissionMatrix
@@ -52,6 +53,7 @@ final class PermissionMatrix
         'invoices.void', 'invoices.void_own', 'bills.void',
         'periods.reopen.request',
         'purchase_requisitions.create', 'purchase_requisitions.submit', 'purchase_orders.create', 'purchase_orders.submit', 'goods_receipts.create',
+        'documents.send',
     ];
 
     private const array APPROVE = ['journals.approve', 'invoices.approve', 'bills.approve', 'payments.approve', 'purchase_requisitions.approve', 'purchase_orders.approve'];
@@ -93,7 +95,7 @@ final class PermissionMatrix
             self::SALES_ASSISTANT => [
                 ...self::SALES_VIEWS,
                 'invoices.create', 'invoices.submit', 'receipts.create',
-                'contacts.manage_customers', 'items.manage', 'invoices.void_own',
+                'contacts.manage_customers', 'items.manage', 'invoices.void_own', 'documents.send',
             ],
             self::VIEWER => self::views(),
             self::AUDITOR => [...self::views(), ...self::EXPORT, 'audit.view', 'audit.verify'],

@@ -25,12 +25,14 @@ export interface DocCan {
   reverse: boolean;
   /** Bills only: may submit a bill that does not match its order, with a reason. */
   override_match: boolean;
+  /** May email this document (3c.5); a sales document only. */
+  send: boolean;
 }
 
 export function toDocCan(raw: unknown): DocCan {
   const r = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
   const b = (k: string) => r[k] === true;
-  return { update: b('update'), submit: b('submit'), approve: b('approve'), return: b('return'), void: b('void'), reverse: b('reverse'), override_match: b('override_match') };
+  return { update: b('update'), submit: b('submit'), approve: b('approve'), return: b('return'), void: b('void'), reverse: b('reverse'), override_match: b('override_match'), send: b('send') };
 }
 
 export interface LiveDocLine {
