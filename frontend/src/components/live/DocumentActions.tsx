@@ -76,6 +76,7 @@ const EmailForm: React.FC<{ family: DocFamily; id: string; params?: StatementPar
   const [subject, setSubject] = useState(draft.subject);
   const [body, setBody] = useState(draft.body);
   const [problem, setProblem] = useState('');
+  const [withLink, setWithLink] = useState(false);
 
   const recipients = parseRecipients(to);
   const bad = recipients.filter((r) => !looksLikeEmail(r));
@@ -84,7 +85,9 @@ const EmailForm: React.FC<{ family: DocFamily; id: string; params?: StatementPar
     setProblem('');
     if (recipients.length === 0) return setProblem('Add at least one email address.');
     if (bad.length > 0) return setProblem(`${bad[0]} is not a valid email address.`);
-    const payload = { recipients, subject, body, ...(params ?? {}) };
+    // The link is made when the mail is sent: the placeholder stands for it (3c.7b).
+    const text = withLink && !body.includes('{{ invoice_link }}') ? `${body.trimEnd()}\n\nView and download this invoice online: {{ invoice_link }}` : body;
+    const payload = { recipients, subject, body: text, ...(params ?? {}) };
     try {
       await send.mutateAsync({ body: payload, intent: slot.for(JSON.stringify(payload)) });
       slot.clear();
@@ -112,6 +115,12 @@ const EmailForm: React.FC<{ family: DocFamily; id: string; params?: StatementPar
         <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={9} className={cn(FIELD, 'py-2 leading-relaxed')} maxLength={5000} aria-label="Message" />
         <span className="text-xs font-normal text-text-muted">The PDF is attached. The wording comes from your company’s email template (Settings, General).</span>
       </label>
+      {draft.can_share && (
+        <label className="flex items-start gap-2 text-[13px] text-text-primary">
+          <input type="checkbox" className="mt-0.5" checked={withLink} onChange={(e) => setWithLink(e.target.checked)} />
+          <span>Include an online link to this invoice<span className="block text-xs text-text-muted">The customer can open it without signing in and see what is still due. It works for 90 days. You can turn it off on the invoice page.</span></span>
+        </label>
+      )}
       {problem && <p role="alert" className="text-[13px] text-danger">{problem}</p>}
       <DialogFooter>
         <button type="button" className={BTN_SECONDARY} onClick={onClose}>Cancel</button>

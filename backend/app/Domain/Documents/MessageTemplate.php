@@ -22,6 +22,7 @@ final class MessageTemplate
         'total' => 'Document total with currency',
         'amount_due' => 'Amount still unpaid, with currency',
         'days_overdue' => 'Days past the due date (overdue reminders)',
+        'invoice_link' => 'Online link to view and download the invoice (invoices only; making it needs the right to share)',
         'period_from' => 'Statement start date',
         'period_to' => 'Statement end date',
         'closing_balance' => 'Statement closing balance',
@@ -37,6 +38,14 @@ final class MessageTemplate
         preg_match_all('/\{\{\s*([^}]*?)\s*\}\}/', $text, $m);
 
         return array_values(array_unique(array_filter($m[1], fn (string $n) => ! array_key_exists($n, self::PLACEHOLDERS))));
+    }
+
+    /** Whether $text uses the placeholder $name. */
+    public static function uses(string $text, string $name): bool
+    {
+        preg_match_all(self::PATTERN, $text, $m);
+
+        return in_array($name, $m[1], true);
     }
 
     /** @param array<string, string> $values */

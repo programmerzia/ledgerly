@@ -12,6 +12,7 @@ use App\Models\Organisation\Company;
 use App\Services\Documents\DocumentLook;
 use App\Services\Documents\DocumentPdf;
 use App\Services\Documents\EmailTargets;
+use App\Services\Sharing\InvoiceLinkAccess;
 use App\Support\Actor;
 use App\Support\ActorType;
 use App\Support\Audit\DetachedAudit;
@@ -58,10 +59,10 @@ final class SendDocumentEmail implements ShouldQueue
                 }
                 $look = $looks->for($this->companyId);
                 Mail::to($send->recipients)->send(new DocumentMail($company->name, $send->subject, $send->body, $send->attachment_name, $built['pdf'], $look['sender_name'], $look['reply_to']));
-                $send->forceFill(['status' => 'sent', 'sent_at' => $clock->now()])->save();
+                $send->forceFill(['status' => 'sent', 'sent_at' => $clock->now(), ...InvoiceLinkAccess::scrubbed($send->subject, $send->body)])->save();
                 $audit->record($actor, 'document.emailed', $subject, ['send_id' => $send->id, 'document_type' => $send->document_type, 'to' => $send->recipients]);
             } catch (Throwable $e) {
-                $send->forceFill(['status' => 'failed', 'error' => mb_substr($e->getMessage(), 0, 500)])->save();
+                $send->forceFill(['status' => 'failed', 'error' => mb_substr($e->getMessage(), 0, 500), ...InvoiceLinkAccess::scrubbed($send->subject, $send->body)])->save();
                 $audit->record($actor, 'document.email_failed', $subject, ['send_id' => $send->id, 'document_type' => $send->document_type, 'to' => $send->recipients]);
                 if ($send->queued_by !== null) {
                     app(OutboxPublisher::class)->publish(new NotificationEvent(NotificationEvent::SEND_FAILED, [

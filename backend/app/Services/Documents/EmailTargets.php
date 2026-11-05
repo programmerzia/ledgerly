@@ -74,6 +74,8 @@ final class EmailTargets
                 'document_number' => (string) $doc->number, 'document_type' => $note ? 'Credit note' : 'Invoice',
                 'issue_date' => $this->date($doc->issue_date), 'due_date' => $this->date($doc->due_date),
                 'total' => $money->withCode($doc->total_fc), 'amount_due' => $money->withCode($doc->amountDueFc()),
+                // The draft keeps the placeholder as typed; the link is made when the mail is sent.
+                'invoice_link' => $note ? '' : '{{ invoice_link }}',
             ],
         ];
     }

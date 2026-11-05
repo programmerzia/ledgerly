@@ -15,9 +15,11 @@ use App\Models\BaseModel;
 use App\Models\Documents\DocumentSend;
 use App\Models\Organisation\Company;
 use App\Models\Platform\User;
+use App\Models\Trade\Invoice;
 use App\Services\Documents\DocumentLook;
 use App\Services\Documents\EmailTarget;
 use App\Services\Documents\EmailTargets;
+use App\Services\Sharing\InvoiceLinkAccess;
 use App\Support\Actor;
 use App\Support\ActorType;
 use App\Support\UnitOfWork\AuditBuffer;
@@ -43,6 +45,7 @@ final class SendDocumentByEmail
         private readonly SetupGuard $guard,
         private readonly EmailTargets $targets,
         private readonly DocumentLook $look,
+        private readonly InvoiceLinkAccess $links,
     ) {}
 
     public function handle(Actor $actor, BaseModel $document, SendDocumentInput $in): DocumentSend
@@ -81,8 +84,21 @@ final class SendDocumentByEmail
 
         $recipients = self::recipients($in->recipients);
         $template = $this->look->for($company->id)['email'][$target->family];
-        $subject = trim(preg_replace('/\s+/', ' ', MessageTemplate::render($in->subject ?? $template['subject'], $target->values)) ?? '');
-        $body = trim(str_replace("\r\n", "\n", MessageTemplate::render($in->body ?? $template['body'], $target->values)));
+        $rawSubject = $in->subject ?? $template['subject'];
+        $rawBody = $in->body ?? $template['body'];
+        $values = $target->values;
+        // An online link is made only when the message uses it, so an ordinary email creates nothing public (plan 3c.7b).
+        $values['invoice_link'] = '';
+        if ($target->family === 'invoice' && $locked instanceof Invoice && (MessageTemplate::uses($rawSubject, 'invoice_link') || MessageTemplate::uses($rawBody, 'invoice_link'))) {
+            if ($actor->type !== ActorType::System) {
+                $this->guard->require($actor, 'documents.share', $in->companyId);
+            }
+            $made = $this->links->issue($actor->tenantId, $locked, 'email', $actor->id, (int) config('documents.email_link_days'));
+            $values['invoice_link'] = $this->links->url($made['token']);
+            $audit->add('invoice.link_created', $locked, context: ['link_id' => $made['link']->id, 'channel' => 'email', 'expires_at' => $made['link']->expires_at?->toIso8601String()]);
+        }
+        $subject = trim(preg_replace('/\s+/', ' ', MessageTemplate::render($rawSubject, $values)) ?? '');
+        $body = trim(str_replace("\r\n", "\n", MessageTemplate::render($rawBody, $values)));
         if ($subject === '' || mb_strlen($subject) > 200) {
             throw DomainRuleViolation::single('subject_invalid', 'Give the email a subject of at most 200 characters.');
         }

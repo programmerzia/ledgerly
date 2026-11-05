@@ -31,7 +31,7 @@ final class CreateCompany
 {
     private const array RESERVED_SLUGS = [
         'new-company', 'login', 'logout', 'register', 'admin', 'api', 'sanctum', 'onboarding', 'invitations',
-        'two-factor-challenge', 'forgot-password', 'reset-password', 'assets', 'practice',
+        'two-factor-challenge', 'forgot-password', 'reset-password', 'assets', 'practice', 'i',
     ];
 
     public function __construct(

@@ -57,6 +57,7 @@ import { BankImportLive } from './pages/Banking/live/BankImportLive';
 import { RecurringInvoices } from './pages/Sales/RecurringInvoices';
 import { ReceiptViewLive } from './pages/Sales/live/ReceiptViewLive';
 import { StatementRunLive } from './pages/Sales/live/StatementRunLive';
+import { PublicInvoicePage } from './pages/Public/PublicInvoicePage';
 import { InvoicesListLive } from './pages/Sales/live/InvoicesListLive';
 import { NewCreditNoteLive } from './pages/Sales/live/InvoiceFormLive';
 import { BillsListLive, PaymentFormLive, PaymentViewLive, RecurringBillsLive } from './pages/Purchases/live';
@@ -160,6 +161,8 @@ export default function App() {
         {IS_LIVE && <Route path="/forgot-password" element={<LiveForgotPassword />} />}
         {IS_LIVE && <Route path="/reset-password/:token" element={<LiveResetPassword />} />}
         {IS_LIVE && <Route path="/invitations/:token" element={<LiveAcceptInvitation />} />}
+        {/* The online invoice a customer opens from an email (3c.7b): no sign-in, no company in the address. */}
+        {IS_LIVE && <Route path="/i/:token" element={<PublicInvoicePage />} />}
 
         {/* Platform Admin Auth */}
         <Route path="/admin/login" element={<AdminLogin />} />
