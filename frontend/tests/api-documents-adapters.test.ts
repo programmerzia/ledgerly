@@ -1,18 +1,43 @@
 import { describe, expect, it } from 'vitest';
-import { docBasePath, filenameFrom } from '../src/api/adapters/documents';
+import { docBasePath, filenameFrom, hasQueuedSend, looksLikeEmail, parseRecipients, sendLook, type ApiSend } from '../src/api/adapters/documents';
 import { isHexColor, logoProblem, lookPatch, toLookForm, unknownPlaceholders } from '../src/api/adapters/documentLook';
 
-describe('document paths', () => {
+describe('document paths and recipients', () => {
   it('addresses a statement under the contact and everything else under its own family', () => {
     expect(docBasePath('invoices', 'abc')).toBe('invoices/abc');
     expect(docBasePath('wht-certificates', 'abc')).toBe('wht-certificates/abc');
     expect(docBasePath('contacts', 'abc')).toBe('contacts/abc/statement');
   });
 
+  it('splits recipients on commas, semicolons and spaces, lower-cases and drops duplicates and blanks', () => {
+    expect(parseRecipients('A@B.com, c@d.com; a@b.com  e@f.com,')).toEqual(['a@b.com', 'c@d.com', 'e@f.com']);
+    expect(parseRecipients('  ')).toEqual([]);
+  });
+
+  it('recognises something that looks like an address', () => {
+    expect(looksLikeEmail('a@b.co')).toBe(true);
+    expect(['a@b', 'a b@c.d', '@c.d', 'plain'].some(looksLikeEmail)).toBe(false);
+  });
+
   it('reads the file name from the download header', () => {
     expect(filenameFrom('attachment; filename=Invoice-INV-1.pdf', 'x.pdf')).toBe('Invoice-INV-1.pdf');
     expect(filenameFrom('attachment; filename="Credit-note-CN 1.pdf"', 'x.pdf')).toBe('Credit-note-CN 1.pdf');
     expect(filenameFrom(null, 'x.pdf')).toBe('x.pdf');
+  });
+});
+
+describe('send log words', () => {
+  it('says what each status means and never claims delivery', () => {
+    expect(sendLook('sent').label).toBe('Sent');
+    expect(sendLook('failed')).toEqual({ label: 'Not sent', tone: 'bad' });
+    expect(sendLook('queued').tone).toBe('wait');
+  });
+
+  it('keeps polling only while a mail is still queued', () => {
+    const row = (status: string) => ({ status }) as ApiSend;
+    expect(hasQueuedSend([row('sent'), row('queued')])).toBe(true);
+    expect(hasQueuedSend([row('sent'), row('failed')])).toBe(false);
+    expect(hasQueuedSend(undefined)).toBe(false);
   });
 });
 

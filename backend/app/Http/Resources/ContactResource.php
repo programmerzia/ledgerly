@@ -49,7 +49,7 @@ final class ContactResource extends JsonResource
                 'payable' => Json::money((int) $this->resource->getAttributes()['open_balances']['payable'], Json::baseCurrency($request)),
             ]),
             'version' => $this->lock_version,
-            'can' => Json::can($request, $this->resource, ['update' => 'update', 'deactivate' => 'deactivate']),
+            'can' => Json::can($request, $this->resource, ['update' => 'update', 'deactivate' => 'deactivate', 'send' => 'send']),
         ];
     }
 }

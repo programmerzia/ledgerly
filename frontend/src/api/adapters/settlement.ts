@@ -18,12 +18,14 @@ export interface SettlementCan {
   void: boolean;
   reverse: boolean;
   allocate: boolean;
+  /** May email this payment advice (3c.5). */
+  send: boolean;
 }
 
 export function toSettlementCan(raw: unknown): SettlementCan {
   const r = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
   const b = (k: string) => r[k] === true;
-  return { update: b('update'), submit: b('submit'), approve: b('approve'), return: b('return'), void: b('void'), reverse: b('reverse'), allocate: b('allocate') };
+  return { update: b('update'), submit: b('submit'), approve: b('approve'), return: b('return'), void: b('void'), reverse: b('reverse'), allocate: b('allocate'), send: b('send') };
 }
 
 export interface LiveAllocation {

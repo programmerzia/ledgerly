@@ -3,7 +3,7 @@ import { API_BASE_URL } from '../config';
 import { NetworkError, problemToError } from '../errors';
 import { http } from '../http';
 import type { Intent } from '../idempotency';
-import { docBasePath, filenameFrom, type DocFamily, type PdfOutcome, type StatementParams } from '../adapters/documents';
+import { docBasePath, filenameFrom, type ApiSend, type DocFamily, type EmailDraft, type PdfOutcome, type StatementParams } from '../adapters/documents';
 
 const root = (company: string, family: DocFamily, id: string) => `/v1/companies/${company}/${docBasePath(family, id)}`;
 
@@ -31,6 +31,26 @@ export async function fetchPdf(company: string, family: DocFamily, id: string, p
   if (!res.ok) throw problemToError(res.status, json, res.headers);
   return json?.data?.status === 'failed' ? { state: 'failed' } : { state: 'pending' };
 }
+
+const statementQuery = (params?: StatementParams) => (params ? `?${new URLSearchParams(params as unknown as Record<string, string>).toString()}` : '');
+
+export const fetchEmailDraft = async (company: string, family: DocFamily, id: string, params?: StatementParams): Promise<EmailDraft> =>
+  (await http.send<{ data: EmailDraft }>('GET', `${root(company, family, id)}/email-draft${statementQuery(params)}`)).data;
+
+export interface SendBody {
+  recipients: string[];
+  subject: string;
+  body: string;
+  from?: string;
+  to?: string;
+  side?: 'customer' | 'supplier';
+}
+
+export const sendEmail = async (company: string, family: DocFamily, id: string, body: SendBody, intent: Intent): Promise<ApiSend> =>
+  (await http.send<{ data: ApiSend }>('POST', `${root(company, family, id)}/emails`, body, intent)).data;
+
+export const listSends = async (company: string, family: DocFamily, id: string): Promise<ApiSend[]> =>
+  (await http.send<{ data: ApiSend[] }>('GET', `${root(company, family, id)}/emails`)).data;
 
 /** Logo upload (multipart, field `file`) and removal. */
 export const uploadLogo = async (company: string, file: File, intent: Intent): Promise<void> => {

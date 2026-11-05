@@ -5,7 +5,7 @@ import { CheckCircle, Clock, FilePlus, Link2, Pencil, Receipt, RotateCcw, Send, 
 import { PageHeader } from '@/components/domain/PageHeader';
 import { SignDialog } from '@/components/domain/SignDialog';
 import { AttachmentsPanel } from '@/components/live/AttachmentsPanel';
-import { PdfButton } from '@/components/live/DocumentActions';
+import { EmailButton, PdfButton, SendLog } from '@/components/live/DocumentActions';
 import { MoneyInput } from '@/components/domain/MoneyInput';
 import { ConflictDialog, type VersionConflict } from '@/components/domain/ConflictDialog';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -239,7 +239,12 @@ export const InvoiceViewLive: React.FC<{ side?: Side }> = ({ side = 'sales' }) =
         subtitle={customer?.name}
         meta={<DocStatusPill doc={doc} />}
         actions={
-          <PdfButton family={side === 'sales' ? 'invoices' : 'bills'} id={doc.id} />
+          <>
+            <PdfButton family={side === 'sales' ? 'invoices' : 'bills'} id={doc.id} />
+            {side === 'sales' && doc.can.send && (
+              <EmailButton family="invoices" id={doc.id} disabled={doc.status !== 'posted'} why="Post it first, then send it." />
+            )}
+          </>
         }
       />
 
@@ -466,6 +471,8 @@ export const InvoiceViewLive: React.FC<{ side?: Side }> = ({ side = 'sales' }) =
         busy={busy}
         onUndo={(p) => { setProblem(''); setUndoTarget(p); setDialog('undo'); }}
       />
+
+      {side === 'sales' && <SendLog family="invoices" id={doc.id} />}
 
       <AttachmentsPanel type={side === 'sales' ? 'invoice' : 'bill'} parentId={doc.id} posted={doc.status === 'posted' || doc.status === 'reversed'} />
 

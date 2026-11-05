@@ -134,7 +134,7 @@ export const CustomerCardLive: React.FC<{ side?: Side }> = ({ side = 'sales' }) 
         ))}
       </div>
 
-      {tab === 'overview' && <StatementCard contactId={c.id} side={side === 'sales' ? 'customer' : 'supplier'} />}
+      {tab === 'overview' && <StatementCard contactId={c.id} side={side === 'sales' ? 'customer' : 'supplier'} canSend={c.can.send} />}
 
       {tab === 'overview' && (
         <dl className="grid gap-x-8 gap-y-3 rounded-lg border border-border bg-surface p-5 text-[13px] sm:grid-cols-2">

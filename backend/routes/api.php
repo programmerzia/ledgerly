@@ -8,6 +8,7 @@ use App\Http\Controllers\Banking\BankAccountController;
 use App\Http\Controllers\Banking\BankMatchingController;
 use App\Http\Controllers\Banking\BankReconciliationController;
 use App\Http\Controllers\Banking\BankRuleController;
+use App\Http\Controllers\Documents\DocumentEmailController;
 use App\Http\Controllers\Documents\DocumentPdfController;
 use App\Http\Controllers\Files\AttachmentBlobController;
 use App\Http\Controllers\Files\AttachmentController;
@@ -320,6 +321,11 @@ Route::middleware(['auth:sanctum', 'tenant', 'tenant.writable', 'idempotent', 'c
             $guard = fn (Illuminate\Routing\Route $route, string $ability) => $statement ? $route->can($ability, $param)->can('view', Report::class) : $route->can($ability, $param);
             $guard(Route::post("{$base}/pdf", [DocumentPdfController::class, 'store'])->whereUuid($param)->defaults('family', $family)->middleware('throttle:document-pdfs')->name("{$key}.pdf.store"), 'view');
             $guard(Route::get("{$base}/pdf/{pdfId}", [DocumentPdfController::class, 'show'])->whereUuid([$param, 'pdfId'])->defaults('family', $family)->name("{$key}.pdf.show"), 'view');
+            if (in_array($family, ['invoices', 'settlements', 'contacts'], true)) {
+                $guard(Route::get("{$base}/email-draft", [DocumentEmailController::class, 'draft'])->whereUuid($param)->defaults('family', $family)->name("{$key}.email-draft"), 'view');
+                $guard(Route::get("{$base}/emails", [DocumentEmailController::class, 'index'])->whereUuid($param)->defaults('family', $family)->name("{$key}.emails.index"), 'view');
+                $guard(Route::post("{$base}/emails", [DocumentEmailController::class, 'store'])->whereUuid($param)->defaults('family', $family)->middleware('throttle:document-emails')->name("{$key}.emails.store"), 'send');
+            }
         }
 
         // Recurring invoices, bills and journals: schedules copy a posted template into drafts on each due date (doc 14 E2)

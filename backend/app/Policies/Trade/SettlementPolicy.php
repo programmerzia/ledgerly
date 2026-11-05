@@ -77,6 +77,12 @@ final class SettlementPolicy
         return $s->status === DocumentStatus::Posted && $this->context->personCan($principal, $s->module().'.reverse', $s->company_id);
     }
 
+    /** Email a payment advice (plan 3c.5); whether it is a payment and posted is the Action's call. */
+    public function send(Authenticatable $principal, Settlement $s): bool
+    {
+        return $this->context->personCan($principal, 'documents.send', $s->company_id) && $this->view($principal, $s);
+    }
+
     /** Apply the credit on account of a posted receipt or payment to an open document. */
     public function allocate(Authenticatable $principal, Settlement $s): bool
     {

@@ -94,7 +94,7 @@ describe('toDoc', () => {
   });
   it('only trusts can hints that are exactly true', () => {
     const d = toDoc(apiInvoice({ can: { reverse: true, submit: 'yes', approve: 1 } }));
-    expect(d.can).toEqual({ update: false, submit: false, approve: false, return: false, void: false, reverse: true, override_match: false });
+    expect(d.can).toEqual({ update: false, submit: false, approve: false, return: false, void: false, reverse: true, override_match: false, send: false });
   });
   it('refuses a fractional amount (contract break) instead of rounding it', () => {
     expect(() => toDoc(apiInvoice({ total_fc: eur(10.5) }))).toThrow();
@@ -244,7 +244,7 @@ describe('contacts', () => {
     expect(c.baseCurrency).toBe('USD');
     expect(c.billing_address).toEqual(['Moi Avenue 12', 'Nairobi']);
     expect(c.kind).toBe('both');
-    expect(c.can).toEqual({ update: true, deactivate: true });
+    expect(c.can).toEqual({ update: true, deactivate: true, send: false });
   });
   it('reads an address that comes back as a keyed object', () => {
     expect(addressLines({ line1: 'A', city: 'B' })).toEqual(['A', 'B']);

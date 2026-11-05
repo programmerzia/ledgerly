@@ -6,7 +6,7 @@ import { PageHeader } from '@/components/domain/PageHeader';
 import { StatusPill } from '@/components/domain/StatusPill';
 import { SignDialog } from '@/components/domain/SignDialog';
 import { AttachmentsPanel } from '@/components/live/AttachmentsPanel';
-import { PdfButton } from '@/components/live/DocumentActions';
+import { EmailButton, PdfButton, SendLog } from '@/components/live/DocumentActions';
 import { MoneyInput } from '@/components/domain/MoneyInput';
 import { ConflictDialog, type VersionConflict } from '@/components/domain/ConflictDialog';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -179,7 +179,12 @@ export const ReceiptViewLive: React.FC<{ side?: Side }> = ({ side = 'sales' }) =
         subtitle={customer?.name}
         meta={<StatusPill status={r.status} />}
         actions={
-          <PdfButton family="settlements" id={r.id} />
+          <>
+            <PdfButton family="settlements" id={r.id} />
+            {(r.kind === 'payment' || r.kind === 'refund') && r.can.send && (
+              <EmailButton family="settlements" id={r.id} label="Email advice" disabled={r.status !== 'posted'} why="Post it first, then send it." />
+            )}
+          </>
         }
       />
 
@@ -295,6 +300,8 @@ export const ReceiptViewLive: React.FC<{ side?: Side }> = ({ side = 'sales' }) =
           </section>
         </aside>
       </div>
+
+      {(r.kind === 'payment' || r.kind === 'refund') && <SendLog family="settlements" id={r.id} />}
 
       <AttachmentsPanel type="settlement" parentId={r.id} posted={r.status === 'posted' || r.status === 'reversed'} />
 

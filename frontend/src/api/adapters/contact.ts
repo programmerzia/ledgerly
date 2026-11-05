@@ -11,6 +11,8 @@ export type ApiContact = components['schemas']['ContactResource'];
 export interface ContactCan {
   update: boolean;
   deactivate: boolean;
+  /** May email a statement (3c.5). */
+  send: boolean;
 }
 
 export interface LiveContact extends Contact {
@@ -37,7 +39,7 @@ export function addressLines(a: unknown): string[] {
 
 export function toContactCan(raw: unknown): ContactCan {
   const r = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
-  return { update: r.update === true, deactivate: r.deactivate === true };
+  return { update: r.update === true, deactivate: r.deactivate === true, send: r.send === true };
 }
 
 export function toContact(a: ApiContact, scope: { tenantId: string; companyId: string }): LiveContact {
