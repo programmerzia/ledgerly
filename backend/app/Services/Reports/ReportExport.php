@@ -9,6 +9,7 @@ use App\Queries\Reports\GeneralLedger;
 use App\Queries\Reports\LedgerLines;
 use App\Queries\Reports\ReportParamsResolver;
 use App\Queries\Reports\RunReport;
+use App\Support\Formats\CompanyFormats;
 use App\Support\Reports\Export\PdfRenderer;
 use App\Support\Reports\Export\ReportRow;
 use App\Support\Reports\Export\ReportTable;
@@ -58,7 +59,7 @@ final class ReportExport
         $table = ReportTables::of(RunReport::STATEMENTS[$name] ?? throw new InvalidArgumentException("Unknown report {$name}."), ($this->statements)($name, $company, $input), $company->name, $decimals);
         $rows = is_array($table->rows) ? $table->rows : iterator_to_array($table->rows, false);
 
-        return ['table' => new ReportTable($table->title, $table->subtitle, $table->columns, $rows, $decimals), 'rows' => count($rows)];
+        return ['table' => new ReportTable($table->title, $table->subtitle, $table->columns, $rows, $decimals, CompanyFormats::for($company)), 'rows' => count($rows)];
     }
 
     /** Writes the table to a path (a file or `php://output`) in the format. */
@@ -117,6 +118,7 @@ final class ReportExport
             ],
             $generate(),
             $decimals,
+            CompanyFormats::for($company),
         );
 
         return ['table' => $table, 'rows' => $count + 2];

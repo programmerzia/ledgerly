@@ -9,6 +9,7 @@ import { fieldError } from '@/api/messages';
 import type { Company } from '@/types';
 import { useApplyChartTemplate, useChartTemplates, useCreateTaxCode, useTaxCodes } from '@/data/setup';
 import { useInvitations } from '@/data/team';
+import { useAccess } from '@/data/menu';
 import { Field, FormError, LoadError, Loading, field, primary, secondary } from '@/components/live/form';
 import { InviteForm } from '@/pages/Settings/live/InviteForm';
 
@@ -156,9 +157,10 @@ export const TaxStep: React.FC<{ company: Company; onNext: () => void; onSkip: (
 };
 
 export const TeamStep: React.FC<{ company: Company; onNext: () => void; onSkip: () => void }> = ({ company, onNext, onSkip }) => {
-  const invitations = useInvitations();
+  const access = useAccess();
+  const invitations = useInvitations(access.ready && access.orgAdmin);
   const [sent, setSent] = useState<string[]>([]);
-  const forbidden = invitations.error instanceof ApiError && invitations.error.status === 403;
+  const forbidden = (access.ready && !access.orgAdmin) || (invitations.error instanceof ApiError && invitations.error.status === 403);
   if (forbidden) {
     return (
       <>

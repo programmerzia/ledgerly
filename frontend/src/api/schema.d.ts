@@ -3349,7 +3349,60 @@ export interface paths {
         /** The company's roles with their permissions and head count */
         get: operations["roles.index"];
         put?: never;
+        /** Creates a custom role (copying a role is the same call with that role's permissions) */
+        post: operations["roles.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/permissions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Every permission of the matrix by module, with a plain-language label: the rows of the role grid */
+        get: operations["permissions.index"];
+        put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/roles/{role}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Changes a role's permissions (and a custom role's name). The Owner role is locked */
+        put: operations["roles.update"];
+        post?: never;
+        /** Deletes a custom role nobody holds */
+        delete: operations["roles.destroy"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/roles/{role}/reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Puts a standard role back to the default permissions */
+        post: operations["roles.reset"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3369,6 +3422,23 @@ export interface paths {
         post?: never;
         /** Takes a role away; taking away a role the member does not hold changes nothing */
         delete: operations["members.roles.revoke"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/menu": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** `{sections, permissions, org_admin}`; people only, API clients have no menu */
+        get: operations["menu.show"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -3465,6 +3535,22 @@ export interface paths {
         };
         get?: never;
         put: operations["numbering.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/organisation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["organisation.show"];
+        put: operations["organisation.update"];
         post?: never;
         delete?: never;
         options?: never;
@@ -6427,6 +6513,12 @@ export interface components {
             }[];
             comment?: string | null;
         };
+        /**
+         * CalendarType
+         * @description How a fiscal year is cut into its 12 regular periods (PRD §4.3). `Monthly` follows calendar months. The others are week-based: 52 whole weeks (364 days) in a 4-4-5, 4-5-4 or 5-4-4 pattern, repeated for each of the four quarters.
+         * @enum {string}
+         */
+        CalendarType: "monthly" | "4-4-5" | "4-5-4" | "5-4-4";
         /** ChartTemplateResource */
         ChartTemplateResource: {
             code: string;
@@ -6467,9 +6559,22 @@ export interface components {
             tax_id: string | null;
             timezone: string;
             status: string;
+            /** @description How this company's dates and numbers read (plan 3c.26b): the chosen format, or its country's usual one. */
+            formats: {
+                date: string;
+                number: string;
+            };
             can: {
                 [key: string]: boolean;
             };
+        };
+        /**
+         * CompanyRoleRequest
+         * @description A custom role's name and its complete set of permission names (names the matrix does not have are refused by the Action).
+         */
+        CompanyRoleRequest: {
+            name: string;
+            permissions: string[];
         };
         /** CompanySettingsResource */
         CompanySettingsResource: {
@@ -6489,6 +6594,24 @@ export interface components {
                     code: string;
                     name: string;
                 } | null;
+            };
+            /**
+             * @description Date and number formats (plan 3c.26b). `date` / `number` are what is in force; `date_chosen` / `number_chosen` are the company's
+             *     own choice, null while it follows the country. Options are keys with an example.
+             */
+            formats: {
+                date: string;
+                number: string;
+                date_chosen: string | null;
+                number_chosen: string | null;
+                date_options: {
+                    key: string;
+                    example: string;
+                }[];
+                number_options: {
+                    key: string;
+                    example: string;
+                }[];
             };
             /** @description Above it a bank transaction needs a covering journal workflow; null: no limit. */
             journal_threshold: {
@@ -6690,12 +6813,14 @@ export interface components {
         };
         /**
          * CreateFiscalYearRequest
-         * @description A year of twelve months from `starts_on`, plus its adjustment period.
+         * @description A year of twelve periods from `starts_on` (calendar months by default, or 52 weeks in a week pattern), plus its adjustment period.
          */
         CreateFiscalYearRequest: {
             name: string;
             /** Format: date */
             starts_on: string;
+            calendar?: components["schemas"]["CalendarType"];
+            extra_week_period?: number | null;
         };
         /**
          * CreateInvoiceLinkRequest
@@ -7038,6 +7163,8 @@ export interface components {
             starts_on: string | null;
             ends_on: string | null;
             status: string;
+            calendar: string;
+            extra_week_period: number | null;
             periods?: components["schemas"]["FiscalPeriodResource"][];
             can: {
                 [key: string]: boolean;
@@ -8589,6 +8716,10 @@ export interface components {
             name: string;
             permissions: unknown[];
             members: number;
+            /** @description Plan 3c.25: a standard role keeps its name, Owner is locked completely, an edited standard role can be reset. */
+            system: boolean;
+            locked: boolean;
+            edited: boolean;
         };
         /**
          * RuleOrderRequest
@@ -18053,6 +18184,153 @@ export interface operations {
             404: components["responses"]["ModelNotFoundException"];
         };
     };
+    "roles.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CompanyRoleRequest"];
+            };
+        };
+        responses: {
+            /** @description `RoleResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["RoleResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "permissions.index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `FreeFormDataResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FreeFormDataResource"];
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "roles.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                role: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CompanyRoleRequest"];
+            };
+        };
+        responses: {
+            /** @description `RoleResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["RoleResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "roles.destroy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                role: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "roles.reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                role: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `RoleResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["RoleResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
     "members.roles.assign": {
         parameters: {
             query?: never;
@@ -18106,6 +18384,32 @@ export interface operations {
                     "application/json": {
                         data: components["schemas"]["MemberResource"];
                     };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "menu.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `FreeFormDataResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FreeFormDataResource"];
                 };
             };
             401: components["responses"]["AuthenticationException"];
@@ -18306,6 +18610,57 @@ export interface operations {
             401: components["responses"]["AuthenticationException"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "organisation.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `FreeFormDataResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FreeFormDataResource"];
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+        };
+    };
+    "organisation.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    name: string;
+                };
+            };
+        };
+        responses: {
+            /** @description `FreeFormDataResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FreeFormDataResource"];
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
             422: components["responses"]["ValidationException"];
         };
     };

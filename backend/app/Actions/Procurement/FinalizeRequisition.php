@@ -9,6 +9,7 @@ use App\Domain\Procurement\RequisitionStatus;
 use App\Domain\Shared\DomainRuleViolation;
 use App\Events\Procurement\ProcurementEvent;
 use App\Models\Procurement\PurchaseRequisition;
+use App\Services\Ledger\DocumentYear;
 use App\Support\Actor;
 use App\Support\UnitOfWork\AuditBuffer;
 use App\Support\UnitOfWork\LockSet;
@@ -18,7 +19,7 @@ use App\Support\UnitOfWork\UnitOfWork;
 /** The last approval has been given (or no workflow applies): the requisition gets its gapless number. Posts nothing (D14). */
 final class FinalizeRequisition
 {
-    public function __construct(private readonly UnitOfWork $uow, private readonly Clock $clock) {}
+    public function __construct(private readonly UnitOfWork $uow, private readonly Clock $clock, private readonly DocumentYear $years) {}
 
     public function handle(Actor $actor, string $requisitionId): PurchaseRequisition
     {
@@ -27,8 +28,8 @@ final class FinalizeRequisition
             if (! in_array($requisition->status, [RequisitionStatus::Draft, RequisitionStatus::PendingApproval], true)) {
                 throw DomainRuleViolation::single('document_not_postable', "A {$requisition->status->value} requisition cannot be approved.");
             }
-            $year = $requisition->requisition_date->format('Y');
-            $number = $locks->sequence($requisition->company_id, "doc:purchase_requisition:{$year}", "PR-{$year}-");
+            [$key, $year] = $this->years->for($requisition->company_id, 'purchase_requisition', $requisition->requisition_date);
+            $number = $locks->sequence($requisition->company_id, $key, "PR-{$year}-");
 
             $before = $requisition->attributesToArray();
             $requisition->forceFill([

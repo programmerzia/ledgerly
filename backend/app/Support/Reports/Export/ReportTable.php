@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Support\Reports\Export;
 
+use App\Domain\Shared\FormatPreferences;
+
 /**
  * A report flattened into rows and columns for the exporters. `rows` may be a generator, so a large ledger
  * streams from the database to the file without being held in memory.
@@ -21,5 +23,7 @@ final readonly class ReportTable
         public iterable $rows,
         /** Minor-unit digits of the currency, to turn integer amounts into decimals. */
         public int $decimals,
+        /** The company's date and number format, used by the PDF only (plan 3c.26b). CSV and XLSX stay machine-readable: ISO dates, plain decimals. */
+        public ?FormatPreferences $formats = null,
     ) {}
 }

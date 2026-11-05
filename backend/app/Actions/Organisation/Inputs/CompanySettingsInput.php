@@ -26,5 +26,7 @@ final readonly class CompanySettingsInput
         public ?string $receiptOverTolerancePct = null,
         public array $documentLook = [],
         public ?string $creditLimitMode = null,
+        /** @var array<string, string|null> Plan 3c.26b: `date_format` / `number_format` the request carried; null puts that one back to the country's default */
+        public array $formats = [],
     ) {}
 }

@@ -28,7 +28,7 @@ it('keeps the ledger invariants and gapless numbers through a full procurement f
     ], $this->key())->assertCreated()->json('data');
     $order = $this->submitDoc('purchase-orders', $draft['id']);
     $line = $order['lines'][0]['id'];
-    expect($order['number'])->toBe('PO-2026-00001')->and($this->journalCount())->toBe(0);
+    expect($order['number'])->toBe('PO-FY2026-00001')->and($this->journalCount())->toBe(0);
 
     // A revision and two receipts, one of them reversed and entered again: still nothing.
     $revision = $this->asPerson($this->accountant)->postJson($this->api("purchase-orders/{$order['id']}/revisions"), $this->reviseBody($order, [0 => ['unit_price_fc' => 10500]]), $this->key())->assertCreated()->json('data');
@@ -70,8 +70,8 @@ it('keeps the ledger invariants and gapless numbers through a full procurement f
         'bills' => DB::table('invoices')->whereNotNull('number')->orderBy('number')->pluck('number')->all(),
     ]);
     expect($numbers)->toBe([
-        'requisitions' => ['PR-2026-00001'], 'orders' => ['PO-2026-00001'],
-        'receipts' => ['GRN-2026-00001', 'GRN-2026-00002', 'GRN-2026-00003'], 'bills' => ['BILL-FY2026-00001', 'BILL-FY2026-00002'],
+        'requisitions' => ['PR-FY2026-00001'], 'orders' => ['PO-FY2026-00001'],
+        'receipts' => ['GRN-FY2026-00001', 'GRN-FY2026-00002', 'GRN-FY2026-00003'], 'bills' => ['BILL-FY2026-00001', 'BILL-FY2026-00002'],
     ]);
 });
 

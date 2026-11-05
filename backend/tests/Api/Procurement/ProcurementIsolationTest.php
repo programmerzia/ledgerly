@@ -40,7 +40,7 @@ function procurementDocsIn(string $tenantId, string $companyId, string $accountI
         $pr = app(CreateRequisitionDraft::class)->handle($actor, new RequisitionDraftInput($companyId, new DateTimeImmutable('2026-03-10'), [new RequisitionLineInput('1', 1000, description: 'Paper', accountId: $accountId)]));
         $line = new OrderLineInput('5', description: 'Widget', accountId: $accountId, unitPriceFc: 1000);
         $po = app(CreatePurchaseOrderDraft::class)->handle($actor, new OrderDraftInput($companyId, $supplierId, new DateTimeImmutable('2026-03-12'), [$line]));
-        DB::table('purchase_orders')->where('id', $po->id)->update(['status' => 'approved', 'number' => 'PO-2026-00001', 'approved_at' => '2026-03-12 10:00:00+00']);
+        DB::table('purchase_orders')->where('id', $po->id)->update(['status' => 'approved', 'number' => 'PO-FY2026-00001', 'approved_at' => '2026-03-12 10:00:00+00']);
         $poLine = (string) DB::table('purchase_order_lines')->where('purchase_order_id', $po->id)->value('id');
         $rev = app(CreateOrderRevision::class)->handle($actor, $po->id, null, new RevisionInput('Reprice', [new OrderLineInput('5', id: $poLine, description: 'Widget', accountId: $accountId, unitPriceFc: 1200)]));
         $grn = app(RecordGoodsReceipt::class)->handle($actor, new GoodsReceiptInput($companyId, $po->id, new DateTimeImmutable('2026-03-20'), [new ReceiptLineInput($poLine, '1')]));

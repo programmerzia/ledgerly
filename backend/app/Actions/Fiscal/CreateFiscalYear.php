@@ -20,7 +20,7 @@ use App\Support\UnitOfWork\LockSet;
 use App\Support\UnitOfWork\Outbox;
 use App\Support\UnitOfWork\UnitOfWork;
 
-/** Creates a fiscal year with 12 monthly periods and its adjustment period (D7). */
+/** Creates a fiscal year with 12 regular periods (calendar months, or 52/53 weeks in a 4-4-5 style pattern) and its adjustment period (D7). */
 final class CreateFiscalYear
 {
     public function __construct(
@@ -36,7 +36,7 @@ final class CreateFiscalYear
             if ($actor->type !== ActorType::System && ! $this->permissions->allows($actor, 'settings.manage', $company->id)) {
                 throw DomainRuleViolation::single('forbidden', 'This needs the settings.manage permission.');
             }
-            $planned = FiscalCalendar::monthly($in->startsOn);
+            $planned = FiscalCalendar::plan($in->calendar, $in->startsOn, $in->extraWeekPeriod);
             $endsOn = $planned[11]->endsOn;
 
             $overlaps = FiscalYear::query()
@@ -57,6 +57,8 @@ final class CreateFiscalYear
                 'starts_on' => $in->startsOn,
                 'ends_on' => $endsOn,
                 'status' => 'open',
+                'calendar' => $in->calendar->value,
+                'extra_week_period' => $in->extraWeekPeriod,
             ])->save();
 
             foreach ($planned as $p) {
@@ -74,7 +76,7 @@ final class CreateFiscalYear
                 ])->save();
             }
 
-            $audit->add('fiscal_year.created', $year, after: $year);
+            $audit->add('fiscal_year.created', $year, after: $year, context: ['calendar' => $in->calendar->value, 'extra_week_period' => $in->extraWeekPeriod]);
 
             return $year;
         });

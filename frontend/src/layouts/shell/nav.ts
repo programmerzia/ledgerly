@@ -1,6 +1,8 @@
 import type React from 'react';
 import { IS_LIVE } from '@/api/config';
 import { isLiveRoute } from '@/data/liveRoutes';
+import type { ApiMenuSection } from '@/api/live/menu';
+import { navIcon } from './navIcons';
 import {
   LayoutDashboard, FileSpreadsheet, CreditCard, BookMarked, BarChart3, CheckSquare, Settings,
   Building, ShieldCheck, Package, Layers, Coins, FileText, Calendar, History, RefreshCw, Upload, ClipboardList,
@@ -96,6 +98,22 @@ const allNavSections = (coSlug: string, pendingApprovalsCount: number): NavSecti
     ],
   },
 ];
+
+/**
+ * Live mode: the sections the server returned for this person (plan 3c.24), still limited to screens connected to the API.
+ * `isLiveRoute` stays the guard on the screens themselves; the menu only decides what is offered.
+ */
+export const navSectionsFromMenu = (coSlug: string, menu: ApiMenuSection[]): NavSection[] =>
+  menu
+    .map((section) => ({
+      id: section.key,
+      title: section.title ?? undefined,
+      defaultCollapsed: section.collapsed || undefined,
+      items: section.items
+        .map((item): NavItem => ({ label: item.label, to: `/${coSlug}/${item.route}`, icon: navIcon(item.icon) }))
+        .filter((item) => isLiveRoute(item.to)),
+    }))
+    .filter((section) => section.items.length > 0);
 
 /** In live mode the menu lists only screens connected to real data, so nobody lands on the not-connected notice. */
 export const buildNavSections = (coSlug: string, pendingApprovalsCount: number): NavSection[] => {

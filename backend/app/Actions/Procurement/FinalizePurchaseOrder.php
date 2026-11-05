@@ -9,6 +9,7 @@ use App\Domain\Procurement\PurchaseOrderStatus;
 use App\Domain\Shared\DomainRuleViolation;
 use App\Events\Procurement\ProcurementEvent;
 use App\Models\Procurement\PurchaseOrder;
+use App\Services\Ledger\DocumentYear;
 use App\Support\Actor;
 use App\Support\UnitOfWork\AuditBuffer;
 use App\Support\UnitOfWork\LockSet;
@@ -21,7 +22,7 @@ use App\Support\UnitOfWork\UnitOfWork;
  */
 final class FinalizePurchaseOrder
 {
-    public function __construct(private readonly UnitOfWork $uow, private readonly Clock $clock) {}
+    public function __construct(private readonly UnitOfWork $uow, private readonly Clock $clock, private readonly DocumentYear $years) {}
 
     public function handle(Actor $actor, string $orderId): PurchaseOrder
     {
@@ -30,8 +31,8 @@ final class FinalizePurchaseOrder
             if (! in_array($order->status, [PurchaseOrderStatus::Draft, PurchaseOrderStatus::PendingApproval], true)) {
                 throw DomainRuleViolation::single('document_not_postable', "A {$order->status->value} order cannot be approved.");
             }
-            $year = $order->order_date->format('Y');
-            $number = $locks->sequence($order->company_id, "doc:purchase_order:{$year}", "PO-{$year}-");
+            [$key, $year] = $this->years->for($order->company_id, 'purchase_order', $order->order_date);
+            $number = $locks->sequence($order->company_id, $key, "PO-{$year}-");
 
             $before = $order->attributesToArray();
             $order->forceFill([

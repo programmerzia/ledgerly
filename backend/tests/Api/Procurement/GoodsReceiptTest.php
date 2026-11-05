@@ -15,13 +15,13 @@ beforeEach(function (): void {
 
 it('moves the order through approved, partly received and received with two partial receipts', function (): void {
     $first = $this->receive($this->order['id'], [[$this->line1, '6'], [$this->line2, '4']])->assertCreated()
-        ->assertJsonPath('data.status', 'recorded')->assertJsonPath('data.number', 'GRN-2026-00001')->assertJsonPath('data.order_number', 'PO-2026-00001')
+        ->assertJsonPath('data.status', 'recorded')->assertJsonPath('data.number', 'GRN-FY2026-00001')->assertJsonPath('data.order_number', 'PO-FY2026-00001')
         ->assertJsonPath('data.contact_name', 'Contact S1')->assertJsonPath('data.lines.0.quantity', '6.000000')->assertJsonPath('data.lines.0.order_line_id', $this->line1)
         ->assertJsonPath('data.lines.0.line_no', 1)->assertJsonPath('data.lines.0.description', 'Widget')->assertJsonPath('data.reference', 'DN-1')->json('data');
     $this->getJson($this->api("purchase-orders/{$this->order['id']}"))->assertJsonPath('data.status', 'partly_received')
         ->assertJsonPath('data.lines.0.open_to_receive', '4.000000')->assertJsonPath('data.lines.1.open_to_receive', '0.000000');
 
-    $second = $this->receive($this->order['id'], [[$this->line1, '4']], '2026-03-22')->assertCreated()->assertJsonPath('data.number', 'GRN-2026-00002')->json('data');
+    $second = $this->receive($this->order['id'], [[$this->line1, '4']], '2026-03-22')->assertCreated()->assertJsonPath('data.number', 'GRN-FY2026-00002')->json('data');
     $this->getJson($this->api("purchase-orders/{$this->order['id']}"))->assertJsonPath('data.status', 'received');
     expect($first['id'])->not->toBe($second['id']);
     $this->getJson($this->api("purchase-orders/{$this->order['id']}/receipts"))->assertOk()->assertJsonCount(2, 'data');
@@ -70,7 +70,7 @@ it('reverses a receipt, restoring the status and the open quantity, and keeps th
 
     $this->getJson($this->api("purchase-orders/{$this->order['id']}"))->assertJsonPath('data.status', 'approved')->assertJsonPath('data.lines.0.open_to_receive', '10.000000');
     $this->getJson($this->api("goods-receipts/{$receipt['id']}"))->assertOk()->assertJsonPath('data.status', 'reversed');
-    $this->receive($this->order['id'], [[$this->line1, '10']])->assertCreated()->assertJsonPath('data.number', 'GRN-2026-00002');
+    $this->receive($this->order['id'], [[$this->line1, '10']])->assertCreated()->assertJsonPath('data.number', 'GRN-FY2026-00002');
 });
 
 it('refuses to reverse twice, and to reverse without a reason', function (): void {

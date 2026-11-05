@@ -20,6 +20,7 @@ use App\Models\Procurement\GoodsReceiptLine;
 use App\Models\Procurement\PurchaseOrder;
 use App\Queries\Procurement\OrderLineFigures;
 use App\Queries\Procurement\ProcurementSettings;
+use App\Services\Ledger\DocumentYear;
 use App\Support\Actor;
 use App\Support\UnitOfWork\AuditBuffer;
 use App\Support\UnitOfWork\LockSet;
@@ -37,6 +38,7 @@ final class RecordGoodsReceipt
         private readonly SetupGuard $guard,
         private readonly OrderLineFigures $figures,
         private readonly IdGenerator $ids,
+        private readonly DocumentYear $years,
     ) {}
 
     public function handle(Actor $actor, GoodsReceiptInput $in): GoodsReceipt
@@ -81,8 +83,8 @@ final class RecordGoodsReceipt
                 throw PostingRejected::because($violations);
             }
 
-            $year = $in->receiptDate->format('Y');
-            $number = $locks->sequence($order->company_id, "doc:goods_receipt:{$year}", "GRN-{$year}-");
+            [$key, $year] = $this->years->for($order->company_id, 'goods_receipt', $in->receiptDate);
+            $number = $locks->sequence($order->company_id, $key, "GRN-{$year}-");
             $receipt = new GoodsReceipt;
             $receipt->forceFill([
                 'id' => $in->id ?? $this->ids->next(), 'tenant_id' => $actor->tenantId, 'company_id' => $order->company_id, 'purchase_order_id' => $order->id,

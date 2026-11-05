@@ -303,7 +303,7 @@ it('renders the PDF template (the Chromium step itself is not run here)', functi
     $table = $this->inTenant(fn () => app(ReportExport::class)->plan('balance-sheet', $this->s->company(), ['period_id' => $this->feb])['table']);
     $html = app(PdfRenderer::class)->html($table);
     expect($html)->toContain('<h1>Balance sheet</h1>')->not->toContain('<script')
-        ->and($html)->toContain('Customer credit balances')->and($html)->toContain('1575.00');
+        ->and($html)->toContain('Customer credit balances')->and($html)->toContain('1,575.00');   // grouped in the company's number format (plan 3c.26b); CSV keeps 1575.00
 });
 
 it('limits exports to ten an hour per company and queues the big ones', function (): void {

@@ -6,11 +6,13 @@ namespace App\Http\Resources;
 
 use App\Actions\Organisation\UpdateCompanySettings;
 use App\Domain\Documents\MessageTemplate;
+use App\Domain\Shared\FormatPreferences;
 use App\Http\Support\Json;
 use App\Models\Ledger\Account;
 use App\Models\Organisation\Company;
 use App\Models\Organisation\CompanySettings;
 use App\Services\Documents\DocumentLook;
+use App\Support\Formats\CompanyFormats;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -48,6 +50,13 @@ final class CompanySettingsResource extends JsonResource
             'fiscal_year_start_month' => $this->fiscal_year_start_month,
             'tax_rounding' => $settings === null ? 'document_per_code' : $settings->tax_rounding,
             'posting_accounts' => $posting,
+            /**
+             * Date and number formats (plan 3c.26b). `date` / `number` are what is in force; `date_chosen` / `number_chosen` are the company's
+             * own choice, null while it follows the country. Options are keys with an example.
+             *
+             * @var array{date: string, number: string, date_chosen: string|null, number_chosen: string|null, date_options: list<array{key: string, example: string}>, number_options: list<array{key: string, example: string}>}
+             */
+            'formats' => $this->formats($settings),
             /** Above it a bank transaction needs a covering journal workflow; null: no limit. */
             'journal_threshold' => $threshold === null ? null : Json::money($threshold, $this->base_currency),
             'require_purchase_order' => $settings !== null && (bool) $settings->getAttribute('require_purchase_order'),
@@ -76,6 +85,21 @@ final class CompanySettingsResource extends JsonResource
             'credit_limit_mode' => $settings === null ? 'off' : (string) $settings->getAttribute('credit_limit_mode'),
             'version' => $settings === null ? 0 : (int) $settings->getAttribute('lock_version'),
             'can' => ['update' => (bool) $request->user()?->can('update', $this->resource)],
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    private function formats(?CompanySettings $settings): array
+    {
+        $date = $settings?->getAttribute('date_format');
+        $number = $settings?->getAttribute('number_format');
+        $inForce = CompanyFormats::for($this->resource);
+
+        return [
+            'date' => $inForce->dateKey, 'number' => $inForce->numberKey,
+            'date_chosen' => is_string($date) ? $date : null, 'number_chosen' => is_string($number) ? $number : null,
+            'date_options' => array_map(fn (string $k, array $f) => ['key' => $k, 'example' => $f['label']], array_keys(FormatPreferences::DATE_FORMATS), FormatPreferences::DATE_FORMATS),
+            'number_options' => array_map(fn (string $k, array $f) => ['key' => $k, 'example' => $f['label']], array_keys(FormatPreferences::NUMBER_FORMATS), FormatPreferences::NUMBER_FORMATS),
         ];
     }
 

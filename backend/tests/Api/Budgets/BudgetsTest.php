@@ -264,8 +264,9 @@ it('filters budget and actual by dimension value, and shows the dashboard note o
     // A value that does not exist is refused.
     saveCells($this, makeBudget($this, 'Bad dim'), [cell($this, '4000', 1, 5, [$ids['dim'] => (string) Str::uuid7()])])->assertStatus(422)->assertJsonPath('code', 'dimension_value_invalid');
 
+    $this->clock->advance('+1 month'); // mid-April: March is the last completed month (plan 3c.16a)
     $card = $this->asPerson($this->accountant)->getJson($this->api('budgets/dashboard-card'))->assertOk()->json('data');
-    expect($card['budget']['id'])->toBe($budget['id'])->and($card['basis'])->toBe('ytd')->and($card['revenue']['actual']['amount'])->toBe(100000)
+    expect($card['budget']['id'])->toBe($budget['id'])->and($card['basis'])->toBe('ytd')->and($card['to'])->toBe('2026-03-31')->and($card['period']['name'])->toBe('Mar 2026')->and($card['revenue']['actual']['amount'])->toBe(100000)
         ->and($card['revenue']['budget']['amount'])->toBe(110000)->and($card['net_profit']['favourable'])->toBeFalse();
 });
 
@@ -298,4 +299,26 @@ it('imports budget amounts through the framework: validated preview, then one at
     // An account that is not income or expense, or a repeated cell, is a row error in the preview.
     $worse = $this->previewed('budget_lines', "Account,Month,Amount\n1000,1,5\n4000,1,7\n4000,1,8\n", $map, ['budget_id' => $budget['id']], $this->accountant);
     expect($worse['rows_invalid'])->toBe(2);
+});
+
+it('compares the dashboard note with the budget through the last completed month, not the running one', function (): void {
+    $this->sale(50000, '2026-02-10');
+    $this->sale(100000, '2026-03-15');
+    approvedBudget($this, [cell($this, '4000', 2, 40000), cell($this, '4000', 3, 60000)]);
+    $card = fn () => $this->asPerson($this->accountant)->getJson($this->api('budgets/dashboard-card'))->assertOk()->json('data');
+
+    // 15 March: only February is complete. March's 60,000 of budget and 100,000 of sales are both left out.
+    $feb = $card();
+    expect($feb['period']['name'])->toBe('Feb 2026')->and($feb['to'])->toBe('2026-02-28')
+        ->and($feb['revenue']['budget']['amount'])->toBe(40000)->and($feb['revenue']['actual']['amount'])->toBe(50000);
+
+    // Once March is over, it counts, and the note says so.
+    $this->clock->advance('+18 days');
+    $mar = $card();
+    expect($mar['period']['name'])->toBe('Mar 2026')->and($mar['to'])->toBe('2026-03-31')
+        ->and($mar['revenue']['budget']['amount'])->toBe(100000)->and($mar['revenue']['actual']['amount'])->toBe(150000);
+
+    // In the first period of the year nothing has completed yet, so there is nothing to compare.
+    $this->clock->advance('-2 months -10 days');
+    expect($this->asPerson($this->accountant)->getJson($this->api('budgets/dashboard-card'))->assertOk()->json('data'))->toBeNull();
 });

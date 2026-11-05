@@ -44,7 +44,7 @@ it('refuses an update on a stale version with the server version', function (): 
         ->assertJsonPath('code', 'version_conflict')->assertJsonPath('server_version', $updated['version']);
 });
 
-it('goes pending on submit when a workflow applies, and a second person approves with a PIN to get PR-2026-00001', function (): void {
+it('goes pending on submit when a workflow applies, and a second person approves with a PIN to get PR-FY2026-00001', function (): void {
     $this->workflow('purchase_requisition');
     $pr = $this->draftDoc('purchase-requisitions', $this->reqBody());
 
@@ -52,7 +52,7 @@ it('goes pending on submit when a workflow applies, and a second person approves
     expect($pending['status'])->toBe('pending_approval')->and($pending['number'])->toBeNull();
 
     $approved = $this->asPerson($this->approver, signing: true)->postJson($this->api("purchase-requisitions/{$pr['id']}/approve"), [], $this->key())->assertOk()
-        ->assertJsonPath('data.status', 'approved')->assertJsonPath('data.number', 'PR-2026-00001')->json('data');
+        ->assertJsonPath('data.status', 'approved')->assertJsonPath('data.number', 'PR-FY2026-00001')->json('data');
     expect($approved['approved_by'])->toBe($this->approver->id)->and($this->journalCount())->toBe(0);
 });
 
@@ -116,7 +116,7 @@ it('approves at once when there is no workflow and the submitter has a PIN grant
     $this->asPerson($this->accountant)->postJson($this->api("purchase-requisitions/{$pr['id']}/submit"), [], $this->key())->assertForbidden()->assertJsonPath('code', 'signature_required');
     $done = $this->submitDoc('purchase-requisitions', $pr['id']);
 
-    expect($done['status'])->toBe('approved')->and($done['number'])->toBe('PR-2026-00001')->and($this->journalCount())->toBe(0);
+    expect($done['status'])->toBe('approved')->and($done['number'])->toBe('PR-FY2026-00001')->and($this->journalCount())->toBe(0);
 });
 
 it('lets a viewer see requisitions but not create one', function (): void {

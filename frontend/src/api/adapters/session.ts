@@ -43,5 +43,6 @@ export function toCompany(c: ApiCompany, tenantId: string): Company {
     locale: 'en',
     fiscal_year_start_month: c.fiscal_year_start_month,
     tax_id: c.tax_id ?? '',
+    formats: c.formats,
   };
 }

@@ -42,7 +42,7 @@ it('lists the order lines awaiting receipt, soonest expected first', function ()
     $this->receive($late['id'], [[$late['lines'][0]['id'], '6']])->assertCreated();
 
     $report = $this->asPerson($this->accountant)->getJson($this->api('procurement/awaiting-receipt'))->assertOk()->assertJsonCount(3, 'data')->json();
-    expect($report['data'][0])->toMatchArray(['number' => 'PO-2026-00002', 'purchase_order_id' => $soon['id'], 'ordered' => '3.000000', 'received' => '0.000000', 'open' => '3.000000', 'expected_date' => '2026-04-01', 'line_no' => 1])
+    expect($report['data'][0])->toMatchArray(['number' => 'PO-FY2026-00002', 'purchase_order_id' => $soon['id'], 'ordered' => '3.000000', 'received' => '0.000000', 'open' => '3.000000', 'expected_date' => '2026-04-01', 'line_no' => 1])
         ->and($report['data'][0]['open_fc'])->toBe(['amount' => 6000, 'currency' => 'USD'])
         ->and($report['data'][1])->toMatchArray(['purchase_order_id' => $late['id'], 'line_no' => 1, 'received' => '6.000000', 'open' => '4.000000'])
         ->and($report['data'][1]['open_fc'])->toBe(['amount' => 40000, 'currency' => 'USD'])

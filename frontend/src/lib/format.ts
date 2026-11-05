@@ -21,6 +21,53 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
   GBP: '£',
 };
 
+/**
+ * A company's date and number format (plan 3c.26b), set once the live company is known. `null` keeps the demo's original en-US look.
+ * Keys match the server's FormatPreferences (app/Domain/Shared). This changes the text only; money stays integer minor units, and
+ * typed amounts still use a dot for decimals.
+ */
+export interface FormatPrefs {
+  date: string;
+  number: string;
+}
+
+const DATE_PARTS: Record<string, (d: string, m: string, y: string, mon: string) => string> = {
+  dmy: (d, m, y) => `${d}/${m}/${y}`,
+  mdy: (d, m, y) => `${m}/${d}/${y}`,
+  ymd: (d, m, y) => `${y}-${m}-${d}`,
+  d_mon_y: (d, _m, y, mon) => `${d} ${mon} ${y}`,
+};
+
+const NUMBER_SEPARATORS: Record<string, { group: string; decimal: string }> = {
+  comma_dot: { group: ',', decimal: '.' },
+  dot_comma: { group: '.', decimal: ',' },
+  space_comma: { group: '\u202f', decimal: ',' },
+  apostrophe_dot: { group: '\u2019', decimal: '.' },
+};
+
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+let currentFormats: FormatPrefs | null = null;
+
+export function setFormatPrefs(prefs: FormatPrefs | null): void {
+  currentFormats = prefs && DATE_PARTS[prefs.date] && NUMBER_SEPARATORS[prefs.number] ? prefs : null;
+}
+
+export function getFormatPrefs(): FormatPrefs | null {
+  return currentFormats;
+}
+
+/** Integer minor units as grouped text with the company's separators, or null when no company format is set. */
+function groupedByCompany(absMinor: number, decimals: number): string | null {
+  const sep = currentFormats ? NUMBER_SEPARATORS[currentFormats.number] : undefined;
+  if (!sep) return null;
+  let digits = String(Math.round(absMinor));
+  if (decimals > 0) digits = digits.padStart(decimals + 1, '0');
+  const whole = decimals > 0 ? digits.slice(0, -decimals) : digits;
+  const fraction = decimals > 0 ? sep.decimal + digits.slice(-decimals) : '';
+  return whole.replace(/\B(?=(\d{3})+(?!\d))/g, sep.group) + fraction;
+}
+
 export function getCurrencyMinorUnits(currency: string): number {
   return CURRENCY_MINORS[currency.toUpperCase()] ?? 2;
 }
@@ -64,12 +111,13 @@ export function formatMoney(
   const isNegative = numericValue < 0;
   const absValue = Math.abs(numericValue);
 
+  const byCompany = groupedByCompany(Math.abs(Number(minorUnits)), minors);
   const formatter = new Intl.NumberFormat(locale, {
     minimumFractionDigits: minors,
     maximumFractionDigits: minors,
   });
 
-  const formattedNum = formatter.format(absValue);
+  const formattedNum = byCompany ?? formatter.format(absValue);
   const symbol = showCurrency ? currencyPrefix(currency) : '';
 
   if (isNegative) {
@@ -126,6 +174,10 @@ export function formatDate(dateString: string | null | undefined, locale = 'en-U
       const year = parseInt(parts[0], 10);
       const month = parseInt(parts[1], 10) - 1;
       const day = parseInt(parts[2], 10);
+      if (currentFormats && year > 0 && month >= 0 && month < 12) {
+        const pad = (n: number, w = 2) => String(n).padStart(w, '0');
+        return DATE_PARTS[currentFormats.date](pad(day), pad(month + 1), pad(year, 4), MONTHS[month]);
+      }
       const d = new Date(year, month, day);
       return new Intl.DateTimeFormat(locale, {
         year: 'numeric',
@@ -146,6 +198,11 @@ export function formatDateTime(dateTimeString: string | null | undefined, locale
   if (!dateTimeString) return '—';
   try {
     const d = new Date(dateTimeString);
+    if (currentFormats) {
+      const pad = (n: number) => String(n).padStart(2, '0');
+      const iso = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+      return `${formatDate(iso)} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
     return new Intl.DateTimeFormat(locale, {
       year: 'numeric',
       month: 'short',

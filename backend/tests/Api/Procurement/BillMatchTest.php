@@ -59,7 +59,7 @@ it('makes a bill from an order and from a receipt, linking each line and copying
 
     $fromOrder = $this->billOf($this->order['id']);
     expect($fromOrder['kind'])->toBe('purchase_bill')->and($fromOrder['status'])->toBe('draft')->and($fromOrder['contact_id'])->toBe($this->t->supplier)
-        ->and($fromOrder['reference'])->toBe('PO-2026-00001')
+        ->and($fromOrder['reference'])->toBe('PO-FY2026-00001')
         ->and($fromOrder['lines'][0])->toMatchArray([
             'quantity' => '4.000000', 'purchase_order_line_id' => $this->line1, 'account_id' => $this->f->account('5000'),
             'tax_code_id' => $this->t->tax['VAT10'], 'goods_receipt_line_id' => null,
@@ -76,7 +76,7 @@ it('posts a bill made from an order with the same journal as a hand-made bill wi
     $this->receive($this->order['id'], [[$this->line1, '10']])->assertCreated();
     $fromOrder = $this->submitBill($this->billOf($this->order['id'], ['issue_date' => '2026-03-25', 'due_date' => '2026-04-30'])['id'])->assertOk()->assertJsonPath('data.status', 'posted')->json('data');
 
-    $hand = $this->t->body($this->t->supplier, [[10000, '10', 'VAT10', null, '5000']], '2026-03-25', ['due_date' => '2026-04-30', 'reference' => 'PO-2026-00001']);
+    $hand = $this->t->body($this->t->supplier, [[10000, '10', 'VAT10', null, '5000']], '2026-03-25', ['due_date' => '2026-04-30', 'reference' => 'PO-FY2026-00001']);
     $hand['lines'][0]['description'] = 'Widget';
     $hand['memo'] = null;
     $byHand = $this->postedDoc('bills', $hand);

@@ -53,7 +53,7 @@ export const LiveDashboard: React.FC = () => {
   const ap = panelState(d.ap);
   const profit = panelState(d.profit);
   const banks = panelState(d.banks);
-  const approvals = panelState(d.approvals);
+  const approvals = panelState(d.approvals, d.mayApprove);
   const overdueInv = panelState(d.overdueInvoices);
   const overdueBill = panelState(d.overdueBills);
 
@@ -87,8 +87,10 @@ export const LiveDashboard: React.FC = () => {
       valueClass: (d.profit.data?.minor ?? 0) < 0 ? 'text-danger' : undefined,
       value: () => (d.profit.data ? formatMoney(d.profit.data.minor, d.profit.data.currency, { parenthesesNegative: true }) : 'No data'),
       note: () => {
+        // The budget is compared through the last completed period, and the note says which (plan 3c.16a).
         const v = budgetCard.data?.net_profit.variance;
-        return v ? <span data-testid="budget-note">{formatMoney(Math.abs(v.amount), v.currency)} {v.amount >= 0 ? 'ahead of' : 'behind'} budget</span> : `To ${formatDate(d.today)}`;
+        const through = budgetCard.data?.period?.name;
+        return v ? <span data-testid="budget-note">{formatMoney(Math.abs(v.amount), v.currency)} {v.amount >= 0 ? 'ahead of' : 'behind'} budget{through ? ` through ${through}` : ''}</span> : `To ${formatDate(d.today)}`;
       },
     }),
   ].filter((f): f is Figure => f !== null);

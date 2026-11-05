@@ -129,16 +129,19 @@ final class BudgetVsActual
     }
 
     /**
-     * The dashboard note: this fiscal year to date against the approved budget, or null when there is no approved budget (or no current
-     * period). Nothing is invented when the company has no budget.
+     * The dashboard note: this fiscal year against the approved budget **through the last completed period**, or null when there is no
+     * approved budget, no current period, or no period of the year has finished yet. The running period is left out on both sides, so
+     * early in a period the company does not read as behind budget for a period it has barely started. `period` says which period the
+     * figures end with. Nothing is invented when the company has no budget.
      *
      * @return array<string, mixed>|null
      */
     public function card(Company $company): ?array
     {
         $today = $this->clock->now()->format('Y-m-d');
-        $period = $this->calendar->regularContaining($company->id, $today);
-        if ($period === null) {
+        $running = $this->calendar->regularContaining($company->id, $today);
+        $period = $running === null ? null : $this->calendar->previousRegular($company->id, $running);
+        if ($running === null || $period === null || $period->fiscalYearId !== $running->fiscalYearId) {
             return null;
         }
         $budget = Budget::query()->where('company_id', $company->id)->where('fiscal_year_id', $period->fiscalYearId)->where('status', Budget::APPROVED)->first();

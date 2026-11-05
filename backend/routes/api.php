@@ -39,7 +39,9 @@ use App\Http\Controllers\Organisation\CompanySettingsController;
 use App\Http\Controllers\Organisation\InvitationController;
 use App\Http\Controllers\Organisation\InvitationTokenController;
 use App\Http\Controllers\Organisation\MemberController;
+use App\Http\Controllers\Organisation\MenuController;
 use App\Http\Controllers\Organisation\NumberingController;
+use App\Http\Controllers\Organisation\OrganisationController;
 use App\Http\Controllers\Practice\PracticeController;
 use App\Http\Controllers\Procurement\GoodsReceiptController;
 use App\Http\Controllers\Procurement\ProcurementReportController;
@@ -119,6 +121,10 @@ Route::middleware(['auth:sanctum', 'tenant', 'tenant.writable', 'idempotent'])->
     Route::post('api-clients/{apiClient}/tokens', [ApiClientController::class, 'issueToken'])->whereUuid('apiClient')->name('api-clients.tokens.store');
     Route::post('api-clients/{apiClient}/revoke', [ApiClientController::class, 'revoke'])->whereUuid('apiClient')->name('api-clients.revoke');
 
+    // The organisation page: profile and the companies the person can open (plan 3c.26)
+    Route::get('organisation', [OrganisationController::class, 'show'])->name('organisation.show');
+    Route::put('organisation', [OrganisationController::class, 'update'])->name('organisation.update');
+
     // People and roles of the organisation (owners and admins)
     Route::get('members', [MemberController::class, 'index'])->name('members.index');
 
@@ -149,8 +155,16 @@ Route::middleware(['signed', 'throttle:120,1'])->withoutMiddleware(ValidateCsrfT
 // (App\Http\Support\CompanyBindings), so another company's id is a 404. Throttled per principal (13 §16).
 Route::middleware(['auth:sanctum', 'tenant', 'tenant.writable', 'idempotent', 'company', 'throttle:company-api'])
     ->prefix('companies/{company}')->whereUuid('company')->group(function (): void {
+        // The person's menu in this company, filtered by their permissions (plan 3c.24)
+        Route::get('menu', [MenuController::class, 'show'])->name('menu.show');
+
         // Roles of the company and who holds them (org owners and admins)
         Route::get('roles', [MemberController::class, 'roles'])->name('roles.index');
+        Route::get('permissions', [MemberController::class, 'permissions'])->name('permissions.index');
+        Route::post('roles', [MemberController::class, 'createRole'])->name('roles.store');
+        Route::put('roles/{role}', [MemberController::class, 'updateRole'])->whereUuid('role')->name('roles.update');
+        Route::post('roles/{role}/reset', [MemberController::class, 'resetRole'])->whereUuid('role')->name('roles.reset');
+        Route::delete('roles/{role}', [MemberController::class, 'deleteRole'])->whereUuid('role')->name('roles.destroy');
         Route::put('members/{user}/roles/{role}', [MemberController::class, 'assign'])->whereUuid(['user', 'role'])->name('members.roles.assign');
         Route::delete('members/{user}/roles/{role}', [MemberController::class, 'revoke'])->whereUuid(['user', 'role'])->name('members.roles.revoke');
 

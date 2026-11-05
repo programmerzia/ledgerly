@@ -71,6 +71,8 @@ export interface Company {
   fiscal_year_start_month: number;
   tax_id: string;
   settings?: CompanySettings;
+  /** Live: how this company's dates and numbers read (plan 3c.26b). */
+  formats?: { date: string; number: string };
 }
 
 export type AccountType = 'asset' | 'liability' | 'equity' | 'income' | 'expense';

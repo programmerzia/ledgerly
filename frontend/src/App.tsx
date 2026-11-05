@@ -100,6 +100,7 @@ import { AdminTwoFactor } from './pages/Admin/Auth/AdminTwoFactor';
 import { AdminDashboard } from './pages/Admin/Overview/AdminDashboard';
 import { TenantsList } from './pages/Admin/Tenants/TenantsList';
 import { TenantDetail } from './pages/Admin/Tenants/TenantDetail';
+import { OrgSettings } from './pages/Org/OrgSettings';
 import { PlansList } from './pages/Admin/Plans/PlansList';
 import { CouponsList } from './pages/Admin/Coupons/CouponsList';
 import { BillingOps } from './pages/Admin/Billing/BillingOps';
@@ -130,6 +131,15 @@ function RequireTenantAuth() {
   if (needsCompany) return <Navigate to="/new-company" replace />;
   if (unknownCompany && home) return <Navigate to={home} replace />;
   return <AppShell />;
+}
+
+/** The organisation page sits outside any one company, so it only needs a signed-in person. */
+function RequireOrgAuth() {
+  const { status } = useAuthStatus();
+  const location = useLocation();
+  if (status === 'loading') return null;
+  if (status === 'anonymous') return <Navigate to="/login" state={{ from: location }} replace />;
+  return <OrgSettings />;
 }
 
 function RequireAdminAuth() {
@@ -190,6 +200,7 @@ export default function App() {
 
         {/* Main Tenant Application */}
         <Route path="/" element={<RootRedirect />} />
+        {IS_LIVE && <Route path="/org/settings" element={<RequireOrgAuth />} />}
         <Route path="/:co" element={<RequireTenantAuth />}>
           <Route path="dashboard" element={<Dashboard />} />
 
