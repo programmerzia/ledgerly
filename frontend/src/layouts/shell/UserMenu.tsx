@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronDown, User, Users, Keyboard, Moon, Sun, LogOut, ShieldCheck, Check, CloudOff, Cloud } from 'lucide-react';
+import { Building2, ChevronDown, User, Users, Keyboard, Moon, Sun, LogOut, ShieldCheck, Check, CloudOff, Cloud } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { IS_LIVE } from '@/api/config';
 import { Avatar } from '@/components/ui/avatar';
@@ -33,10 +33,12 @@ interface Props {
   onProfile: () => void;
   onShortcuts: () => void;
   onAdmin: () => void;
+  /** Live mode: the organisation page. */
+  onOrganisation?: () => void;
   onSignOut: () => void;
 }
 
-export const UserMenu: React.FC<Props> = ({ user, isDark, isOffline, onToggleTheme, onToggleOffline, onSwitchUser, onProfile, onShortcuts, onAdmin, onSignOut }) => (
+export const UserMenu: React.FC<Props> = ({ user, isDark, isOffline, onToggleTheme, onToggleOffline, onSwitchUser, onProfile, onShortcuts, onAdmin, onOrganisation, onSignOut }) => (
   <DropdownMenu>
     <DropdownMenuTrigger asChild>
       <button type="button" aria-label="User menu" className="flex items-center gap-2 h-10 pl-1 pr-2 rounded-lg hover:bg-surface-neutral transition outline-none focus-visible:ring-2 focus-visible:ring-accent/50 cursor-pointer">
@@ -58,6 +60,7 @@ export const UserMenu: React.FC<Props> = ({ user, isDark, isOffline, onToggleThe
       </div>
       <DropdownMenuSeparator />
       <DropdownMenuItem onSelect={onProfile}><User className="size-4 text-text-muted" />Profile &amp; settings</DropdownMenuItem>
+      {IS_LIVE && onOrganisation && <DropdownMenuItem onSelect={onOrganisation}><Building2 className="size-4 text-text-muted" />Organisation</DropdownMenuItem>}
       {!IS_LIVE && <DropdownMenuSub>
         <DropdownMenuSubTrigger><Users className="size-4 text-text-muted" />Switch persona</DropdownMenuSubTrigger>
         <DropdownMenuSubContent className="w-64">

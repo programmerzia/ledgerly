@@ -33,6 +33,7 @@ use App\Http\Controllers\Organisation\InvitationTokenController;
 use App\Http\Controllers\Organisation\MemberController;
 use App\Http\Controllers\Organisation\MenuController;
 use App\Http\Controllers\Organisation\NumberingController;
+use App\Http\Controllers\Organisation\OrganisationController;
 use App\Http\Controllers\Practice\PracticeController;
 use App\Http\Controllers\Procurement\GoodsReceiptController;
 use App\Http\Controllers\Procurement\ProcurementReportController;
@@ -97,6 +98,10 @@ Route::middleware(['auth:sanctum', 'tenant', 'tenant.writable', 'idempotent'])->
     Route::post('api-clients', [ApiClientController::class, 'store'])->name('api-clients.store');
     Route::post('api-clients/{apiClient}/tokens', [ApiClientController::class, 'issueToken'])->whereUuid('apiClient')->name('api-clients.tokens.store');
     Route::post('api-clients/{apiClient}/revoke', [ApiClientController::class, 'revoke'])->whereUuid('apiClient')->name('api-clients.revoke');
+
+    // The organisation page: profile and the companies the person can open (plan 3c.26)
+    Route::get('organisation', [OrganisationController::class, 'show'])->name('organisation.show');
+    Route::put('organisation', [OrganisationController::class, 'update'])->name('organisation.update');
 
     // People and roles of the organisation (owners and admins)
     Route::get('members', [MemberController::class, 'index'])->name('members.index');
