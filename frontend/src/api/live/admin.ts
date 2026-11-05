@@ -129,6 +129,9 @@ export interface AuditFilters {
   subject_id?: string;
   actor_id?: string;
   request_id?: string;
+  /** UTC days, inclusive. */
+  from?: string;
+  to?: string;
 }
 
 export async function fetchAuditPage(companyId: string, filters: AuditFilters, cursor: string | undefined) {

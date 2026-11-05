@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useReport } from '@/data/reports';
 import { useRouteCompany } from '@/data/session';
-import type { BsLine, BsSection, Figure, FundRef } from '@/api/adapters/report';
+import type { BsClassifiedSection, BsLine, BsSection, FundRef } from '@/api/adapters/report';
 import { cn } from '@/lib/utils';
 import { CheckBadge, ReportCard, longDate, tone } from '../ReportParts';
 import { LiveReportShell } from './LiveReportShell';
@@ -41,12 +41,37 @@ export const LiveBalanceSheet: React.FC = () => {
     </div>
   );
 
+  const subtotal = (label: string, s: BsSection, testId: string, bold = false) => (
+    <div style={cols} className={cn('grid gap-3 items-baseline px-2 py-1.5 border-t border-border/60 text-xs', bold ? 'font-semibold' : 'font-medium')} data-testid={testId}>
+      <span className="text-text-primary">{label}</span>
+      <FigureCells fig={s.total} money={money} compare={compare} bold={bold} />
+    </div>
+  );
+
   const section = (title: string, s: BsSection, totalLabel: string, testId: string) => (
     <div>
       <div className="px-2 pt-4 pb-1 text-[13px] font-semibold text-text-primary">{title}</div>
       <div className="divide-y divide-border/60">{s.lines.map(line)}</div>
       <div style={cols} className="grid gap-3 items-baseline px-2 py-2 border-t border-border text-[13px] font-semibold" data-testid={testId}>
         <span className="text-text-primary">{totalLabel}</span>
+        <FigureCells fig={s.total} money={money} compare={compare} bold />
+      </div>
+    </div>
+  );
+
+  /** IAS 1.60 current / non-current parts, then the section total. */
+  const classified = (title: string, noun: string, s: BsClassifiedSection, key: string) => (
+    <div data-testid={`bs-${key}`}>
+      <div className="px-2 pt-4 pb-1 text-[13px] font-semibold text-text-primary">{title}</div>
+      {([['Current', s.current, 'current'], ['Non-current', s.nonCurrent, 'non-current']] as const).map(([label, part, id]) => (
+        <div key={id} data-testid={`bs-${key}-${id}`}>
+          <div className="px-2 pt-2 pb-1 text-xs font-semibold text-text-secondary">{label} {noun}</div>
+          <div className="divide-y divide-border/60">{part.lines.map(line)}</div>
+          {subtotal(`Total ${label.toLowerCase()} ${noun}`, part, `bs-total-${id}-${key}`)}
+        </div>
+      ))}
+      <div style={cols} className="grid gap-3 items-baseline px-2 py-2 border-t border-border text-[13px] font-semibold" data-testid={`bs-total-${key}`}>
+        <span className="text-text-primary">Total {noun}</span>
         <FigureCells fig={s.total} money={money} compare={compare} bold />
       </div>
     </div>
@@ -79,8 +104,8 @@ export const LiveBalanceSheet: React.FC = () => {
               )}
             </div>
             <div className="py-1"><NoComparisonNote available={bs.comparison?.available} /></div>
-            {section('Assets', bs.assets, 'Total assets', 'bs-total-assets')}
-            {section('Liabilities', bs.liabilities, 'Total liabilities', 'bs-total-liabilities')}
+            {classified('Assets', 'assets', bs.assets, 'assets')}
+            {classified('Liabilities', 'liabilities', bs.liabilities, 'liabilities')}
             {section('Equity', bs.equity, 'Total equity', 'bs-total-equity')}
             <div style={cols} className="grid gap-3 items-baseline px-2 py-2.5 mt-2 border-t border-text-primary border-b-[3px] border-double text-sm font-semibold" data-testid="bs-total-le">
               <span className="text-text-primary">Total liabilities and equity</span>

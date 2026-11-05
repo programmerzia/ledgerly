@@ -1,12 +1,13 @@
-import React from 'react';
-import { useReport } from '@/data/reports';
+import React, { useState } from 'react';
+import { reportQuery, useReport } from '@/data/reports';
 import { useRouteCompany } from '@/data/session';
-import type { TaxSide } from '@/api/adapters/report';
+import type { TaxRow, TaxSide } from '@/api/adapters/report';
 import { cn } from '@/lib/utils';
 import { ReportCard, longDate, tone } from '../ReportParts';
 import { LiveReportShell } from './LiveReportShell';
 import { ReportError, ReportLoading, fmt } from './parts';
 import { useReportSelection } from './useSelection';
+import { DocumentsDrill, type DocumentsTarget } from './DocumentsDrill';
 
 const GRID = 'grid grid-cols-[minmax(12rem,1fr)_9rem_9rem] gap-3';
 
@@ -16,6 +17,19 @@ export const LiveTaxReturn: React.FC = () => {
   const q = useReport('tax-return', selection, ready);
   const tr = q.data;
   const money = fmt(tr?.currency ?? company.base_currency);
+
+  const [docs, setDocs] = useState<DocumentsTarget | null>(null);
+  const open = (sideKey: 'sales' | 'purchases', r: TaxRow) =>
+    setDocs({
+      title: `${r.code ? `${r.code} ` : ''}${r.name} · ${sideKey === 'sales' ? 'sales' : 'purchases'}`,
+      subtitle: tr ? `${longDate(tr.from)} to ${longDate(tr.to)}` : undefined,
+      path: 'tax-return/documents',
+      query: { ...reportQuery('tax-return', selection), side: sideKey, tax_code_id: r.taxCodeId ?? 'none' },
+      expected: { net: r.net, tax: r.tax },
+    });
+  const link = (sideKey: 'sales' | 'purchases', r: TaxRow, amount: number) => (
+    <button type="button" className="cursor-pointer tabular-nums hover:text-accent hover:underline" title="Show the documents" onClick={() => open(sideKey, r)}>{money(amount)}</button>
+  );
 
   const side = (title: string, s: TaxSide, testId: string) => (
     <div className="mb-6">
@@ -32,8 +46,8 @@ export const LiveTaxReturn: React.FC = () => {
               {r.name}
               {r.recoverable === false && <span className="ml-2 text-text-muted">not recoverable, counted as cost</span>}
             </span>
-            <span className="text-right tabular-nums">{money(r.net)}</span>
-            <span className={cn('text-right tabular-nums', r.recoverable === false && 'text-text-muted')}>{money(r.tax)}</span>
+            <span className="text-right tabular-nums">{link(s.type === 'output' ? 'sales' : 'purchases', r, r.net)}</span>
+            <span className={cn('text-right tabular-nums', r.recoverable === false && 'text-text-muted')}>{link(s.type === 'output' ? 'sales' : 'purchases', r, r.tax)}</span>
           </div>
         ))}
       </div>
@@ -70,6 +84,7 @@ export const LiveTaxReturn: React.FC = () => {
           </div>
         </ReportCard>
       )}
+      <DocumentsDrill target={docs} onClose={() => setDocs(null)} />
     </LiveReportShell>
   );
 };

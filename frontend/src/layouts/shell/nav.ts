@@ -66,6 +66,8 @@ const allNavSections = (coSlug: string, pendingApprovalsCount: number): NavSecti
       ...(IS_LIVE ? [
         { label: 'Customer statement', to: `/${coSlug}/reports/customer-statement`, icon: FileSpreadsheet },
         { label: 'Supplier statement', to: `/${coSlug}/reports/supplier-statement`, icon: FileSpreadsheet },
+        { label: 'Journal list', to: `/${coSlug}/reports/journal-list`, icon: BookMarked },
+        { label: 'Period close checklist', to: `/${coSlug}/reports/period-close`, icon: Calendar },
       ] : []),
       { label: 'General ledger', to: `/${coSlug}/reports/general-ledger`, icon: BookMarked },
       { label: 'VAT return', to: `/${coSlug}/reports/tax-return`, icon: FileSpreadsheet },

@@ -70,27 +70,69 @@ final class TaxReturn
     /** @return array<string, mixed> */
     public function __invoke(ReportParams $p): array
     {
-        $db = $this->runner->db();
         $cur = $p->currency;
+        ['codes' => $codes, 'acc' => $acc] = $this->compute($p);
+
+        return $this->present($p, $codes, $acc, $cur);
+    }
+
+    /**
+     * The documents behind one row of the tax return (3c.21): the journals of the period that carry the tax code (`none`
+     * for lines without one) on the sales or the purchases side, each with its net and tax. The nets and taxes add up to
+     * exactly the row, because the row is built from the same list. A reversal is listed as its own entry with the sign
+     * the return gives it.
+     *
+     * @return array<string, mixed>
+     */
+    public function documents(ReportParams $p, string $side, string $taxCodeId): array
+    {
+        $cur = $p->currency;
+        ['codes' => $codes, 'detail' => $detail] = $this->compute($p);
+        $key = $taxCodeId === 'none' ? '' : $taxCodeId;
+        $items = array_values(array_filter($detail[$side][$key] ?? [], fn (array $i): bool => $i['net'] !== 0 || $i['tax'] !== 0));
+        usort($items, fn (array $a, array $b): int => [$a['date'], $a['journal_number']] <=> [$b['date'], $b['journal_number']]);
+        $code = $codes[$key] ?? null;
+
+        return [
+            'report' => 'tax_return_documents', 'currency' => $cur, 'from' => $p->from, 'to' => $p->to, 'side' => $side,
+            'tax_code' => $code === null ? null : ['id' => (string) $code['id'], 'code' => (string) $code['code'], 'name' => (string) $code['name'], 'kind' => (string) $code['kind']],
+            'recoverable' => $side === 'sales' ? null : (bool) ($code['recoverable'] ?? true),
+            'documents' => array_map(fn (array $i): array => [
+                'document' => ['type' => $i['kind'], 'id' => $i['invoice_id'], 'number' => $i['number']],
+                'journal' => ['id' => $i['journal_id'], 'number' => $i['journal_number']],
+                'date' => $i['date'], 'is_reversal' => $i['reversal'],
+                'net' => Json::money($i['net'], $cur), 'tax' => Json::money($i['tax'], $cur),
+            ], $items),
+            'totals' => ['net' => Json::money(array_sum(array_column($items, 'net')), $cur), 'tax' => Json::money(array_sum(array_column($items, 'tax')), $cur)],
+        ];
+    }
+
+    /**
+     * @return array{codes: array<string, array{id: string, code: string, name: string, kind: string, recoverable: bool}>, acc: array{sales: array<string, array{net: int, tax: int}>, purchases: array<string, array{net: int, tax: int}>}, detail: array<string, array<string, list<array<string, mixed>>>>}
+     */
+    private function compute(ReportParams $p): array
+    {
+        $db = $this->runner->db();
         $codes = [];
         foreach ($db->select('SELECT id, code, name, kind::text AS kind, is_recoverable FROM tax_codes WHERE company_id = ?', [$p->companyId]) as $c) {
             $codes[(string) $c->id] = ['id' => (string) $c->id, 'code' => (string) $c->code, 'name' => (string) $c->name, 'kind' => (string) $c->kind, 'recoverable' => (bool) $c->is_recoverable];
         }
 
         $rows = $db->cursor(<<<'SQL'
-            SELECT j.id AS journal_id, (j.reversal_of_id IS NOT NULL) AS is_reversal, i.kind::text AS kind, i.fx_rate, i.tax_total_fc,
+            SELECT j.id AS journal_id, j.number AS journal_number, j.journal_date, i.id AS invoice_id, i.number AS invoice_number, (j.reversal_of_id IS NOT NULL) AS is_reversal, i.kind::text AS kind, i.fx_rate, i.tax_total_fc,
               l.line_total_fc, l.tax_code_id, l.tax_detail::text AS tax_detail
             FROM journals j JOIN invoices i ON i.id = j.source_id AND j.source_type = i.kind::text JOIN invoice_lines l ON l.invoice_id = i.id
             WHERE j.company_id = ? AND j.status IN ('posted', 'reversed') AND j.journal_date BETWEEN ? AND ?
             ORDER BY j.id, l.line_no
             SQL, [$p->companyId, (string) $p->from, $p->to]);
 
-        /** @var array<string, array{sales: bool, factor: int, rate: string, net: array<string, int>, taxFc: array<string, int>}> $docs */
+        /** @var array<string, array{sales: bool, factor: int, rate: string, net: array<string, int>, taxFc: array<string, int>, meta: array<string, mixed>}> $docs */
         $docs = [];
         foreach ($rows as $r) {
             $sales = in_array($r->kind, ['sales_invoice', 'credit_note'], true);
             $docs[$r->journal_id] ??= [
                 'sales' => $sales, 'rate' => (string) $r->fx_rate, 'net' => [], 'taxFc' => [],
+                'meta' => ['kind' => (string) $r->kind, 'invoice_id' => (string) $r->invoice_id, 'number' => $r->invoice_number, 'journal_id' => (string) $r->journal_id, 'journal_number' => $r->journal_number, 'date' => (string) $r->journal_date, 'reversal' => (bool) $r->is_reversal],
                 'factor' => ($r->is_reversal ? -1 : 1) * (in_array($r->kind, ['credit_note', 'debit_note'], true) ? -1 : 1),
             ];
             $key = $r->tax_code_id === null ? '' : (string) $r->tax_code_id;
@@ -104,11 +146,14 @@ final class TaxReturn
 
         /** @var array{sales: array<string, array{net: int, tax: int}>, purchases: array<string, array{net: int, tax: int}>} $acc */
         $acc = ['sales' => [], 'purchases' => []];
+        /** @var array<string, array<string, array<string, array<string, mixed>>>> $perDoc side → tax code ('' = none) → one entry per document */
+        $perDoc = ['sales' => [], 'purchases' => []];
         foreach ($docs as $d) {
             $side = $d['sales'] ? 'sales' : 'purchases';
             foreach ($d['net'] as $key => $net) {
                 $acc[$side][$key] ??= ['net' => 0, 'tax' => 0];
                 $acc[$side][$key]['net'] += $d['factor'] * $net;
+                $perDoc[$side][$key][$d['meta']['journal_id']] = $d['meta'] + ['net' => $d['factor'] * $net, 'tax' => 0];
             }
             // Tax that reaches the tax account: all of it on sales, only the recoverable codes on purchases.
             $counted = array_filter($d['taxFc'], fn (string $id): bool => $d['sales'] || ($codes[$id]['recoverable'] ?? false), ARRAY_FILTER_USE_KEY);
@@ -125,8 +170,21 @@ final class TaxReturn
             foreach ($base as $id => $amount) {
                 $acc[$side][$id] ??= ['net' => 0, 'tax' => 0];
                 $acc[$side][$id]['tax'] += $d['factor'] * $amount;
+                $perDoc[$side][$id][$d['meta']['journal_id']] = ($perDoc[$side][$id][$d['meta']['journal_id']] ?? $d['meta'] + ['net' => 0]) + ['tax' => 0];
+                $perDoc[$side][$id][$d['meta']['journal_id']]['tax'] += $d['factor'] * $amount;
             }
         }
+
+        return ['codes' => $codes, 'acc' => $acc, 'detail' => array_map(fn (array $bySide): array => array_map(fn (array $byDoc): array => array_values($byDoc), $bySide), $perDoc)];
+    }
+
+    /**
+     * @param  array<string, array{id: string, code: string, name: string, kind: string, recoverable: bool}>  $codes
+     * @param  array{sales: array<string, array{net: int, tax: int}>, purchases: array<string, array{net: int, tax: int}>}  $acc
+     * @return array<string, mixed>
+     */
+    private function present(ReportParams $p, array $codes, array $acc, string $cur): array
+    {
 
         $out = [];
         $payable = 0;

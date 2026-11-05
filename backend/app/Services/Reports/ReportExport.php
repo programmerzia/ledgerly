@@ -29,7 +29,7 @@ final class ReportExport
     public const array FORMATS = ['xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'csv' => 'text/csv; charset=UTF-8', 'pdf' => 'application/pdf'];
 
     /** URL names of every exportable report. */
-    public const array REPORTS = ['trial-balance', 'profit-and-loss', 'balance-sheet', 'cash-flow', 'general-ledger', 'ar-aging', 'ap-aging', 'customer-statement', 'supplier-statement', 'tax-return', 'budget-vs-actual'];
+    public const array REPORTS = ['trial-balance', 'profit-and-loss', 'balance-sheet', 'cash-flow', 'general-ledger', 'ar-aging', 'ap-aging', 'customer-statement', 'supplier-statement', 'tax-return', 'budget-vs-actual', ...ListingExports::NAMES];
 
     public function __construct(
         private readonly RunReport $statements,
@@ -39,6 +39,7 @@ final class ReportExport
         private readonly ReportRunner $runner,
         private readonly SpoutExporter $spout,
         private readonly PdfRenderer $pdf,
+        private readonly ListingExports $listings,
     ) {}
 
     /**
@@ -50,6 +51,9 @@ final class ReportExport
         $decimals = $this->decimals($company->base_currency);
         if ($name === 'general-ledger') {
             return $this->generalLedger($company, $input, $decimals);
+        }
+        if (in_array($name, ListingExports::NAMES, true)) {
+            return $this->listings->plan($name, $company, $input, $decimals);
         }
         $table = ReportTables::of(RunReport::STATEMENTS[$name] ?? throw new InvalidArgumentException("Unknown report {$name}."), ($this->statements)($name, $company, $input), $company->name, $decimals);
         $rows = is_array($table->rows) ? $table->rows : iterator_to_array($table->rows, false);

@@ -177,6 +177,29 @@ it('reconciles trial balance, balance sheet, profit and loss and cash flow on ra
         }
     }
 
+    // 5b. A breakdown by the FUND dimension adds up to the plain report, for any range and date (3c.19).
+    $fundId = (string) DB::table('dimensions')->where('company_id', $s->f->companyId)->where('code', 'FUND')->value('id');
+    $sum = fn (array $cells): int => array_sum(array_column($cells, 'amount'));
+    for ($i = 0; $i < 4; $i++) {
+        [$from, $to] = randomRange();
+        $plainPl = $run('profit-and-loss', ['from' => $from, 'to' => $to]);
+        $splitPl = $run('profit-and-loss', ['from' => $from, 'to' => $to, 'breakdown' => $fundId]);
+        $plainTb = $run('trial-balance', ['as_of' => $to]);
+        $splitTb = $run('trial-balance', ['as_of' => $to, 'breakdown' => $fundId]);
+        foreach (['gross_profit', 'operating_profit', 'net_profit'] as $k) {
+            expect($sum($splitPl['subtotals'][$k]['by_dimension']))->toBe($plainPl['subtotals'][$k]['amount']['amount'], "P&L {$k} breakdown {$from}..{$to} {$note}");
+        }
+        foreach ($splitPl['sections'] as $si => $section) {
+            foreach ($section['lines'] as $li => $l) {
+                expect($sum($l['by_dimension']))->toBe($plainPl['sections'][$si]['lines'][$li]['amount']['amount'], "P&L line breakdown {$note}");
+            }
+        }
+        foreach ($splitTb['rows'] as $ri => $r) {
+            expect($sum($r['by_dimension']))->toBe($plainTb['rows'][$ri]['debit']['amount'] - $plainTb['rows'][$ri]['credit']['amount'], "TB breakdown {$r['account']['code']} {$to} {$note}");
+        }
+        expect(count($splitTb['rows']))->toBe(count($plainTb['rows']));
+    }
+
     // 6. The year-end close changes neither profit and loss nor the equity total; retained earnings gains the result.
     $before = [
         'pl' => $run('profit-and-loss', ['period_id' => $s->periodId('2026-12-15'), 'basis' => 'ytd'])['subtotals'],

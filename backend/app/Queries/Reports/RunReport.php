@@ -56,7 +56,7 @@ final class RunReport
             return $this->budget($key, $company, $input);
         }
         [$p, $query] = match ($name) {
-            'trial-balance' => [$this->params->asOf($company, $input), $this->trialBalance],
+            'trial-balance' => [($input['view'] ?? null) === 'movement' || isset($input['from']) ? $this->params->range($company, $input) : $this->params->asOf($company, $input), $this->trialBalance],
             'balance-sheet' => [$this->params->asOf($company, $input), $this->balanceSheet],
             'profit-and-loss' => [$this->params->range($company, $input), $this->profitAndLoss],
             'ar-aging' => [$this->params->asOf($company, $input), fn (ReportParams $p): array => ($this->aging)($p, true)],

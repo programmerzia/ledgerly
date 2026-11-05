@@ -148,3 +148,71 @@ it('exports the new reports and keeps them behind reports.view / reports.export'
     $this->asPerson($this->assistant)->getJson($this->api('reports/ar-aging'))->assertForbidden();
     $this->asToken($this->newToken(['reports:read']))->getJson($this->api('reports/tax-return?from=2026-03-01&to=2026-03-31'))->assertOk();
 });
+
+it('drills an aging cell to its documents, and the documents add up to the cell', function (): void {
+    foreach ([['2026-06-30', 100], ['2026-06-29', 200], ['2026-05-31', 300], ['2026-05-30', 400], ['2026-04-30', 600], ['2026-03-31', 800]] as [$due, $price]) {
+        $this->postedDoc('invoices', $this->t->body($this->t->customer, [[$price, '1']], '2026-03-01', ['due_date' => $due]));
+    }
+    $inv = $this->sale(10000, '2026-03-15');
+    $this->postedDoc('invoices', $this->t->body($this->t->customer, [[1000, '1']], '2026-03-25', ['kind' => 'credit_note', 'related_invoice_id' => $inv['id']]));
+    $this->postedSettlement('receipt', $this->t->customer, 2000, [], '2026-04-01');
+
+    $ag = ($this->rpt)('ar-aging?as_of=2026-06-30');
+    $row = $ag['rows'][0];
+    foreach (['current', 'days_1_30', 'days_31_60', 'days_61_90', 'days_over_90', 'open'] as $bucket) {
+        $byContact = ($this->rpt)("ar-aging/documents?as_of=2026-06-30&bucket={$bucket}&contact_id={$row['contact']['id']}");
+        $all = ($this->rpt)("ar-aging/documents?as_of=2026-06-30&bucket={$bucket}");
+        expect(amt($byContact, 'total'))->toBe($row[$bucket]['amount'], "contact {$bucket}")
+            ->and(amt($all, 'total'))->toBe($ag['totals'][$bucket]['amount'], "total {$bucket}")
+            ->and(array_sum(array_map(fn ($d) => $d['amount']['amount'], $all['documents'])))->toBe($ag['totals'][$bucket]['amount']);
+    }
+    $credits = ($this->rpt)('ar-aging/documents?as_of=2026-06-30&bucket=credits');
+    expect(amt($credits, 'total'))->toBe($ag['totals']['credits']['amount'])->and(array_column(array_column($credits['documents'], 'document'), 'type'))->toBe(['credit_note', 'receipt']);
+
+    // Each document names itself and its journal, and a bucket holds only what is that late.
+    $late = ($this->rpt)('ar-aging/documents?as_of=2026-06-30&bucket=days_31_60')['documents'];
+    expect($late)->toHaveCount(1)->and($late[0]['document']['type'])->toBe('sales_invoice')->and($late[0]['journal_id'])->not->toBeNull()
+        ->and($late[0]['days_overdue'])->toBe(31)->and($late[0]['due_date'])->toBe('2026-05-30');
+    $this->asPerson($this->owner)->getJson($this->api('reports/ar-aging/documents?as_of=2026-06-30&bucket=bogus'))->assertUnprocessable();
+    $this->asPerson($this->assistant)->getJson($this->api('reports/ar-aging/documents?as_of=2026-06-30'))->assertForbidden();
+});
+
+it('drills payables the same way', function (): void {
+    $bill = $this->postedDoc('bills', $this->t->body($this->t->supplier, [[5000, '1', null, '0', '5000']], '2026-03-10'));
+    $this->postedSettlement('payment', $this->t->supplier, 2000, [[$bill['id'], 2000]], '2026-03-20');
+    $this->postedSettlement('payment', $this->t->supplier, 700, [], '2026-03-22');
+    $ag = ($this->rpt)('ap-aging?as_of=2026-06-30');
+    $open = ($this->rpt)('ap-aging/documents?as_of=2026-06-30&bucket=open');
+    $credits = ($this->rpt)('ap-aging/documents?as_of=2026-06-30&bucket=credits');
+
+    expect(amt($open, 'total'))->toBe($ag['totals']['open']['amount'])->and($open['documents'][0]['document']['type'])->toBe('purchase_bill')
+        ->and(amt($credits, 'total'))->toBe($ag['totals']['credits']['amount']);
+});
+
+it('drills a tax return row to its documents and each document to its journal, adding up to the row', function (): void {
+    $this->sale(10000, '2026-03-10');
+    $inv = $this->sale(10000, '2026-03-11');
+    $this->postedDoc('invoices', $this->t->body($this->t->customer, [[5000, '1', 'VAT10']], '2026-03-12', ['kind' => 'credit_note', 'related_invoice_id' => $inv['id']]));
+    $this->postedDoc('bills', $this->t->body($this->t->supplier, [[2000, '1', 'VAT10', '0', '5000']], '2026-03-13'));
+    $gone = $this->sale(3000, '2026-03-14');
+    $this->asPerson($this->owner, signing: true)->postJson($this->api("invoices/{$gone['id']}/reverse"), ['date' => '2026-03-14'], $this->key())->assertOk();
+
+    $r = ($this->rpt)('tax-return?from=2026-03-01&to=2026-03-31');
+    foreach (['sales', 'purchases'] as $side) {
+        foreach ($r[$side]['rows'] as $row) {
+            $code = $row['tax_code']['id'] ?? 'none';
+            $d = ($this->rpt)("tax-return/documents?from=2026-03-01&to=2026-03-31&side={$side}&tax_code_id={$code}");
+            expect(amt($d['totals'], 'net'))->toBe($row['net']['amount'], "{$side} net")
+                ->and(amt($d['totals'], 'tax'))->toBe($row['tax']['amount'], "{$side} tax")
+                ->and(array_sum(array_map(fn ($x) => $x['net']['amount'], $d['documents'])))->toBe($row['net']['amount']);
+            foreach ($d['documents'] as $doc) {
+                expect($doc['journal']['id'])->not->toBeNull()->and($doc['document']['id'])->not->toBeNull();
+            }
+        }
+    }
+    // The sales row: two invoices, the credit note (negative), the reversed invoice and its reversal (each listed, netting to zero).
+    $sales = ($this->rpt)('tax-return/documents?from=2026-03-01&to=2026-03-31&side=sales&tax_code_id='.$r['sales']['rows'][0]['tax_code']['id']);
+    expect($sales['documents'])->toHaveCount(5)->and(collect($sales['documents'])->where('is_reversal', true))->toHaveCount(1)
+        ->and(collect($sales['documents'])->firstWhere('document.type', 'credit_note')['net']['amount'])->toBe(-5000);
+    $this->asPerson($this->owner)->getJson($this->api('reports/tax-return/documents?from=2026-03-01&to=2026-03-31'))->assertUnprocessable();
+});

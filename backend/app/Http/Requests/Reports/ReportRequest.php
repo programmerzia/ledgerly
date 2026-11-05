@@ -18,7 +18,7 @@ final class ReportRequest extends CompanyRequest
     /** A query string carries `true`/`false` as text, which the boolean rule refuses. */
     protected function prepareForValidation(): void
     {
-        foreach (['hide_zero', 'exclude_closing'] as $flag) {
+        foreach (['hide_zero', 'exclude_closing', 'include_lines'] as $flag) {
             $value = $this->query($flag);
             if ($value === 'true' || $value === 'false') {
                 $this->merge([$flag => $value === 'true']);
@@ -35,9 +35,13 @@ final class ReportRequest extends CompanyRequest
             'from' => ['nullable', 'date_format:Y-m-d', 'prohibits:period_id'],
             'to' => ['nullable', 'date_format:Y-m-d', 'prohibits:period_id', 'after_or_equal:from'],
             'basis' => ['nullable', 'string', Rule::in(['month', 'ytd'])],
+            /** Trial balance only: `movement` adds opening, debit and credit movement and closing over the period or from..to. */
+            'view' => ['nullable', 'string', Rule::in(['balances', 'movement'])],
             'comparison' => ['nullable', 'string', Rule::in(['none', 'previous_period', 'previous_year'])],
             /** Dimension id → a value id or a list of them; withValidator checks the shape. */
             'dimensions' => ['nullable', 'array', 'max:8'],
+            /** Trial balance (as of) and profit and loss: a dimension id whose values become columns, plus an untagged column. */
+            'breakdown' => ['nullable', 'uuid'],
             'hide_zero' => ['nullable', 'boolean'],
             'account_id' => ['nullable', 'uuid'],
             'exclude_closing' => ['nullable', 'boolean'],
@@ -45,6 +49,23 @@ final class ReportRequest extends CompanyRequest
             'contact_id' => ['nullable', 'uuid'],
             /** Budget vs actual only: the budget version to read; default is the approved one of the period's fiscal year. */
             'budget_id' => ['nullable', 'uuid', $this->inCompany('budgets')],
+            /** Journal list (3c.20): status, source ('none' = typed by hand), the person and in which role, lines under each journal. */
+            'status' => ['nullable', 'string', Rule::in(['draft', 'pending_approval', 'posted', 'reversed', 'void'])],
+            'source' => ['nullable', 'string', 'max:64'],
+            'user_id' => ['nullable', 'uuid'],
+            'user_role' => ['nullable', 'string', Rule::in(['created', 'submitted', 'approved', 'posted'])],
+            'include_lines' => ['nullable', 'boolean'],
+            /** Drill from the aging (the bucket of a cell) and from the tax return (a row: side and tax code, `none` for lines without one). */
+            'bucket' => ['nullable', 'string', Rule::in(['current', 'days_1_30', 'days_31_60', 'days_61_90', 'days_over_90', 'open', 'credits'])],
+            'side' => ['nullable', 'string', Rule::in(['sales', 'purchases'])],
+            'tax_code_id' => ['nullable', 'string', 'regex:/^(none|[0-9a-f-]{36})$/'],
+            /** Bank reconciliation report: the finished reconciliation. */
+            'reconciliation_id' => ['nullable', 'uuid'],
+            /** Audit trail (3c.20): same filters as the audit log. */
+            'action' => ['nullable', 'string', 'max:64'],
+            'actor_id' => ['nullable', 'uuid'],
+            'subject_type' => ['nullable', 'string', 'max:64'],
+            'subject_id' => ['nullable', 'uuid'],
             'format' => ['nullable', 'string', Rule::in(['xlsx', 'csv', 'pdf'])],
         ];
     }

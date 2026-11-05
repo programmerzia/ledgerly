@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Queries\Reports;
 
+use App\Domain\Reports\BalanceSheetClass;
+use App\Domain\Reports\BalanceSheetClassifier;
 use App\Http\Support\Json;
 use App\Support\Reports\ReportRunner;
 
@@ -65,7 +67,7 @@ final class BalanceSheet
                 if ($compare) {
                     $line += Variance::of($amount, $prior, $cur);
                 }
-                $sections[$section][] = ['sort' => (string) ($meta['sort'] ?? ''), 'line' => $line, 'amount' => $amount, 'prior' => $prior, 'group' => $meta['fund']['id'] ?? self::NONE];
+                $sections[$section][] = ['sort' => (string) ($meta['sort'] ?? ''), 'line' => $line, 'amount' => $amount, 'prior' => $prior, 'group' => $meta['fund']['id'] ?? self::NONE, 'class' => $meta['classification'] ?? null];
             }
             usort($sections[$section], fn (array $a, array $b) => strcmp($a['sort'], $b['sort']));
         }
@@ -83,6 +85,22 @@ final class BalanceSheet
             return $e['line'];
         }, $sections[$s]);
 
+        // IAS 1.60: current and non-current parts of assets and liabilities. They add up to the section totals.
+        $classes = [];
+        foreach (['assets', 'liabilities'] as $name) {
+            foreach (BalanceSheetClass::cases() as $class) {
+                $in = array_values(array_filter($sections[$name], fn (array $e): bool => ($e['class'] ?? null) === $class->value));
+                $classes[$name][$class->value] = [
+                    'lines' => array_map(function (array $e): array {
+                        unset($e['line']['sort']);
+
+                        return $e['line'];
+                    }, $in),
+                    'total' => $figure(array_sum(array_column($in, 'amount')), array_sum(array_column($in, 'prior'))),
+                ];
+            }
+        }
+
         $equity = ['lines' => $lines('equity'), 'total' => $figure($totals['equity'], $priorTotals['equity'])];
         if ($fund !== null) {
             $equity['funds'] = $this->funds($sections['equity'], $fund, $figure);
@@ -96,8 +114,8 @@ final class BalanceSheet
             'comparison' => $p->comparison === 'none' ? null : [
                 'type' => $p->comparison, 'available' => $compare, 'as_of' => $p->comparisonRange['to'] ?? null,
             ],
-            'assets' => ['lines' => $lines('assets'), 'total' => $figure($totals['assets'], $priorTotals['assets'])],
-            'liabilities' => ['lines' => $lines('liabilities'), 'total' => $figure($totals['liabilities'], $priorTotals['liabilities'])],
+            'assets' => ['lines' => $lines('assets'), 'total' => $figure($totals['assets'], $priorTotals['assets'])] + $classes['assets'],
+            'liabilities' => ['lines' => $lines('liabilities'), 'total' => $figure($totals['liabilities'], $priorTotals['liabilities'])] + $classes['liabilities'],
             'equity' => $equity,
             'totals' => [
                 'liabilities_and_equity' => $figure($totals['liabilities'] + $totals['equity'], $priorTotals['liabilities'] + $priorTotals['equity']),
@@ -154,7 +172,8 @@ final class BalanceSheet
             $a = $accounts[$accountId];
             $split = $contacts[$a->id] ?? null;
             $meta = ['key' => $a->id, 'account' => $a->ref() + ['subtype' => $a->subtype], 'sort' => $a->code, 'postable' => $a->postable,
-                'drill' => DrillKey::make($a->id, null, $asOf, false, $p->dimensionIds, $split !== null && $split['moved'] !== 0 ? $split['kept_side'] : null)];
+                'drill' => DrillKey::make($a->id, null, $asOf, false, $p->dimensionIds, $split !== null && $split['moved'] !== 0 ? $split['kept_side'] : null)]
+                + $this->classification($a);
 
             if ($a->type === 'equity') {
                 foreach ($byGroup as $group => $net) {
@@ -188,7 +207,7 @@ final class BalanceSheet
                 continue;
             }
             $cells[$section][$a->id] = ['meta' => ['key' => $a->id, 'account' => $a->ref() + ['subtype' => $a->subtype], 'sort' => $a->code, 'postable' => $a->postable,
-                'drill' => DrillKey::make($a->id, null, $asOf, false, $p->dimensionIds)], 'amount' => 0];
+                'drill' => DrillKey::make($a->id, null, $asOf, false, $p->dimensionIds)] + $this->classification($a), 'amount' => 0];
         }
 
         // D9: the other side of each control account is its own line, with the contacts that make it up.
@@ -207,6 +226,7 @@ final class BalanceSheet
                 'sort' => $a->code.'~',
                 'postable' => true,
                 'gross' => true,
+                'classification' => BalanceSheetClass::Current->value,   // a contact's credit or debit balance on a trade control account
                 'contacts' => $split['contacts'],
                 'drill' => DrillKey::make($a->id, null, $asOf, false, $p->dimensionIds, $split['moved_side']),
             ]];
@@ -231,6 +251,23 @@ final class BalanceSheet
         }
 
         return $cells;
+    }
+
+    /**
+     * IAS 1.60 presentation of an asset or liability account. An account no rule decides is shown as current and marked `classification_assumed`.
+     *
+     * @return array{classification?: string, classification_assumed?: true}
+     */
+    private function classification(AccountInfo $a): array
+    {
+        if (! in_array($a->type, ['asset', 'liability'], true)) {
+            return [];
+        }
+        $class = BalanceSheetClassifier::classify($a->type, $a->subtype, $a->controlType, $a->tags, $a->ifrsElement);
+
+        return $class === null
+            ? ['classification' => BalanceSheetClass::Current->value, 'classification_assumed' => true]
+            : ['classification' => $class->value];
     }
 
     /**

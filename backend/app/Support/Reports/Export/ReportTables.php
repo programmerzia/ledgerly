@@ -27,9 +27,71 @@ final class ReportTables
         };
     }
 
+    /**
+     * @param  array{dimension: array<string, mixed>, columns: list<array{value: array{name: string}|null}>}  $breakdown
+     * @return list<string>
+     */
+    private static function columnLabels(array $breakdown): array
+    {
+        return array_map(fn (array $c): string => $c['value']['name'] ?? 'Untagged', $breakdown['columns']);
+    }
+
+    /**
+     * @return list<array{amount: int, currency: string}>
+     */
+    private static function moneyCells(mixed $cells): array
+    {
+        $out = [];
+        foreach ((array) $cells as $m) {
+            $out[] = ['amount' => (int) $m['amount'], 'currency' => (string) $m['currency']];
+        }
+
+        return $out;
+    }
+
+    /**
+     * Debit less credit of a pair of money cells, as one money cell.
+     *
+     * @param  array{amount: int, currency: string}  $debit
+     * @param  array{amount: int, currency: string}  $credit
+     * @return array{amount: int, currency: string}
+     */
+    private static function net(array $debit, array $credit): array
+    {
+        return ['amount' => $debit['amount'] - $credit['amount'], 'currency' => $debit['currency']];
+    }
+
     /** @param array<string, mixed> $d */
     private static function trialBalance(array $d, string $company, int $decimals): ReportTable
     {
+        if (($d['mode'] ?? 'as_of') === 'movement') {
+            $rows = [];
+            foreach ($d['rows'] as $r) {
+                $rows[] = new ReportRow([$r['account']['code'], $r['account']['name'], $r['opening']['debit'], $r['opening']['credit'], $r['movement']['debit'], $r['movement']['credit'], $r['closing']['debit'], $r['closing']['credit']]);
+            }
+            $t = $d['totals'];
+            $rows[] = new ReportRow(['', 'Total', $t['opening']['debit'], $t['opening']['credit'], $t['movement']['debit'], $t['movement']['credit'], $t['closing']['debit'], $t['closing']['credit']], 'grand_total');
+
+            return new ReportTable('Trial balance', "{$company} · {$d['from']} to {$d['to']}", [
+                ['label' => 'Code', 'numeric' => false], ['label' => 'Account', 'numeric' => false],
+                ['label' => 'Opening debit', 'numeric' => true], ['label' => 'Opening credit', 'numeric' => true],
+                ['label' => 'Debit', 'numeric' => true], ['label' => 'Credit', 'numeric' => true],
+                ['label' => 'Closing debit', 'numeric' => true], ['label' => 'Closing credit', 'numeric' => true],
+            ], $rows, $decimals);
+        }
+        if (isset($d['breakdown'])) {
+            $rows = [];
+            foreach ($d['rows'] as $r) {
+                $rows[] = new ReportRow([$r['account']['code'], $r['account']['name'], ...self::moneyCells($r['by_dimension']), self::net($r['debit'], $r['credit'])]);
+            }
+            $t = $d['totals'];
+            $rows[] = new ReportRow(['', 'Total (debit less credit)', ...self::moneyCells($t['by_dimension']), self::net($t['debit'], $t['credit'])], 'grand_total');
+
+            return new ReportTable('Trial balance by '.$d['breakdown']['dimension']['name'], "{$company} · As of {$d['as_of']} · balance, debit less credit", [
+                ['label' => 'Code', 'numeric' => false], ['label' => 'Account', 'numeric' => false],
+                ...array_map(fn (string $l): array => ['label' => $l, 'numeric' => true], self::columnLabels($d['breakdown'])), ['label' => 'Total', 'numeric' => true],
+            ], $rows, $decimals);
+        }
         $rows = [];
         foreach ($d['rows'] as $r) {
             $rows[] = new ReportRow([$r['account']['code'], $r['account']['name'], $r['debit'], $r['credit']]);
@@ -45,6 +107,25 @@ final class ReportTables
     /** @param array<string, mixed> $d */
     private static function profitAndLoss(array $d, string $company, int $decimals): ReportTable
     {
+        if (isset($d['breakdown'])) {
+            $rows = [];
+            $cells = fn (array $x): array => [...self::moneyCells($x['by_dimension']), self::moneyCells([$x['amount']])[0]];
+            foreach ($d['sections'] as $s) {
+                $rows[] = new ReportRow([$s['title']], 'heading');
+                foreach ($s['lines'] as $l) {
+                    $rows[] = new ReportRow(["{$l['account']['code']} {$l['account']['name']}", ...$cells($l)]);
+                }
+                $rows[] = new ReportRow(["Total {$s['title']}", ...$cells($s['total'])], 'total');
+            }
+            foreach (['gross_profit' => 'Gross profit', 'operating_profit' => 'Operating profit', 'net_profit' => 'Net profit'] as $k => $label) {
+                $rows[] = new ReportRow([$label, ...$cells($d['subtotals'][$k])], $k === 'net_profit' ? 'grand_total' : 'total');
+            }
+
+            return new ReportTable('Profit and loss by '.$d['breakdown']['dimension']['name'], "{$company} · {$d['from']} to {$d['to']}", [
+                ['label' => 'Account', 'numeric' => false],
+                ...array_map(fn (string $l): array => ['label' => $l, 'numeric' => true], self::columnLabels($d['breakdown'])), ['label' => 'Total', 'numeric' => true],
+            ], $rows, $decimals);
+        }
         $compare = ($d['comparison']['available'] ?? false) === true;
         $head = [['label' => 'Account', 'numeric' => false], ['label' => "{$d['from']} to {$d['to']}", 'numeric' => true]];
         if ($compare) {
@@ -109,16 +190,29 @@ final class ReportTables
         $figures = fn (array $x): array => $compare ? [$x['amount'], $x['comparison'], $x['variance']] : [$x['amount']];
 
         $rows = [];
+        $line = function (array $l) use ($figures, &$rows): void {
+            $name = isset($l['account']) && ! isset($l['gross']) ? "{$l['account']['code']} {$l['account']['name']}" : (string) $l['name'];
+            if (isset($l['fund'])) {
+                $name .= " [{$l['fund']['name']}]";
+            }
+            $rows[] = new ReportRow([$name, ...$figures($l)]);
+            foreach ($l['contacts'] ?? [] as $c) {
+                $rows[] = new ReportRow(['    '.($c['contact']['name'] ?? '(no contact)'), $c['amount']]);
+            }
+        };
         foreach (['assets' => 'Assets', 'liabilities' => 'Liabilities', 'equity' => 'Equity'] as $key => $title) {
             $rows[] = new ReportRow([$title], 'heading');
-            foreach ($d[$key]['lines'] as $l) {
-                $name = isset($l['account']) && ! isset($l['gross']) ? "{$l['account']['code']} {$l['account']['name']}" : (string) $l['name'];
-                if (isset($l['fund'])) {
-                    $name .= " [{$l['fund']['name']}]";
+            if ($key === 'equity') {
+                foreach ($d[$key]['lines'] as $l) {
+                    $line($l);
                 }
-                $rows[] = new ReportRow([$name, ...$figures($l)]);
-                foreach ($l['contacts'] ?? [] as $c) {
-                    $rows[] = new ReportRow(['    '.($c['contact']['name'] ?? '(no contact)'), $c['amount']]);
+            } else {
+                foreach (['current' => 'Current', 'non_current' => 'Non-current'] as $class => $label) {
+                    $rows[] = new ReportRow(["{$label} ".strtolower($title)], 'heading');
+                    foreach ($d[$key][$class]['lines'] as $l) {
+                        $line($l);
+                    }
+                    $rows[] = new ReportRow(["Total {$label} ".strtolower($title), ...$figures($d[$key][$class]['total'])], 'total');
                 }
             }
             $rows[] = new ReportRow(["Total {$title}", ...$figures($d[$key]['total'])], 'total');

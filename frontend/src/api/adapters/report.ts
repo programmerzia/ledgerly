@@ -101,6 +101,10 @@ export interface ReportSelection {
   contactId?: string;
   /** Budget vs actual: the budget version to read; the approved one of the period's year when absent. */
   budgetId?: string;
+  /** Dimension id whose values become columns (trial balance as of a date, profit and loss). */
+  breakdown?: string;
+  /** Trial balance: `movement` adds opening, debit and credit movement and closing over the chosen range. */
+  view?: 'movement';
 }
 
 /** The query for a report run. As-of reports ignore from/to and range reports ignore as_of, as the server does. */
@@ -124,6 +128,8 @@ export function selectionQuery(sel: ReportSelection, opts: { basis?: boolean; co
   if (sel.accountId) q.account_id = sel.accountId;
   if (sel.contactId) q.contact_id = sel.contactId;
   if (sel.budgetId) q.budget_id = sel.budgetId;
+  if (sel.view) q.view = sel.view;
+  if (sel.breakdown) q.breakdown = sel.breakdown;
   return q;
 }
 
@@ -151,6 +157,8 @@ export interface Figure {
   variance?: number;
   /** Server-formatted percentage with one decimal ("12.5"), or null when there was nothing to divide by. */
   variancePct?: string | null;
+  /** Breakdown by dimension: the amount in each column, in the breakdown's column order. */
+  byDimension?: number[];
 }
 
 function figure(v: unknown, what: string): Figure {
@@ -159,7 +167,27 @@ function figure(v: unknown, what: string): Figure {
   if ('comparison' in o && isRec(o.comparison)) f.comparison = mon(o.comparison, `${what}.comparison`);
   if ('variance' in o && isRec(o.variance)) f.variance = mon(o.variance, `${what}.variance`);
   if ('variance_pct' in o) f.variancePct = optStr(o.variance_pct);
+  if (Array.isArray(o.by_dimension)) f.byDimension = o.by_dimension.map((c, i) => mon(c, `${what}.by_dimension[${i}]`));
   return f;
+}
+
+/** 3c.19: one dimension's values as columns; the last column is `null`, the lines with no value ("untagged"). */
+export interface Breakdown {
+  dimension: { id: string; code: string; name: string };
+  columns: Array<{ id: string; code: string; name: string } | null>;
+}
+
+function parseBreakdown(v: unknown): Breakdown | null {
+  if (!isRec(v)) return null;
+  const d = rec(v.dimension, 'breakdown.dimension');
+  return {
+    dimension: { id: str(d.id, 'dimension.id'), code: str(d.code, 'dimension.code'), name: str(d.name, 'dimension.name') },
+    columns: list(v.columns, 'breakdown.columns').map((c) => {
+      const value = rec(c, 'column').value;
+      if (!isRec(value)) return null;
+      return { id: str(value.id, 'value.id'), code: str(value.code, 'value.code'), name: str(value.name, 'value.name') };
+    }),
+  };
 }
 
 export interface FundRef {
@@ -197,37 +225,97 @@ function head(o: Rec): Head {
 // Trial balance
 // ---------------------------------------------------------------------------------------------------------------
 
+export interface DebitCredit {
+  debit: number;
+  credit: number;
+}
 export interface TrialBalanceRow {
   account: AccountRef;
+  /** As-of: the balance on its side. Movement: the closing balance (same as `closing`). */
   debit: number;
   credit: number;
   drill?: DrillKey;
+  /** Movement view only. */
+  opening?: DebitCredit;
+  movement?: DebitCredit;
+  closing?: DebitCredit;
+  /** As-of with a breakdown: net (debit less credit) per column. */
+  byDimension?: number[];
+  drills?: { opening?: DrillKey; movement?: DrillKey; closing?: DrillKey };
 }
 export interface TrialBalanceView extends Head {
+  mode: 'as_of' | 'movement';
   asOf: string;
+  /** Movement view: the range, and the day the opening column is as of. */
+  from?: string;
+  openingAsOf?: string;
   rows: TrialBalanceRow[];
   totalDebit: number;
   totalCredit: number;
+  /** Movement view: the three pairs of totals. */
+  totals?: { opening: DebitCredit; movement: DebitCredit; closing: DebitCredit };
   /** The server's verdict on debits = credits. */
   balanced: boolean;
   /** A dimension filter selects part of each journal, so the sides can legitimately differ. */
   filtered: boolean;
+  /** As-of with a breakdown: the columns and each column's net total (debit less credit). */
+  breakdown?: Breakdown | null;
+  totalsByDimension?: number[];
+}
+
+function debitCredit(v: unknown, what: string): DebitCredit {
+  const o = rec(v, what);
+  return { debit: mon(o.debit, `${what}.debit`), credit: mon(o.credit, `${what}.credit`) };
 }
 
 export function parseTrialBalance(data: unknown): TrialBalanceView {
   const o = rec(data, 'trial balance');
   const totals = rec(o.totals, 'trial balance totals');
+  if (o.mode === 'movement') {
+    const t = { opening: debitCredit(totals.opening, 'totals.opening'), movement: debitCredit(totals.movement, 'totals.movement'), closing: debitCredit(totals.closing, 'totals.closing') };
+    return {
+      ...head(o),
+      mode: 'movement',
+      asOf: str(o.as_of, 'as_of'),
+      from: str(o.from, 'from'),
+      openingAsOf: str(o.opening_as_of, 'opening_as_of'),
+      rows: list(o.rows, 'rows').map((r) => {
+        const row = rec(r, 'row');
+        const closing = debitCredit(row.closing, 'row.closing');
+        const d = isRec(row.drill) ? row.drill : {};
+        return {
+          account: accountRef(row.account, 'row.account'),
+          debit: closing.debit,
+          credit: closing.credit,
+          opening: debitCredit(row.opening, 'row.opening'),
+          movement: debitCredit(row.movement, 'row.movement'),
+          closing,
+          drills: { opening: toDrillKey(d.opening), movement: toDrillKey(d.movement), closing: toDrillKey(d.closing) },
+        };
+      }),
+      totalDebit: t.closing.debit,
+      totalCredit: t.closing.credit,
+      totals: t,
+      balanced: bool(o.balanced),
+      filtered: bool(o.filtered),
+    };
+  }
   return {
     ...head(o),
+    mode: 'as_of',
     asOf: str(o.as_of, 'as_of'),
     rows: list(o.rows, 'rows').map((r) => {
       const row = rec(r, 'row');
-      return { account: accountRef(row.account, 'row.account'), debit: mon(row.debit, 'row.debit'), credit: mon(row.credit, 'row.credit'), drill: toDrillKey(row.drill) };
+      const out: TrialBalanceRow = { account: accountRef(row.account, 'row.account'), debit: mon(row.debit, 'row.debit'), credit: mon(row.credit, 'row.credit'), drill: toDrillKey(row.drill) };
+      if (Array.isArray(row.by_dimension)) out.byDimension = row.by_dimension.map((c, i) => mon(c, `row.by_dimension[${i}]`));
+      return out;
     }),
     totalDebit: mon(totals.debit, 'totals.debit'),
     totalCredit: mon(totals.credit, 'totals.credit'),
     balanced: bool(o.balanced),
     filtered: bool(o.filtered),
+    breakdown: parseBreakdown(o.breakdown),
+    totalsByDimension: Array.isArray(totals.by_dimension) ? totals.by_dimension.map((c, i) => mon(c, `totals.by_dimension[${i}]`)) : undefined,
   };
 }
 
@@ -254,6 +342,7 @@ export interface ProfitAndLossView extends Head {
   operatingProfit: Figure;
   netProfit: Figure;
   filtered: boolean;
+  breakdown: Breakdown | null;
 }
 
 export function parseProfitAndLoss(data: unknown): ProfitAndLossView {
@@ -280,6 +369,7 @@ export function parseProfitAndLoss(data: unknown): ProfitAndLossView {
     operatingProfit: figure(sub.operating_profit, 'operating_profit'),
     netProfit: figure(sub.net_profit, 'net_profit'),
     filtered: bool(o.filtered),
+    breakdown: parseBreakdown(o.breakdown),
   };
 }
 
@@ -385,6 +475,11 @@ export interface BsSection {
   lines: BsLine[];
   total: Figure;
 }
+/** IAS 1.60: assets and liabilities in a current and a non-current part; the two totals add up to the section total. */
+export interface BsClassifiedSection extends BsSection {
+  current: BsSection;
+  nonCurrent: BsSection;
+}
 export interface BsFund {
   fund: FundRef | null;
   total: Figure;
@@ -392,8 +487,8 @@ export interface BsFund {
 export interface BalanceSheetView extends Head {
   asOf: string;
   comparison: ComparisonInfo | null;
-  assets: BsSection;
-  liabilities: BsSection;
+  assets: BsClassifiedSection;
+  liabilities: BsClassifiedSection;
   equity: BsSection & { funds: BsFund[] | null };
   liabilitiesAndEquity: Figure;
   balanced: boolean;
@@ -429,6 +524,11 @@ function bsSection(v: unknown, what: string): BsSection {
   return { lines: list(s.lines, `${what}.lines`).map(bsLine), total: figure(s.total, `${what}.total`) };
 }
 
+function bsClassified(v: unknown, what: string): BsClassifiedSection {
+  const s = rec(v, what);
+  return { ...bsSection(s, what), current: bsSection(s.current, `${what}.current`), nonCurrent: bsSection(s.non_current, `${what}.non_current`) };
+}
+
 export function parseBalanceSheet(data: unknown): BalanceSheetView {
   const o = rec(data, 'balance sheet');
   const equity = rec(o.equity, 'equity');
@@ -436,8 +536,8 @@ export function parseBalanceSheet(data: unknown): BalanceSheetView {
     ...head(o),
     asOf: str(o.as_of, 'as_of'),
     comparison: comparisonInfo(o.comparison),
-    assets: bsSection(o.assets, 'assets'),
-    liabilities: bsSection(o.liabilities, 'liabilities'),
+    assets: bsClassified(o.assets, 'assets'),
+    liabilities: bsClassified(o.liabilities, 'liabilities'),
     equity: {
       ...bsSection(equity, 'equity'),
       funds: Array.isArray(equity.funds) ? equity.funds.map((f) => ({ fund: fundRef(rec(f, 'fund').fund), total: figure(rec(f, 'fund').total, 'fund.total') })) : null,
@@ -643,6 +743,8 @@ export function parseStatement(data: unknown): StatementView {
 // ---------------------------------------------------------------------------------------------------------------
 
 export interface TaxRow {
+  /** The tax code's id; null for lines without a tax code (the drill asks for them as `none`). */
+  taxCodeId: string | null;
   code: string;
   name: string;
   kind: string;
@@ -674,6 +776,7 @@ function taxSide(v: unknown, what: string): TaxSide {
       const row = rec(r, 'row');
       const code = isRec(row.tax_code) ? row.tax_code : null;
       return {
+        taxCodeId: code ? optStr(code.id) : null,
         code: code ? (optStr(code.code) ?? '') : '',
         name: code ? (optStr(code.name) ?? '') : 'No tax code',
         kind: code ? (optStr(code.kind) ?? '') : '',

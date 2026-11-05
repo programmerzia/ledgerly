@@ -9,7 +9,8 @@ import {
 
 export type ReportName =
   | 'trial-balance' | 'profit-and-loss' | 'balance-sheet' | 'cash-flow' | 'general-ledger'
-  | 'ar-aging' | 'ap-aging' | 'customer-statement' | 'supplier-statement' | 'tax-return' | 'budget-vs-actual';
+  | 'ar-aging' | 'ap-aging' | 'customer-statement' | 'supplier-statement' | 'tax-return' | 'budget-vs-actual'
+  | 'journal-list' | 'bank-reconciliation' | 'audit-trail' | 'period-close';
 
 const reportPath = (name: string) => `/v1/companies/{company}/reports/${name}`;
 

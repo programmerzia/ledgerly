@@ -90,12 +90,25 @@ final class ReportParamsResolver
     private function build(Company $company, array $in, ?string $from, string $to, string $basis, string $type, ?array $comparison, ?string $periodId): ReportParams
     {
         [$slots, $byId] = $this->dimensions($company->id, $in['dimensions'] ?? []);
+        $breakdown = isset($in['breakdown']) ? $this->breakdown($company->id, (string) $in['breakdown']) : null;
 
         return new ReportParams(
-            $company->id, $company->base_currency, $from, $to, $basis, $type, $comparison, $slots, $byId,
+            $company->id, (string) $company->base_currency, $from, $to, $basis, $type, $comparison, $slots, $byId,
             (bool) ($in['hide_zero'] ?? false), $periodId, isset($in['account_id']) ? (string) $in['account_id'] : null,
             isset($in['contact_id']) ? (string) $in['contact_id'] : null,
+            $breakdown['slot'] ?? null, $breakdown['id'] ?? null,
         );
+    }
+
+    /** @return array{slot: int, id: string} */
+    private function breakdown(string $companyId, string $dimensionId): array
+    {
+        $row = $this->runner->db()->selectOne('SELECT id, position FROM dimensions WHERE company_id = ? AND id = ?', [$companyId, $dimensionId]);
+        if ($row === null) {
+            throw $this->invalid('breakdown', 'The dimension does not exist.');
+        }
+
+        return ['slot' => (int) $row->position, 'id' => (string) $row->id];
     }
 
     /** @return array{from: string|null, to: string}|null */
