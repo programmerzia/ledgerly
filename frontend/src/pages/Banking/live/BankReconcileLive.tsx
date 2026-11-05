@@ -319,6 +319,7 @@ export const BankReconcileLive: React.FC = () => {
         const n = toMatch[Math.max(idx - 1, 0)];
         if (n) { e.preventDefault(); setActiveId(n.id); }
       } else if (e.key === 'c') setTab('create');
+      else if (e.key === 'b') setTab('document');
       else if (e.key === 'm') setTab('match');
     };
     window.addEventListener('keydown', onKey);

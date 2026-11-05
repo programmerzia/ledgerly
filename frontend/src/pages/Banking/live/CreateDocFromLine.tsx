@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { toast } from 'sonner';
 import { AlertCircle, CheckCircle2, Circle, FilePlus, XCircle } from 'lucide-react';
 import { AccountPicker } from '@/components/domain/AccountPicker';
 import { formatMoney } from '@/lib/format';
@@ -138,6 +139,7 @@ export const CreateDocFromLine: React.FC<Props> = ({ line, bank, run, onMatched 
       update('match', 'doing');
       await run(() => banking.match({ statement_line_ids: [line.id], settlement_ids: [pay.id] }, createIntent()));
       update('match', 'done');
+      toast.success(`${out ? 'Bill' : 'Invoice'} ${doc.number ?? ''} posted, ${payNoun} ${pay.number ?? ''} posted and matched to this line.`);
       onMatched();
     } catch (err) {
       if (isSigningCancelled(err)) {
