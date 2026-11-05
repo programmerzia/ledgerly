@@ -10,7 +10,7 @@ import { Account } from '@/types';
 import { CoaGroupedTable, TypePill, type CoaAction } from './CoaGroupedTable';
 import { SplitPane } from '@/components/domain/SplitPane';
 import { formatMoney } from '@/lib/format';
-import { Plus, Layers, ShieldCheck, Tag, FileText, Pencil, ListPlus, Ban, Tags } from 'lucide-react';
+import { Plus, Layers, ShieldCheck, Tag, FileText, Pencil, ListPlus, Ban, Tags, Eye, EyeOff } from 'lucide-react';
 import { PageHeader } from '@/components/domain/PageHeader';
 import { EmptyState } from '@/components/domain/EmptyState';
 import { Kbd } from '@/components/ui/kbd';
@@ -33,6 +33,13 @@ export const ChartOfAccounts: React.FC = () => {
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
   const balances = useAccountBalances(live && selectedAccountId !== null, asOf);
   const [problem, setProblem] = useState<string | null>(null);
+  // Hidden accounts are left out of the default list (live mode only; the mock has none). The account being looked at stays listed.
+  const [showHidden, setShowHidden] = useState(false);
+  const hiddenCount = useMemo(() => accounts.filter((a) => a.is_hidden).length, [accounts]);
+  const listed = useMemo(
+    () => (live && !showHidden ? accounts.filter((a) => !a.is_hidden || a.id === selectedAccountId) : accounts),
+    [live, showHidden, accounts, selectedAccountId],
+  );
   const [dialog, setDialog] = useState<AccountDialogMode | null>(null);
   const [deactivating, setDeactivating] = useState<Account | null>(null);
   const coSlug = currentCompany.slug;
@@ -60,12 +67,30 @@ export const ChartOfAccounts: React.FC = () => {
     return () => window.removeEventListener('keydown', onKey);
   }, [dialog, deactivating, canManage]);
 
+  const toggleHidden = (a: Account) => {
+    const next = !a.is_hidden;
+    setProblem(null);
+    actions
+      .setHidden(a, next)
+      .then(() => toast.success(next ? `${a.code} is hidden from lists. It still posts and reports as before.` : `${a.code} is shown in lists again.`))
+      .catch((err) => {
+        if (!(err instanceof Handled)) setProblem(describeProblem(err));
+      });
+  };
+
   const rowActions = (a: Account): CoaAction[] => {
     if (live) {
       const can = a.can?.update === true;
       return [
         { label: 'Edit', icon: Pencil, onClick: () => setDialog({ kind: 'edit', account: a }), disabled: !can, disabledReason: !can ? 'You do not have permission to change accounts' : undefined },
         { label: 'Add sub-account', icon: ListPlus, onClick: () => setDialog({ kind: 'sub', parent: a }), disabled: !can, disabledReason: !can ? 'You do not have permission to change accounts' : undefined },
+        {
+          label: a.is_hidden ? 'Show in lists' : 'Hide from lists',
+          icon: a.is_hidden ? Eye : EyeOff,
+          onClick: () => toggleHidden(a),
+          disabled: !can,
+          disabledReason: !can ? 'You do not have permission to change accounts' : undefined,
+        },
         {
           label: 'Deactivate',
           icon: Ban,
@@ -123,6 +148,18 @@ export const ChartOfAccounts: React.FC = () => {
         subtitle={`${currentCompany.name} · the list of accounts your books are organised by`}
         actions={
           <>
+            {live && hiddenCount > 0 && (
+              <label className="flex items-center gap-2 h-8 px-1 text-[13px] text-text-secondary cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={showHidden}
+                  onChange={(e) => setShowHidden(e.target.checked)}
+                  className="h-4 w-4 rounded text-accent focus:ring-accent cursor-pointer"
+                />
+                <span>Show hidden</span>
+                <span className="text-[11px] text-text-muted">{hiddenCount}</span>
+              </label>
+            )}
             {live && (
               <button
                 type="button"
@@ -185,6 +222,34 @@ export const ChartOfAccounts: React.FC = () => {
                   Classification: {selectedAccount.account_type}, {selectedAccount.account_subtype}
                 </p>
               </div>
+
+              {/* IFRS taxonomy link and list visibility (live only: the mock chart has neither) */}
+              {live && (
+                <div className="p-3 bg-surface border border-border rounded-md flex flex-col gap-2">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex flex-col">
+                      <span className="text-[11px] font-semibold text-text-primary">Show in lists and pickers</span>
+                      <span className="text-[10px] text-text-muted">
+                        {selectedAccount.is_hidden
+                          ? 'Hidden from default lists. It still posts, reports and keeps its balance.'
+                          : 'Hide specialist accounts you do not use. Posting and reports are not affected.'}
+                      </span>
+                    </div>
+                    <input
+                      type="checkbox"
+                      aria-label="Show in lists and pickers"
+                      checked={!selectedAccount.is_hidden}
+                      disabled={selectedAccount.can?.update !== true}
+                      onChange={() => toggleHidden(selectedAccount)}
+                      className="h-4 w-4 rounded text-accent focus:ring-accent cursor-pointer"
+                    />
+                  </div>
+                  <div className="flex items-center justify-between gap-3 border-t border-border/60 pt-2">
+                    <span className="text-[10px] text-text-muted">IFRS Taxonomy element</span>
+                    <span className="font-code text-[11px] text-text-secondary break-all text-right">{selectedAccount.ifrs_element ?? 'Not linked'}</span>
+                  </div>
+                </div>
+              )}
 
               {/* Balance KPI */}
               {live && (
@@ -341,7 +406,7 @@ export const ChartOfAccounts: React.FC = () => {
           />
         ) : (
         <CoaGroupedTable
-          accounts={accounts}
+          accounts={listed}
           currency={currentCompany.base_currency}
           balanceOf={live ? undefined : balanceOf}
           activeId={selectedAccountId}

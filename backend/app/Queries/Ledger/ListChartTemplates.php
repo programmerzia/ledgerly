@@ -16,7 +16,7 @@ final class ListChartTemplates
     public function __invoke(): array
     {
         $rows = DB::table('chart_templates')
-            ->select(['code', 'name', 'country', 'standard'])
+            ->select(['code', 'name', 'country', 'standard', 'is_recommended'])
             ->selectRaw('jsonb_array_length(lines) AS account_count')
             ->orderBy('name')
             ->get();
@@ -27,6 +27,7 @@ final class ListChartTemplates
             $row->country === null ? null : (string) $row->country,
             (string) $row->standard,
             (int) $row->account_count,
+            (bool) $row->is_recommended,
         ))->all());
     }
 }

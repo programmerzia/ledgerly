@@ -20,6 +20,7 @@ final class ChartTemplateResource extends JsonResource
             'country' => $this->country,
             'standard' => $this->standard,
             'account_count' => $this->accountCount,
+            'recommended' => $this->recommended,
         ];
     }
 }

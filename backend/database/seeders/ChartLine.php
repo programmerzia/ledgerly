@@ -26,7 +26,9 @@ final class ChartLine
      * @param  'none'|'ar'|'ap'|'bank'|'cash'|'tax'|'retained_earnings'|'suspense'|'fixed_asset'|'accum_depr'  $control
      * @param  'base_only'|'any'  $currency
      * @param  'debit'|'credit'|null  $normal  null = the usual side of $type
-     * @return array{code: string, name: string, account_type: string, account_subtype: string, normal_balance: string, control_type: string, currency_policy: string, parent_code: string|null, description: string|null}
+     * @param  string|null  $ifrsElement  IFRS Accounting Taxonomy element name (ifrs-full), only where verified
+     * @param  bool  $hidden  start hidden from default lists and pickers (never affects posting or reports)
+     * @return array{code: string, name: string, account_type: string, account_subtype: string, normal_balance: string, control_type: string, currency_policy: string, parent_code: string|null, description: string|null, ifrs_element?: string, is_hidden?: true}
      */
     public static function make(
         string $code,
@@ -38,8 +40,10 @@ final class ChartLine
         string $currency = 'base_only',
         ?string $normal = null,
         ?string $description = null,
+        ?string $ifrsElement = null,
+        bool $hidden = false,
     ): array {
-        return [
+        $line = [
             'code' => $code,
             'name' => $name,
             'account_type' => $type,
@@ -50,5 +54,15 @@ final class ChartLine
             'parent_code' => $parent,
             'description' => $description,
         ];
+
+        // Only written when set, so the stored lines of the older templates stay exactly as they were.
+        if ($ifrsElement !== null) {
+            $line['ifrs_element'] = $ifrsElement;
+        }
+        if ($hidden) {
+            $line['is_hidden'] = true;
+        }
+
+        return $line;
     }
 }

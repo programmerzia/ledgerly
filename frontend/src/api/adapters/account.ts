@@ -35,6 +35,8 @@ export function toAccount(a: ApiAccount, scope: { tenantId: string; companyId: s
     description: a.description ?? undefined,
     version: a.version,
     parent_id: a.parent_id,
+    is_hidden: a.is_hidden,
+    ifrs_element: a.ifrs_element ?? null,
     dimension_rules: rules,
     can: { update: can.update, deactivate: can.deactivate },
   };
@@ -77,6 +79,19 @@ export function toNewAccountRequest(d: AccountDraft): ApiAccountRequest {
     description: d.description || null,
     parent_id: d.parent_id ?? null,
   };
+}
+
+/**
+ * Accounts to offer in a picker: hidden ones are left out unless the form already uses them (`keep`), so an
+ * existing document never loses the account it was saved with. Hiding is presentation only (plan 3c.0).
+ */
+export function pickableAccounts(accounts: Account[], keep: readonly (string | null | undefined)[] = []): Account[] {
+  return accounts.filter((a) => !a.is_hidden || keep.includes(a.id));
+}
+
+/** PUT /accounts/{id}/visibility body. */
+export function toVisibilityRequest(a: Pick<Account, 'version'>, hidden: boolean): { hidden: boolean; version: number } {
+  return { hidden, version: a.version ?? 0 };
 }
 
 export function toDimensionRulesRequest(rules: Record<string, DimensionRuleValue | 'none'>): { rules: { dimension_id: string; rule: DimensionRuleValue }[] } {

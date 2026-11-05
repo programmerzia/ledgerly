@@ -11,6 +11,7 @@ import { formatMoney } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { useRouteCompany } from '@/data/session';
 import { useAccounts } from '@/data/accounts';
+import { pickableAccounts } from '@/api/adapters/account';
 import { useContactDirectory } from '@/data/contacts';
 import { useDoc, useDocActions, useDocList, useFetchDoc } from '@/data/invoices';
 import { useTradeRefs } from '@/data/tradeRefs';
@@ -469,7 +470,7 @@ const InvoiceFormInner: React.FC<{ side: Side }> = ({ side }) => {
   if (!draftParam && relatedParam && related.isLoading) return <LoadingLine what={S.main} />;
 
   const working = busy !== null;
-  const revenue = accounts.data.filter((a) => a.is_active && a.is_postable && a.account_type === S.lineAccountType);
+  const revenue = pickableAccounts(accounts.data, lines.map((l) => l.account_id)).filter((a) => a.is_active && a.is_postable && a.account_type === S.lineAccountType);
   const accountName = (id: string) => {
     const a = accounts.data.find((x) => x.id === id);
     return a ? `${a.code} ${a.name}` : '';

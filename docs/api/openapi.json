@@ -73,6 +73,23 @@
                         }
                     },
                     {
+                        "name": "hidden",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "enum": [
+                                "true",
+                                "false",
+                                "1",
+                                "0",
+                                null
+                            ]
+                        }
+                    },
+                    {
                         "name": "cursor",
                         "in": "query",
                         "description": "Opaque, from `meta.next_cursor` or `meta.prev_cursor`.",
@@ -398,6 +415,87 @@
                         "application/json": {
                             "schema": {
                                 "$ref": "#/components/schemas/VersionRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`AccountResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/components/schemas/AccountResource"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "dimension_rules"
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/v1/companies/{company}/accounts/{account}/visibility": {
+            "put": {
+                "operationId": "accounts.visibility",
+                "summary": "Shows or hides the account in default lists and pickers; posting and reports are not affected",
+                "tags": [
+                    "Account"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "account",
+                        "in": "path",
+                        "required": true,
+                        "description": "The account ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AccountVisibilityRequest"
                             }
                         }
                     }
@@ -21869,6 +21967,16 @@
                     "is_active": {
                         "type": "boolean"
                     },
+                    "is_hidden": {
+                        "type": "boolean"
+                    },
+                    "ifrs_element": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "IFRS Accounting Taxonomy element name (ifrs-full), shown for reference only."
+                    },
                     "description": {
                         "type": [
                             "string",
@@ -21906,11 +22014,31 @@
                     "allow_manual_journals",
                     "is_postable",
                     "is_active",
+                    "is_hidden",
+                    "ifrs_element",
                     "description",
                     "version",
                     "can"
                 ],
                 "title": "AccountResource"
+            },
+            "AccountVisibilityRequest": {
+                "type": "object",
+                "description": "PUT /accounts/{account}/visibility: `{\"hidden\": true, \"version\": 3}`.",
+                "properties": {
+                    "hidden": {
+                        "type": "boolean"
+                    },
+                    "version": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                },
+                "required": [
+                    "hidden",
+                    "version"
+                ],
+                "title": "AccountVisibilityRequest"
             },
             "ApiClientRequest": {
                 "type": "object",
@@ -24616,6 +24744,9 @@
                     },
                     "account_count": {
                         "type": "integer"
+                    },
+                    "recommended": {
+                        "type": "boolean"
                     }
                 },
                 "required": [
@@ -24623,7 +24754,8 @@
                     "name",
                     "country",
                     "standard",
-                    "account_count"
+                    "account_count",
+                    "recommended"
                 ],
                 "title": "ChartTemplateResource"
             },

@@ -20,14 +20,14 @@ function chartTplStoredLines(string $code): array
 
 $starterCharts = ['ifrs_sme', 'us_small_business', 'non_profit', 'insurance'];
 
-it('seeds the four starter templates as global reference data', function () {
+it('seeds the starter templates and the comprehensive one as global reference data', function () {
     app(TenantContext::class)->clear();
 
     $rows = DB::table('chart_templates')->orderBy('code')->get();
 
     expect(Schema::hasColumn('chart_templates', 'tenant_id'))->toBeFalse()
-        ->and($rows->pluck('code')->all())->toBe(['ifrs_sme', 'insurance', 'non_profit', 'us_small_business'])
-        ->and($rows->pluck('country', 'code')->all())->toBe(['ifrs_sme' => null, 'insurance' => null, 'non_profit' => null, 'us_small_business' => 'US'])
+        ->and($rows->pluck('code')->all())->toBe(['comprehensive', 'ifrs_sme', 'insurance', 'non_profit', 'us_small_business'])
+        ->and($rows->pluck('country', 'code')->all())->toBe(['comprehensive' => null, 'ifrs_sme' => null, 'insurance' => null, 'non_profit' => null, 'us_small_business' => 'US'])
         ->and($rows->every(fn ($row) => $row->name !== '' && $row->standard !== ''))->toBeTrue()
         ->and(DB::table('chart_templates')->whereRaw("jsonb_typeof(lines) <> 'array'")->count())->toBe(0);
 });

@@ -8,7 +8,7 @@ import { selectByMode } from './select';
 import { http } from '@/api/http';
 import { fetchAllPages } from '@/api/cursor';
 import { fromApiMoney } from '@/api/adapters/money';
-import { toAccount, toAccountRequest, toNewAccountRequest, toDimensionRulesRequest, type AccountDraft, type DimensionRuleValue } from '@/api/adapters/account';
+import { toAccount, toAccountRequest, toNewAccountRequest, toDimensionRulesRequest, toVisibilityRequest, type AccountDraft, type DimensionRuleValue } from '@/api/adapters/account';
 import { createIntent, type Intent } from '@/api/idempotency';
 import { Handled, handleVersionConflict } from '@/api/live/writeProblems';
 import { useLedgerStore } from '@/mock/store';
@@ -63,6 +63,8 @@ export interface AccountActions {
   /** `reason` is kept in the mock only: the API's deactivate takes just the version. */
   deactivate: (account: Account, reason: string, intent?: Intent) => Promise<void>;
   setAllowManual: (account: Account, allow: boolean, intent?: Intent) => Promise<void>;
+  /** Hide or show in default lists and pickers. Posting and reports are not affected. Live mode only; the mock has no hidden accounts. */
+  setHidden: (account: Account, hidden: boolean, intent?: Intent) => Promise<void>;
   setDimensionRules: (account: Account, rules: Record<string, DimensionRuleValue | 'none'>, intent?: Intent) => Promise<void>;
 }
 
@@ -101,6 +103,7 @@ export function useMockAccountActions(): AccountActions {
       const accounts = useLedgerStore.getState().accounts;
       useLedgerStore.setState({ accounts: accounts.map((a) => (a.id === account.id ? { ...a, allow_manual_journals: allow } : a)) });
     },
+    setHidden: async () => {},
     setDimensionRules: async () => {},
   };
 }
@@ -137,6 +140,14 @@ export function useLiveAccountActions(): AccountActions {
         http.put('/v1/companies/{company}/accounts/{account}', {
           path: { ...path, account: account.id },
           body: toAccountRequest(account, { allow_manual_journals: allow }),
+          intent,
+        }),
+      ),
+    setHidden: (account, hidden, intent = createIntent()) =>
+      guard(account, `hidden: ${hidden ? 'yes' : 'no'}`, () =>
+        http.put('/v1/companies/{company}/accounts/{account}/visibility', {
+          path: { ...path, account: account.id },
+          body: toVisibilityRequest(account, hidden),
           intent,
         }),
       ),

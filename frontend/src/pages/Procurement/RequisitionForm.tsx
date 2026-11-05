@@ -10,6 +10,7 @@ import { formatMoney } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { useRouteCompany } from '@/data/session';
 import { useAccounts } from '@/data/accounts';
+import { pickableAccounts } from '@/api/adapters/account';
 import { useDimensions } from '@/data/dimensions';
 import { useTradeRefs } from '@/data/tradeRefs';
 import { useRequisition, useRequisitionActions } from '@/data/procurement';
@@ -252,7 +253,7 @@ const Inner: React.FC<{ editId?: string }> = ({ editId }) => {
   }
 
   const working = busy !== null;
-  const expense = accounts.data.filter((a) => a.is_active && a.is_postable && a.account_type === 'expense');
+  const expense = pickableAccounts(accounts.data, lines.map((l) => l.account_id)).filter((a) => a.is_active && a.is_postable && a.account_type === 'expense');
   const accountName = (id: string) => {
     const a = accounts.data.find((x) => x.id === id);
     return a ? `${a.code} ${a.name}` : '';

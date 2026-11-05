@@ -29,6 +29,9 @@ final class AccountResource extends JsonResource
             'allow_manual_journals' => $this->allow_manual_journals,
             'is_postable' => $this->is_postable,
             'is_active' => $this->is_active,
+            'is_hidden' => $this->is_hidden,
+            /** IFRS Accounting Taxonomy element name (ifrs-full), shown for reference only. */
+            'ifrs_element' => $this->ifrs_element,
             'description' => $this->description,
             'version' => $this->lock_version,
             /** @var array<string, string> dimension id → required|optional|forbidden */

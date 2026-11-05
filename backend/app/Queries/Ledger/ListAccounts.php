@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Builder;
 final class ListAccounts
 {
     /** @return Builder<Account> */
-    public function __invoke(string $companyId, ?string $type = null, ?bool $active = null, ?string $search = null): Builder
+    public function __invoke(string $companyId, ?string $type = null, ?bool $active = null, ?string $search = null, ?bool $hidden = null): Builder
     {
         $query = Account::query()->with('dimensionRules')->where('company_id', $companyId);
         if ($type !== null) {
@@ -19,6 +19,9 @@ final class ListAccounts
         }
         if ($active !== null) {
             $query->where('is_active', $active);
+        }
+        if ($hidden !== null) {
+            $query->where('is_hidden', $hidden);
         }
         if ($search !== null && trim($search) !== '') {
             $like = '%'.addcslashes(trim($search), '\\%_').'%';

@@ -82,8 +82,10 @@ export function localDateISO(now: Date = new Date()): string {
   return `${now.getFullYear()}-${p(now.getMonth() + 1)}-${p(now.getDate())}`;
 }
 
-/** Charts to offer first: the ones made for the company's country, then the rest in the order given. */
-export function orderTemplates<T extends { country: string | null }>(templates: T[], country: string): T[] {
-  const mine = templates.filter((t) => t.country?.toUpperCase() === country.toUpperCase());
-  return [...mine, ...templates.filter((t) => !mine.includes(t))];
+/** Charts to offer first: the recommended one, then those made for the company's country, then the rest in the order given. */
+export function orderTemplates<T extends { country: string | null; recommended?: boolean }>(templates: T[], country: string): T[] {
+  const recommended = templates.filter((t) => t.recommended === true);
+  const rest = templates.filter((t) => !recommended.includes(t));
+  const mine = rest.filter((t) => t.country?.toUpperCase() === country.toUpperCase());
+  return [...recommended, ...mine, ...rest.filter((t) => !mine.includes(t))];
 }
