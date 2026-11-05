@@ -26,6 +26,7 @@ use App\Http\Controllers\Organisation\CompanySettingsController;
 use App\Http\Controllers\Organisation\InvitationController;
 use App\Http\Controllers\Organisation\InvitationTokenController;
 use App\Http\Controllers\Organisation\MemberController;
+use App\Http\Controllers\Organisation\NumberingController;
 use App\Http\Controllers\Practice\PracticeController;
 use App\Http\Controllers\Procurement\GoodsReceiptController;
 use App\Http\Controllers\Procurement\ProcurementReportController;
@@ -127,6 +128,10 @@ Route::middleware(['auth:sanctum', 'tenant', 'tenant.writable', 'idempotent', 'c
         // Company profile, tax rounding and posting accounts
         Route::get('settings', [CompanySettingsController::class, 'show'])->name('settings.show');
         Route::put('settings', [CompanySettingsController::class, 'update'])->name('settings.update');
+
+        // Document numbering: prefix and padding per kind, from the next fiscal year only (D15 item 6)
+        Route::get('numbering', [NumberingController::class, 'index'])->name('numbering.index');
+        Route::put('numbering/{kind}', [NumberingController::class, 'update'])->where('kind', '[a-z_]+')->name('numbering.update');
 
         // Chart of accounts
         Route::get('chart-templates', [ChartTemplateController::class, 'index'])->name('chart-templates.index');

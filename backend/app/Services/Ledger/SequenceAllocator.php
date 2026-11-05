@@ -15,7 +15,12 @@ use LogicException;
  */
 final class SequenceAllocator
 {
-    public function __construct(private readonly Clock $clock, private readonly IdGenerator $ids) {}
+    private readonly NumberingRules $rules;
+
+    public function __construct(private readonly Clock $clock, private readonly IdGenerator $ids, ?NumberingRules $rules = null)
+    {
+        $this->rules = $rules ?? new NumberingRules;
+    }
 
     public function next(Connection $db, string $tenantId, string $companyId, string $key, string $prefix, int $padding = 5): string
     {
@@ -25,6 +30,8 @@ final class SequenceAllocator
 
         $row = $this->increment($db, $tenantId, $companyId, $key);
         if ($row === null) {
+            // First number of this key: the company's numbering rule for this year applies now, and never again (D15 item 6).
+            [$prefix, $padding] = $this->rules->forNewSequence($db, $tenantId, $companyId, $key, $prefix, $padding);
             $now = $this->clock->now()->format('Y-m-d H:i:s.uP');
             $db->statement(
                 'INSERT INTO sequences (id, tenant_id, company_id, sequence_key, prefix, next_value, padding, created_at, updated_at) '
