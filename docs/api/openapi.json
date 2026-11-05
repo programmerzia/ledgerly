@@ -14839,6 +14839,274 @@
                         "$ref": "#/components/responses/AuthenticationException"
                     }
                 }
+            },
+            "post": {
+                "operationId": "roles.store",
+                "summary": "Creates a custom role (copying a role is the same call with that role's permissions)",
+                "tags": [
+                    "Member"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CompanyRoleRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "`RoleResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/RoleResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/v1/companies/{company}/permissions": {
+            "get": {
+                "operationId": "permissions.index",
+                "summary": "Every permission of the matrix by module, with a plain-language label: the rows of the role grid",
+                "tags": [
+                    "Member"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`FreeFormDataResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/FreeFormDataResource"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/v1/companies/{company}/roles/{role}": {
+            "put": {
+                "operationId": "roles.update",
+                "summary": "Changes a role's permissions (and a custom role's name). The Owner role is locked",
+                "tags": [
+                    "Member"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "role",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CompanyRoleRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`RoleResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/RoleResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "roles.destroy",
+                "summary": "Deletes a custom role nobody holds",
+                "tags": [
+                    "Member"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "role",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No content"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/v1/companies/{company}/roles/{role}/reset": {
+            "post": {
+                "operationId": "roles.reset",
+                "summary": "Puts a standard role back to the default permissions",
+                "tags": [
+                    "Member"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "role",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`RoleResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/RoleResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
             }
         },
         "/v1/companies/{company}/members/{user}/roles/{role}": {
@@ -14953,6 +15221,47 @@
                                     "required": [
                                         "data"
                                     ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/v1/companies/{company}/menu": {
+            "get": {
+                "operationId": "menu.show",
+                "summary": "`{sections, permissions, org_admin}`; people only, API clients have no menu",
+                "tags": [
+                    "Menu"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`FreeFormDataResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/FreeFormDataResource"
                                 }
                             }
                         }
@@ -15167,6 +15476,78 @@
                     },
                     "422": {
                         "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/v1/organisation": {
+            "get": {
+                "operationId": "organisation.show",
+                "tags": [
+                    "Organisation"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`FreeFormDataResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/FreeFormDataResource"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    }
+                }
+            },
+            "put": {
+                "operationId": "organisation.update",
+                "tags": [
+                    "Organisation"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "maxLength": 120
+                                    }
+                                },
+                                "required": [
+                                    "name"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`FreeFormDataResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/FreeFormDataResource"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
                     }
                 }
             }
@@ -28843,6 +29224,17 @@
                 ],
                 "title": "BulkApproveRequest"
             },
+            "CalendarType": {
+                "type": "string",
+                "description": "How a fiscal year is cut into its 12 regular periods (PRD \u00a74.3). `Monthly` follows calendar months. The others are week-based: 52 whole weeks (364 days) in a 4-4-5, 4-5-4 or 5-4-4 pattern, repeated for each of the four quarters.\n",
+                "enum": [
+                    "monthly",
+                    "4-4-5",
+                    "4-5-4",
+                    "5-4-4"
+                ],
+                "title": "CalendarType"
+            },
             "ChartTemplateResource": {
                 "type": "object",
                 "properties": {
@@ -28956,6 +29348,22 @@
                     "status": {
                         "type": "string"
                     },
+                    "formats": {
+                        "type": "object",
+                        "description": "How this company's dates and numbers read (plan 3c.26b): the chosen format, or its country's usual one.",
+                        "properties": {
+                            "date": {
+                                "type": "string"
+                            },
+                            "number": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "date",
+                            "number"
+                        ]
+                    },
                     "can": {
                         "type": "object",
                         "additionalProperties": {
@@ -28974,9 +29382,33 @@
                     "tax_id",
                     "timezone",
                     "status",
+                    "formats",
                     "can"
                 ],
                 "title": "CompanyResource"
+            },
+            "CompanyRoleRequest": {
+                "type": "object",
+                "description": "A custom role's name and its complete set of permission names (names the matrix does not have are refused by the Action).",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "maxLength": 64
+                    },
+                    "permissions": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "maxLength": 100
+                        },
+                        "maxItems": 200
+                    }
+                },
+                "required": [
+                    "name",
+                    "permissions"
+                ],
+                "title": "CompanyRoleRequest"
             },
             "CompanySettingsResource": {
                 "type": "object",
@@ -29041,6 +29473,74 @@
                                 "name"
                             ]
                         }
+                    },
+                    "formats": {
+                        "type": "object",
+                        "description": "Date and number formats (plan 3c.26b). `date` / `number` are what is in force; `date_chosen` / `number_chosen` are the company's\nown choice, null while it follows the country. Options are keys with an example.",
+                        "properties": {
+                            "date": {
+                                "type": "string"
+                            },
+                            "number": {
+                                "type": "string"
+                            },
+                            "date_chosen": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "number_chosen": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "date_options": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "key": {
+                                            "type": "string"
+                                        },
+                                        "example": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "key",
+                                        "example"
+                                    ]
+                                }
+                            },
+                            "number_options": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "key": {
+                                            "type": "string"
+                                        },
+                                        "example": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "key",
+                                        "example"
+                                    ]
+                                }
+                            }
+                        },
+                        "required": [
+                            "date",
+                            "number",
+                            "date_chosen",
+                            "number_chosen",
+                            "date_options",
+                            "number_options"
+                        ]
                     },
                     "journal_threshold": {
                         "type": [
@@ -29215,6 +29715,7 @@
                     "fiscal_year_start_month",
                     "tax_rounding",
                     "posting_accounts",
+                    "formats",
                     "journal_threshold",
                     "require_purchase_order",
                     "po_price_tolerance_pct",
@@ -29762,7 +30263,7 @@
             },
             "CreateFiscalYearRequest": {
                 "type": "object",
-                "description": "A year of twelve months from `starts_on`, plus its adjustment period.",
+                "description": "A year of twelve periods from `starts_on` (calendar months by default, or 52 weeks in a week pattern), plus its adjustment period.",
                 "properties": {
                     "name": {
                         "type": "string",
@@ -29771,6 +30272,17 @@
                     "starts_on": {
                         "type": "string",
                         "format": "date"
+                    },
+                    "calendar": {
+                        "$ref": "#/components/schemas/CalendarType"
+                    },
+                    "extra_week_period": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
+                        "minimum": 1,
+                        "maximum": 12
                     }
                 },
                 "required": [
@@ -30465,6 +30977,15 @@
                     "status": {
                         "type": "string"
                     },
+                    "calendar": {
+                        "type": "string"
+                    },
+                    "extra_week_period": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
                     "periods": {
                         "type": "array",
                         "items": {
@@ -30484,6 +31005,8 @@
                     "starts_on",
                     "ends_on",
                     "status",
+                    "calendar",
+                    "extra_week_period",
                     "can"
                 ],
                 "title": "FiscalYearResource"
@@ -35286,13 +35809,26 @@
                     },
                     "members": {
                         "type": "integer"
+                    },
+                    "system": {
+                        "type": "boolean",
+                        "description": "Plan 3c.25: a standard role keeps its name, Owner is locked completely, an edited standard role can be reset."
+                    },
+                    "locked": {
+                        "type": "boolean"
+                    },
+                    "edited": {
+                        "type": "boolean"
                     }
                 },
                 "required": [
                     "id",
                     "name",
                     "permissions",
-                    "members"
+                    "members",
+                    "system",
+                    "locked",
+                    "edited"
                 ],
                 "title": "RoleResource"
             },
