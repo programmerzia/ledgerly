@@ -149,6 +149,8 @@ final class ApplyChartTemplate
                 'control_type' => $line['control_type'],
                 'is_postable' => ! isset($headers[$line['code']]),
                 'description' => $line['description'],
+                'ifrs_element' => $line['ifrs_element'] ?? null,
+                'is_hidden' => $line['is_hidden'] ?? false,
                 'created_at' => $stamp,
                 'updated_at' => $stamp,
             ];

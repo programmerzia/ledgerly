@@ -6,9 +6,11 @@ namespace App\Http\Controllers\Ledger;
 
 use App\Actions\Ledger\ManageAccount;
 use App\Actions\Ledger\SetAccountDimensionRules;
+use App\Actions\Ledger\SetAccountHidden;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Ledger\AccountDimensionRulesRequest;
 use App\Http\Requests\Ledger\AccountRequest;
+use App\Http\Requests\Ledger\AccountVisibilityRequest;
 use App\Http\Requests\Ledger\ListAccountsRequest;
 use App\Http\Requests\VersionRequest;
 use App\Http\Resources\AccountResource;
@@ -28,7 +30,7 @@ final class AccountController extends Controller
     #[Authorize('viewAny', Account::class)]
     public function index(ListAccountsRequest $request, Company $company, ListAccounts $accounts): AnonymousResourceCollection
     {
-        $page = CursorPage::fetch($accounts($company->id, $request->type(), $request->active(), $request->search()), $request, 'code');
+        $page = CursorPage::fetch($accounts($company->id, $request->type(), $request->active(), $request->search(), $request->hidden()), $request, 'code');
 
         return AccountResource::collection($page->items)->additional(['meta' => ['next_cursor' => $page->nextCursor, 'prev_cursor' => $page->prevCursor, 'limit' => $page->limit]]);
     }
@@ -59,6 +61,15 @@ final class AccountController extends Controller
     public function deactivate(VersionRequest $request, Company $company, Account $account, ManageAccount $action, ShowAccount $show): AccountResource
     {
         $action->deactivate(RequestActor::from($request, $company->id), $account->id, $request->version());
+
+        return new AccountResource($show($account->id));
+    }
+
+    /** Shows or hides the account in default lists and pickers; posting and reports are not affected. */
+    #[Authorize('update', 'account')]
+    public function setVisibility(AccountVisibilityRequest $request, Company $company, Account $account, SetAccountHidden $action, ShowAccount $show): AccountResource
+    {
+        $action->handle(RequestActor::from($request, $company->id), $account->id, $request->version(), $request->hidden());
 
         return new AccountResource($show($account->id));
     }

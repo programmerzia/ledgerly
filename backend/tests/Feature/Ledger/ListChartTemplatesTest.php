@@ -13,7 +13,7 @@ it('lists the starter templates by name with their size, without a tenant contex
     $list = app(ListChartTemplates::class)();
 
     expect(array_map(fn (ChartTemplateSummary $t) => $t->code, $list))
-        ->toBe(['ifrs_sme', 'insurance', 'non_profit', 'us_small_business']);
+        ->toBe(['comprehensive', 'ifrs_sme', 'insurance', 'non_profit', 'us_small_business']);
 
     foreach ($list as $summary) {
         $template = ChartTemplate::query()->where('code', $summary->code)->firstOrFail();
@@ -29,6 +29,6 @@ it('serialises a summary for the picker', function () {
 
     expect($summary->toArray())->toBe([
         'code' => 'us_small_business', 'name' => 'US small business', 'country' => 'US',
-        'standard' => 'US GAAP', 'account_count' => 67,
+        'standard' => 'US GAAP', 'account_count' => 67, 'recommended' => false,
     ]);
 });

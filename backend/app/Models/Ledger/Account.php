@@ -18,6 +18,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string $account_type
  * @property bool $is_postable
  * @property bool $is_active
+ * @property bool $is_hidden
+ * @property string|null $ifrs_element
  * @property bool $allow_manual_journals
  * @property ControlType $control_type
  * @property CurrencyPolicy $currency_policy
@@ -39,6 +41,7 @@ class Account extends BaseModel
             'is_postable' => 'boolean',
             'lock_version' => 'integer',
             'is_active' => 'boolean',
+            'is_hidden' => 'boolean',
             'allow_manual_journals' => 'boolean',
             'control_type' => ControlType::class,
             'currency_policy' => CurrencyPolicy::class,

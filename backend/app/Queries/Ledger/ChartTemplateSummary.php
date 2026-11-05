@@ -13,9 +13,10 @@ final readonly class ChartTemplateSummary
         public ?string $country,
         public string $standard,
         public int $accountCount,
+        public bool $recommended = false,
     ) {}
 
-    /** @return array{code: string, name: string, country: string|null, standard: string, account_count: int} */
+    /** @return array{code: string, name: string, country: string|null, standard: string, account_count: int, recommended: bool} */
     public function toArray(): array
     {
         return [
@@ -24,6 +25,7 @@ final readonly class ChartTemplateSummary
             'country' => $this->country,
             'standard' => $this->standard,
             'account_count' => $this->accountCount,
+            'recommended' => $this->recommended,
         ];
     }
 }
