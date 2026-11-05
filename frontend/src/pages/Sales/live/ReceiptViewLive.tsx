@@ -5,6 +5,7 @@ import { CheckCircle, Clock, FilePlus, Pencil, Printer, RotateCcw, Send, Trash2 
 import { PageHeader } from '@/components/domain/PageHeader';
 import { StatusPill } from '@/components/domain/StatusPill';
 import { SignDialog } from '@/components/domain/SignDialog';
+import { AttachmentsPanel } from '@/components/live/AttachmentsPanel';
 import { MoneyInput } from '@/components/domain/MoneyInput';
 import { ConflictDialog, type VersionConflict } from '@/components/domain/ConflictDialog';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -291,6 +292,8 @@ export const ReceiptViewLive: React.FC<{ side?: Side }> = ({ side = 'sales' }) =
           </section>
         </aside>
       </div>
+
+      <AttachmentsPanel type="settlement" parentId={r.id} posted={r.status === 'posted' || r.status === 'reversed'} />
 
       <Dialog open={dialog === 'return'} onOpenChange={(o) => !o && setDialog(null)}>
         <DialogContent className="max-w-md rounded-lg border border-border bg-surface-elevated p-6 shadow-popover">

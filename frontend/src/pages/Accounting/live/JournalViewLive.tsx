@@ -6,6 +6,7 @@ import { useLedgerStore } from '@/mock/store';
 import { PageHeader } from '@/components/domain/PageHeader';
 import { StatusPill } from '@/components/domain/StatusPill';
 import { SignDialog } from '@/components/domain/SignDialog';
+import { AttachmentsPanel } from '@/components/live/AttachmentsPanel';
 import { ConflictDialog, type VersionConflict } from '@/components/domain/ConflictDialog';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { JournalPaper } from '../journal-view/JournalPaper';
@@ -329,6 +330,8 @@ export const JournalViewLive: React.FC = () => {
           </section>
         </aside>
       </div>
+
+      <AttachmentsPanel type="journal" parentId={journal.id} posted={journal.status === 'posted' || journal.status === 'reversed'} />
 
       <Dialog open={dialog === 'return'} onOpenChange={(o) => !o && setDialog(null)}>
         <DialogContent className="max-w-md rounded-lg border border-border bg-surface-elevated p-6 shadow-popover">

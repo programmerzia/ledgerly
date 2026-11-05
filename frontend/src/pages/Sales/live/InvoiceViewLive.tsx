@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { CheckCircle, Clock, FilePlus, Link2, Pencil, Printer, Receipt, RotateCcw, Send, Trash2 } from 'lucide-react';
 import { PageHeader } from '@/components/domain/PageHeader';
 import { SignDialog } from '@/components/domain/SignDialog';
+import { AttachmentsPanel } from '@/components/live/AttachmentsPanel';
 import { MoneyInput } from '@/components/domain/MoneyInput';
 import { ConflictDialog, type VersionConflict } from '@/components/domain/ConflictDialog';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -466,6 +467,8 @@ export const InvoiceViewLive: React.FC<{ side?: Side }> = ({ side = 'sales' }) =
         busy={busy}
         onUndo={(p) => { setProblem(''); setUndoTarget(p); setDialog('undo'); }}
       />
+
+      <AttachmentsPanel type={side === 'sales' ? 'invoice' : 'bill'} parentId={doc.id} posted={doc.status === 'posted' || doc.status === 'reversed'} />
 
       <Dialog open={dialog === 'return'} onOpenChange={(o) => !o && setDialog(null)}>
         <DialogContent className="max-w-md rounded-lg border border-border bg-surface-elevated p-6 shadow-popover">
