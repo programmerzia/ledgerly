@@ -27,13 +27,13 @@ it('prices a draft on the server, with tax, and gives it no number', function ()
     expect($this->journalCount())->toBe(0);
 });
 
-it('goes to a second person for approval, who signs with a PIN, and the order gets PO-2026-00001', function (): void {
+it('goes to a second person for approval, who signs with a PIN, and the order gets PO-FY2026-00001', function (): void {
     $this->workflow('purchase_order');
     $order = $this->draftDoc('purchase-orders', $this->orderBody());
     expect($this->submitDoc('purchase-orders', $order['id'])['status'])->toBe('pending_approval');
 
     $approved = $this->asPerson($this->approver, signing: true)->postJson($this->api("purchase-orders/{$order['id']}/approve"), [], $this->key())->assertOk()
-        ->assertJsonPath('data.status', 'approved')->assertJsonPath('data.number', 'PO-2026-00001')->json('data');
+        ->assertJsonPath('data.status', 'approved')->assertJsonPath('data.number', 'PO-FY2026-00001')->json('data');
     expect($approved['approved_by'])->toBe($this->approver->id)->and($approved['can']['receive'])->toBeFalse();
 });
 
@@ -55,10 +55,10 @@ it('numbers orders without gaps, even with a refused approval in between', funct
 
     $approve = fn (string $id, $by) => $this->asPerson($by, signing: true)->postJson($this->api("purchase-orders/{$id}/approve"), [], $this->key());
     $approve($a['id'], $this->accountant)->assertForbidden();
-    $approve($a['id'], $this->approver)->assertOk()->assertJsonPath('data.number', 'PO-2026-00001');
+    $approve($a['id'], $this->approver)->assertOk()->assertJsonPath('data.number', 'PO-FY2026-00001');
     $approve($a['id'], $this->approver)->assertStatus(403);
     $approve($b['id'], $this->accountant)->assertForbidden();
-    $approve($b['id'], $this->approver)->assertOk()->assertJsonPath('data.number', 'PO-2026-00002');
+    $approve($b['id'], $this->approver)->assertOk()->assertJsonPath('data.number', 'PO-FY2026-00002');
 });
 
 it('cannot set up a workflow of its own for revisions, which use the purchase_order workflow', function (): void {
@@ -106,7 +106,7 @@ it('approves a revision, an order and a requisition from the inbox and says so',
         ['type' => 'purchase_requisition', 'id' => $requisition['id']],
     ]], $this->key())->assertOk()
         ->assertJsonPath('meta.approved', 3)->assertJsonPath('meta.skipped', 0)
-        ->assertJsonPath('data.0.number', null)->assertJsonPath('data.1.number', 'PO-2026-00002')->assertJsonPath('data.2.number', 'PR-2026-00001');
+        ->assertJsonPath('data.0.number', null)->assertJsonPath('data.1.number', 'PO-FY2026-00002')->assertJsonPath('data.2.number', 'PR-FY2026-00001');
     $this->getJson($this->api("purchase-orders/{$order['id']}"))->assertJsonPath('data.revision', 1)->assertJsonPath('data.lines.0.unit_price_fc.amount', 12000);
 });
 
@@ -190,7 +190,7 @@ it('cancels a draft by its maker, and an approved order by a person who may, whi
     $approved = $this->approvedOrder();
     $this->asPerson($this->accountant)->postJson($this->api("purchase-orders/{$approved['id']}/cancel"), ['reason' => 'x'], $this->key())->assertForbidden();
     $this->asPerson($this->owner)->postJson($this->api("purchase-orders/{$approved['id']}/cancel"), ['reason' => 'Supplier closed'], $this->key())->assertOk()
-        ->assertJsonPath('data.status', 'cancelled')->assertJsonPath('data.number', 'PO-2026-00001');
+        ->assertJsonPath('data.status', 'cancelled')->assertJsonPath('data.number', 'PO-FY2026-00001');
 });
 
 it('refuses to cancel an order that has a receipt or a bill waiting for approval', function (): void {
@@ -285,7 +285,7 @@ it('serves the print data as the plain GET of one order', function (): void {
     $this->receive($order['id'], [[$order['lines'][0]['id'], '4']])->assertCreated();
 
     $this->asPerson($this->owner)->getJson($this->api("purchase-orders/{$order['id']}"))->assertOk()
-        ->assertJsonPath('data.number', 'PO-2026-00001')->assertJsonPath('data.contact_name', 'Contact S1')->assertJsonPath('data.reference', 'Quote 9')
+        ->assertJsonPath('data.number', 'PO-FY2026-00001')->assertJsonPath('data.contact_name', 'Contact S1')->assertJsonPath('data.reference', 'Quote 9')
         ->assertJsonPath('data.lines.0.received', '4.000000')->assertJsonPath('data.lines.0.open_to_receive', '6.000000')
         ->assertJsonPath('data.lines.0.received_not_billed', '4.000000')->assertJsonPath('data.lines.0.billed', '0.000000')
         ->assertJsonPath('data.status', 'partly_received')->assertJsonPath('data.lines.0.tax_amount_fc.amount', 10000);
