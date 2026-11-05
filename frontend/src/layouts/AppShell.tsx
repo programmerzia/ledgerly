@@ -21,7 +21,8 @@ import { TopBar } from './shell/TopBar';
 import { LiveRouteGate } from './shell/LiveRouteGate';
 import { useSignOut } from '@/data/session';
 import { Sidebar } from './shell/Sidebar';
-import { buildNavSections } from './shell/nav';
+import { buildNavSections, navSectionsFromMenu } from './shell/nav';
+import { useCompanyMenu } from '@/data/menu';
 import { useTheme } from './shell/useTheme';
 import type { AppNotification } from './shell/NotificationsMenu';
 
@@ -110,7 +111,12 @@ export const AppShell: React.FC = () => {
     bills.filter((b) => b.status === 'pending_approval').length +
     journals.filter((j) => j.status === 'pending_approval').length;
 
-  const navSections = buildNavSections(coSlug, IS_LIVE ? 0 : pendingApprovalsCount);
+  // Live: the server's menu for this person. While it loads nothing is offered; if it cannot be read, the full static list is the fallback
+  // (the API refuses what a role may not do either way).
+  const menu = useCompanyMenu();
+  const navSections = IS_LIVE
+    ? (menu.data ? navSectionsFromMenu(coSlug, menu.data.sections) : menu.isError ? buildNavSections(coSlug, 0) : [])
+    : buildNavSections(coSlug, pendingApprovalsCount);
 
   return (
     <TooltipProvider delayDuration={200}>

@@ -53,7 +53,7 @@ export const LiveDashboard: React.FC = () => {
   const ap = panelState(d.ap);
   const profit = panelState(d.profit);
   const banks = panelState(d.banks);
-  const approvals = panelState(d.approvals);
+  const approvals = panelState(d.approvals, d.mayApprove);
   const overdueInv = panelState(d.overdueInvoices);
   const overdueBill = panelState(d.overdueBills);
 

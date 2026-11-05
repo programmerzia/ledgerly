@@ -15,7 +15,7 @@ trait ResetsDatabase
 {
     private static bool $databaseMigrated = false;
 
-    private const array KEEP_TABLES = ['migrations', 'currencies', 'chart_templates'];
+    private const array KEEP_TABLES = ['migrations', 'currencies', 'chart_templates', 'menu_items'];
 
     protected function setUpResetsDatabase(): void
     {

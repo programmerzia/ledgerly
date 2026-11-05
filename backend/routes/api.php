@@ -31,6 +31,7 @@ use App\Http\Controllers\Organisation\CompanySettingsController;
 use App\Http\Controllers\Organisation\InvitationController;
 use App\Http\Controllers\Organisation\InvitationTokenController;
 use App\Http\Controllers\Organisation\MemberController;
+use App\Http\Controllers\Organisation\MenuController;
 use App\Http\Controllers\Organisation\NumberingController;
 use App\Http\Controllers\Practice\PracticeController;
 use App\Http\Controllers\Procurement\GoodsReceiptController;
@@ -127,6 +128,9 @@ Route::middleware(['signed', 'throttle:120,1'])->withoutMiddleware(ValidateCsrfT
 // (App\Http\Support\CompanyBindings), so another company's id is a 404. Throttled per principal (13 §16).
 Route::middleware(['auth:sanctum', 'tenant', 'tenant.writable', 'idempotent', 'company', 'throttle:company-api'])
     ->prefix('companies/{company}')->whereUuid('company')->group(function (): void {
+        // The person's menu in this company, filtered by their permissions (plan 3c.24)
+        Route::get('menu', [MenuController::class, 'show'])->name('menu.show');
+
         // Roles of the company and who holds them (org owners and admins)
         Route::get('roles', [MemberController::class, 'roles'])->name('roles.index');
         Route::put('members/{user}/roles/{role}', [MemberController::class, 'assign'])->whereUuid(['user', 'role'])->name('members.roles.assign');

@@ -6,6 +6,7 @@ import { fetchInvitations, fetchMembers } from '@/api/live/team';
 import type { SetupState } from '@/api/adapters/onboarding';
 import { accountsKey } from './accounts';
 import { invitationsKey, useTenantId } from './team';
+import { useAccess } from './menu';
 
 export const chartTemplatesKey = (companyId: string) => ['chart-templates', companyId] as const;
 export const taxCodesKey = (companyId: string) => ['tax-codes', companyId] as const;
@@ -23,15 +24,19 @@ const orNull = async <T,>(p: Promise<T>): Promise<T | null> => {
 
 export function useSetupState(companyId: string, selfId: string) {
   const tenantId = useTenantId();
+  // Members and invitations are for organisation owners and admins; for anyone else the call is a guaranteed 403 (plan 3c.24).
+  const access = useAccess();
+  const orgAdmin = access.orgAdmin;
   return useQuery({
-    queryKey: [...setupKey(companyId), tenantId],
+    enabled: access.ready,
+    queryKey: [...setupKey(companyId), tenantId, orgAdmin],
     retry: false,
     queryFn: async (): Promise<SetupState> => {
       const [accounts, taxCodes, members, invitations] = await Promise.all([
         hasAccounts(companyId),
         fetchTaxCodes(companyId),
-        orNull(fetchMembers()),
-        orNull(fetchInvitations()),
+        orgAdmin ? orNull(fetchMembers()) : Promise.resolve(null),
+        orgAdmin ? orNull(fetchInvitations()) : Promise.resolve(null),
       ]);
       const teammates = members === null || invitations === null ? null : members.filter((m) => m.user_id !== selfId).length + invitations.length;
       return { hasAccounts: accounts, taxCodeCount: taxCodes.length, teammates };

@@ -10,11 +10,13 @@ import {
 } from '@/api/live/dashboard';
 import { hasAccounts } from '@/api/live/setup';
 import type { Company } from '@/types';
+import { useAccess } from './menu';
 
 export type PanelState = 'loading' | 'hidden' | 'error' | 'ready';
 
 /** 403 means "not for your role": the panel is left out rather than shown broken. */
-export function panelState(q: { isPending: boolean; isError: boolean; error: unknown }): PanelState {
+export function panelState(q: { isPending: boolean; isError: boolean; error: unknown }, allowed = true): PanelState {
+  if (!allowed) return 'hidden';
   if (q.isPending) return 'loading';
   if (q.isError) return q.error instanceof ApiError && q.error.status === 403 ? 'hidden' : 'error';
   return 'ready';
@@ -24,6 +26,9 @@ const opts = { retry: false, staleTime: 30_000 } as const;
 
 export function useLiveDashboard(company: Company) {
   const id = company.id;
+  // The approvals inbox needs the approve right; asking without it is a guaranteed 403 (plan 3c.24).
+  const access = useAccess();
+  const mayApprove = access.ready && access.can('journals.approve');
   const today = localDateISO();
   const ar = useQuery({ queryKey: ['dashboard', id, 'ar', today], queryFn: () => fetchAging(id, 'ar', today), ...opts });
   const ap = useQuery({ queryKey: ['dashboard', id, 'ap', today], queryFn: () => fetchAging(id, 'ap', today), ...opts });
@@ -36,11 +41,11 @@ export function useLiveDashboard(company: Company) {
     ...opts,
   });
   const banks = useQuery({ queryKey: ['dashboard', id, 'banks'], queryFn: () => fetchBankRows(id), ...opts });
-  const approvals = useQuery({ queryKey: ['dashboard', id, 'approvals'], queryFn: () => fetchApprovalCount(id), ...opts });
+  const approvals = useQuery({ queryKey: ['dashboard', id, 'approvals'], queryFn: () => fetchApprovalCount(id), enabled: mayApprove, ...opts });
   const overdueInvoices = useQuery({ queryKey: ['dashboard', id, 'overdue-invoices', today], queryFn: () => fetchOverdueCount(id, 'invoices'), ...opts });
   const overdueBills = useQuery({ queryKey: ['dashboard', id, 'overdue-bills', today], queryFn: () => fetchOverdueCount(id, 'bills'), ...opts });
   const chart = useQuery({ queryKey: ['dashboard', id, 'has-accounts'], queryFn: () => hasAccounts(id), ...opts });
   const postedInvoice = useQuery({ queryKey: ['dashboard', id, 'posted-invoice'], queryFn: () => hasPosted(id, 'invoices'), ...opts });
   const postedBill = useQuery({ queryKey: ['dashboard', id, 'posted-bill'], queryFn: () => hasPosted(id, 'bills'), ...opts });
-  return { today, ar, ap, profit, banks, approvals, overdueInvoices, overdueBills, chart, postedInvoice, postedBill };
+  return { today, mayApprove: !access.ready || mayApprove, ar, ap, profit, banks, approvals, overdueInvoices, overdueBills, chart, postedInvoice, postedBill };
 }

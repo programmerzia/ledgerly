@@ -5,6 +5,7 @@ import { fetchFiscalYearStart } from '@/api/live/dashboard';
 import { fiscalYearStart } from '@/api/adapters/onboarding';
 import { toAuditRow } from '@/api/adapters/admin';
 import type { Company } from '@/types';
+import { useAccess } from './menu';
 
 const opts = { retry: false, staleTime: 30_000 } as const;
 const MONTHS_SHOWN = 6;
@@ -56,7 +57,10 @@ export function useClosingCash(company: Company, today: string, yearStart: strin
 }
 
 export function useRecentActivity(company: Company) {
+  // The audit trail needs `audit.view`; without it the call is a guaranteed 403 (plan 3c.24).
+  const access = useAccess();
   return useQuery({
+    enabled: access.ready && access.can('audit.view'),
     queryKey: ['dashboard', company.id, 'recent-audit'],
     queryFn: async () => (await fetchRecentAudit(company.id, 8)).map(toAuditRow),
     ...opts,

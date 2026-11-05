@@ -25,7 +25,7 @@ final class Rls
      */
     public const array GLOBAL_TABLES = [
         // reference data
-        'currencies', 'chart_templates',
+        'currencies', 'chart_templates', 'menu_items',
         // platform identity: looked up before a tenant is known; access is scoped by user/tenant id in Queries
         'tenants', 'users', 'tenant_users', 'password_reset_tokens', 'personal_access_tokens',
         // Laravel infrastructure

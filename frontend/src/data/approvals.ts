@@ -2,6 +2,7 @@
 import { useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useActiveCompany } from './session';
+import { useAccess } from './menu';
 import { fetchAllPages } from '@/api/cursor';
 import * as live from '@/api/live/journals';
 import { toApprovalItem, toBulkResult, type ApprovalItem, type BulkResultRow } from '@/api/adapters/journal';
@@ -25,7 +26,8 @@ export function useApprovalInbox(): DataResult<ApprovalItem[]> {
  */
 export function useMemberNames(): Map<string, string> {
   const { company, known } = useActiveCompany();
-  const q = useQuery({ queryKey: ['members', company.id], queryFn: live.listMembers, enabled: known, retry: false, staleTime: 5 * 60_000 });
+  const access = useAccess();
+  const q = useQuery({ queryKey: ['members', company.id], queryFn: live.listMembers, enabled: known && access.ready && access.orgAdmin, retry: false, staleTime: 5 * 60_000 });
   return useMemo(() => new Map((q.data ?? []).map((m) => [m.user_id, m.name])), [q.data]);
 }
 
