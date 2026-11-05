@@ -13,6 +13,8 @@ use App\Http\Controllers\Files\AttachmentController;
 use App\Http\Controllers\Fiscal\FiscalPeriodController;
 use App\Http\Controllers\Fiscal\FiscalYearController;
 use App\Http\Controllers\Fiscal\ReopenRequestController;
+use App\Http\Controllers\FixedAssets\AssetCategoryController;
+use App\Http\Controllers\FixedAssets\FixedAssetController;
 use App\Http\Controllers\Fx\ExchangeRateController;
 use App\Http\Controllers\Fx\FxRevaluationController;
 use App\Http\Controllers\Imports\ImportController;
@@ -170,6 +172,16 @@ Route::middleware(['auth:sanctum', 'tenant', 'tenant.writable', 'idempotent', 'c
         Route::get('fx-rates', [ExchangeRateController::class, 'index'])->name('fx-rates.index');
         Route::post('fx-rates', [ExchangeRateController::class, 'store'])->name('fx-rates.store');
         Route::post('fx-rates/fetch', [ExchangeRateController::class, 'fetch'])->name('fx-rates.fetch');
+        // Fixed assets (13 §23 D15.1): categories, the register, capitalising from a posted line; none of this posts
+        Route::get('asset-categories', [AssetCategoryController::class, 'index'])->name('asset-categories.index');
+        Route::post('asset-categories', [AssetCategoryController::class, 'store'])->name('asset-categories.store');
+        Route::put('asset-categories/{assetCategory}', [AssetCategoryController::class, 'update'])->whereUuid('assetCategory')->name('asset-categories.update');
+        Route::get('fixed-assets', [FixedAssetController::class, 'index'])->name('fixed-assets.index');
+        Route::post('fixed-assets', [FixedAssetController::class, 'store'])->name('fixed-assets.store');
+        Route::get('fixed-assets/capitalisable', [FixedAssetController::class, 'capitalisable'])->name('fixed-assets.capitalisable');
+        Route::get('fixed-assets/reconciliation', [FixedAssetController::class, 'reconciliation'])->name('fixed-assets.reconciliation');
+        Route::get('fixed-assets/{fixedAsset}', [FixedAssetController::class, 'show'])->whereUuid('fixedAsset')->name('fixed-assets.show');
+        Route::put('fixed-assets/{fixedAsset}', [FixedAssetController::class, 'update'])->whereUuid('fixedAsset')->name('fixed-assets.update');
         Route::get('fx-revaluations', [FxRevaluationController::class, 'index'])->name('fx-revaluations.index');
         Route::get('fx-revaluations/preview', [FxRevaluationController::class, 'preview'])->name('fx-revaluations.preview');
         Route::post('fx-revaluations', [FxRevaluationController::class, 'run'])->name('fx-revaluations.run');

@@ -7,6 +7,7 @@ namespace App\Http\Support;
 use App\Http\Resources\AccountResource;
 use App\Http\Resources\ApiClientResource;
 use App\Http\Resources\ApprovalWorkflowResource;
+use App\Http\Resources\AssetCategoryResource;
 use App\Http\Resources\BankAccountResource;
 use App\Http\Resources\BankMatchResource;
 use App\Http\Resources\BankReconciliationResource;
@@ -18,6 +19,7 @@ use App\Http\Resources\DimensionResource;
 use App\Http\Resources\DimensionValueResource;
 use App\Http\Resources\FiscalPeriodResource;
 use App\Http\Resources\FiscalYearResource;
+use App\Http\Resources\FixedAssetResource;
 use App\Http\Resources\InvitationResource;
 use App\Http\Resources\InvoiceResource;
 use App\Http\Resources\ItemResource;
@@ -36,6 +38,8 @@ use App\Models\Banking\BankTransaction;
 use App\Models\Fiscal\FiscalPeriod;
 use App\Models\Fiscal\FiscalYear;
 use App\Models\Fiscal\PeriodReopenRequest;
+use App\Models\FixedAssets\AssetCategory;
+use App\Models\FixedAssets\FixedAsset;
 use App\Models\Ledger\Account;
 use App\Models\Ledger\Dimension;
 use App\Models\Ledger\DimensionValue;
@@ -69,6 +73,8 @@ final class SubjectRepresenter
         'companies' => [Company::class, CompanyResource::class, []],
         'invitations' => [Invitation::class, InvitationResource::class, []],
         'api_clients' => [ApiClient::class, ApiClientResource::class, ['tokens']],
+        'asset_categories' => [AssetCategory::class, AssetCategoryResource::class, []],
+        'fixed_assets' => [FixedAsset::class, FixedAssetResource::class, ['category:id,name']],
         'journals' => [Journal::class, JournalResource::class, ['lines']],
         'accounts' => [Account::class, AccountResource::class, ['dimensionRules']],
         'dimensions' => [Dimension::class, DimensionResource::class, ['values']],

@@ -35,7 +35,7 @@ final class PermissionMatrix
     private const array MODULES = [
         'journals', 'invoices', 'bills', 'receipts', 'payments', 'contacts', 'items', 'banking', 'recurring',
         'periods', 'accounts', 'dimensions', 'tax', 'fx', 'settings', 'reports',
-        'purchase_requisitions', 'purchase_orders', 'goods_receipts',
+        'purchase_requisitions', 'purchase_orders', 'goods_receipts', 'fixed_assets',
     ];
 
     private const array SALES_VIEWS = ['contacts.view', 'invoices.view', 'items.view', 'receipts.view'];
@@ -52,11 +52,12 @@ final class PermissionMatrix
         'invoices.void', 'invoices.void_own', 'bills.void',
         'periods.reopen.request',
         'purchase_requisitions.create', 'purchase_requisitions.submit', 'purchase_orders.create', 'purchase_orders.submit', 'goods_receipts.create',
+        'fixed_assets.manage', 'fixed_assets.run_depreciation', 'fixed_assets.dispose', 'fixed_assets.revalue',
     ];
 
-    private const array APPROVE = ['journals.approve', 'invoices.approve', 'bills.approve', 'payments.approve', 'purchase_requisitions.approve', 'purchase_orders.approve'];
+    private const array APPROVE = ['journals.approve', 'invoices.approve', 'bills.approve', 'payments.approve', 'purchase_requisitions.approve', 'purchase_orders.approve', 'fixed_assets.approve'];
 
-    private const array REVERSE = ['journals.reverse', 'invoices.reverse', 'bills.reverse', 'receipts.reverse', 'payments.reverse', 'purchase_orders.cancel', 'goods_receipts.reverse', 'bills.match_override'];
+    private const array REVERSE = ['journals.reverse', 'invoices.reverse', 'bills.reverse', 'receipts.reverse', 'payments.reverse', 'purchase_orders.cancel', 'goods_receipts.reverse', 'bills.match_override', 'fixed_assets.reverse'];
 
     private const array MANAGE = [
         'periods.close', 'periods.reopen.approve', 'periods.year_end', 'periods.post_soft_closed', 'periods.post_adjustment',
@@ -78,6 +79,12 @@ final class PermissionMatrix
     {
         return str_starts_with($permission, 'purchase_requisitions.') || str_starts_with($permission, 'purchase_orders.')
             || str_starts_with($permission, 'goods_receipts.') || $permission === 'bills.match_override';
+    }
+
+    /** Added with fixed assets (3c.13); existing companies got these from a backfill migration. */
+    public static function isFixedAssets(string $permission): bool
+    {
+        return str_starts_with($permission, 'fixed_assets.');
     }
 
     /** @return list<string> */

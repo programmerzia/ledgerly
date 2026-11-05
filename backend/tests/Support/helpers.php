@@ -10,6 +10,8 @@ use App\Domain\Ledger\DraftLine;
 use App\Domain\Ledger\JournalType;
 use App\Models\Ledger\Journal;
 use App\Support\Actor;
+use App\Support\Tenancy\TenantContext;
+use Illuminate\Database\Query\Builder;
 use Tests\Support\LedgerFixture;
 
 /** @param list<DraftLine> $lines */
@@ -45,4 +47,12 @@ function balancesByCode(LedgerFixture $f): array
     ksort($out);
 
     return $out;
+}
+
+/** A query builder on $table inside the current test's tenant (HTTP calls clear the tenant context between requests). */
+function adb(string $table): Builder
+{
+    app(TenantContext::class)->set(test()->f->tenantId);
+
+    return DB::table($table);
 }

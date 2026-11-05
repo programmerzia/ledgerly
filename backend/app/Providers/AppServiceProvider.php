@@ -27,6 +27,8 @@ use App\Models\Files\Attachment;
 use App\Models\Fiscal\FiscalPeriod;
 use App\Models\Fiscal\FiscalYear;
 use App\Models\Fiscal\PeriodReopenRequest;
+use App\Models\FixedAssets\AssetCategory;
+use App\Models\FixedAssets\FixedAsset;
 use App\Models\Fx\ExchangeRate;
 use App\Models\Fx\FxRevaluation;
 use App\Models\Imports\Import;
@@ -60,6 +62,7 @@ use App\Policies\Audit\AuditPolicy;
 use App\Policies\Banking\BankingPolicy;
 use App\Policies\Files\AttachmentPolicy;
 use App\Policies\Fiscal\PeriodPolicy;
+use App\Policies\FixedAssets\FixedAssetPolicy;
 use App\Policies\Fx\FxPolicy;
 use App\Policies\Imports\ImportPolicy;
 use App\Policies\Ledger\AccountPolicy;
@@ -207,6 +210,9 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(WhtCertificate::class, WhtCertificatePolicy::class);
         Gate::policy(CreditApplication::class, CreditApplicationPolicy::class);
         Gate::policy(Attachment::class, AttachmentPolicy::class);
+        foreach ([AssetCategory::class, FixedAsset::class] as $assetModel) {
+            Gate::policy($assetModel, FixedAssetPolicy::class);
+        }
         foreach ([BankAccount::class, BankStatementLine::class, BankMatch::class, BankRule::class, BankTransaction::class, BankReconciliation::class] as $bankModel) {
             Gate::policy($bankModel, BankingPolicy::class);
         }
