@@ -111,9 +111,9 @@ export const LiveRoles: React.FC = () => {
           <table className="w-full min-w-[640px] border-collapse text-[13px]" data-testid="role-grid">
             <thead>
               <tr>
-                <th className="sticky left-0 z-10 w-64 bg-surface px-3 py-2 text-left text-xs font-medium text-text-muted">Right</th>
+                <th className="sticky left-0 z-10 w-52 bg-surface px-3 py-2 text-left text-xs font-medium text-text-muted">Right</th>
                 {list.map((r) => (
-                  <th key={r.id} scope="col" className={cn('min-w-28 px-3 py-2 align-bottom text-xs font-semibold text-text-primary', draft?.id === r.id && 'bg-accent/5')}>
+                  <th key={r.id} scope="col" className={cn('min-w-24 px-2 py-2 align-bottom text-xs font-semibold text-text-primary', draft?.id === r.id && 'bg-accent/5')}>
                     <div>{r.name}</div>
                     <div className="mt-0.5 text-[11px] font-normal text-text-muted">{kindOf(r)}</div>
                   </th>
@@ -168,7 +168,7 @@ export const LiveRoles: React.FC = () => {
               {modules.data.map((m) => (
                 <React.Fragment key={m.key}>
                   <tr>
-                    <th scope="rowgroup" colSpan={columns + 1} className="bg-surface-neutral px-3 py-1.5 text-left text-xs font-semibold text-text-primary">{m.label}</th>
+                    <th scope="rowgroup" colSpan={columns + 1} className="sticky left-0 bg-surface-neutral px-3 py-1.5 text-left text-xs font-semibold text-text-primary">{m.label}</th>
                   </tr>
                   {m.permissions.map((p) => (
                     <tr key={p.name}>

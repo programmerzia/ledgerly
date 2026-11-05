@@ -194,9 +194,6 @@ export const LivePeriods: React.FC = () => {
             {access.can('settings.manage') && (
               <button type="button" onClick={() => setAddingYear(true)} className={headerBtn}>Add fiscal year</button>
             )}
-            {access.can('settings.manage') && (
-              <button type="button" onClick={() => setAddingYear(true)} className={headerBtn}>Add fiscal year</button>
-            )}
             {year.can.year_end && (
               <button type="button" onClick={() => open('year-end')} className={headerBtn}>
                 <Lock className="size-4 text-accent" />
