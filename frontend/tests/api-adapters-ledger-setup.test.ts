@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { toAccount, toAccountRequest, toNewAccountRequest, toDimensionRulesRequest, toCan, type ApiAccount } from '@/api/adapters/account';
+import { toAccount, toAccountRequest, toNewAccountRequest, toDimensionRulesRequest, toCan, pickableAccounts, toVisibilityRequest, type ApiAccount } from '@/api/adapters/account';
 import { toFiscalYear, toCloseBody, toCloseCheck, defaultYear, defaultPeriod, type ApiFiscalYear } from '@/api/adapters/fiscal';
 import { toRate, toRevalPreview, toRevalRun, isRateText, toRateRequest } from '@/api/adapters/fx';
 import { toDimension } from '@/api/adapters/dimension';
@@ -9,7 +9,7 @@ import { isLiveRoute } from '@/data/liveRoutes';
 const raw: ApiAccount = {
   id: 'a1', code: '4000', name: 'Sales', account_type: 'income', account_subtype: 'Revenue', normal_balance: 'credit', parent_id: 'p1',
   currency_policy: 'fixed', fixed_currency: 'EUR', control_type: 'ar', allow_manual_journals: false, is_postable: true, is_active: true,
-  description: null, version: 4, dimension_rules: { d1: 'required' }, can: { update: true, deactivate: false } as unknown as [],
+  description: null, is_hidden: false, ifrs_element: null, version: 4, dimension_rules: { d1: 'required' }, can: { update: true, deactivate: false } as unknown as [],
 };
 const scope = { tenantId: 't', companyId: 'c' };
 
@@ -47,6 +47,23 @@ describe('account adapter (3.2)', () => {
     expect(toNewAccountRequest({ code: '6100', name: 'Rent', account_type: 'expense', normal_balance: 'debit', account_subtype: '', description: '' })).toEqual({
       code: '6100', name: 'Rent', account_type: 'expense', normal_balance: 'debit', account_subtype: null, description: null, parent_id: null,
     });
+  });
+  it('carries the hidden flag and the IFRS element, and an edit never sends them', () => {
+    const a = toAccount({ ...raw, is_hidden: true, ifrs_element: 'Goodwill' }, scope);
+    expect(a.is_hidden).toBe(true);
+    expect(a.ifrs_element).toBe('Goodwill');
+    expect(toAccount(raw, scope).ifrs_element).toBeNull();
+    expect(Object.keys(toAccountRequest(a, {}))).not.toContain('is_hidden');
+  });
+  it('leaves hidden accounts out of pickers unless the form already uses them', () => {
+    const shown = toAccount(raw, scope);
+    const hidden = { ...toAccount({ ...raw, id: 'a2', is_hidden: true }, scope) };
+    expect(pickableAccounts([shown, hidden]).map((x) => x.id)).toEqual(['a1']);
+    expect(pickableAccounts([shown, hidden], ['a2', '', null]).map((x) => x.id)).toEqual(['a1', 'a2']);
+  });
+  it('sends the visibility change with the version it was based on', () => {
+    expect(toVisibilityRequest(toAccount(raw, scope), true)).toEqual({ hidden: true, version: 4 });
+    expect(toVisibilityRequest({}, false)).toEqual({ hidden: false, version: 0 });
   });
   it('dimension rules: "no rule" is simply not sent', () => {
     expect(toDimensionRulesRequest({ d1: 'required', d2: 'none', d3: 'forbidden' })).toEqual({

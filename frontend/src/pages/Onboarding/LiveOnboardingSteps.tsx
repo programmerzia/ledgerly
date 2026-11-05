@@ -51,7 +51,10 @@ export const ChartStep: React.FC<{ company: Company; done: boolean; onNext: () =
           <label key={t.code} className={`flex cursor-pointer items-start gap-3 rounded-md border px-4 py-3 ${chosen === t.code ? 'border-accent bg-accent/5' : 'border-border'}`}>
             <input type="radio" name="template" className="mt-1" checked={chosen === t.code} onChange={() => setPicked(t.code)} />
             <span className="flex-1">
-              <span className="block text-[13px] font-medium text-text-primary">{t.name}</span>
+              <span className="block text-[13px] font-medium text-text-primary">
+                {t.name}
+                {t.recommended && <span className="ml-2 rounded-[3px] border border-accent/30 bg-accent/10 px-1.5 py-0.5 text-[11px] font-medium text-accent">Recommended</span>}
+              </span>
               <span className="block text-xs text-text-muted">{t.standard} · {t.account_count} accounts{t.country ? ` · ${t.country}` : ''}</span>
             </span>
           </label>

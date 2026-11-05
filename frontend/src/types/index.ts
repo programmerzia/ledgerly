@@ -107,6 +107,10 @@ export interface Account {
   version?: number;
   parent_id?: string | null;
   dimension_rules?: Record<string, 'required' | 'optional' | 'forbidden'>;
+  /** Hidden from default lists and pickers only; never affects posting or reports. Live mode only. */
+  is_hidden?: boolean;
+  /** IFRS Accounting Taxonomy element name, for reference. Live mode only. */
+  ifrs_element?: string | null;
   can?: { update?: boolean; deactivate?: boolean };
 }
 

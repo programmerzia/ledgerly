@@ -11,6 +11,7 @@ import { ConflictDialog, type VersionConflict } from '@/components/domain/Confli
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { formatMoney } from '@/lib/format';
 import { useAccounts } from '@/data/accounts';
+import { pickableAccounts } from '@/api/adapters/account';
 import { useFetchJournal, useJournal, useJournalActions, useJournalRefs, type LiveJournal } from '@/data/journals';
 import { isSigningCancelled, useSignedRun } from '@/data/signing';
 import { ApiError } from '@/api/errors';
@@ -439,7 +440,7 @@ const JournalFormInner: React.FC = () => {
         ) : accounts.error ? (
           <ErrorLine error={accounts.error} onRetry={accounts.refetch} />
         ) : (
-          <LineGrid mode="journal" lines={lines} onChange={setLines} accounts={accounts.data} dimensions={refs.dimensions} currency={company.base_currency} showTotals={false} />
+          <LineGrid mode="journal" lines={lines} onChange={setLines} accounts={pickableAccounts(accounts.data, lines.map((l) => l.account_id))} dimensions={refs.dimensions} currency={company.base_currency} showTotals={false} />
         )}
         <div className="flex items-center justify-end gap-2 pt-1 text-xs text-text-secondary">
           <span>

@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 import { formatMoney } from '@/lib/format';
 import { useRouteCompany } from '@/data/session';
 import { useAccounts } from '@/data/accounts';
+import { pickableAccounts } from '@/api/adapters/account';
 import { useTradeRefs } from '@/data/tradeRefs';
 import { useItemActions, useItemList } from '@/data/items';
 import { ApiError } from '@/api/errors';
@@ -40,8 +41,8 @@ const ItemDialog: React.FC<{ item?: LiveItem; baseCurrency: string; onClose: () 
   const slot = useRef(new IntentSlot()).current;
   const offSlot = useRef(new IntentSlot()).current;
   const set = <K extends keyof ItemDraft>(k: K, v: ItemDraft[K]) => setDraft((d) => ({ ...d, [k]: v }));
-  const income = accounts.data.filter((a) => a.is_active && a.is_postable && a.account_type === 'income');
-  const expense = accounts.data.filter((a) => a.is_active && a.is_postable && (a.account_type === 'expense' || a.account_type === 'asset'));
+  const income = pickableAccounts(accounts.data, [draft.sales_account_id]).filter((a) => a.is_active && a.is_postable && a.account_type === 'income');
+  const expense = pickableAccounts(accounts.data, [draft.purchase_account_id]).filter((a) => a.is_active && a.is_postable && (a.account_type === 'expense' || a.account_type === 'asset'));
   const taxes = refs.taxCodes.filter((t) => t.kind !== 'wht');
 
   const conflictFor = (sv: unknown, retry: (v: number) => void) =>

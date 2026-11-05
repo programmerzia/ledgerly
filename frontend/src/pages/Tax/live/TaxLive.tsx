@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 import { formatDate } from '@/lib/format';
 import { useRouteCompany } from '@/data/session';
 import { useAccounts } from '@/data/accounts';
+import { pickableAccounts } from '@/api/adapters/account';
 import { useAllTaxCodes, useTaxActions, useTaxGroups } from '@/data/tax';
 import { ApiError } from '@/api/errors';
 import { describeError } from '@/api/messages';
@@ -62,7 +63,7 @@ const CodeDialog: React.FC<{ code?: LiveTaxCode; onClose: () => void; onConflict
   const [busy, setBusy] = useState(false);
   const slot = useRef(new IntentSlot()).current;
   const set = <K extends keyof typeof form>(k: K, v: (typeof form)[K]) => setForm((f) => ({ ...f, [k]: v }));
-  const postable = accounts.data.filter((a) => a.is_active && a.is_postable);
+  const postable = pickableAccounts(accounts.data, [form.collect, form.pay]).filter((a) => a.is_active && a.is_postable);
 
   async function save(version?: number) {
     setErrors({});

@@ -157,6 +157,11 @@ describe('onboarding resume', () => {
     const t = [{ code: 'a', country: null }, { code: 'b', country: 'US' }, { code: 'c', country: 'us' }];
     expect(orderTemplates(t, 'US').map((x) => x.code)).toEqual(['b', 'c', 'a']);
   });
+  it('lists the recommended chart before the one made for the country', () => {
+    const t = [{ code: 'a', country: null }, { code: 'b', country: 'US' }, { code: 'r', country: null, recommended: true }];
+    expect(orderTemplates(t, 'US').map((x) => x.code)).toEqual(['r', 'b', 'a']);
+    expect(orderTemplates(t, 'KE').map((x) => x.code)).toEqual(['r', 'a', 'b']);
+  });
 });
 
 describe('dashboard figures', () => {
