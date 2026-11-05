@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models\Workflow;
 
 use App\Models\BaseModel;
+use App\Models\FixedAssets\AssetTransaction;
 use App\Models\FixedAssets\DepreciationRun;
 use App\Models\Ledger\Journal;
 use App\Models\Platform\User;
@@ -95,6 +96,12 @@ class ApprovalRequest extends BaseModel
     public function settlement(): BelongsTo
     {
         return $this->belongsTo(Settlement::class, 'document_id');
+    }
+
+    /** @return BelongsTo<AssetTransaction, $this> null unless the document is an asset transaction */
+    public function assetTransaction(): BelongsTo
+    {
+        return $this->belongsTo(AssetTransaction::class, 'document_id');
     }
 
     /** @return BelongsTo<DepreciationRun, $this> null unless the document is a depreciation run */

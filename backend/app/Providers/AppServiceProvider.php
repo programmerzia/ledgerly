@@ -28,6 +28,7 @@ use App\Models\Fiscal\FiscalPeriod;
 use App\Models\Fiscal\FiscalYear;
 use App\Models\Fiscal\PeriodReopenRequest;
 use App\Models\FixedAssets\AssetCategory;
+use App\Models\FixedAssets\AssetTransaction;
 use App\Models\FixedAssets\DepreciationRun;
 use App\Models\FixedAssets\FixedAsset;
 use App\Models\Fx\ExchangeRate;
@@ -63,6 +64,7 @@ use App\Policies\Audit\AuditPolicy;
 use App\Policies\Banking\BankingPolicy;
 use App\Policies\Files\AttachmentPolicy;
 use App\Policies\Fiscal\PeriodPolicy;
+use App\Policies\FixedAssets\AssetTransactionPolicy;
 use App\Policies\FixedAssets\DepreciationRunPolicy;
 use App\Policies\FixedAssets\FixedAssetPolicy;
 use App\Policies\Fx\FxPolicy;
@@ -216,6 +218,7 @@ class AppServiceProvider extends ServiceProvider
             Gate::policy($assetModel, FixedAssetPolicy::class);
         }
         Gate::policy(DepreciationRun::class, DepreciationRunPolicy::class);
+        Gate::policy(AssetTransaction::class, AssetTransactionPolicy::class);
         foreach ([BankAccount::class, BankStatementLine::class, BankMatch::class, BankRule::class, BankTransaction::class, BankReconciliation::class] as $bankModel) {
             Gate::policy($bankModel, BankingPolicy::class);
         }

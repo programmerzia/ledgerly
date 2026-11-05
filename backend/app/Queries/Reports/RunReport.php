@@ -27,6 +27,7 @@ final class RunReport
         'customer-statement' => 'customer_statement',
         'supplier-statement' => 'supplier_statement',
         'tax-return' => 'tax_return',
+        'asset-schedule' => 'asset_schedule',
     ];
 
     public function __construct(
@@ -39,6 +40,7 @@ final class RunReport
         private readonly ArApAging $aging,
         private readonly ContactStatement $statement,
         private readonly TaxReturn $taxReturn,
+        private readonly AssetSchedule $assetSchedule,
     ) {}
 
     /**
@@ -57,6 +59,7 @@ final class RunReport
             'customer-statement' => [$this->params->range($company, $input), fn (ReportParams $p): array => ($this->statement)($p, true)],
             'supplier-statement' => [$this->params->range($company, $input), fn (ReportParams $p): array => ($this->statement)($p, false)],
             'tax-return' => [$this->params->range($company, $input), $this->taxReturn],
+            'asset-schedule' => [$this->params->range($company, $input), $this->assetSchedule],
             default => [$this->params->range($company, $input), $this->cashFlow],
         };
         if ($name === 'cash-flow' && $p->dims !== []) {

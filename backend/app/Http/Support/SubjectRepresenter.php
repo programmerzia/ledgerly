@@ -8,6 +8,7 @@ use App\Http\Resources\AccountResource;
 use App\Http\Resources\ApiClientResource;
 use App\Http\Resources\ApprovalWorkflowResource;
 use App\Http\Resources\AssetCategoryResource;
+use App\Http\Resources\AssetTransactionResource;
 use App\Http\Resources\BankAccountResource;
 use App\Http\Resources\BankMatchResource;
 use App\Http\Resources\BankReconciliationResource;
@@ -40,6 +41,7 @@ use App\Models\Fiscal\FiscalPeriod;
 use App\Models\Fiscal\FiscalYear;
 use App\Models\Fiscal\PeriodReopenRequest;
 use App\Models\FixedAssets\AssetCategory;
+use App\Models\FixedAssets\AssetTransaction;
 use App\Models\FixedAssets\DepreciationRun;
 use App\Models\FixedAssets\FixedAsset;
 use App\Models\Ledger\Account;
@@ -77,6 +79,7 @@ final class SubjectRepresenter
         'api_clients' => [ApiClient::class, ApiClientResource::class, ['tokens']],
         'asset_categories' => [AssetCategory::class, AssetCategoryResource::class, []],
         'depreciation_runs' => [DepreciationRun::class, DepreciationRunResource::class, ['lines.asset']],
+        'asset_transactions' => [AssetTransaction::class, AssetTransactionResource::class, ['lines.asset']],
         'fixed_assets' => [FixedAsset::class, FixedAssetResource::class, ['category:id,name']],
         'journals' => [Journal::class, JournalResource::class, ['lines']],
         'accounts' => [Account::class, AccountResource::class, ['dimensionRules']],

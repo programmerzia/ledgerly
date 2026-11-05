@@ -29,7 +29,7 @@ final class ReportExport
     public const array FORMATS = ['xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'csv' => 'text/csv; charset=UTF-8', 'pdf' => 'application/pdf'];
 
     /** URL names of every exportable report. */
-    public const array REPORTS = ['trial-balance', 'profit-and-loss', 'balance-sheet', 'cash-flow', 'general-ledger', 'ar-aging', 'ap-aging', 'customer-statement', 'supplier-statement', 'tax-return'];
+    public const array REPORTS = ['trial-balance', 'profit-and-loss', 'balance-sheet', 'cash-flow', 'general-ledger', 'ar-aging', 'ap-aging', 'customer-statement', 'supplier-statement', 'tax-return', 'asset-schedule'];
 
     public function __construct(
         private readonly RunReport $statements,

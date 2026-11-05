@@ -14,6 +14,7 @@ use App\Http\Controllers\Fiscal\FiscalPeriodController;
 use App\Http\Controllers\Fiscal\FiscalYearController;
 use App\Http\Controllers\Fiscal\ReopenRequestController;
 use App\Http\Controllers\FixedAssets\AssetCategoryController;
+use App\Http\Controllers\FixedAssets\AssetTransactionController;
 use App\Http\Controllers\FixedAssets\DepreciationRunController;
 use App\Http\Controllers\FixedAssets\FixedAssetController;
 use App\Http\Controllers\Fx\ExchangeRateController;
@@ -190,6 +191,13 @@ Route::middleware(['auth:sanctum', 'tenant', 'tenant.writable', 'idempotent', 'c
         foreach (['submit', 'approve', 'return', 'void', 'reverse'] as $verb) {
             Route::post("depreciation-runs/{depreciationRun}/{$verb}", [DepreciationRunController::class, $verb])->whereUuid('depreciationRun')->name("depreciation-runs.{$verb}");
         }
+        Route::get('asset-transactions', [AssetTransactionController::class, 'index'])->name('asset-transactions.index');
+        Route::post('asset-transactions', [AssetTransactionController::class, 'store'])->name('asset-transactions.store');
+        Route::post('asset-transactions/preview', [AssetTransactionController::class, 'preview'])->name('asset-transactions.preview');
+        Route::get('asset-transactions/{assetTransaction}', [AssetTransactionController::class, 'show'])->whereUuid('assetTransaction')->name('asset-transactions.show');
+        foreach (['submit', 'approve', 'return', 'void', 'reverse'] as $verb) {
+            Route::post("asset-transactions/{assetTransaction}/{$verb}", [AssetTransactionController::class, $verb])->whereUuid('assetTransaction')->name("asset-transactions.{$verb}");
+        }
         Route::get('fx-revaluations', [FxRevaluationController::class, 'index'])->name('fx-revaluations.index');
         Route::get('fx-revaluations/preview', [FxRevaluationController::class, 'preview'])->name('fx-revaluations.preview');
         Route::post('fx-revaluations', [FxRevaluationController::class, 'run'])->name('fx-revaluations.run');
@@ -237,6 +245,7 @@ Route::middleware(['auth:sanctum', 'tenant', 'tenant.writable', 'idempotent', 'c
         Route::get('reports/customer-statement', [ReportController::class, 'customerStatement'])->name('reports.customer-statement');
         Route::get('reports/supplier-statement', [ReportController::class, 'supplierStatement'])->name('reports.supplier-statement');
         Route::get('reports/tax-return', [ReportController::class, 'taxReturn'])->name('reports.tax-return');
+        Route::get('reports/asset-schedule', [ReportController::class, 'assetSchedule'])->name('reports.asset-schedule');
         Route::get('reports/drill', [ReportController::class, 'drill'])->name('reports.drill');
         Route::get('reports/exports/{exportId}', [ReportExportController::class, 'show'])->whereUuid('exportId')->name('reports.exports.show');
         Route::get('reports/{report}/export', [ReportExportController::class, 'export'])->whereIn('report', ReportExport::REPORTS)->middleware('throttle:report-exports')->name('reports.export');

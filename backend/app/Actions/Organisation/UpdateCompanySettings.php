@@ -31,6 +31,7 @@ final class UpdateCompanySettings
         'ar_control' => 'ar', 'ap_control' => 'ap', 'tax_output' => 'tax', 'tax_input' => 'tax', 'wht_payable' => 'tax',
         'retained_earnings' => 'retained_earnings', 'fx_realised' => null, 'fx_realised_loss' => null, 'fx_unrealised' => null, 'fx_unrealised_loss' => null, 'rounding' => null,
         'suspense' => null, 'bank_clearing' => null,
+        'asset_disposal_gain' => null, 'asset_disposal_loss' => null,
     ];
 
     public function __construct(private readonly UnitOfWork $uow, private readonly SetupGuard $guard) {}

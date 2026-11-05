@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Services\FixedAssets;
 
+use App\Domain\FixedAssets\AssetOutcome;
 use App\Domain\Ledger\DraftLine;
 use App\Domain\Ledger\JournalDraft;
 use App\Domain\Ledger\JournalType;
 use App\Domain\Shared\DomainRuleViolation;
 use App\Models\FixedAssets\AssetCategory;
+use App\Models\FixedAssets\AssetTransaction;
 use App\Models\FixedAssets\DepreciationRun;
 use App\Models\FixedAssets\FixedAsset;
 use App\Models\Ledger\Account;
@@ -53,6 +55,45 @@ final class AssetJournals
         return new JournalDraft(
             $run->company_id, JournalType::Depreciation, DateTimeImmutable::createFromInterface($run->as_of), $lines,
             $reference, 'Depreciation for the period ending '.$run->as_of->format('Y-m-d'), 'depreciation_run', $run->id,
+        );
+    }
+
+    /**
+     * The journal of a disposal, impairment, impairment reversal or revaluation: each asset's lines (see AssetOutcome), on the
+     * category's accounts for cost and accumulated depreciation, the chosen account for proceeds, and the company's posting
+     * accounts for the rest, with the asset's dimensions on every line.
+     *
+     * @param  list<array{asset: FixedAsset, category: AssetCategory, outcome: AssetOutcome}>  $items
+     */
+    public function transaction(AssetTransaction $tx, array $items, string $reference): JournalDraft
+    {
+        $lines = [];
+        $revalued = false;
+        $verb = ['disposal' => 'Disposal', 'impairment' => 'Impairment', 'impairment_reversal' => 'Impairment reversal', 'revaluation' => 'Revaluation'][$tx->kind] ?? $tx->kind;
+        foreach ($items as $item) {
+            $revalued = $revalued || $item['category']->isRevalued();
+            $dims = array_filter($item['asset']->dimensions(), static fn (?string $v): bool => $v !== null);
+            $label = "{$verb}: {$item['asset']->number} {$item['asset']->name}";
+            foreach ($item['outcome']->lines as $spec) {
+                $account = match ($spec->role) {
+                    'asset' => $item['category']->asset_account_id,
+                    'accumulated' => $item['category']->accumulated_account_id,
+                    'proceeds' => (string) ($tx->params['proceeds_account_id'] ?? throw DomainRuleViolation::single('proceeds_account_required', 'Choose the account the proceeds go to.')),
+                    'gain' => $this->account($tx->company_id, 'asset_disposal_gain'),
+                    'loss' => $this->account($tx->company_id, 'asset_disposal_loss'),
+                    'reserve' => $this->account($tx->company_id, 'revaluation_reserve'),
+                    'retained' => $this->account($tx->company_id, 'retained_earnings'),
+                    'impairment_loss' => $this->account($tx->company_id, 'impairment_loss'),
+                    'impairment_reversal' => $this->account($tx->company_id, 'impairment_reversal'),
+                    default => throw new \LogicException("Unknown line role {$spec->role}."),
+                };
+                $lines[] = new DraftLine($account, debit: $spec->debit, credit: $spec->credit, dims: $dims, description: $label);
+            }
+        }
+
+        return new JournalDraft(
+            $tx->company_id, JournalType::Asset, DateTimeImmutable::createFromInterface($tx->tx_date), $lines,
+            $reference, trim("{$verb} {$tx->reason}"), $tx->journalSource($revalued), $tx->id,
         );
     }
 
