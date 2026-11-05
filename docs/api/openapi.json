@@ -8155,6 +8155,67 @@
                 }
             }
         },
+        "/v1/companies/{company}/imports/kinds/{kind}/template": {
+            "get": {
+                "operationId": "imports.template",
+                "summary": "A CSV with the header row for one kind: save it, fill it in, upload it. The headers are the field labels, so the mapping suggests itself",
+                "tags": [
+                    "Import"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "kind",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "text/csv; charset=UTF-8": {
+                                "schema": {
+                                    "type": "string",
+                                    "format": "binary"
+                                }
+                            }
+                        },
+                        "headers": {
+                            "Transfer-Encoding": {
+                                "required": true,
+                                "schema": {
+                                    "type": "string",
+                                    "enum": [
+                                        "chunked"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
         "/v1/companies/{company}/imports/{import}": {
             "get": {
                 "operationId": "imports.show",
@@ -28619,6 +28680,13 @@
                             "format": "uuid"
                         },
                         "maxItems": 50
+                    },
+                    "payment_run_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "uuid"
                     }
                 },
                 "required": [

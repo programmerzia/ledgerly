@@ -62,7 +62,7 @@ export const excludeLine = async (company: string, lineId: string, reason: strin
 export const restoreLine = async (company: string, lineId: string, version: number, intent: Intent): Promise<ApiBankLine> =>
   (await send<ApiBankLine>('POST', `${base(company)}/bank-statement-lines/${lineId}/restore`, { version }, intent)).data;
 
-export const createMatch = async (company: string, body: { statement_line_ids: string[]; journal_line_ids?: string[]; settlement_ids?: string[] }, intent: Intent): Promise<ApiBankMatch> =>
+export const createMatch = async (company: string, body: { statement_line_ids: string[]; journal_line_ids?: string[]; settlement_ids?: string[]; payment_run_id?: string }, intent: Intent): Promise<ApiBankMatch> =>
   (await send<ApiBankMatch>('POST', `${base(company)}/bank-matches`, body, intent)).data;
 
 export const deleteMatch = async (company: string, matchId: string, intent: Intent): Promise<void> => {

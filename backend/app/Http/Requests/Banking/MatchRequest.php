@@ -21,6 +21,7 @@ final class MatchRequest extends CompanyRequest
             'journal_line_ids.*' => ['uuid', $this->inCompany('journal_lines')],
             'settlement_ids' => ['nullable', 'array', 'max:50'],
             'settlement_ids.*' => ['uuid', $this->inCompany('settlements')],
+            'payment_run_id' => ['nullable', 'uuid', $this->inCompany('payment_runs')],
         ];
     }
 
@@ -28,8 +29,8 @@ final class MatchRequest extends CompanyRequest
     public function after(): array
     {
         return [function (Validator $validator): void {
-            if ((array) $this->input('journal_line_ids') === [] && (array) $this->input('settlement_ids') === []) {
-                $validator->errors()->add('journal_line_ids', 'Name at least one book line or settlement.');
+            if ((array) $this->input('journal_line_ids') === [] && (array) $this->input('settlement_ids') === [] && ! $this->filled('payment_run_id')) {
+                $validator->errors()->add('journal_line_ids', 'Name at least one book line, settlement or payment run.');
             }
         }];
     }
@@ -38,6 +39,6 @@ final class MatchRequest extends CompanyRequest
     {
         $v = $this->validated();
 
-        return new MatchInput($this->company()->id, array_values((array) $v['statement_line_ids']), array_values((array) ($v['journal_line_ids'] ?? [])), array_values((array) ($v['settlement_ids'] ?? [])));
+        return new MatchInput($this->company()->id, array_values((array) $v['statement_line_ids']), array_values((array) ($v['journal_line_ids'] ?? [])), array_values((array) ($v['settlement_ids'] ?? [])), isset($v['payment_run_id']) ? [(string) $v['payment_run_id']] : []);
     }
 }

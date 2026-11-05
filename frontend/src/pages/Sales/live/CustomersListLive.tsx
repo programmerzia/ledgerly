@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { PageHeader } from '@/components/domain/PageHeader';
@@ -7,6 +7,11 @@ import { cn } from '@/lib/utils';
 import { useRouteCompany } from '@/data/session';
 import { useLedgerStore } from '@/mock/store';
 import { useContactList } from '@/data/contacts';
+import { useListKeys } from '@/lib/pageKeys';
+import { useRowSelection } from '@/data/bulk';
+import { BulkBar } from '@/components/live/BulkBar';
+import { Checkbox } from '@/components/ui/checkbox';
+import { downloadCsv, minorToDecimal } from '@/lib/csv';
 import { BTN_ACCENT, ErrorLine, LoadMore, LoadingLine, TableCard, inputClass, useDebounced } from './parts';
 import { ContactDialog } from './ContactDialog';
 import { SIDES, type Side } from './side';
@@ -24,6 +29,14 @@ export const CustomersListLive: React.FC<{ side?: Side }> = ({ side = 'sales' })
   const search = useDebounced(searchText.trim(), 300);
   const list = useContactList({ kind: S.contactKind, active, search });
   const filtered = Boolean(search) || active !== 'true';
+  const sel = useRowSelection(list.rows);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const cursor = useListKeys({ rows: list.rows, onOpen: (r) => open(r.id, r.name), onToggle: (r) => sel.toggle(r.id), searchRef });
+  const exportCsv = () =>
+    downloadCsv(`${S.contacts}-selected.csv`, [
+      ['Name', 'Code', 'Email', 'Terms (days)', 'Currency', 'Active', S.balanceLabel],
+      ...sel.selected.map((c) => [c.name, c.code, c.email, c.payment_terms_days, c.default_currency, c.is_active ? 'yes' : 'no', minorToDecimal(side === 'sales' ? c.receivable : c.payable, c.baseCurrency)]),
+    ]);
 
   const open = (id: string, name: string) => {
     openTab({ id: `${S.contact}-${id}`, title: name, url: `/${coSlug}/${S.contactsPath}/${id}`, type: S.contact });
@@ -56,7 +69,7 @@ export const CustomersListLive: React.FC<{ side?: Side }> = ({ side = 'sales' })
             </button>
           ))}
         </div>
-        <input type="search" aria-label={`Search ${S.contacts}`} value={searchText} onChange={(e) => setSearchText(e.target.value)} placeholder="Search by name, code or email" className={cn(inputClass, 'w-64')} />
+        <input ref={searchRef} type="search" aria-label={`Search ${S.contacts}`} value={searchText} onChange={(e) => setSearchText(e.target.value)} placeholder="Search by name, code or email" className={cn(inputClass, 'w-64')} />
       </div>
 
       <TableCard>
@@ -78,6 +91,9 @@ export const CustomersListLive: React.FC<{ side?: Side }> = ({ side = 'sales' })
           <table className="w-full text-left text-[13px]" data-testid={`${S.contacts}-table`}>
             <thead>
               <tr className="border-b border-border bg-surface-neutral text-[11px] font-semibold uppercase tracking-[0.04em] text-text-muted">
+                <th className="w-9 px-3 py-2">
+                  <Checkbox checked={sel.allSelected} onCheckedChange={sel.toggleAll} aria-label={`Select all ${S.contacts} shown`} />
+                </th>
                 <th className="px-3 py-2">{S.Contact}</th>
                 <th className="px-3 py-2">Code</th>
                 <th className="px-3 py-2">Email</th>
@@ -88,7 +104,10 @@ export const CustomersListLive: React.FC<{ side?: Side }> = ({ side = 'sales' })
             </thead>
             <tbody className="divide-y divide-border">
               {list.rows.map((c) => (
-                <tr key={c.id} onClick={() => open(c.id, c.name)} className="cursor-pointer hover:bg-surface-neutral/60">
+                <tr key={c.id} data-row-id={c.id} aria-current={cursor === c.id || undefined} onClick={() => open(c.id, c.name)} className={cn('cursor-pointer hover:bg-surface-neutral/60', cursor === c.id && 'bg-accent-soft/40')} data-selected={sel.isSelected(c.id) || undefined}>
+                  <td className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
+                    <Checkbox checked={sel.isSelected(c.id)} onCheckedChange={() => sel.toggle(c.id)} aria-label={`Select ${c.name}`} />
+                  </td>
                   <td className="px-3 py-2 font-semibold text-accent">
                     {c.name}
                     {!c.is_active && <span className="ml-2 rounded-[3px] bg-surface-neutral px-1.5 py-0.5 text-[11px] font-normal text-text-muted">Inactive</span>}
@@ -105,6 +124,8 @@ export const CustomersListLive: React.FC<{ side?: Side }> = ({ side = 'sales' })
         )}
         <LoadMore hasMore={list.hasMore} loading={list.isLoadingMore} onClick={list.loadMore} />
       </TableCard>
+
+      <BulkBar selected={sel.selected.length} onClear={sel.clear} actions={[{ key: 'csv', label: 'Export CSV', count: sel.selected.length, onClick: exportCsv }]} />
 
       {creating && <ContactDialog open kind={S.contactKind} onClose={() => setCreating(false)} baseCurrency={company.base_currency} onSaved={(c) => open(c.id, c.name)} />}
     </div>

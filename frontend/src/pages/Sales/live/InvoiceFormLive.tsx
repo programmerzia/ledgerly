@@ -1,3 +1,4 @@
+import { useFormShortcuts } from '@/lib/pageKeys';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { AlertTriangle, CheckCircle2, Eye, Plus, Save, Send, Trash2 } from 'lucide-react';
@@ -455,6 +456,8 @@ const InvoiceFormInner: React.FC<{ side: Side }> = ({ side }) => {
 
   /* --------------------------------------------------------------------- render */
 
+  // Ctrl/Cmd+S and Ctrl/Cmd+Enter run what the Save and Submit buttons run, and only while those are enabled.
+  useFormShortcuts({ save: busy === null && dirty ? onSaveClick : undefined, submit: busy === null ? onSubmitClick : undefined });
   if (draftParam && existing.isLoading) return <LoadingLine what="draft" />;
   if (draftParam && existing.error) return <ErrorLine error={existing.error} onRetry={existing.refetch} />;
   if (draftParam && existing.data && existing.data.status !== 'draft') {

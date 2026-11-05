@@ -232,7 +232,7 @@ describe('live route allowlist', () => {
     expect(isLiveRoute('/acme/settings/security')).toBe(true);
     for (const t of ['general', 'posting', 'workflows', 'team', 'api-clients', 'webhooks']) expect(isLiveRoute(`/acme/settings/${t}`)).toBe(true);
     expect(isLiveRoute('/acme/audit-log')).toBe(true);
-    expect(isLiveRoute('/acme/settings/import')).toBe(false);
+    expect(isLiveRoute('/acme/settings/import')).toBe(true);
     // sales (3.5)
     for (const r of ['invoices', 'invoices/new', 'customers', 'credit-notes', 'credit-notes/new', 'receipts/new', 'customers/01a19a52-30f1-70e3-aaea-ff42efaac3b9', 'invoices/01a19a52-30f1-70e3-aaea-ff42efaac3b9', 'receipts/01a19a52-30f1-70e3-aaea-ff42efaac3b9']) expect(isLiveRoute(`/acme/${r}`)).toBe(true);
     expect(isLiveRoute('/acme/receipts')).toBe(false);

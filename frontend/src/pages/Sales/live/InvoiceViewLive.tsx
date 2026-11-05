@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { CheckCircle, Clock, FilePlus, Link2, Pencil, Printer, Receipt, RotateCcw, Send, Trash2 } from 'lucide-react';
+import { CheckCircle, Clock, Copy, FilePlus, Link2, Pencil, Printer, Receipt, RotateCcw, Send, Trash2 } from 'lucide-react';
 import { PageHeader } from '@/components/domain/PageHeader';
 import { SignDialog } from '@/components/domain/SignDialog';
 import { AttachmentsPanel } from '@/components/live/AttachmentsPanel';
@@ -23,7 +23,8 @@ import { isSigningCancelled, useSignedRun } from '@/data/signing';
 import { ApiError } from '@/api/errors';
 import { IntentSlot } from '@/api/intentSlot';
 import { rateForDisplay } from '@/api/adapters/money';
-import type { LiveDoc } from '@/api/adapters/invoice';
+import { toCopyInput, toInvoiceRequest, type LiveDoc } from '@/api/adapters/invoice';
+import { toApiDate } from '@/api/adapters/dates';
 import { matchOverrideRefusal, matchLineFor, matchRefusal, type MatchRefusal } from '@/api/adapters/procurement';
 import { describePurchaseViolation } from '@/api/tradeViolations';
 import { BillMatchPanel, MatchRefusalNotice } from '@/pages/Purchases/live/MatchPanels';
@@ -151,6 +152,16 @@ export const InvoiceViewLive: React.FC<{ side?: Side }> = ({ side = 'sales' }) =
     if (r) {
       setRefusal(null);
       toast.success(r.status === 'posted' ? `Posted as ${r.number}` : 'Sent for approval');
+    }
+  };
+  /** Same pattern as a journal's Duplicate: a draft made at once from the source, today's date, then the form opens on it. */
+  const doCopy = async () => {
+    const today = toApiDate(new Date());
+    const body = toInvoiceRequest(toCopyInput(doc, today), base);
+    const copy = await perform('copy', `${doc.id}:${today}`, null, (intent) => actions.create(body, intent));
+    if (copy) {
+      toast.success('Draft copy created. Check the date, prices and tax before you submit.');
+      navigate(`/${coSlug}/${isCredit ? S.creditsPath : S.docsPath}/new?draft=${copy.id}`);
     }
   };
   const doApprove = async () => {
@@ -444,6 +455,10 @@ export const InvoiceViewLive: React.FC<{ side?: Side }> = ({ side = 'sales' }) =
                 </div>
               </div>
             )}
+
+            <button type="button" onClick={() => void doCopy()} disabled={busy} className={BTN_SECONDARY}>
+              <Copy className="size-4 text-text-muted" /> Copy to a new draft
+            </button>
 
             {doc.journal_id && (
               <Link to={`/${coSlug}/journals/${doc.journal_id}`} className="text-xs text-accent hover:underline">

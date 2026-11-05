@@ -84,9 +84,12 @@ export const AppShell: React.FC = () => {
       { id: 'shortcut-w', key: 'ctrl+w', description: 'Close Tab', scope: 'global', action: () => closeTab(activeTabId) },
       { id: 'shortcut-tab', key: 'ctrl+tab', description: 'Next Tab', scope: 'global', action: () => nextTab() },
       { id: 'shortcut-n', key: 'n', description: 'New Document', scope: 'page', action: () => {
-        if (location.pathname.includes('/invoices')) navigate(`/${coSlug}/invoices/new`);
-        else if (location.pathname.includes('/bills')) navigate(`/${coSlug}/bills/new`);
-        else if (location.pathname.includes('/journals')) navigate(`/${coSlug}/journals/new`);
+        // Against the API every list with a form gets N; the demo keeps its three.
+        const targets: Array<[string, string]> = IS_LIVE
+          ? [['/credit-notes', 'credit-notes'], ['/debit-notes', 'debit-notes'], ['/invoices', 'invoices'], ['/bills', 'bills'], ['/journals', 'journals'], ['/requisitions', 'requisitions'], ['/purchase-orders', 'purchase-orders'], ['/receipts', 'receipts'], ['/payments', 'payments']]
+          : [['/invoices', 'invoices'], ['/bills', 'bills'], ['/journals', 'journals']];
+        const hit = targets.find(([needle]) => location.pathname.includes(needle));
+        if (hit) navigate(`/${coSlug}/${hit[1]}/new`);
       }},
       { id: 'shortcut-nav', key: '[', description: 'Toggle navigation', scope: 'global', action: () => toggleSidebar() },
       { id: 'shortcut-dark', key: 'ctrl+shift+d', description: 'Toggle Dark Mode', scope: 'global', action: () => toggleTheme() },

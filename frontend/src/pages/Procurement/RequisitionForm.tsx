@@ -1,3 +1,4 @@
+import { useFormShortcuts } from '@/lib/pageKeys';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { AlertTriangle, Plus, Save, Send, Trash2 } from 'lucide-react';
@@ -239,6 +240,8 @@ const Inner: React.FC<{ editId?: string }> = ({ editId }) => {
     }
   };
 
+  // Ctrl/Cmd+S and Ctrl/Cmd+Enter run what the Save and Submit buttons run, and only while those are enabled.
+  useFormShortcuts({ save: busy === null && dirty ? onSave : undefined, submit: busy === null ? onSubmit : undefined });
   if (editId && existing.isLoading) return <LoadingLine what="requisition" />;
   if (editId && existing.error) return <ErrorLine error={existing.error} onRetry={existing.refetch} />;
   if (editId && existing.data && existing.data.status !== 'draft') {

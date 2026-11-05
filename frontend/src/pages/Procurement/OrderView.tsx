@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { CheckCircle, Clock, FilePlus, Lock, Package, Pencil, Printer, RotateCcw, Send, Trash2, XCircle } from 'lucide-react';
+import { CheckCircle, Clock, Copy, FilePlus, Lock, Package, Pencil, Printer, RotateCcw, Send, Trash2, XCircle } from 'lucide-react';
 import { PageHeader } from '@/components/domain/PageHeader';
 import { SignDialog } from '@/components/domain/SignDialog';
 import { ConflictDialog } from '@/components/domain/ConflictDialog';
@@ -19,7 +19,8 @@ import { useMemberNames } from '@/data/approvals';
 import { useOrder, useOrderActions, useOrderBills, useOrderReceipts, useOrderRevisions, useRevisionActions } from '@/data/procurement';
 import { ApiError } from '@/api/errors';
 import { rateForDisplay } from '@/api/adapters/money';
-import { linesChanged, statusLabel, type OrderRevision, type PurchaseOrder } from '@/api/adapters/procurement';
+import { linesChanged, statusLabel, toOrderCopy, toOrderRequest, type OrderRevision, type PurchaseOrder } from '@/api/adapters/procurement';
+import { toApiDate } from '@/api/adapters/dates';
 import { CreateBillDialog, EmptyState, ErrorLine, LoadingLine, ProcStatusPill, ReasonDialog, showQty, useActionRunner } from './parts';
 
 type Dlg = null | 'return' | 'cancel' | 'close' | 'bill' | { rev: OrderRevision; kind: 'return' | 'void' };
@@ -81,6 +82,16 @@ export const OrderView: React.FC = () => {
   const doSubmit = async () => {
     const x = await perform('submit', sig, 'submit', (intent) => actions.submit(o.id, o.version, intent));
     if (x) toast.success(x.status === 'approved' ? `Approved as ${x.number}` : 'Sent for approval');
+  };
+  /** A draft made at once from this order, dated today, with no receipts, bills or revisions; then the form opens on it. */
+  const doCopy = async () => {
+    const today = toApiDate(new Date());
+    const body = toOrderRequest(toOrderCopy(o, today), o.baseCurrency);
+    const copy = await perform('copy', `${sig}:${today}`, null, (intent) => actions.create(body, intent));
+    if (copy) {
+      toast.success('Draft copy created. Check the dates and prices before you submit.');
+      navigate(`/${co}/purchase-orders/${copy.id}/edit`);
+    }
   };
   const doApprove = async () => {
     const x = await perform('approve', sig, 'approve', (intent) => actions.approve(o.id, o.version, intent));
@@ -345,6 +356,10 @@ export const OrderView: React.FC = () => {
                 </div>
               </div>
             )}
+
+            <button type="button" onClick={() => void doCopy()} disabled={busy} className={BTN_SECONDARY}>
+              <Copy className="size-4 text-text-muted" /> Copy to a new draft
+            </button>
 
             {pendingApproval && can.cancel && (
               <button type="button" onClick={() => openText('cancel')} className={cn(BTN_SECONDARY, 'hover:border-danger/50 hover:text-danger')}>

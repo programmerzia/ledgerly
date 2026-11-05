@@ -5,6 +5,9 @@ import { PageHeader } from '@/components/domain/PageHeader';
 import { EmptyState } from '@/components/domain/EmptyState';
 import { ConflictDialog, type VersionConflict } from '@/components/domain/ConflictDialog';
 import { Switch } from '@/components/ui/switch';
+import { Checkbox } from '@/components/ui/checkbox';
+import { BulkBar, BulkResultsSheet } from '@/components/live/BulkBar';
+import { runBulkRows, useRowSelection, type BulkResult } from '@/data/bulk';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { formatMoney, getCurrencyMinorUnits } from '@/lib/format';
 import { useRouteCompany } from '@/data/session';
@@ -45,6 +48,8 @@ export const BankRulesLive: React.FC = () => {
   const orderSlot = useRef(new IntentSlot()).current;
   const toggleSlot = useRef(new IntentSlot()).current;
   const deleteSlot = useRef(new IntentSlot()).current;
+  const sel = useRowSelection(rules.data);
+  const [bulkResult, setBulkResult] = useState<BulkResult | null>(null);
 
   const accountLabel = (id: string) => {
     const a = accounts.data.find((x) => x.id === id);
@@ -76,6 +81,49 @@ export const BankRulesLive: React.FC = () => {
       if (e instanceof ApiError && e.isVersionConflict) {
         setConflict({ noun: 'rule', serverVersion: e.serverVersion, localVersion: r.version, onReload: () => { setConflict(null); rules.refetch(); }, onClose: () => { setConflict(null); rules.refetch(); } });
       } else toast.error(bankingErrorText(e, describeError));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  /** Each rule is updated on its own through the same call as its switch; one that is refused does not stop the others. */
+  const setActiveFor = async (active: boolean) => {
+    const items = sel.selected.map((r) => ({ ...r, label: r.name }));
+    setBusy(true);
+    try {
+      const r = await runBulkRows(
+        (fn) => fn(),
+        active ? 'enabled' : 'disabled',
+        items,
+        (x) => x.can.update && x.is_active !== active,
+        active ? 'Already enabled, or you cannot change it.' : 'Already disabled, or you cannot change it.',
+        async (x, intent) => {
+          await actions.updateRule(x.id, toRuleRequest({ ...toRuleForm(x), is_active: active }, x.version), intent);
+          return active ? 'Enabled' : 'Disabled';
+        },
+        (e) => bankingErrorText(e, describeError),
+      );
+      setBulkResult(r);
+      sel.clear();
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  /** The ticked rules go first, in the order they already have; the rest keep theirs. The server stores the new order. */
+  const moveToTop = async () => {
+    const picked = new Set(sel.selected.map((r) => r.id));
+    const ids = rules.data.map((r) => r.id);
+    const next = [...ids.filter((id) => picked.has(id)), ...ids.filter((id) => !picked.has(id))];
+    if (next.join() === ids.join()) return toast.message('They are already first.');
+    setBusy(true);
+    try {
+      await actions.reorderRules(next, orderSlot.for(next.join(',')));
+      orderSlot.clear();
+      toast.success('Moved to the top. The first matching rule wins.');
+      sel.clear();
+    } catch (e) {
+      toast.error(bankingErrorText(e, describeError));
     } finally {
       setBusy(false);
     }
@@ -128,6 +176,9 @@ export const BankRulesLive: React.FC = () => {
           <table className="w-full text-left" data-testid="rules-table">
             <thead className="border-b border-border bg-surface-neutral text-[11px] font-semibold uppercase text-text-muted">
               <tr>
+                <th className={`${cell} w-9`}>
+                  <Checkbox checked={sel.allSelected} onCheckedChange={sel.toggleAll} aria-label="Select all rules" />
+                </th>
                 <th className={cell}>Order</th>
                 <th className={cell}>Name</th>
                 <th className={cell}>If the bank line...</th>
@@ -144,6 +195,9 @@ export const BankRulesLive: React.FC = () => {
                 const rg = range(r);
                 return (
                   <tr key={r.id} data-rule={r.name}>
+                    <td className={cell}>
+                      <Checkbox checked={sel.isSelected(r.id)} onCheckedChange={() => sel.toggle(r.id)} aria-label={`Select ${r.name}`} />
+                    </td>
                     <td className={cell}>
                       <div className="flex items-center gap-0.5">
                         <span className="w-5 text-xs tabular-nums text-text-muted">{i + 1}</span>
@@ -194,6 +248,18 @@ export const BankRulesLive: React.FC = () => {
           </table>
         </div>
       )}
+
+      <BulkBar
+        selected={sel.selected.length}
+        busy={busy}
+        onClear={sel.clear}
+        actions={[
+          { key: 'enable', label: 'Enable', count: sel.selected.filter((r) => r.can.update && !r.is_active).length, onClick: () => void setActiveFor(true) },
+          { key: 'disable', label: 'Disable', count: sel.selected.filter((r) => r.can.update && r.is_active).length, onClick: () => void setActiveFor(false) },
+          { key: 'top', label: 'Move to top', count: sel.selected.filter((r) => r.can.update).length, onClick: () => void moveToTop() },
+        ]}
+      />
+      <BulkResultsSheet result={bulkResult} title="Rules" onClose={() => setBulkResult(null)} />
 
       <RuleDialog target={editing} onClose={() => setEditing(null)} />
 

@@ -320,6 +320,7 @@ Route::middleware(['auth:sanctum', 'tenant', 'tenant.writable', 'idempotent', 'c
         // Data imports (plan 2.18): upload → mapping → preview → queued apply; people only
         Route::get('imports', [ImportController::class, 'index'])->name('imports.index');
         Route::get('imports/kinds', [ImportController::class, 'kinds'])->name('imports.kinds');
+        Route::get('imports/kinds/{kind}/template', [ImportController::class, 'template'])->where('kind', '[a-z_]+')->name('imports.template');
         Route::post('imports', [ImportController::class, 'store'])->name('imports.store');
         Route::get('imports/{import}', [ImportController::class, 'show'])->whereUuid('import')->name('imports.show');
         Route::put('imports/{import}/mapping', [ImportController::class, 'mapping'])->whereUuid('import')->name('imports.mapping');

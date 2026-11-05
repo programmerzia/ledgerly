@@ -1,3 +1,4 @@
+import { useFormShortcuts } from '@/lib/pageKeys';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { AlertTriangle, Plus, Save, Send, Trash2 } from 'lucide-react';
@@ -402,6 +403,8 @@ const Inner: React.FC<{ mode: Mode; orderId?: string }> = ({ mode, orderId }) =>
 
   /* -------------------------------------------------------------------- render */
 
+  // Ctrl/Cmd+S and Ctrl/Cmd+Enter run what the Save and Submit buttons run, and only while those are enabled.
+  useFormShortcuts({ save: busy === null && dirty ? onSave : undefined, submit: busy === null ? onSubmit : undefined });
   if (orderId && orderQ.isLoading) return <LoadingLine what="purchase order" />;
   if (orderId && orderQ.error) return <ErrorLine error={orderQ.error} onRetry={orderQ.refetch} />;
   if (revising && order?.open_revision_id && revisionQ.isLoading) return <LoadingLine what="revision" />;
