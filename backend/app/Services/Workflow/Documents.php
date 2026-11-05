@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Services\Workflow;
 
-use App\Actions\FixedAssets\CreateAssetTransaction;
 use App\Actions\FixedAssets\PostAssetTransaction;
 use App\Actions\FixedAssets\PostDepreciationRun;
 use App\Actions\Ledger\Inputs\PostJournalInput;
@@ -18,6 +17,7 @@ use App\Actions\Trade\PostSettlement;
 use App\Actions\Workflow\Inputs\DocumentRef;
 use App\Contracts\PermissionChecker;
 use App\Contracts\Postable;
+use App\Domain\FixedAssets\AssetPermissions;
 use App\Domain\Ledger\JournalType;
 use App\Domain\Shared\DomainRuleViolation;
 use App\Domain\Shared\Violation;
@@ -225,7 +225,7 @@ final class Documents
 
         if ($doc instanceof AssetTransaction) {
             return match ($action) {
-                'submit' => CreateAssetTransaction::PERMISSIONS[$doc->kind],
+                'submit' => AssetPermissions::FOR_KIND[$doc->kind],
                 'approve', 'return', 'void' => 'fixed_assets.approve',
                 default => 'fixed_assets.'.$action,
             };

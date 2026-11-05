@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Policies\FixedAssets;
 
-use App\Actions\FixedAssets\CreateAssetTransaction;
+use App\Domain\FixedAssets\AssetPermissions;
 use App\Domain\Workflow\DocumentStatus;
 use App\Models\FixedAssets\AssetTransaction;
 use App\Models\Platform\User;
@@ -38,7 +38,7 @@ final class AssetTransactionPolicy
 
     public function submit(Authenticatable $principal, AssetTransaction $tx): bool
     {
-        return $tx->status === DocumentStatus::Draft && $this->context->personCan($principal, CreateAssetTransaction::PERMISSIONS[$tx->kind], $tx->company_id);
+        return $tx->status === DocumentStatus::Draft && $this->context->personCan($principal, AssetPermissions::FOR_KIND[$tx->kind], $tx->company_id);
     }
 
     public function approve(Authenticatable $principal, AssetTransaction $tx): bool
@@ -60,7 +60,7 @@ final class AssetTransactionPolicy
             return false;
         }
 
-        return ($tx->created_by === $principal->id && $this->context->allows($principal, CreateAssetTransaction::PERMISSIONS[$tx->kind], $tx->company_id))
+        return ($tx->created_by === $principal->id && $this->context->allows($principal, AssetPermissions::FOR_KIND[$tx->kind], $tx->company_id))
             || $this->context->allows($principal, 'fixed_assets.approve', $tx->company_id);
     }
 

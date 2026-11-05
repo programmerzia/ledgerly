@@ -23,7 +23,8 @@ final class AssetCategoryController extends Controller
     #[Authorize('viewAny', AssetCategory::class)]
     public function index(Request $request, Company $company): AnonymousResourceCollection
     {
-        return AssetCategoryResource::collection(AssetCategory::query()->where('company_id', $company->id)->orderBy('name')->get());
+        return AssetCategoryResource::collection(AssetCategory::query()->where('company_id', $company->id)->orderBy('name')->get())
+            ->additional(['meta' => ['next_cursor' => null, 'prev_cursor' => null, 'limit' => 200]]);
     }
 
     #[Authorize('create', AssetCategory::class)]

@@ -8,6 +8,7 @@ use App\Actions\FixedAssets\Inputs\AssetTransactionInput;
 use App\Actions\Ledger\SetupGuard;
 use App\Contracts\IdGenerator;
 use App\Domain\FixedAssets\AssetOutcome;
+use App\Domain\FixedAssets\AssetPermissions;
 use App\Domain\Shared\DomainRuleViolation;
 use App\Domain\Workflow\DocumentStatus;
 use App\Models\FixedAssets\AssetCategory;
@@ -29,12 +30,6 @@ use App\Support\UnitOfWork\UnitOfWork;
  */
 final class CreateAssetTransaction
 {
-    /** The permission each kind needs. */
-    public const array PERMISSIONS = [
-        'disposal' => 'fixed_assets.dispose', 'impairment' => 'fixed_assets.revalue',
-        'impairment_reversal' => 'fixed_assets.revalue', 'revaluation' => 'fixed_assets.revalue',
-    ];
-
     public function __construct(
         private readonly UnitOfWork $uow,
         private readonly IdGenerator $ids,
@@ -46,7 +41,7 @@ final class CreateAssetTransaction
     public function handle(Actor $actor, AssetTransactionInput $in): AssetTransaction
     {
         return $this->uow->run($actor, function (LockSet $locks, AuditBuffer $audit, Outbox $outbox) use ($actor, $in) {
-            $permission = self::PERMISSIONS[$in->kind] ?? throw DomainRuleViolation::single('asset_transaction_kind_invalid', 'Unknown kind.');
+            $permission = AssetPermissions::FOR_KIND[$in->kind] ?? throw DomainRuleViolation::single('asset_transaction_kind_invalid', 'Unknown kind.');
             $this->guard->require($actor, $permission, $in->companyId);
             if ($in->reason === null || trim($in->reason) === '') {
                 if ($in->kind !== 'disposal') {

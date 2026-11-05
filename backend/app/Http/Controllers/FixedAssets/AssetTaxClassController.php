@@ -24,7 +24,8 @@ final class AssetTaxClassController extends Controller
     #[Authorize('viewAny', AssetTaxClass::class)]
     public function index(Request $request, Company $company): AnonymousResourceCollection
     {
-        return AssetTaxClassResource::collection(AssetTaxClass::query()->where('company_id', $company->id)->orderBy('code')->get());
+        return AssetTaxClassResource::collection(AssetTaxClass::query()->where('company_id', $company->id)->orderBy('code')->get())
+            ->additional(['meta' => ['next_cursor' => null, 'prev_cursor' => null, 'limit' => 200]]);
     }
 
     #[Authorize('create', AssetTaxClass::class)]
