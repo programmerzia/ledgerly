@@ -133,6 +133,11 @@ Route::middleware(['auth:sanctum', 'tenant', 'tenant.writable', 'idempotent', 'c
 
         // Roles of the company and who holds them (org owners and admins)
         Route::get('roles', [MemberController::class, 'roles'])->name('roles.index');
+        Route::get('permissions', [MemberController::class, 'permissions'])->name('permissions.index');
+        Route::post('roles', [MemberController::class, 'createRole'])->name('roles.store');
+        Route::put('roles/{role}', [MemberController::class, 'updateRole'])->whereUuid('role')->name('roles.update');
+        Route::post('roles/{role}/reset', [MemberController::class, 'resetRole'])->whereUuid('role')->name('roles.reset');
+        Route::delete('roles/{role}', [MemberController::class, 'deleteRole'])->whereUuid('role')->name('roles.destroy');
         Route::put('members/{user}/roles/{role}', [MemberController::class, 'assign'])->whereUuid(['user', 'role'])->name('members.roles.assign');
         Route::delete('members/{user}/roles/{role}', [MemberController::class, 'revoke'])->whereUuid(['user', 'role'])->name('members.roles.revoke');
 

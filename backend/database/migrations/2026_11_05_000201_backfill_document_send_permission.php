@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\Organisation\PermissionMatrix;
+use App\Support\Database\RoleBackfill;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 
@@ -32,7 +33,7 @@ return new class extends Migration
                 DB::statement(
                     "INSERT INTO role_has_permissions (tenant_id, permission_id, role_id)
                      SELECT r.tenant_id, p.id, r.id FROM roles r JOIN permissions p ON p.tenant_id = r.tenant_id AND p.name = ? AND p.guard_name = r.guard_name
-                     WHERE r.name = ? AND r.guard_name = 'web' ON CONFLICT DO NOTHING",
+                     WHERE r.name = ? AND r.guard_name = 'web'".RoleBackfill::uneditedOnly().' ON CONFLICT DO NOTHING',
                     [self::PERMISSION, $role],
                 );
             }

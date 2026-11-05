@@ -7,7 +7,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { currentTenant } from '@/api/adapters/session';
 import { toMemberRow } from '@/api/adapters/member';
 import {
-  assignRole, createInvitation, fetchInvitations, fetchMembers, fetchRoles, revokeInvitation, revokeRole, type InviteBody,
+  assignRole, createInvitation, createRole, deleteRole, fetchInvitations, fetchMembers, fetchPermissionModules, fetchRoles, resetRole, revokeInvitation,
+  revokeRole, updateRole, type InviteBody,
 } from '@/api/live/team';
 import { useMe, useRouteCompany } from './session';
 
@@ -64,6 +65,32 @@ export function useChangeRole(companyId: string) {
       grant ? assignRole(companyId, userId, roleId) : revokeRole(companyId, userId, roleId),
     onSuccess: () => Promise.all([qc.invalidateQueries({ queryKey: ['members'] }), qc.invalidateQueries({ queryKey: rolesKey(companyId) })]),
   });
+}
+
+export const permissionModulesKey = (companyId: string) => ['permission-modules', companyId] as const;
+
+export function usePermissionModules(companyId: string, enabled = true) {
+  return useQuery({ queryKey: permissionModulesKey(companyId), queryFn: () => fetchPermissionModules(companyId), enabled, retry: false, staleTime: 5 * 60_000 });
+}
+
+/** Role edits change what people can do, so the menu and permission hints are read again too. */
+export function useRoleActions(companyId: string) {
+  const qc = useQueryClient();
+  const done = <T,>(p: Promise<T>): Promise<T> =>
+    p.then(async (r) => {
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: rolesKey(companyId) }),
+        qc.invalidateQueries({ queryKey: ['members'] }),
+        qc.invalidateQueries({ queryKey: ['menu', companyId] }),
+      ]);
+      return r;
+    });
+  return {
+    create: (body: { name: string; permissions: string[] }) => done(createRole(companyId, body)),
+    update: (roleId: string, body: { name?: string; permissions: string[] }) => done(updateRole(companyId, roleId, body)),
+    reset: (roleId: string) => done(resetRole(companyId, roleId)),
+    remove: (roleId: string) => done(deleteRole(companyId, roleId)),
+  };
 }
 
 /** The company the live screens are looking at (from the URL). */

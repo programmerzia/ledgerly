@@ -16,6 +16,7 @@ import { LiveGeneral } from './LiveGeneral';
 import { LiveNumbering } from './LiveNumbering';
 import { LivePosting } from './LivePosting';
 import { LiveSecurity } from './LiveSecurity';
+import { LiveRoles } from './LiveRoles';
 import { LiveTeam } from './LiveTeam';
 import { LiveWebhooks } from './LiveWebhooks';
 import { LiveWorkflows } from './LiveWorkflows';
@@ -37,6 +38,7 @@ export const LiveSettings: React.FC = () => {
     { to: 'workflows', label: 'Approvals', show: canApprovals },
     { to: 'security', label: 'Security', show: true },
     { to: 'team', label: 'Team', show: canManage },
+    { to: 'roles', label: 'Roles', show: canManage },
     { to: 'api-clients', label: 'API access', show: canManage },
     { to: 'webhooks', label: 'Webhooks', show: canManage },
   ].filter((t) => t.show);
@@ -63,6 +65,7 @@ export const LiveSettings: React.FC = () => {
         <Route path="workflows" element={canApprovals ? <LiveWorkflows /> : <Navigate to="../security" replace />} />
         <Route path="security" element={<LiveSecurity />} />
         <Route path="team" element={canManage ? <LiveTeam /> : <Navigate to="../security" replace />} />
+        <Route path="roles" element={canManage ? <LiveRoles /> : <Navigate to="../security" replace />} />
         <Route path="api-clients" element={canManage ? <LiveApiClients /> : <Navigate to="../security" replace />} />
         <Route path="webhooks" element={canManage ? <LiveWebhooks /> : <Navigate to="../security" replace />} />
         <Route path="*" element={<Navigate to={first} replace />} />
