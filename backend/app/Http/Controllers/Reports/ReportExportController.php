@@ -63,8 +63,12 @@ final class ReportExportController extends Controller
         $filename = $this->filename($report, $company, $format);
         $headers = ['Content-Type' => ReportExport::FORMATS[$format], 'X-Content-Type-Options' => 'nosniff'];
 
-        return response()->streamDownload(function () use ($exports, $plan, $format): void {
-            $exports->write($plan['table'], $format, 'php://output');
+        // The body is written after the request's middleware has finished and the tenant is cleared, and a table built from a
+        // generator (the ledger, the listing reports) reads its rows only now: give the write the tenant it was planned for.
+        $tenantId = $tenant->require();
+
+        return response()->streamDownload(function () use ($exports, $plan, $format, $tenant, $tenantId): void {
+            $tenant->run($tenantId, fn () => $exports->write($plan['table'], $format, 'php://output'));
         }, $filename, $headers);
     }
 

@@ -21,8 +21,8 @@ uses(MakesApiCalls::class, TradeApi::class, BankingApi::class);
 beforeEach(function (): void {
     $this->setUpBanking();
     $this->secondCompany();
-    // A streamed export reads lazily, after the request: give it the tenant it was made for.
-    $this->streamed = fn ($response): string => $this->inTenant(fn () => $response->streamedContent());
+    // A streamed export reads its rows after the request has ended; it must still see the tenant it was made for.
+    $this->streamed = fn ($response): string => $response->streamedContent();
     $this->auditor = $this->person('Ada Auditor', ['Auditor']);
 });
 
@@ -75,7 +75,7 @@ it('lists journals by status, source and person, with totals, lines on request, 
     expect($withLines['lines'])->not->toBeEmpty()->and(array_sum(array_map(fn ($l) => $l['debit']['amount'], $withLines['lines'])))->toBe($withLines['debit']['amount']);
 
     $csv = ($this->streamed)($this->get($this->api('reports/journal-list/export?source=sales_invoice&include_lines=true&format=csv'))->assertOk());
-    expect($csv)->toContain('Journal list')->and($csv)->toContain('Created by');
+    expect($csv)->toContain('Journal list')->and($csv)->toContain('Created by')->and($csv)->toContain('JV-')->and($csv)->toContain('11000.00');
     $this->inTenant(fn () => expect(DB::table('audit_events')->where('action', 'report.exported')->count())->toBe(1));
     expect($sale)->not->toBeEmpty();
 });
