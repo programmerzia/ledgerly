@@ -4,9 +4,9 @@
  * Mock mode keeps the original page (Periods.tsx), which this does not replace.
  */
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Lock, Unlock, ShieldCheck, UserCheck, AlertCircle, CheckCircle2, Lock as LockIcon } from 'lucide-react';
+import { FileCheck2, Lock, Unlock, ShieldCheck, UserCheck, AlertCircle, CheckCircle2, Lock as LockIcon } from 'lucide-react';
 import { PageHeader } from '@/components/domain/PageHeader';
 import { StatusPill } from '@/components/domain/StatusPill';
 import { EmptyState } from '@/components/domain/EmptyState';
@@ -284,6 +284,10 @@ export const LivePeriods: React.FC = () => {
               {period.soft_closed_at && period.status === 'soft_closed' && <div className="mt-1">Soft closed on {formatDate(period.soft_closed_at)}</div>}
               {period.closed_at && closedLike && <div className="mt-1">Closed on {formatDate(period.closed_at)}</div>}
             </div>
+            <Link to={`/${slug}/periods/close-pack?period=${period.id}`} className="flex h-8 w-full items-center justify-center gap-1.5 rounded-md border border-border bg-surface px-3 text-[13px] font-medium text-text-primary transition hover:bg-surface-neutral">
+              <FileCheck2 className="size-4" />
+              Open the close pack
+            </Link>
             {period.can.request_reopen && !req && (
               <button type="button" onClick={() => open('reopen')} className="flex h-8 items-center justify-center gap-1.5 rounded-md bg-accent px-4 text-[13px] font-medium text-white transition hover:bg-accent-hover cursor-pointer">
                 <Unlock className="size-4" />

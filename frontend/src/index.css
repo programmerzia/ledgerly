@@ -346,6 +346,16 @@ button, a, input, select, textarea, [role="button"] {
   tr {
     break-inside: avoid;
   }
+
+  /* A screen that runs over one page (the close pack) turns this on for as long as it is mounted: the shell's fixed height and
+     clipped scroll areas would otherwise cut the printout at the first page. */
+  html.print-flow .h-screen,
+  html.print-flow .overflow-hidden,
+  html.print-flow .overflow-y-auto {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
 }
 
 @keyframes shake {

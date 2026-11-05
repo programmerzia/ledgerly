@@ -43,7 +43,7 @@ describe('command palette destinations', () => {
   ];
   it('live mode keeps only connected screens', async () => {
     const { reachableDestinations } = await import('../src/components/domain/commandVerbs');
-    expect(reachableDestinations(dest, 'acme', true).map((d) => d.path)).toEqual(['/dashboard', '/settings/import', '/bills']);
+    expect(reachableDestinations(dest, 'acme', true).map((d) => d.path)).toEqual(['/dashboard', '/periods/close-pack', '/settings/import', '/bills']);
   });
   it('mock mode keeps all of them', async () => {
     const { reachableDestinations } = await import('../src/components/domain/commandVerbs');

@@ -83,6 +83,7 @@ import { ImportLive } from './pages/Settings/live/ImportLive';
 import { OnboardingWizard } from './pages/Onboarding/OnboardingWizard';
 import { ItemsList } from './pages/Sales/ItemsList';
 import { ClosePack } from './pages/Accounting/ClosePack';
+import { ClosePackLive } from './pages/Accounting/live/ClosePackLive';
 import { RecurringJournals } from './pages/Accounting/RecurringJournals';
 import { Toaster } from './components/ui/sonner';
 
@@ -243,7 +244,7 @@ export default function App() {
           <Route path="recurring-journals" element={<RecurringJournals />} />
           <Route path="accounts" element={<ChartOfAccounts />} />
           <Route path="periods" element={<Periods />} />
-          <Route path="periods/close-pack" element={<ClosePack />} />
+          <Route path="periods/close-pack" element={IS_LIVE ? <ClosePackLive /> : <ClosePack />} />
           <Route path="fx-rates" element={<FxRates />} />
           {IS_LIVE && <Route path="dimensions" element={<Dimensions />} />}
           <Route path="assets" element={<FixedAssets />} />
