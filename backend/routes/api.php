@@ -22,6 +22,7 @@ use App\Http\Controllers\Ledger\AccountController;
 use App\Http\Controllers\Ledger\ChartTemplateController;
 use App\Http\Controllers\Ledger\DimensionController;
 use App\Http\Controllers\Ledger\JournalController;
+use App\Http\Controllers\Notifications\NotificationController;
 use App\Http\Controllers\Organisation\ApiClientController;
 use App\Http\Controllers\Organisation\CompanyController;
 use App\Http\Controllers\Organisation\CompanyLogoController;
@@ -135,6 +136,11 @@ Route::middleware(['auth:sanctum', 'tenant', 'tenant.writable', 'idempotent', 'c
         Route::get('settings/logo', [CompanyLogoController::class, 'show'])->name('settings.logo.show');
         Route::post('settings/logo', [CompanyLogoController::class, 'store'])->name('settings.logo.store');
         Route::delete('settings/logo', [CompanyLogoController::class, 'destroy'])->name('settings.logo.destroy');
+
+        // The bell (plan 3c.6): the signed-in person's own notifications
+        Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
+        Route::post('notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.read-all');
+        Route::post('notifications/{notification}/read', [NotificationController::class, 'read'])->whereUuid('notification')->name('notifications.read');
 
         // Chart of accounts
         Route::get('chart-templates', [ChartTemplateController::class, 'index'])->name('chart-templates.index');

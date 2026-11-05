@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Jobs\Documents;
 
 use App\Contracts\Clock;
+use App\Events\Notifications\NotificationEvent;
 use App\Mail\DocumentMail;
 use App\Models\Documents\DocumentSend;
 use App\Models\Organisation\Company;
@@ -13,6 +14,7 @@ use App\Services\Documents\EmailTargets;
 use App\Support\Actor;
 use App\Support\ActorType;
 use App\Support\Audit\DetachedAudit;
+use App\Support\Outbox\OutboxPublisher;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -59,6 +61,19 @@ final class SendDocumentEmail implements ShouldQueue
             } catch (Throwable $e) {
                 $send->forceFill(['status' => 'failed', 'error' => mb_substr($e->getMessage(), 0, 500)])->save();
                 $audit->record($actor, 'document.email_failed', $subject, ['send_id' => $send->id, 'document_type' => $send->document_type, 'to' => $send->recipients]);
+                if ($send->queued_by !== null) {
+                    app(OutboxPublisher::class)->publish(new NotificationEvent(NotificationEvent::SEND_FAILED, [
+                        'company_id' => $this->companyId, 'user_id' => $send->queued_by, 'send_id' => $send->id, 'label' => $send->subject,
+                        'link_type' => $send->document_type, 'link_id' => $send->document_id,
+                        'link' => match ($send->document_type) {
+                            'invoice', 'credit_note' => 'invoices/'.$send->document_id,
+                            'payment_advice' => 'payments/'.$send->document_id,
+                            'receipt' => 'receipts/'.$send->document_id,
+                            'statement' => 'customers/'.$send->document_id,
+                            default => '',
+                        },
+                    ]));
+                }
             }
         });
     }

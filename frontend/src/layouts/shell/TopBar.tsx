@@ -13,7 +13,7 @@ import {
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { ThemeSwitcher } from './ThemeSwitcher';
-import { NotificationsMenu, type AppNotification } from './NotificationsMenu';
+import { NotificationsMenu, type AppNotification, type LiveBell } from './NotificationsMenu';
 import { UserMenu } from './UserMenu';
 import { toast } from 'sonner';
 import { describeError } from '@/api/messages';
@@ -39,6 +39,7 @@ export interface TopBarProps {
   onToggleOffline: () => void;
   notifications: AppNotification[];
   setNotifications: React.Dispatch<React.SetStateAction<AppNotification[]>>;
+  liveBell?: LiveBell;
   switchUser: (id: string) => void;
   onShortcuts: () => void;
   onSignOut: () => void;
@@ -184,7 +185,7 @@ export const TopBar: React.FC<TopBarProps> = (p) => {
         <SyncIndicator isOffline={p.isOffline} isSyncing={p.isSyncing} outboxCount={p.outboxCount} onToggle={p.onToggleOffline} />
         <ThemeSwitcher currentTheme={p.theme.currentTheme} isDark={p.theme.isDark} applyTheme={p.theme.applyTheme} uiDensity={p.uiDensity} setUiDensity={p.setUiDensity} />
         <FullscreenToggle />
-        <NotificationsMenu notifications={p.notifications} setNotifications={p.setNotifications} onNavigate={navigate} />
+        <NotificationsMenu notifications={p.notifications} setNotifications={p.setNotifications} onNavigate={navigate} liveBell={p.liveBell} />
         <span className="w-px h-6 bg-border mx-1.5 hidden sm:block" />
         <UserMenu
           user={p.user}
