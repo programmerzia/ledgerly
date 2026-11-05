@@ -24,7 +24,7 @@ final class AuditController extends Controller
     #[Authorize('viewAny', AuditEvent::class)]
     public function index(ListAuditEventsRequest $request, Company $company, ListAuditEvents $events): AnonymousResourceCollection
     {
-        $query = $events($company->id, $request->filter('action'), $request->filter('subject_type'), $request->filter('subject_id'), $request->filter('actor_id'), $request->filter('request_id'));
+        $query = $events($company->id, $request->filter('action'), $request->filter('subject_type'), $request->filter('subject_id'), $request->filter('actor_id'), $request->filter('request_id'), $request->filter('from'), $request->filter('to'));
         $page = CursorPage::fetch($query, $request, 'id', descending: true, kind: 'int');
 
         return AuditEventResource::collection($page->items)->additional(['meta' => ['next_cursor' => $page->nextCursor, 'prev_cursor' => $page->prevCursor, 'limit' => $page->limit]]);

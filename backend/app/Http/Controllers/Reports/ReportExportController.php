@@ -8,6 +8,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Reports\ReportRequest;
 use App\Http\Support\RequestActor;
 use App\Jobs\Reports\RunReportExport;
+use App\Models\Audit\AuditEvent;
+use App\Models\Banking\BankReconciliation;
 use App\Models\Organisation\Company;
 use App\Services\Reports\ExportStore;
 use App\Services\Reports\ReportExport;
@@ -16,6 +18,7 @@ use App\Support\Reports\Report;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Attributes\Controllers\Authorize;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\Response;
@@ -38,6 +41,7 @@ final class ReportExportController extends Controller
             throw ValidationException::withMessages(['format' => ['Choose xlsx, csv or pdf.']]);
         }
         unset($input['format']);
+        $this->guardListing($report, $company, $input);
 
         $plan = $exports->plan($report, $company, $input);
         // A PDF always goes to the worker: rendering needs Chromium and takes too long for a web process.
@@ -89,6 +93,18 @@ final class ReportExportController extends Controller
                 fclose($stream);
             }
         }, $this->filename((string) $record['report'], $company, $format), ['Content-Type' => ReportExport::FORMATS[$format] ?? 'application/octet-stream', 'X-Content-Type-Options' => 'nosniff']);
+    }
+
+    /** The listing reports of 3c.20 read data that has its own permission: the audit log, a bank reconciliation. */
+    /** @param array<string, mixed> $input */
+    private function guardListing(string $report, Company $company, array $input): void
+    {
+        if ($report === 'audit-trail') {
+            Gate::authorize('viewAny', AuditEvent::class);
+        }
+        if ($report === 'bank-reconciliation' && isset($input['reconciliation_id'])) {
+            Gate::authorize('view', BankReconciliation::query()->where('company_id', $company->id)->findOrFail((string) $input['reconciliation_id']));
+        }
     }
 
     private function filename(string $report, Company $company, string $format): string

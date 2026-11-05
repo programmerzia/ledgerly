@@ -1,5 +1,12 @@
 /** Audit log (live): the organisation's tamper-evident event chain, filtered to this company, with the verify action. */
 import React, { useRef, useState } from 'react';
+import { toast } from 'sonner';
+import { Download } from 'lucide-react';
+import { SignDialog } from '@/components/domain/SignDialog';
+import { isSigningCancelled, useSignedRun } from '@/data/signing';
+import { saveFile } from '@/api/live/reports';
+import { downloadAuditBundle } from '@/api/live/listings';
+import { ExportMenu } from '@/pages/Reports/live/ExportMenu';
 import { PageHeader } from '@/components/domain/PageHeader';
 import { ApiError } from '@/api/errors';
 import { describeError } from '@/api/messages';
@@ -12,7 +19,7 @@ import { useRouteCompany } from '@/data/session';
 import { Field, field, primary, secondary } from '@/components/live/form';
 import { ErrorLine, LoadingLine } from './parts';
 
-const EMPTY = { action: '', subject_type: '', subject_id: '', actor_id: '', request_id: '' };
+const EMPTY = { action: '', subject_type: '', subject_id: '', actor_id: '', request_id: '', from: '', to: '' };
 
 export const AuditLogLive: React.FC = () => {
   const company = useRouteCompany();
@@ -20,6 +27,24 @@ export const AuditLogLive: React.FC = () => {
   const [applied, setApplied] = useState<AuditFilters>({});
   const events = useAuditEvents(company.id, applied);
   const [openId, setOpenId] = useState<number | null>(null);
+  const { run, signProps } = useSignedRun();
+  const [bundleBusy, setBundleBusy] = useState(false);
+
+  // The report export and the evidence bundle take the same filters as the list, except the request id.
+  const exportQuery: Record<string, string> = {};
+  for (const k of ['from', 'to', 'action', 'actor_id', 'subject_type', 'subject_id'] as const) if (applied[k]) exportQuery[k] = applied[k] as string;
+  const downloadBundle = async () => {
+    setBundleBusy(true);
+    try {
+      const file = await run(() => downloadAuditBundle(company.id, exportQuery));
+      saveFile(file);
+      toast.success(`Saved ${file.filename}`);
+    } catch (e) {
+      if (!isSigningCancelled(e)) toast.error(describeError(e));
+    } finally {
+      setBundleBusy(false);
+    }
+  };
 
   const set = (k: keyof typeof EMPTY) => (e: React.ChangeEvent<HTMLInputElement>) => setDraft({ ...draft, [k]: e.target.value });
   const apply = (e: React.FormEvent) => {
@@ -55,11 +80,27 @@ export const AuditLogLive: React.FC = () => {
         <Field id="af-request" label="Request id">
           <input id="af-request" className={field} value={draft.request_id} onChange={set('request_id')} />
         </Field>
+        <Field id="af-from" label="From (UTC day)">
+          <input id="af-from" type="date" className={field} value={draft.from} max={draft.to || undefined} onChange={set('from')} />
+        </Field>
+        <Field id="af-to" label="To (UTC day)">
+          <input id="af-to" type="date" className={field} value={draft.to} min={draft.from || undefined} onChange={set('to')} />
+        </Field>
         <div className="flex items-end gap-2 md:col-span-3 lg:col-span-5">
           <button type="submit" className={`${primary} h-8 px-3 text-[13px]`}>Apply</button>
           {(filtered || Object.values(draft).some(Boolean)) && <button type="button" className={`${secondary} h-8 px-3 text-[13px]`} onClick={clear}>Clear</button>}
         </div>
       </form>
+      <div className="flex flex-wrap items-center gap-2 print:hidden" data-testid="audit-export">
+        <p className="text-xs text-text-muted">Export the {filtered ? 'filtered ' : ''}events as a report, or as an evidence bundle an auditor can verify without Ledgerly (events, hash chain, seals, instructions and a checker).</p>
+        <ExportMenu report="audit-trail" query={exportQuery}>
+          <button type="button" disabled={bundleBusy} onClick={() => void downloadBundle()} className="flex h-8 cursor-pointer items-center gap-1.5 rounded-md border border-border bg-surface px-3 text-[13px] font-medium text-text-primary transition-colors hover:bg-surface-neutral disabled:opacity-60" data-testid="audit-bundle">
+            <Download className="size-3.5" />
+            <span>{bundleBusy ? 'Preparing…' : 'Evidence bundle'}</span>
+          </button>
+        </ExportMenu>
+      </div>
+      <SignDialog {...signProps} documentTitle="Audit evidence bundle" actionTitle="Export audit evidence" consequenceText="The audit events you filtered are exported with their hash chain. This export is recorded in the audit log." />
       {events.isError && events.error instanceof ApiError && events.error.status === 422 && <p role="alert" className="text-[13px] text-danger">{describeError(events.error)} Check the filters: actions use letters, dots and underscores; ids are full ids.</p>}
 
       {events.isPending ? <LoadingLine what="the audit log" /> : events.isError ? (

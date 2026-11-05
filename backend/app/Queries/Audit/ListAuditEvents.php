@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Builder;
 final class ListAuditEvents
 {
     /** @return Builder<AuditEvent> */
-    public function __invoke(string $companyId, ?string $action = null, ?string $subjectType = null, ?string $subjectId = null, ?string $actorId = null, ?string $requestId = null): Builder
+    public function __invoke(string $companyId, ?string $action = null, ?string $subjectType = null, ?string $subjectId = null, ?string $actorId = null, ?string $requestId = null, ?string $from = null, ?string $to = null): Builder
     {
         // The person's name is read by one correlated subquery (no N+1, no join to confuse the keyset columns). It only
         // resolves for user actors who are members of the event's own tenant; system and API-client events stay null.
@@ -34,6 +34,13 @@ final class ListAuditEvents
         }
         if ($requestId !== null) {
             $query->where('request_id', $requestId);
+        }
+
+        if ($from !== null) {
+            $query->where('occurred_at', '>=', $from.' 00:00:00+00');
+        }
+        if ($to !== null) {
+            $query->where('occurred_at', '<', gmdate('Y-m-d', (int) strtotime($to.' +1 day')).' 00:00:00+00');
         }
 
         return $query;

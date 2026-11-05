@@ -35,6 +35,7 @@ use App\Http\Controllers\Procurement\PurchaseRequisitionController;
 use App\Http\Controllers\Recurring\RecurringInvoiceController;
 use App\Http\Controllers\Recurring\RecurringJournalController;
 use App\Http\Controllers\Recurring\RecurringRunController;
+use App\Http\Controllers\Reports\ListingReportController;
 use App\Http\Controllers\Reports\ReportController;
 use App\Http\Controllers\Reports\ReportExportController;
 use App\Http\Controllers\Signing\SigningController;
@@ -218,6 +219,10 @@ Route::middleware(['auth:sanctum', 'tenant', 'tenant.writable', 'idempotent', 'c
         Route::get('reports/supplier-statement', [ReportController::class, 'supplierStatement'])->name('reports.supplier-statement');
         Route::get('reports/tax-return', [ReportController::class, 'taxReturn'])->name('reports.tax-return');
         Route::get('reports/drill', [ReportController::class, 'drill'])->name('reports.drill');
+        // Listing and document reports (3c.20); their exports use the export route below.
+        Route::get('reports/journal-list', [ListingReportController::class, 'journalList'])->name('reports.journal-list');
+        Route::get('reports/period-close', [ListingReportController::class, 'periodClose'])->name('reports.period-close');
+        Route::get('reports/audit-trail/bundle', [ListingReportController::class, 'auditBundle'])->middleware('throttle:report-exports')->name('reports.audit-trail.bundle');
         Route::get('reports/exports/{exportId}', [ReportExportController::class, 'show'])->whereUuid('exportId')->name('reports.exports.show');
         Route::get('reports/{report}/export', [ReportExportController::class, 'export'])->whereIn('report', ReportExport::REPORTS)->middleware('throttle:report-exports')->name('reports.export');
 
@@ -359,6 +364,7 @@ Route::middleware(['auth:sanctum', 'tenant', 'tenant.writable', 'idempotent', 'c
         Route::delete('bank-rules/{bankRule}', [BankRuleController::class, 'destroy'])->whereUuid('bankRule')->name('bank-rules.destroy');
         Route::post('bank-reconciliations', [BankReconciliationController::class, 'store'])->name('bank-reconciliations.store');
         Route::get('bank-reconciliations/{bankReconciliation}', [BankReconciliationController::class, 'show'])->whereUuid('bankReconciliation')->name('bank-reconciliations.show');
+        Route::get('bank-reconciliations/{bankReconciliation}/report', [ListingReportController::class, 'bankReconciliation'])->whereUuid('bankReconciliation')->name('bank-reconciliations.report');
         Route::post('bank-reconciliations/{bankReconciliation}/finish', [BankReconciliationController::class, 'finish'])->whereUuid('bankReconciliation')->name('bank-reconciliations.finish');
         Route::post('bank-reconciliations/{bankReconciliation}/reopen', [BankReconciliationController::class, 'reopen'])->whereUuid('bankReconciliation')->name('bank-reconciliations.reopen');
 

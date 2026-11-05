@@ -18,6 +18,9 @@ final class ListAuditEventsRequest extends CompanyRequest
             'subject_id' => ['nullable', 'uuid'],
             'actor_id' => ['nullable', 'uuid'],
             'request_id' => ['nullable', 'string', 'max:64'],
+            /** UTC days, both inclusive (the audit trail report, 3c.20). */
+            'from' => ['nullable', 'date_format:Y-m-d'],
+            'to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:from'],
         ];
     }
 

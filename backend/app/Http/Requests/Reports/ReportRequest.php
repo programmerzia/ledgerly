@@ -18,7 +18,7 @@ final class ReportRequest extends CompanyRequest
     /** A query string carries `true`/`false` as text, which the boolean rule refuses. */
     protected function prepareForValidation(): void
     {
-        foreach (['hide_zero', 'exclude_closing'] as $flag) {
+        foreach (['hide_zero', 'exclude_closing', 'include_lines'] as $flag) {
             $value = $this->query($flag);
             if ($value === 'true' || $value === 'false') {
                 $this->merge([$flag => $value === 'true']);
@@ -47,6 +47,19 @@ final class ReportRequest extends CompanyRequest
             'exclude_closing' => ['nullable', 'boolean'],
             'contact_side' => ['nullable', 'string', Rule::in(['debit', 'credit'])],
             'contact_id' => ['nullable', 'uuid'],
+            /** Journal list (3c.20): status, source ('none' = typed by hand), the person and in which role, lines under each journal. */
+            'status' => ['nullable', 'string', Rule::in(['draft', 'pending_approval', 'posted', 'reversed', 'void'])],
+            'source' => ['nullable', 'string', 'max:64'],
+            'user_id' => ['nullable', 'uuid'],
+            'user_role' => ['nullable', 'string', Rule::in(['created', 'submitted', 'approved', 'posted'])],
+            'include_lines' => ['nullable', 'boolean'],
+            /** Bank reconciliation report: the finished reconciliation. */
+            'reconciliation_id' => ['nullable', 'uuid'],
+            /** Audit trail (3c.20): same filters as the audit log. */
+            'action' => ['nullable', 'string', 'max:64'],
+            'actor_id' => ['nullable', 'uuid'],
+            'subject_type' => ['nullable', 'string', 'max:64'],
+            'subject_id' => ['nullable', 'uuid'],
             'format' => ['nullable', 'string', Rule::in(['xlsx', 'csv', 'pdf'])],
         ];
     }
