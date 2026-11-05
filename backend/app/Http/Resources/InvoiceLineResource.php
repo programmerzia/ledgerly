@@ -30,6 +30,7 @@ final class InvoiceLineResource extends JsonResource
             // Net of discount, before tax; the tax of the line and its share per tax code (D2).
             'line_total_fc' => Json::money($this->line_total_fc, $currency),
             'tax_amount_fc' => Json::money($this->tax_amount_fc, $currency),
+            'reverse_charge_fc' => Json::money($this->reverse_charge_fc, $currency),
             /** @var array<string, int> tax code id → minor units of the document currency */
             'tax_detail' => (object) ($this->tax_detail ?? []),
             /** @var array<string, string> dimension id → dimension value id */

@@ -18,5 +18,7 @@ final readonly class PostingAccounts
         public string $whtPayable,
         public string $fxRealisedLoss = '',
         public string $fxUnrealisedLoss = '',
+        public string $reverseChargeOutput = '',
+        public string $reverseChargeInput = '',
     ) {}
 }

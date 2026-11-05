@@ -75,19 +75,24 @@ final class DocumentCalculator
         }
 
         $result = TaxCalculator::calculate($taxLines, $this->taxRates->roundingFor($in->companyId));
+        $reverse = $this->reverseChargeLines($in, $priced);
 
         $lines = [];
         foreach ($priced as $i => [$line, $item, $accountId, $unit, $taxCodeId, $net]) {
             $lineTax = $result->lines[$i];
+            $rc = $reverse[$i] ?? false;
+            // Reverse charge (D15 item 4): the supplier charges no tax, so the line carries none; the buyer's self-assessed tax is kept apart.
             $lines[] = new ComputedLine(
                 $accountId, $item?->id, $line->description, $line->quantity, $unit, $line->discountPct, $taxCodeId,
-                $net, $lineTax->tax, $lineTax->byCode, $line->dims, $line->purchaseOrderLineId, $line->goodsReceiptLineId,
+                $net, $rc ? 0 : $lineTax->tax, $rc ? [] : $lineTax->byCode, $line->dims, $line->purchaseOrderLineId, $line->goodsReceiptLineId,
+                $rc ? $lineTax->tax : 0,
             );
         }
 
+        $reverseChargeFc = array_sum(array_map(fn (ComputedLine $l): int => $l->reverseChargeFc, $lines));
         $subtotalFc = $result->net;
-        $taxTotalFc = $result->tax;
-        $totalFc = $result->gross;
+        $taxTotalFc = $result->tax - $reverseChargeFc;
+        $totalFc = $result->gross - $reverseChargeFc;
         if ($totalFc > PostingValidator::MAX_AMOUNT) {
             throw DomainRuleViolation::single('amount_out_of_range', 'The document total is larger than the maximum amount.');
         }
@@ -109,7 +114,39 @@ final class DocumentCalculator
             whtCodeId: $whtCodeId,
             whtAmountFc: $whtAmountFc,
             whtAmount: $whtAmountFc === 0 ? 0 : PostingSupport::toBase($whtAmountFc, $fxRate),
+            reverseChargeFc: $reverseChargeFc,
+            reverseCharge: $reverseChargeFc === 0 ? 0 : PostingSupport::toBase($reverseChargeFc, $fxRate),
         );
+    }
+
+    /**
+     * Which lines use a reverse-charge tax code. Only a bill or a debit note (its mirror) may: self-assessment is a purchase rule, so a
+     * sales document or credit note with such a code is refused.
+     *
+     * @param  list<array{0: InvoiceLineInput, 1: Item|null, 2: string, 3: int, 4: string|null, 5: int}>  $priced
+     * @return array<int, true>
+     */
+    private function reverseChargeLines(InvoiceDraftInput $in, array $priced): array
+    {
+        $ids = array_values(array_unique(array_filter(array_map(fn (array $p): ?string => $p[4], $priced))));
+        if ($ids === []) {
+            return [];
+        }
+        $reverseIds = TaxCode::query()->where('company_id', $in->companyId)->whereIn('id', $ids)->where('kind', 'reverse_charge')->pluck('id')->all();
+        if ($reverseIds === []) {
+            return [];
+        }
+        if (! in_array($in->kind, [InvoiceKind::PurchaseBill, InvoiceKind::DebitNote], true)) {
+            throw DomainRuleViolation::single('reverse_charge_sales_forbidden', 'Reverse-charge tax applies to purchase bills only; a sales document cannot use it.');
+        }
+        $out = [];
+        foreach ($priced as $i => $p) {
+            if ($p[4] !== null && in_array($p[4], $reverseIds, true)) {
+                $out[$i] = true;
+            }
+        }
+
+        return $out;
     }
 
     private function contact(InvoiceDraftInput $in): Contact

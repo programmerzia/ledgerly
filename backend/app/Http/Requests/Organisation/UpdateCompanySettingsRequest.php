@@ -39,6 +39,8 @@ final class UpdateCompanySettingsRequest extends CompanyRequest
             'payment_instructions' => ['sometimes', 'nullable', 'string', 'max:1000'],
             /** Email templates (plan 3c.5) by family. Only the listed `{{ placeholders }}` are allowed. */
             'email_templates' => ['sometimes', 'array:'.implode(',', DocumentDefaults::EMAIL_TYPES)],
+            /** What happens at invoice submit when a customer's open receivables plus the invoice pass their credit limit. */
+            'credit_limit_mode' => ['sometimes', 'required', 'string', Rule::in(['off', 'warn', 'refuse'])],
             /** Send what you loaded: a stale value answers 409. */
             'version' => ['sometimes', 'integer', 'min:0'],
             'posting_accounts' => ['sometimes', 'array:'.implode(',', array_keys(UpdateCompanySettings::POSTING_KEYS))],
@@ -82,6 +84,7 @@ final class UpdateCompanySettingsRequest extends CompanyRequest
             isset($v['po_quantity_tolerance_pct']) ? (string) $v['po_quantity_tolerance_pct'] : null,
             isset($v['receipt_over_tolerance_pct']) ? (string) $v['receipt_over_tolerance_pct'] : null,
             array_intersect_key($v, array_flip(['accent_color', 'footer_text', 'payment_instructions', 'email_templates'])),
+            isset($v['credit_limit_mode']) ? (string) $v['credit_limit_mode'] : null,
         );
     }
 }

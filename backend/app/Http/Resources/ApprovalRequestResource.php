@@ -79,6 +79,48 @@ final class ApprovalRequestResource extends JsonResource
                 'version' => $run->lock_version,
             ];
         }
+        $provision = $this->provisionRun;
+        if ($provision !== null) {
+            return [
+                'id' => $provision->id,
+                'number' => $provision->number,
+                'as_of' => Json::date($provision->as_of),
+                'memo' => $provision->memo,
+                'amount' => $amount,
+                'created_by' => $provision->created_by,
+                'submitted_by' => $provision->submitted_by,
+                'version' => $provision->lock_version,
+            ];
+        }
+        $writeOff = $this->writeOff;
+        if ($writeOff !== null) {
+            return [
+                'id' => $writeOff->id,
+                'number' => $writeOff->number,
+                'write_off_date' => Json::date($writeOff->write_off_date),
+                'contact_id' => $writeOff->contact_id,
+                'reference' => $writeOff->reference,
+                'memo' => $writeOff->reason,
+                'amount' => $amount,
+                'created_by' => $writeOff->created_by,
+                'submitted_by' => $writeOff->submitted_by,
+                'version' => $writeOff->lock_version,
+            ];
+        }
+        $transfer = $this->fundTransfer;
+        if ($transfer !== null) {
+            return [
+                'id' => $transfer->id,
+                'number' => $transfer->number,
+                'send_date' => Json::date($transfer->send_date),
+                'reference' => $transfer->reference,
+                'memo' => $transfer->memo,
+                'amount' => $amount,
+                'created_by' => $transfer->created_by,
+                'submitted_by' => $transfer->submitted_by,
+                'version' => $transfer->lock_version,
+            ];
+        }
         $requisition = $this->purchaseRequisition;
         if ($requisition !== null) {
             return [

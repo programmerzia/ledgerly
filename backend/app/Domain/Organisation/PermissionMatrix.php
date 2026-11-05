@@ -36,7 +36,7 @@ final class PermissionMatrix
     private const array MODULES = [
         'journals', 'invoices', 'bills', 'receipts', 'payments', 'contacts', 'items', 'banking', 'recurring',
         'periods', 'accounts', 'dimensions', 'tax', 'fx', 'settings', 'reports',
-        'purchase_requisitions', 'purchase_orders', 'goods_receipts', 'budgets',
+        'purchase_requisitions', 'purchase_orders', 'goods_receipts', 'budgets', 'transfers', 'write_offs', 'provisions',
     ];
 
     private const array SALES_VIEWS = ['contacts.view', 'invoices.view', 'items.view', 'receipts.view'];
@@ -55,16 +55,17 @@ final class PermissionMatrix
         'purchase_requisitions.create', 'purchase_requisitions.submit', 'purchase_orders.create', 'purchase_orders.submit', 'goods_receipts.create',
         'documents.send',
         'budgets.manage',
+        'transfers.create', 'transfers.submit', 'transfers.receive', 'write_offs.create', 'write_offs.submit', 'provisions.create', 'provisions.submit',
     ];
 
-    private const array APPROVE = ['journals.approve', 'invoices.approve', 'bills.approve', 'payments.approve', 'purchase_requisitions.approve', 'purchase_orders.approve', 'budgets.approve'];
+    private const array APPROVE = ['journals.approve', 'invoices.approve', 'bills.approve', 'payments.approve', 'purchase_requisitions.approve', 'purchase_orders.approve', 'transfers.approve', 'write_offs.approve', 'provisions.approve', 'budgets.approve'];
 
-    private const array REVERSE = ['journals.reverse', 'invoices.reverse', 'bills.reverse', 'receipts.reverse', 'payments.reverse', 'purchase_orders.cancel', 'goods_receipts.reverse', 'bills.match_override'];
+    private const array REVERSE = ['journals.reverse', 'invoices.reverse', 'bills.reverse', 'receipts.reverse', 'payments.reverse', 'purchase_orders.cancel', 'goods_receipts.reverse', 'bills.match_override', 'transfers.reverse', 'write_offs.reverse', 'provisions.reverse', 'invoices.override_credit_limit'];
 
     private const array MANAGE = [
         'periods.close', 'periods.reopen.approve', 'periods.year_end', 'periods.post_soft_closed', 'periods.post_adjustment',
         'accounts.manage', 'dimensions.manage', 'tax.manage', 'fx.manage',
-        'settings.manage',
+        'settings.manage', 'provisions.manage',
     ];
 
     /** @return list<string> every permission name, deduplicated, in matrix order */
@@ -87,6 +88,30 @@ final class PermissionMatrix
     public static function isBudget(string $permission): bool
     {
         return str_starts_with($permission, 'budgets.');
+    }
+
+    /** Added by plan 3c.8 (fund transfers); existing companies got these from a backfill migration. */
+    public static function isTransfers(string $permission): bool
+    {
+        return str_starts_with($permission, 'transfers.');
+    }
+
+    /** Added by plan 3c.9 (write-offs). */
+    public static function isWriteOffs(string $permission): bool
+    {
+        return str_starts_with($permission, 'write_offs.');
+    }
+
+    /** Added by plan 3c.10 (provisioning). */
+    public static function isProvisions(string $permission): bool
+    {
+        return str_starts_with($permission, 'provisions.');
+    }
+
+    /** Added by plan 3c.12 (credit limit override). */
+    public static function isCreditLimit(string $permission): bool
+    {
+        return $permission === 'invoices.override_credit_limit';
     }
 
     /** @return list<string> */

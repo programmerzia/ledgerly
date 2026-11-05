@@ -24,6 +24,49 @@ final class TaxReturn
 {
     public function __construct(private readonly ReportRunner $runner) {}
 
+    /**
+     * Self-assessed tax on bills (reverse charge, D15 item 4), by tax code: the base it applies to, the output booked on it and the input
+     * claimed (recoverable codes only; the rest is cost). Debit notes and reversals count negative. It is a separate section so a country
+     * pack can later map it to its own boxes; `net` (output less input) is also part of `net_tax_payable`.
+     *
+     * @param  array<string, array{id: string, code: string, name: string, kind: string, recoverable: bool}>  $codes
+     * @return array{rows: list<array{tax_code: array<string, string>|null, recoverable: bool, base: int, output: int, input: int}>, base: int, output: int, input: int, net: int}
+     */
+    private function reverseCharge(ReportParams $p, array $codes): array
+    {
+        $acc = [];
+        $rows = $this->runner->db()->cursor(<<<'SQL'
+            SELECT (j.reversal_of_id IS NOT NULL) AS is_reversal, i.kind::text AS kind, i.fx_rate, l.line_total_fc, l.reverse_charge_fc, l.tax_code_id
+            FROM journals j JOIN invoices i ON i.id = j.source_id AND j.source_type = i.kind::text JOIN invoice_lines l ON l.invoice_id = i.id
+            WHERE j.company_id = ? AND j.status IN ('posted', 'reversed') AND j.journal_date BETWEEN ? AND ? AND l.reverse_charge_fc > 0
+              AND i.kind::text IN ('purchase_bill', 'debit_note')
+            SQL, [$p->companyId, (string) $p->from, $p->to]);
+        foreach ($rows as $r) {
+            $factor = ($r->is_reversal ? -1 : 1) * ($r->kind === 'debit_note' ? -1 : 1);
+            $key = (string) $r->tax_code_id;
+            $tax = Fx::toBase((int) $r->reverse_charge_fc, (string) $r->fx_rate, 2, 2);
+            $acc[$key] ??= ['base' => 0, 'output' => 0, 'input' => 0];
+            $acc[$key]['base'] += $factor * Fx::toBase((int) $r->line_total_fc, (string) $r->fx_rate, 2, 2);
+            $acc[$key]['output'] += $factor * $tax;
+            $acc[$key]['input'] += ($codes[$key]['recoverable'] ?? false) ? $factor * $tax : 0;
+        }
+        $list = [];
+        $total = ['base' => 0, 'output' => 0, 'input' => 0];
+        foreach ($acc as $key => $v) {
+            $code = $codes[$key] ?? null;
+            $list[] = [
+                'tax_code' => $code === null ? null : ['id' => $code['id'], 'code' => $code['code'], 'name' => $code['name'], 'kind' => $code['kind']],
+                'recoverable' => $code['recoverable'] ?? false, ...$v,
+            ];
+            foreach ($total as $k => $_) {
+                $total[$k] += $v[$k];
+            }
+        }
+        usort($list, fn (array $a, array $b): int => strcmp((string) ($a['tax_code']['code'] ?? ''), (string) ($b['tax_code']['code'] ?? '')));
+
+        return ['rows' => $list, ...$total, 'net' => $total['output'] - $total['input']];
+    }
+
     /** @return array<string, mixed> */
     public function __invoke(ReportParams $p): array
     {
@@ -111,6 +154,21 @@ final class TaxReturn
             $payable += ($side === 'sales' ? 1 : -1) * $tax;
         }
 
-        return ['report' => 'tax_return', 'currency' => $cur, 'from' => $p->from, 'to' => $p->to] + $out + ['net_tax_payable' => Json::money($payable, $cur)];
+        $reverse = $this->reverseCharge($p, $codes);
+        $payable += $reverse['net'];
+
+        return ['report' => 'tax_return', 'currency' => $cur, 'from' => $p->from, 'to' => $p->to] + $out + [
+            'reverse_charge' => [
+                'rows' => array_map(fn (array $r): array => [
+                    'tax_code' => $r['tax_code'], 'recoverable' => $r['recoverable'], 'base' => Json::money($r['base'], $cur),
+                    'output' => Json::money($r['output'], $cur), 'input' => Json::money($r['input'], $cur),
+                ], $reverse['rows']),
+                'totals' => [
+                    'base' => Json::money($reverse['base'], $cur), 'output' => Json::money($reverse['output'], $cur),
+                    'input' => Json::money($reverse['input'], $cur), 'net' => Json::money($reverse['net'], $cur),
+                ],
+            ],
+            'net_tax_payable' => Json::money($payable, $cur),
+        ];
     }
 }

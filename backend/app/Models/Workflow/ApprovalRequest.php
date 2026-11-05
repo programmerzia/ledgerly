@@ -13,6 +13,9 @@ use App\Models\Procurement\PurchaseRequisition;
 use App\Models\Trade\Invoice;
 use App\Models\Trade\PaymentRun;
 use App\Models\Trade\Settlement;
+use App\Models\Transactions\ProvisionRun;
+use App\Models\Transactions\WriteOff;
+use App\Models\Transfers\FundTransfer;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -94,6 +97,24 @@ class ApprovalRequest extends BaseModel
     public function settlement(): BelongsTo
     {
         return $this->belongsTo(Settlement::class, 'document_id');
+    }
+
+    /** @return BelongsTo<ProvisionRun, $this> null unless the document is a provision run */
+    public function provisionRun(): BelongsTo
+    {
+        return $this->belongsTo(ProvisionRun::class, 'document_id');
+    }
+
+    /** @return BelongsTo<WriteOff, $this> null unless the document is a write-off */
+    public function writeOff(): BelongsTo
+    {
+        return $this->belongsTo(WriteOff::class, 'document_id');
+    }
+
+    /** @return BelongsTo<FundTransfer, $this> null unless the document is a fund transfer */
+    public function fundTransfer(): BelongsTo
+    {
+        return $this->belongsTo(FundTransfer::class, 'document_id');
     }
 
     /** @return BelongsTo<PaymentRun, $this> null unless the document is a payment run */

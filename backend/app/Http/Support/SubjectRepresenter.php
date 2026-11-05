@@ -18,16 +18,19 @@ use App\Http\Resources\DimensionResource;
 use App\Http\Resources\DimensionValueResource;
 use App\Http\Resources\FiscalPeriodResource;
 use App\Http\Resources\FiscalYearResource;
+use App\Http\Resources\FundTransferResource;
 use App\Http\Resources\InvitationResource;
 use App\Http\Resources\InvoiceResource;
 use App\Http\Resources\ItemResource;
 use App\Http\Resources\JournalResource;
 use App\Http\Resources\PaymentRunResource;
+use App\Http\Resources\ProvisionRunResource;
 use App\Http\Resources\RecurringScheduleResource;
 use App\Http\Resources\ReopenRequestResource;
 use App\Http\Resources\SettlementResource;
 use App\Http\Resources\TaxCodeResource;
 use App\Http\Resources\TaxGroupResource;
+use App\Http\Resources\WriteOffResource;
 use App\Models\Banking\BankAccount;
 use App\Models\Banking\BankMatch;
 use App\Models\Banking\BankReconciliation;
@@ -52,6 +55,9 @@ use App\Models\Trade\Invoice;
 use App\Models\Trade\Item;
 use App\Models\Trade\PaymentRun;
 use App\Models\Trade\Settlement;
+use App\Models\Transactions\ProvisionRun;
+use App\Models\Transactions\WriteOff;
+use App\Models\Transfers\FundTransfer;
 use App\Models\Workflow\ApprovalWorkflow;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
@@ -84,6 +90,9 @@ final class SubjectRepresenter
         'items' => [Item::class, ItemResource::class, []],
         'settlements' => [Settlement::class, SettlementResource::class, ['allocations']],
         'payment_runs' => [PaymentRun::class, PaymentRunResource::class, ['items']],
+        'provision_runs' => [ProvisionRun::class, ProvisionRunResource::class, []],
+        'write_offs' => [WriteOff::class, WriteOffResource::class, []],
+        'fund_transfers' => [FundTransfer::class, FundTransferResource::class, []],
         'bank_accounts' => [BankAccount::class, BankAccountResource::class, []],
         'bank_rules' => [BankRule::class, BankRuleResource::class, []],
         'bank_matches' => [BankMatch::class, BankMatchResource::class, ['items']],

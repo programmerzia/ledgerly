@@ -25,5 +25,6 @@ final readonly class ComputedLine
         public array $dims,
         public ?string $purchaseOrderLineId = null,
         public ?string $goodsReceiptLineId = null,
+        public int $reverseChargeFc = 0,
     ) {}
 }

@@ -1910,6 +1910,150 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/companies/{company}/fund-transfers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["fund-transfers.index"];
+        put?: never;
+        post: operations["fund-transfers.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/fund-transfers/{fundTransfer}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["fund-transfers.show"];
+        put: operations["fund-transfers.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/fund-transfers/{fundTransfer}/posting-preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["fund-transfers.preview"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/fund-transfers/{fundTransfer}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["fund-transfers.submit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/fund-transfers/{fundTransfer}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["fund-transfers.approve"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/fund-transfers/{fundTransfer}/return": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["fund-transfers.return"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/fund-transfers/{fundTransfer}/void": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["fund-transfers.void"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/fund-transfers/{fundTransfer}/receive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["fund-transfers.receive"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/fund-transfers/{fundTransfer}/reverse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["fund-transfers.reverse"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/companies/{company}/fx-revaluations": {
         parameters: {
             query?: never;
@@ -2921,6 +3065,151 @@ export interface paths {
         /** Update the user's profile information */
         put: operations["user-profile-information.update"];
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/provision-rates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["provision-rates.show"];
+        put: operations["provision-rates.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/provision-runs/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** What a run for this date would be, without saving anything: receivables by bucket, the rates, the allowance held and the difference */
+        post: operations["provision-runs.preview"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/provision-runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["provision-runs.index"];
+        put?: never;
+        post: operations["provision-runs.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/provision-runs/{provisionRun}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["provision-runs.show"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/provision-runs/{provisionRun}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["provision-runs.submit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/provision-runs/{provisionRun}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["provision-runs.approve"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/provision-runs/{provisionRun}/return": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["provision-runs.return"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/provision-runs/{provisionRun}/void": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["provision-runs.void"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/provision-runs/{provisionRun}/reverse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["provision-runs.reverse"];
         delete?: never;
         options?: never;
         head?: never;
@@ -4303,6 +4592,134 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/companies/{company}/write-offs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["write-offs.index"];
+        put?: never;
+        post: operations["write-offs.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/write-offs/{writeOff}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["write-offs.show"];
+        put: operations["write-offs.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/write-offs/{writeOff}/posting-preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["write-offs.preview"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/write-offs/{writeOff}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["write-offs.submit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/write-offs/{writeOff}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["write-offs.approve"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/write-offs/{writeOff}/return": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["write-offs.return"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/write-offs/{writeOff}/void": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["write-offs.void"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/write-offs/{writeOff}/reverse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["write-offs.reverse"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -4502,6 +4919,45 @@ export interface components {
             } | {
                 id: string;
                 number: string | null;
+                send_date: string | null;
+                reference: string | null;
+                memo: string | null;
+                amount: {
+                    amount: number;
+                    currency: string;
+                };
+                created_by: string | null;
+                submitted_by: string | null;
+                version: number;
+            } | {
+                id: string;
+                number: string | null;
+                write_off_date: string | null;
+                contact_id: string;
+                reference: string | null;
+                memo: string;
+                amount: {
+                    amount: number;
+                    currency: string;
+                };
+                created_by: string | null;
+                submitted_by: string | null;
+                version: number;
+            } | {
+                id: string;
+                number: string | null;
+                as_of: string | null;
+                memo: string | null;
+                amount: {
+                    amount: number;
+                    currency: string;
+                };
+                created_by: string | null;
+                submitted_by: string | null;
+                version: number;
+            } | {
+                id: string;
+                number: string | null;
                 run_date: string | null;
                 reference: string | null;
                 memo: string | null;
@@ -4551,7 +5007,7 @@ export interface components {
          */
         ApprovalWorkflowRequest: {
             /** @enum {string} */
-            document_type: "journal" | "invoice" | "bill" | "settlement" | "payment_run" | "purchase_requisition" | "purchase_order";
+            document_type: "journal" | "invoice" | "bill" | "settlement" | "payment_run" | "purchase_requisition" | "purchase_order" | "fund_transfer" | "write_off" | "provision_run";
             name: string;
             /** @enum {string} */
             source: "any" | "user" | "api";
@@ -5037,7 +5493,7 @@ export interface components {
         BulkApproveRequest: {
             documents: {
                 /** @enum {string} */
-                type: "journal" | "invoice" | "bill" | "settlement" | "payment_run" | "purchase_requisition" | "purchase_order" | "purchase_order_revision";
+                type: "journal" | "invoice" | "bill" | "settlement" | "payment_run" | "purchase_requisition" | "purchase_order" | "purchase_order_revision" | "fund_transfer" | "write_off" | "provision_run";
                 /** Format: uuid */
                 id: string;
             }[];
@@ -5159,6 +5615,8 @@ export interface components {
                 /** @constant */
                 payment_instructions: "Payment instructions from your document settings";
             };
+            /** @description off | warn | refuse */
+            credit_limit_mode: string;
             version: number;
             can: {
                 [key: string]: boolean;
@@ -5500,6 +5958,86 @@ export interface components {
                 [key: string]: unknown;
             }[] | null;
         };
+        /**
+         * FundTransferRequest
+         * @description Create (POST) or replace (PUT, with `version`) a draft fund transfer. Amounts are integer minor units: `from_amount_fc` in the
+         *     source account's currency, `to_amount_fc` in the destination's (optional between accounts of one currency). Rates are optional
+         *     decimals; left out, the stored rate on the date is used.
+         */
+        FundTransferRequest: {
+            /** Format: uuid */
+            from_bank_account_id: string;
+            /** Format: uuid */
+            to_bank_account_id: string;
+            /** Format: date */
+            send_date: string;
+            from_amount_fc: number;
+            to_amount_fc?: number | null;
+            send_rate?: string | null;
+            receive_rate?: string | null;
+            fee_fc?: number | null;
+            /** Format: uuid */
+            fee_account_id?: string | null;
+            settle_same_day?: boolean | null;
+            reference?: string | null;
+            memo?: string | null;
+            version?: number;
+        };
+        /** FundTransferResource */
+        FundTransferResource: {
+            id: string;
+            number: string | null;
+            /** @enum {string} */
+            status: "draft" | "pending_approval" | "posted" | "reversed" | "void";
+            leg_state: string;
+            from_bank_account_id: string;
+            to_bank_account_id: string;
+            send_date: string | null;
+            received_on: string | null;
+            from_amount: {
+                amount: number;
+                currency: string;
+            };
+            send_rate: string;
+            send_base: {
+                amount: number;
+                currency: string;
+            };
+            fee: {
+                amount: number;
+                currency: string;
+            };
+            fee_account_id: string | null;
+            to_amount: {
+                amount: number;
+                currency: string;
+            };
+            receive_rate: string;
+            receive_base: {
+                amount: number | null;
+                currency: string;
+            } | null;
+            fx_difference: {
+                amount: number | null;
+                currency: string;
+            } | null;
+            settle_same_day: boolean;
+            reference: string | null;
+            memo: string | null;
+            send_journal_id: string | null;
+            receive_journal_id: string | null;
+            send_reversal_journal_id: string | null;
+            receive_reversal_journal_id: string | null;
+            created_by: string | null;
+            submitted_by: string | null;
+            approved_by: string | null;
+            posted_by: string | null;
+            posted_at: string | null;
+            version: number;
+            can: {
+                [key: string]: boolean;
+            };
+        };
         /** FxRevaluationPreviewResource */
         FxRevaluationPreviewResource: {
             fiscal_period_id: string;
@@ -5748,6 +6286,10 @@ export interface components {
                 amount: number;
                 currency: string;
             };
+            reverse_charge_fc: {
+                amount: number;
+                currency: string;
+            };
             /** @description tax code id → minor units of the document currency */
             tax_detail: {
                 [key: string]: number;
@@ -5880,6 +6422,15 @@ export interface components {
                 currency: string;
             };
             tax_total: {
+                amount: number;
+                currency: string;
+            };
+            /** @description Self-assessed reverse-charge tax (bills): not in the total, not owed to the supplier. */
+            reverse_charge_total_fc: {
+                amount: number;
+                currency: string;
+            };
+            reverse_charge_total: {
                 amount: number;
                 currency: string;
             };
@@ -6281,6 +6832,79 @@ export interface components {
                 }[];
             }[];
         };
+        /** ProvisionPreviewResource */
+        ProvisionPreviewResource: {
+            as_of: string;
+            buckets: unknown[];
+            required: {
+                amount: number;
+                currency: string;
+            };
+            existing: {
+                amount: number;
+                currency: string;
+            };
+            difference: {
+                amount: number;
+                currency: string;
+            };
+        };
+        /**
+         * ProvisionRatesRequest
+         * @description The provisioning rates: a percentage (0 to 100, up to four decimals, as a string) for each of the five aging buckets.
+         */
+        ProvisionRatesRequest: {
+            rates: {
+                current: string;
+                days_1_30: string;
+                days_31_60: string;
+                days_61_90: string;
+                days_over_90: string;
+            };
+        };
+        /**
+         * ProvisionRunRequest
+         * @description `as_of` (and an optional memo) for a provisioning preview or run. The run's date must be in an open period.
+         */
+        ProvisionRunRequest: {
+            /** Format: date */
+            as_of: string;
+            memo?: string | null;
+        };
+        /** ProvisionRunResource */
+        ProvisionRunResource: {
+            id: string;
+            number: string | null;
+            /** @enum {string} */
+            status: "draft" | "pending_approval" | "posted" | "reversed" | "void";
+            fiscal_period_id: string;
+            as_of: string | null;
+            required: {
+                amount: number;
+                currency: string;
+            };
+            existing: {
+                amount: number;
+                currency: string;
+            };
+            difference: {
+                amount: number;
+                currency: string;
+            };
+            buckets: unknown[];
+            memo: string | null;
+            journal_id: string | null;
+            reversal_journal_id: string | null;
+            created_by: string | null;
+            submitted_by: string | null;
+            approved_by: string | null;
+            posted_by: string | null;
+            posted_at: string | null;
+            version: number;
+            can: {
+                [key: string]: boolean;
+            };
+        };
         /** PurchaseOrderLineResource */
         PurchaseOrderLineResource: {
             id: string;
@@ -6491,6 +7115,17 @@ export interface components {
         ReasonRequest: {
             reason?: string | null;
             comment?: string | null;
+        };
+        /**
+         * ReceiveFundTransferRequest
+         * @description Records that the money arrived: the date, and (if different from the draft) the amount received and the rate of that day.
+         */
+        ReceiveFundTransferRequest: {
+            /** Format: date */
+            received_on: string;
+            to_amount_fc?: number | null;
+            receive_rate?: string | null;
+            version?: number | null;
         };
         /** ReceivedNotBilledResource */
         ReceivedNotBilledResource: {
@@ -6863,6 +7498,16 @@ export interface components {
             match_override_reason?: string | null;
         };
         /**
+         * SubmitInvoiceRequest
+         * @description Submit an invoice: a transition, plus the reason for going past a customer's credit limit (plan 3c.12).
+         */
+        SubmitInvoiceRequest: {
+            version?: number | null;
+            comment?: string | null;
+            /** @description Needs `invoices.override_credit_limit`, and someone who did not create or submit the invoice. Ignored when the limit holds. */
+            credit_limit_override_reason?: string | null;
+        };
+        /**
          * TaxCodeRequest
          * @description Create (POST: the code, and optionally its first rate) and replace (PUT: everything but the code, with the
          *     `version` it was based on) a tax code. Rates are fractions as strings: "0.05" is 5%.
@@ -7037,7 +7682,7 @@ export interface components {
         WebhookEndpointRequest: {
             url: string;
             description?: string | null;
-            events: ("*" | "journal.posted" | "journal.reversed" | "invoice.posted" | "invoice.reversed" | "bill.posted" | "bill.reversed" | "settlement.posted" | "settlement.reversed" | "payment_run.posted" | "credit_application.created" | "credit_application.reversed" | "document.submitted" | "document.approved" | "document.returned" | "document.voided" | "period.soft_closed" | "period.closed" | "period.reopened" | "fiscal_year.closed" | "fiscal_year.locked" | "bank_statement.imported" | "bank_match.created" | "bank_match.removed" | "bank_transaction.created" | "bank_reconciliation.finished" | "bank_reconciliation.reopened" | "recurring.occurrence_created" | "import.created" | "import.applied" | "import.failed" | "purchase_requisition.approved" | "purchase_requisition.rejected" | "purchase_order.approved" | "purchase_order.revised" | "purchase_order.cancelled" | "purchase_order.closed" | "goods_receipt.recorded" | "goods_receipt.reversed" | "bill.match_overridden")[];
+            events: ("*" | "journal.posted" | "journal.reversed" | "invoice.posted" | "invoice.reversed" | "bill.posted" | "bill.reversed" | "settlement.posted" | "settlement.reversed" | "payment_run.posted" | "credit_application.created" | "credit_application.reversed" | "document.submitted" | "document.approved" | "document.returned" | "document.voided" | "period.soft_closed" | "period.closed" | "period.reopened" | "fiscal_year.closed" | "fiscal_year.locked" | "bank_statement.imported" | "bank_match.created" | "bank_match.removed" | "bank_transaction.created" | "bank_reconciliation.finished" | "bank_reconciliation.reopened" | "recurring.occurrence_created" | "import.created" | "import.applied" | "import.failed" | "purchase_requisition.approved" | "purchase_requisition.rejected" | "purchase_order.approved" | "purchase_order.revised" | "purchase_order.cancelled" | "purchase_order.closed" | "goods_receipt.recorded" | "goods_receipt.reversed" | "bill.match_overridden" | "fund_transfer.posted" | "fund_transfer.received" | "fund_transfer.reversed" | "write_off.posted" | "write_off.reversed" | "provision_run.posted" | "provision_run.reversed" | "invoice.credit_limit_overridden")[];
             version?: number;
         };
         /** WebhookEndpointResource */
@@ -7075,6 +7720,67 @@ export interface components {
                 currency: string;
             };
             issued_on: string | null;
+        };
+        /**
+         * WriteOffRequest
+         * @description Create (POST) or replace (PUT, with `version`) a draft write-off: one posted invoice, the amount in its currency (up to what is open) and the reason.
+         */
+        WriteOffRequest: {
+            /** Format: uuid */
+            invoice_id: string;
+            /** Format: date */
+            write_off_date: string;
+            amount_fc: number;
+            reason: string;
+            reference?: string | null;
+            memo?: string | null;
+            version?: number;
+        };
+        /** WriteOffResource */
+        WriteOffResource: {
+            id: string;
+            number: string | null;
+            /** @enum {string} */
+            status: "draft" | "pending_approval" | "posted" | "reversed" | "void";
+            invoice_id: string;
+            contact_id: string;
+            write_off_date: string | null;
+            amount: {
+                amount: number;
+                currency: string;
+            };
+            base_amount: {
+                amount: number;
+                currency: string;
+            };
+            allowance_used: {
+                amount: number;
+                currency: string;
+            };
+            expense: {
+                amount: number;
+                currency: string;
+            };
+            recovered: {
+                amount: number;
+                currency: string;
+            };
+            reason: string;
+            reference: string | null;
+            memo: string | null;
+            journal_id: string | null;
+            reversal_journal_id: string | null;
+            /** @constant */
+            vat_note: "Tax already declared on this invoice is not adjusted. Relief for bad debts depends on the country and is a manual step.";
+            created_by: string | null;
+            submitted_by: string | null;
+            approved_by: string | null;
+            posted_by: string | null;
+            posted_at: string | null;
+            version: number;
+            can: {
+                [key: string]: boolean;
+            };
         };
     };
     responses: {
@@ -11863,6 +12569,387 @@ export interface operations {
             404: components["responses"]["ModelNotFoundException"];
         };
     };
+    "fund-transfers.index": {
+        parameters: {
+            query?: {
+                status?: "draft" | "pending_approval" | "posted" | "reversed" | "void" | "issued" | null;
+                contact_id?: string | null;
+                from?: string | null;
+                to?: string | null;
+                /** @description Opaque, from `meta.next_cursor` or `meta.prev_cursor`. */
+                cursor?: string;
+                /** @description Page size, 1 to 200; default 50. */
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `FundTransferResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["FundTransferResource"][];
+                        meta: {
+                            next_cursor: string | null;
+                            prev_cursor: string | null;
+                            limit: number;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "fund-transfers.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FundTransferRequest"];
+            };
+        };
+        responses: {
+            /** @description `FundTransferResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["FundTransferResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "fund-transfers.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The fund transfer ID */
+                fundTransfer: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `FundTransferResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["FundTransferResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "fund-transfers.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The fund transfer ID */
+                fundTransfer: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FundTransferRequest"];
+            };
+        };
+        responses: {
+            /** @description `FundTransferResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["FundTransferResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "fund-transfers.preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The fund transfer ID */
+                fundTransfer: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `InvoicePostingPreviewResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["InvoicePostingPreviewResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "fund-transfers.submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The fund transfer ID */
+                fundTransfer: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["TransitionRequest"];
+            };
+        };
+        responses: {
+            /** @description `FundTransferResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["FundTransferResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "fund-transfers.approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The fund transfer ID */
+                fundTransfer: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["TransitionRequest"];
+            };
+        };
+        responses: {
+            /** @description `FundTransferResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["FundTransferResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "fund-transfers.return": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The fund transfer ID */
+                fundTransfer: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReturnJournalRequest"];
+            };
+        };
+        responses: {
+            /** @description `FundTransferResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["FundTransferResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "fund-transfers.void": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The fund transfer ID */
+                fundTransfer: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["VoidJournalRequest"];
+            };
+        };
+        responses: {
+            /** @description `FundTransferResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["FundTransferResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "fund-transfers.receive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The fund transfer ID */
+                fundTransfer: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReceiveFundTransferRequest"];
+            };
+        };
+        responses: {
+            /** @description `FundTransferResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["FundTransferResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "fund-transfers.reverse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The fund transfer ID */
+                fundTransfer: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ReverseJournalRequest"];
+            };
+        };
+        responses: {
+            /** @description `FundTransferResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["FundTransferResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
     "fx-revaluations.index": {
         parameters: {
             query?: {
@@ -12834,7 +13921,7 @@ export interface operations {
         };
         requestBody?: {
             content: {
-                "application/json": components["schemas"]["TransitionRequest"];
+                "application/json": components["schemas"]["SubmitInvoiceRequest"];
             };
         };
         responses: {
@@ -12846,6 +13933,10 @@ export interface operations {
                 content: {
                     "application/json": {
                         data: components["schemas"]["InvoiceResource"] & Record<string, never>;
+                        warnings: {
+                            code: string;
+                            message: string;
+                        }[];
                     };
                 };
             };
@@ -14278,6 +15369,385 @@ export interface operations {
                 };
             };
             401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "provision-rates.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            buckets: unknown[];
+                            configured: boolean;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "provision-rates.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProvisionRatesRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            buckets: unknown[];
+                            configured: boolean;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "provision-runs.preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProvisionRunRequest"];
+            };
+        };
+        responses: {
+            /** @description `ProvisionPreviewResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ProvisionPreviewResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "provision-runs.index": {
+        parameters: {
+            query?: {
+                status?: "draft" | "pending_approval" | "posted" | "reversed" | "void" | "issued" | null;
+                contact_id?: string | null;
+                from?: string | null;
+                to?: string | null;
+                /** @description Opaque, from `meta.next_cursor` or `meta.prev_cursor`. */
+                cursor?: string;
+                /** @description Page size, 1 to 200; default 50. */
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `ProvisionRunResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ProvisionRunResource"][];
+                        meta: {
+                            next_cursor: string | null;
+                            prev_cursor: string | null;
+                            limit: number;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "provision-runs.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProvisionRunRequest"];
+            };
+        };
+        responses: {
+            /** @description `ProvisionRunResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ProvisionRunResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "provision-runs.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The provision run ID */
+                provisionRun: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `ProvisionRunResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ProvisionRunResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "provision-runs.submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The provision run ID */
+                provisionRun: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["TransitionRequest"];
+            };
+        };
+        responses: {
+            /** @description `ProvisionRunResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ProvisionRunResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "provision-runs.approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The provision run ID */
+                provisionRun: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["TransitionRequest"];
+            };
+        };
+        responses: {
+            /** @description `ProvisionRunResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ProvisionRunResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "provision-runs.return": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The provision run ID */
+                provisionRun: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReturnJournalRequest"];
+            };
+        };
+        responses: {
+            /** @description `ProvisionRunResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ProvisionRunResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "provision-runs.void": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The provision run ID */
+                provisionRun: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["VoidJournalRequest"];
+            };
+        };
+        responses: {
+            /** @description `ProvisionRunResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ProvisionRunResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "provision-runs.reverse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The provision run ID */
+                provisionRun: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ReverseJournalRequest"];
+            };
+        };
+        responses: {
+            /** @description `ProvisionRunResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ProvisionRunResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
         };
     };
     "purchase-orders.index": {
@@ -17869,6 +19339,352 @@ export interface operations {
             401: components["responses"]["AuthenticationException"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "write-offs.index": {
+        parameters: {
+            query?: {
+                status?: "draft" | "pending_approval" | "posted" | "reversed" | "void" | "issued" | null;
+                contact_id?: string | null;
+                from?: string | null;
+                to?: string | null;
+                /** @description Opaque, from `meta.next_cursor` or `meta.prev_cursor`. */
+                cursor?: string;
+                /** @description Page size, 1 to 200; default 50. */
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `WriteOffResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["WriteOffResource"][];
+                        meta: {
+                            next_cursor: string | null;
+                            prev_cursor: string | null;
+                            limit: number;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "write-offs.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WriteOffRequest"];
+            };
+        };
+        responses: {
+            /** @description `WriteOffResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["WriteOffResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "write-offs.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The write off ID */
+                writeOff: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `WriteOffResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["WriteOffResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "write-offs.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The write off ID */
+                writeOff: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WriteOffRequest"];
+            };
+        };
+        responses: {
+            /** @description `WriteOffResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["WriteOffResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "write-offs.preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The write off ID */
+                writeOff: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `InvoicePostingPreviewResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["InvoicePostingPreviewResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "write-offs.submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The write off ID */
+                writeOff: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["TransitionRequest"];
+            };
+        };
+        responses: {
+            /** @description `WriteOffResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["WriteOffResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "write-offs.approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The write off ID */
+                writeOff: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["TransitionRequest"];
+            };
+        };
+        responses: {
+            /** @description `WriteOffResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["WriteOffResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "write-offs.return": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The write off ID */
+                writeOff: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReturnJournalRequest"];
+            };
+        };
+        responses: {
+            /** @description `WriteOffResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["WriteOffResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "write-offs.void": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The write off ID */
+                writeOff: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["VoidJournalRequest"];
+            };
+        };
+        responses: {
+            /** @description `WriteOffResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["WriteOffResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "write-offs.reverse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The write off ID */
+                writeOff: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ReverseJournalRequest"];
+            };
+        };
+        responses: {
+            /** @description `WriteOffResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["WriteOffResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
         };
     };
 }

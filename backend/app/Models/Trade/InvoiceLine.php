@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string|null $tax_code_id
  * @property int $line_total_fc net of discount, before tax
  * @property int $tax_amount_fc
+ * @property int $reverse_charge_fc self-assessed reverse-charge tax of the line (bills), kept apart from tax_amount_fc
  * @property array<string, int> $tax_detail tax code id → this line's share of the tax
  * @property string|null $purchase_order_line_id
  * @property string|null $goods_receipt_line_id
@@ -30,7 +31,7 @@ class InvoiceLine extends BaseModel
     /** @return array<string, string> */
     protected function casts(): array
     {
-        return ['line_no' => 'integer', 'unit_price_fc' => 'integer', 'line_total_fc' => 'integer', 'tax_amount_fc' => 'integer', 'tax_detail' => 'array'];
+        return ['line_no' => 'integer', 'unit_price_fc' => 'integer', 'line_total_fc' => 'integer', 'tax_amount_fc' => 'integer', 'reverse_charge_fc' => 'integer', 'tax_detail' => 'array'];
     }
 
     /** @return BelongsTo<Invoice, $this> */

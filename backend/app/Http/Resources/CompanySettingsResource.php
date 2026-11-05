@@ -68,6 +68,8 @@ final class CompanySettingsResource extends JsonResource
             'email_templates' => $look['email'],
             /** The only `{{ placeholders }}` a template may use, with what each stands for. */
             'email_placeholders' => MessageTemplate::PLACEHOLDERS,
+            /** off | warn | refuse */
+            'credit_limit_mode' => $settings === null ? 'off' : (string) $settings->getAttribute('credit_limit_mode'),
             'version' => $settings === null ? 0 : (int) $settings->getAttribute('lock_version'),
             'can' => ['update' => (bool) $request->user()?->can('update', $this->resource)],
         ];

@@ -30,6 +30,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string|null $memo
  * @property int $subtotal_fc
  * @property int $tax_total_fc
+ * @property int $reverse_charge_total_fc
+ * @property int $reverse_charge_total
  * @property int $total_fc
  * @property int $subtotal
  * @property int $tax_total
@@ -62,7 +64,7 @@ class Invoice extends BaseModel implements Postable
             'due_date' => 'immutable_date',
             'posted_at' => 'immutable_datetime',
             'subtotal_fc' => 'integer', 'tax_total_fc' => 'integer', 'total_fc' => 'integer',
-            'subtotal' => 'integer', 'tax_total' => 'integer', 'total' => 'integer',
+            'subtotal' => 'integer', 'tax_total' => 'integer', 'total' => 'integer', 'reverse_charge_total_fc' => 'integer', 'reverse_charge_total' => 'integer',
             'wht_amount_fc' => 'integer', 'wht_amount' => 'integer',
             'settled_fc' => 'integer', 'settled' => 'integer',
             'lock_version' => 'integer',

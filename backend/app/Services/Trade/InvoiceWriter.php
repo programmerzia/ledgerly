@@ -38,6 +38,7 @@ final class InvoiceWriter
             'memo' => $in->memo,
             'subtotal_fc' => $c->subtotalFc, 'tax_total_fc' => $c->taxTotalFc, 'total_fc' => $c->totalFc,
             'subtotal' => $c->subtotal, 'tax_total' => $c->taxTotal, 'total' => $c->total,
+            'reverse_charge_total_fc' => $c->reverseChargeFc, 'reverse_charge_total' => $c->reverseCharge,
             'wht_code_id' => $c->whtCodeId, 'wht_amount_fc' => $c->whtAmountFc, 'wht_amount' => $c->whtAmount,
             'related_invoice_id' => $in->relatedInvoiceId,
         ];
@@ -122,6 +123,7 @@ final class InvoiceWriter
                 'line_total_fc' => $line->lineTotalFc,
                 'tax_amount_fc' => $line->taxAmountFc,
                 'tax_detail' => json_encode((object) $line->taxDetail, JSON_THROW_ON_ERROR),
+                'reverse_charge_fc' => $line->reverseChargeFc,
                 'purchase_order_line_id' => $line->purchaseOrderLineId,
                 'goods_receipt_line_id' => $line->goodsReceiptLineId,
                 'created_at' => $now,

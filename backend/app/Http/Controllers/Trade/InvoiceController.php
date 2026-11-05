@@ -9,6 +9,7 @@ use App\Actions\Trade\CreateInvoiceDraft;
 use App\Actions\Trade\ReverseInvoice;
 use App\Actions\Trade\UpdateInvoiceDraft;
 use App\Actions\Workflow\ApproveDocument;
+use App\Actions\Workflow\Inputs\DocumentRef;
 use App\Actions\Workflow\ReturnDocument;
 use App\Actions\Workflow\SubmitDocument;
 use App\Actions\Workflow\VoidDocument;
@@ -19,15 +20,18 @@ use App\Http\Requests\Ledger\VoidJournalRequest;
 use App\Http\Requests\Trade\ApplyCreditRequest;
 use App\Http\Requests\Trade\InvoiceRequest;
 use App\Http\Requests\Trade\ListInvoicesRequest;
+use App\Http\Requests\Trade\SubmitInvoiceRequest;
 use App\Http\Requests\TransitionRequest;
 use App\Http\Resources\DocumentPaymentResource;
 use App\Http\Resources\InvoicePostingPreviewResource;
 use App\Http\Resources\InvoiceResource;
+use App\Http\Support\RequestActor;
 use App\Models\Organisation\Company;
 use App\Models\Trade\Invoice;
 use App\Queries\Trade\ListDocumentPayments;
 use App\Queries\Trade\ListInvoices;
 use App\Queries\Trade\PreviewInvoicePosting;
+use App\Support\Warnings;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -78,9 +82,14 @@ final class InvoiceController extends Controller
 
     /** Posts at once when no workflow applies (a person needs a signing grant), else waits for approval. */
     #[Authorize('submit', 'invoice')]
-    public function submit(TransitionRequest $request, Company $company, Invoice $invoice, SubmitDocument $action): InvoiceResource
+    public function submit(SubmitInvoiceRequest $request, Company $company, Invoice $invoice, SubmitDocument $action, Warnings $warnings): InvoiceResource
     {
-        return $this->submitting($request, $company, $invoice, $action);
+        $warnings->clear();
+        $action->handle(
+            RequestActor::from($request, $company->id), new DocumentRef($invoice->kind->documentType(), $invoice->id, $request->version()), null, $request->creditLimitReason(),
+        );
+
+        return (new InvoiceResource(Invoice::query()->with('lines')->findOrFail($invoice->id)))->additional(['warnings' => $warnings->all()]);
     }
 
     #[Authorize('approve', 'invoice')]

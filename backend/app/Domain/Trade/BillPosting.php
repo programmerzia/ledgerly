@@ -49,6 +49,20 @@ final class BillPosting
             );
         }
 
+        // Reverse charge (D15 item 4): output and input on the same base. Any non-recoverable part is already in the line's expense.
+        if ($bill->reverseChargeFc > 0) {
+            $lines[] = new ProposedLine(
+                $accounts->reverseChargeOutput, 0, PostingSupport::toBase($bill->reverseChargeFc, $rate), $cur, $rate, -$bill->reverseChargeFc,
+                $firstDims, "Reverse-charge output VAT: {$number}", $bill->contactRef,
+            );
+        }
+        if ($bill->reverseChargeRecoverableFc > 0) {
+            $lines[] = new ProposedLine(
+                $accounts->reverseChargeInput, PostingSupport::toBase($bill->reverseChargeRecoverableFc, $rate), 0, $cur, $rate, $bill->reverseChargeRecoverableFc,
+                $firstDims, "Reverse-charge input VAT: {$number}", $bill->contactRef,
+            );
+        }
+
         $residue = PostingSupport::residue($lines, $accounts->rounding, $cur, $rate, $firstDims, "FX Rounding adjustment: {$number}");
         if ($residue !== null) {
             $lines[] = $residue;
@@ -95,6 +109,19 @@ final class BillPosting
             $lines[] = new ProposedLine(
                 $accounts->taxInput, 0, PostingSupport::toBase($taxFc, $rate), $cur, $rate, -$taxFc,
                 $firstDims, "Input VAT Recoverable reversed: {$number}", $note->contactRef,
+            );
+        }
+
+        if ($note->reverseChargeFc > 0) {
+            $lines[] = new ProposedLine(
+                $accounts->reverseChargeOutput, PostingSupport::toBase($note->reverseChargeFc, $rate), 0, $cur, $rate, $note->reverseChargeFc,
+                $firstDims, "Reverse-charge output VAT reversed: {$number}", $note->contactRef,
+            );
+        }
+        if ($note->reverseChargeRecoverableFc > 0) {
+            $lines[] = new ProposedLine(
+                $accounts->reverseChargeInput, 0, PostingSupport::toBase($note->reverseChargeRecoverableFc, $rate), $cur, $rate, -$note->reverseChargeRecoverableFc,
+                $firstDims, "Reverse-charge input VAT reversed: {$number}", $note->contactRef,
             );
         }
 

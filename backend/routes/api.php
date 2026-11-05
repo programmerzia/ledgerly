@@ -54,6 +54,9 @@ use App\Http\Controllers\Trade\ItemController;
 use App\Http\Controllers\Trade\PaymentRunController;
 use App\Http\Controllers\Trade\SettlementController;
 use App\Http\Controllers\Trade\WhtCertificateController;
+use App\Http\Controllers\Transactions\ProvisionController;
+use App\Http\Controllers\Transactions\WriteOffController;
+use App\Http\Controllers\Transfers\FundTransferController;
 use App\Http\Controllers\Webhooks\WebhookEndpointController;
 use App\Http\Controllers\Workflow\ApprovalInboxController;
 use App\Http\Controllers\Workflow\ApprovalWorkflowController;
@@ -331,6 +334,32 @@ Route::middleware(['auth:sanctum', 'tenant', 'tenant.writable', 'idempotent', 'c
         Route::get('payment-runs/{paymentRun}/export', [PaymentRunController::class, 'export'])->whereUuid('paymentRun')->name('payment-runs.export');
         foreach (['posting-preview' => 'preview', 'submit' => 'submit', 'approve' => 'approve', 'return' => 'return', 'void' => 'void'] as $verb => $method) {
             Route::post("payment-runs/{paymentRun}/{$verb}", [PaymentRunController::class, $method])->whereUuid('paymentRun')->name("payment-runs.{$method}");
+        }
+        // Fund transfers: two legs through funds in transit (13 §23 D15 item 3)
+        Route::get('fund-transfers', [FundTransferController::class, 'index'])->name('fund-transfers.index');
+        Route::post('fund-transfers', [FundTransferController::class, 'store'])->name('fund-transfers.store');
+        Route::get('fund-transfers/{fundTransfer}', [FundTransferController::class, 'show'])->whereUuid('fundTransfer')->name('fund-transfers.show');
+        Route::put('fund-transfers/{fundTransfer}', [FundTransferController::class, 'update'])->whereUuid('fundTransfer')->name('fund-transfers.update');
+        foreach (['posting-preview' => 'preview', 'submit' => 'submit', 'approve' => 'approve', 'return' => 'return', 'void' => 'void', 'receive' => 'receive', 'reverse' => 'reverse'] as $verb => $method) {
+            Route::post("fund-transfers/{fundTransfer}/{$verb}", [FundTransferController::class, $method])->whereUuid('fundTransfer')->name("fund-transfers.{$method}");
+        }
+        // Customer write-offs against one posted invoice (D15 item 2)
+        Route::get('write-offs', [WriteOffController::class, 'index'])->name('write-offs.index');
+        Route::post('write-offs', [WriteOffController::class, 'store'])->name('write-offs.store');
+        Route::get('write-offs/{writeOff}', [WriteOffController::class, 'show'])->whereUuid('writeOff')->name('write-offs.show');
+        Route::put('write-offs/{writeOff}', [WriteOffController::class, 'update'])->whereUuid('writeOff')->name('write-offs.update');
+        foreach (['posting-preview' => 'preview', 'submit' => 'submit', 'approve' => 'approve', 'return' => 'return', 'void' => 'void', 'reverse' => 'reverse'] as $verb => $method) {
+            Route::post("write-offs/{writeOff}/{$verb}", [WriteOffController::class, $method])->whereUuid('writeOff')->name("write-offs.{$method}");
+        }
+        // Bad-debt provisioning: rates per aging bucket, a preview, and approved runs (D15 item 2)
+        Route::get('provision-rates', [ProvisionController::class, 'rates'])->name('provision-rates.show');
+        Route::put('provision-rates', [ProvisionController::class, 'saveRates'])->name('provision-rates.update');
+        Route::post('provision-runs/preview', [ProvisionController::class, 'preview'])->name('provision-runs.preview');
+        Route::get('provision-runs', [ProvisionController::class, 'index'])->name('provision-runs.index');
+        Route::post('provision-runs', [ProvisionController::class, 'store'])->name('provision-runs.store');
+        Route::get('provision-runs/{provisionRun}', [ProvisionController::class, 'show'])->whereUuid('provisionRun')->name('provision-runs.show');
+        foreach (['submit' => 'submit', 'approve' => 'approve', 'return' => 'return', 'void' => 'void', 'reverse' => 'reverse'] as $verb => $method) {
+            Route::post("provision-runs/{provisionRun}/{$verb}", [ProvisionController::class, $method])->whereUuid('provisionRun')->name("provision-runs.{$method}");
         }
         Route::get('wht-certificates', [WhtCertificateController::class, 'index'])->name('wht-certificates.index');
         Route::get('wht-certificates/{whtCertificate}', [WhtCertificateController::class, 'show'])->whereUuid('whtCertificate')->name('wht-certificates.show');
