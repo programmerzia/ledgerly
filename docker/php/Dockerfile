@@ -17,4 +17,13 @@ RUN { \
     echo 'opcache.memory_consumption=128'; \
   } > /usr/local/etc/php/conf.d/opcache-ledgerly.ini
 
+RUN { \
+    echo 'display_errors=Off'; \
+    echo 'display_startup_errors=Off'; \
+    echo 'log_errors=On'; \
+    echo 'expose_php=Off'; \
+    echo 'memory_limit=256M'; \
+    echo 'upload_max_filesize=25M'; \
+    echo 'post_max_size=26M'; \
+  } > /usr/local/etc/php/conf.d/zz-ledgerly.ini
 WORKDIR /var/www/backend
