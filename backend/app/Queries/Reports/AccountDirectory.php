@@ -22,7 +22,7 @@ final class AccountDirectory
         }
         $out = [];
         $rows = $this->runner->db()->select(
-            'SELECT id, code, name, account_type, account_subtype, normal_balance, control_type, reporting_tags, is_postable FROM accounts WHERE company_id = ? ORDER BY code',
+            'SELECT id, code, name, account_type, account_subtype, normal_balance, control_type, reporting_tags, is_postable, ifrs_element FROM accounts WHERE company_id = ? ORDER BY code',
             [$companyId],
         );
         foreach ($rows as $r) {
@@ -33,6 +33,7 @@ final class AccountDirectory
                 (string) $r->normal_balance, (string) $r->control_type,
                 is_array($tags) ? array_values(array_filter($tags, 'is_string')) : [],
                 (bool) $r->is_postable,
+                $r->ifrs_element === null ? null : (string) $r->ifrs_element,
             );
         }
 

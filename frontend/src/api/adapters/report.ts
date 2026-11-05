@@ -308,6 +308,11 @@ export interface BsSection {
   lines: BsLine[];
   total: Figure;
 }
+/** IAS 1.60: assets and liabilities in a current and a non-current part; the two totals add up to the section total. */
+export interface BsClassifiedSection extends BsSection {
+  current: BsSection;
+  nonCurrent: BsSection;
+}
 export interface BsFund {
   fund: FundRef | null;
   total: Figure;
@@ -315,8 +320,8 @@ export interface BsFund {
 export interface BalanceSheetView extends Head {
   asOf: string;
   comparison: ComparisonInfo | null;
-  assets: BsSection;
-  liabilities: BsSection;
+  assets: BsClassifiedSection;
+  liabilities: BsClassifiedSection;
   equity: BsSection & { funds: BsFund[] | null };
   liabilitiesAndEquity: Figure;
   balanced: boolean;
@@ -352,6 +357,11 @@ function bsSection(v: unknown, what: string): BsSection {
   return { lines: list(s.lines, `${what}.lines`).map(bsLine), total: figure(s.total, `${what}.total`) };
 }
 
+function bsClassified(v: unknown, what: string): BsClassifiedSection {
+  const s = rec(v, what);
+  return { ...bsSection(s, what), current: bsSection(s.current, `${what}.current`), nonCurrent: bsSection(s.non_current, `${what}.non_current`) };
+}
+
 export function parseBalanceSheet(data: unknown): BalanceSheetView {
   const o = rec(data, 'balance sheet');
   const equity = rec(o.equity, 'equity');
@@ -359,8 +369,8 @@ export function parseBalanceSheet(data: unknown): BalanceSheetView {
     ...head(o),
     asOf: str(o.as_of, 'as_of'),
     comparison: comparisonInfo(o.comparison),
-    assets: bsSection(o.assets, 'assets'),
-    liabilities: bsSection(o.liabilities, 'liabilities'),
+    assets: bsClassified(o.assets, 'assets'),
+    liabilities: bsClassified(o.liabilities, 'liabilities'),
     equity: {
       ...bsSection(equity, 'equity'),
       funds: Array.isArray(equity.funds) ? equity.funds.map((f) => ({ fund: fundRef(rec(f, 'fund').fund), total: figure(rec(f, 'fund').total, 'fund.total') })) : null,

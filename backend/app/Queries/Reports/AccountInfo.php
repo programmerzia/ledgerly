@@ -18,6 +18,7 @@ final readonly class AccountInfo
         public string $controlType,
         public array $tags = [],
         public bool $postable = true,
+        public ?string $ifrsElement = null,
     ) {}
 
     /** The account's balance in its own direction for a presentation: income and liabilities/equity by credit, others by debit. */

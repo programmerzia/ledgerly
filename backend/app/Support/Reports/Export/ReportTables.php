@@ -77,16 +77,29 @@ final class ReportTables
         $figures = fn (array $x): array => $compare ? [$x['amount'], $x['comparison'], $x['variance']] : [$x['amount']];
 
         $rows = [];
+        $line = function (array $l) use ($figures, &$rows): void {
+            $name = isset($l['account']) && ! isset($l['gross']) ? "{$l['account']['code']} {$l['account']['name']}" : (string) $l['name'];
+            if (isset($l['fund'])) {
+                $name .= " [{$l['fund']['name']}]";
+            }
+            $rows[] = new ReportRow([$name, ...$figures($l)]);
+            foreach ($l['contacts'] ?? [] as $c) {
+                $rows[] = new ReportRow(['    '.($c['contact']['name'] ?? '(no contact)'), $c['amount']]);
+            }
+        };
         foreach (['assets' => 'Assets', 'liabilities' => 'Liabilities', 'equity' => 'Equity'] as $key => $title) {
             $rows[] = new ReportRow([$title], 'heading');
-            foreach ($d[$key]['lines'] as $l) {
-                $name = isset($l['account']) && ! isset($l['gross']) ? "{$l['account']['code']} {$l['account']['name']}" : (string) $l['name'];
-                if (isset($l['fund'])) {
-                    $name .= " [{$l['fund']['name']}]";
+            if ($key === 'equity') {
+                foreach ($d[$key]['lines'] as $l) {
+                    $line($l);
                 }
-                $rows[] = new ReportRow([$name, ...$figures($l)]);
-                foreach ($l['contacts'] ?? [] as $c) {
-                    $rows[] = new ReportRow(['    '.($c['contact']['name'] ?? '(no contact)'), $c['amount']]);
+            } else {
+                foreach (['current' => 'Current', 'non_current' => 'Non-current'] as $class => $label) {
+                    $rows[] = new ReportRow(["{$label} ".strtolower($title)], 'heading');
+                    foreach ($d[$key][$class]['lines'] as $l) {
+                        $line($l);
+                    }
+                    $rows[] = new ReportRow(["Total {$label} ".strtolower($title), ...$figures($d[$key][$class]['total'])], 'total');
                 }
             }
             $rows[] = new ReportRow(["Total {$title}", ...$figures($d[$key]['total'])], 'total');
