@@ -81,6 +81,13 @@ it('exports through the existing report export path', function (): void {
     expect($csv)->toContain('Total Equipment')->and($csv)->toContain('FA-00001 Press')->and($csv)->toContain('120000.00');
 });
 
+it('shows an asset capitalised after the report was first read (capitalising posts nothing, but it still refreshes the cached report)', function (): void {
+    expect(($this->schedule)('2026-01-01', '2026-06-30')['totals']['cost']['additions']['amount'])->toBe(15000000);
+    $this->capitalisedAsset($this->category['id'], ['name' => 'Late'], 500000, '2026-06-02');
+
+    expect(($this->schedule)('2026-01-01', '2026-06-30')['totals']['cost']['additions']['amount'])->toBe(15500000);
+});
+
 it('needs reports.view', function (): void {
     $this->asPerson($this->assistant)->getJson($this->api('reports/asset-schedule?from=2026-01-01&to=2026-06-30'))->assertForbidden();
 });

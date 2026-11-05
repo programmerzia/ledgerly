@@ -29,5 +29,6 @@ final readonly class FixedAssetInput
         public array $dimensions = [],
         public int $openingAccumulated = 0,
         public ?string $openingAsOf = null,
+        public ?string $taxClassId = null,
     ) {}
 }

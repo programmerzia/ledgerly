@@ -55,7 +55,7 @@ final class UpdateFixedAsset
 
             $columns = [
                 'name' => $in->name, 'description' => $in->description, 'residual' => $in->residual, 'method' => $method,
-                'useful_life_months' => $in->lifeMonths, 'declining_rate_bp' => $rate, 'units_total' => $units,
+                'useful_life_months' => $in->lifeMonths, 'declining_rate_bp' => $rate, 'units_total' => $units, 'tax_class_id' => $in->taxClassId,
             ];
             $dims = $this->dimensions($asset->company_id, $in->dimensions);
             for ($p = 1; $p <= 8; $p++) {

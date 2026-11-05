@@ -14,6 +14,7 @@ use App\Http\Controllers\Fiscal\FiscalPeriodController;
 use App\Http\Controllers\Fiscal\FiscalYearController;
 use App\Http\Controllers\Fiscal\ReopenRequestController;
 use App\Http\Controllers\FixedAssets\AssetCategoryController;
+use App\Http\Controllers\FixedAssets\AssetTaxClassController;
 use App\Http\Controllers\FixedAssets\AssetTransactionController;
 use App\Http\Controllers\FixedAssets\DepreciationRunController;
 use App\Http\Controllers\FixedAssets\FixedAssetController;
@@ -178,6 +179,10 @@ Route::middleware(['auth:sanctum', 'tenant', 'tenant.writable', 'idempotent', 'c
         Route::get('asset-categories', [AssetCategoryController::class, 'index'])->name('asset-categories.index');
         Route::post('asset-categories', [AssetCategoryController::class, 'store'])->name('asset-categories.store');
         Route::put('asset-categories/{assetCategory}', [AssetCategoryController::class, 'update'])->whereUuid('assetCategory')->name('asset-categories.update');
+        Route::get('asset-tax-classes', [AssetTaxClassController::class, 'index'])->name('asset-tax-classes.index');
+        Route::post('asset-tax-classes', [AssetTaxClassController::class, 'store'])->name('asset-tax-classes.store');
+        Route::put('asset-tax-classes/{assetTaxClass}', [AssetTaxClassController::class, 'update'])->whereUuid('assetTaxClass')->name('asset-tax-classes.update');
+        Route::get('fixed-assets/tax-schedule', [AssetTaxClassController::class, 'schedule'])->name('fixed-assets.tax-schedule');
         Route::get('fixed-assets', [FixedAssetController::class, 'index'])->name('fixed-assets.index');
         Route::post('fixed-assets', [FixedAssetController::class, 'store'])->name('fixed-assets.store');
         Route::get('fixed-assets/capitalisable', [FixedAssetController::class, 'capitalisable'])->name('fixed-assets.capitalisable');

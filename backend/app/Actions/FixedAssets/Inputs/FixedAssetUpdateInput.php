@@ -17,6 +17,7 @@ final readonly class FixedAssetUpdateInput
         public ?int $decliningRateBp,
         public ?int $unitsTotal,
         public array $dimensions,
+        public ?string $taxClassId = null,
         public ?int $version = null,
     ) {}
 }

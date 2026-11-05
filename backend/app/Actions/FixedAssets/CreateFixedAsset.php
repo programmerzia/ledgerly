@@ -100,7 +100,7 @@ final class CreateFixedAsset
                 'units_total' => $method === 'units_of_production' ? $in->unitsTotal : null,
                 'months_charged' => $months, 'depreciated_through' => $through,
                 'is_opening' => $opening, 'opening_accumulated' => $accumulated, 'opening_as_of' => $opening ? $in->openingAsOf : null,
-                'source_type' => $in->sourceType, 'source_id' => $in->sourceId, 'source_journal_id' => $journalId,
+                'source_type' => $in->sourceType, 'source_id' => $in->sourceId, 'source_journal_id' => $journalId, 'tax_class_id' => $in->taxClassId,
                 'created_by' => $actor->id, 'lock_version' => 0,
                 ...$this->dimensionColumns($dims),
             ]);
@@ -114,6 +114,7 @@ final class CreateFixedAsset
                 cost: $cost, depreciation: $accumulated, months: $months, journalId: $journalId,
                 set: [], meta: ['source_type' => $in->sourceType, 'source_id' => $in->sourceId],
             ));
+            $locks->reportsChanged($in->companyId);
             $asset->refresh();
             $audit->add('fixed_asset.created', $asset, after: $asset, context: ['mode' => $opening ? 'opening' : 'capitalised']);
 

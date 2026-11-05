@@ -37,6 +37,8 @@ final class FixedAssetRequest extends CompanyRequest
             /** Annual rate in basis points: 2000 = 20% a year. */
             'declining_rate_bp' => ['nullable', 'integer', 'min:1', 'max:10000'],
             'units_total' => ['nullable', 'integer', 'min:1'],
+            /** A tax depreciation class, for the tax schedule only. */
+            'tax_class_id' => ['nullable', 'uuid', $this->inCompany('asset_tax_classes')],
             /** Dimension id → value id. */
             'dimensions' => ['nullable', 'array', 'max:8'],
             'dimensions.*' => ['string', 'uuid'],
@@ -66,6 +68,7 @@ final class FixedAssetRequest extends CompanyRequest
             unitsTotal: isset($v['units_total']) ? (int) $v['units_total'] : null,
             description: $v['description'] ?? null,
             dimensions: array_map('strval', (array) ($v['dimensions'] ?? [])),
+            taxClassId: isset($v['tax_class_id']) ? (string) $v['tax_class_id'] : null,
             openingAccumulated: (int) ($v['opening_accumulated'] ?? 0),
             openingAsOf: isset($v['opening_as_of']) ? (string) $v['opening_as_of'] : null,
         );
@@ -84,6 +87,7 @@ final class FixedAssetRequest extends CompanyRequest
             decliningRateBp: isset($v['declining_rate_bp']) ? (int) $v['declining_rate_bp'] : null,
             unitsTotal: isset($v['units_total']) ? (int) $v['units_total'] : null,
             dimensions: array_map('strval', (array) ($v['dimensions'] ?? [])),
+            taxClassId: isset($v['tax_class_id']) ? (string) $v['tax_class_id'] : null,
             version: (int) $v['version'],
         );
     }

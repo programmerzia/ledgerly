@@ -28,6 +28,7 @@ use App\Models\Fiscal\FiscalPeriod;
 use App\Models\Fiscal\FiscalYear;
 use App\Models\Fiscal\PeriodReopenRequest;
 use App\Models\FixedAssets\AssetCategory;
+use App\Models\FixedAssets\AssetTaxClass;
 use App\Models\FixedAssets\AssetTransaction;
 use App\Models\FixedAssets\DepreciationRun;
 use App\Models\FixedAssets\FixedAsset;
@@ -214,7 +215,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(WhtCertificate::class, WhtCertificatePolicy::class);
         Gate::policy(CreditApplication::class, CreditApplicationPolicy::class);
         Gate::policy(Attachment::class, AttachmentPolicy::class);
-        foreach ([AssetCategory::class, FixedAsset::class] as $assetModel) {
+        foreach ([AssetCategory::class, FixedAsset::class, AssetTaxClass::class] as $assetModel) {
             Gate::policy($assetModel, FixedAssetPolicy::class);
         }
         Gate::policy(DepreciationRun::class, DepreciationRunPolicy::class);

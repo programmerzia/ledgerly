@@ -45,6 +45,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string|null $source_type
  * @property string|null $source_id
  * @property string|null $source_journal_id
+ * @property string|null $tax_class_id
  * @property int $lock_version
  * @property string|null $created_by
  * @property-read AssetCategory|null $category

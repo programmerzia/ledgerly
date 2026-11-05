@@ -55,6 +55,7 @@ final class FixedAssetResource extends JsonResource
             'source_type' => $this->source_type,
             'source_id' => $this->source_id,
             'source_journal_id' => $this->source_journal_id,
+            'tax_class_id' => $this->tax_class_id,
             /** Dimension position → value id. */
             'dimensions' => array_filter($this->dimensions(), static fn (?string $v): bool => $v !== null),
             'version' => $this->lock_version,

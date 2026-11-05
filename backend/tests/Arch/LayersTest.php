@@ -34,6 +34,10 @@ arch('no debugging leftovers')
     ->expect(['dd', 'dump', 'ray', 'var_dump'])
     ->not->toBeUsed();
 
+arch('the tax depreciation schedule never reaches the ledger')
+    ->expect(['App\Domain\FixedAssets\TaxDepreciation', 'App\Queries\FixedAssets\TaxDepreciationSchedule', 'App\Actions\FixedAssets\ManageAssetTaxClass', 'App\Http\Controllers\FixedAssets\AssetTaxClassController'])
+    ->not->toUse(['App\Actions\Ledger\RecordJournal', 'App\Actions\Ledger\PostJournal', 'App\Actions\Ledger\ReverseJournal', 'App\Services\Ledger', 'App\Models\Ledger\Journal', 'App\Models\Ledger\JournalLine', 'App\Services\FixedAssets\AssetJournals', 'App\Services\FixedAssets\AssetLedger']);
+
 arch('policies only read: no Actions, no unit of work')
     ->expect('App\Policies')
     ->not->toUse(['App\Actions', 'App\Support\UnitOfWork', 'Illuminate\Support\Facades\DB']);

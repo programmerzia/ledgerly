@@ -171,6 +171,12 @@ final class LockSet
         );
     }
 
+    /** A change that posts nothing but moves figures reports read (the asset register): their caches go stale at commit too. */
+    public function reportsChanged(string $companyId): void
+    {
+        $this->changedCompanies[$companyId] = true;
+    }
+
     /**
      * Companies whose balances this transaction posted into: their report caches go stale at commit (13 §13).
      *
