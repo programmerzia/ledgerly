@@ -6,6 +6,8 @@ namespace App\Http\Requests\Organisation;
 
 use App\Actions\Organisation\Inputs\CompanySettingsInput;
 use App\Actions\Organisation\UpdateCompanySettings;
+use App\Domain\Documents\DocumentDefaults;
+use App\Domain\Documents\MessageTemplate;
 use App\Domain\Ledger\PostingValidator;
 use App\Http\Requests\CompanyRequest;
 use Illuminate\Validation\Rule;
@@ -31,6 +33,12 @@ final class UpdateCompanySettingsRequest extends CompanyRequest
             'po_price_tolerance_pct' => ['sometimes', 'required', 'string', 'regex:/^(100(\.0{1,4})?|\d{1,2}(\.\d{1,4})?)$/'],
             'po_quantity_tolerance_pct' => ['sometimes', 'required', 'string', 'regex:/^(100(\.0{1,4})?|\d{1,2}(\.\d{1,4})?)$/'],
             'receipt_over_tolerance_pct' => ['sometimes', 'required', 'string', 'regex:/^(100(\.0{1,4})?|\d{1,2}(\.\d{1,4})?)$/'],
+            /** Document look (plan 3c.4): a #RRGGBB colour, a footer line and payment instructions printed on documents. */
+            'accent_color' => ['sometimes', 'required', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'footer_text' => ['sometimes', 'nullable', 'string', 'max:300'],
+            'payment_instructions' => ['sometimes', 'nullable', 'string', 'max:1000'],
+            /** Email templates (plan 3c.5) by family. Only the listed `{{ placeholders }}` are allowed. */
+            'email_templates' => ['sometimes', 'array:'.implode(',', DocumentDefaults::EMAIL_TYPES)],
             /** Send what you loaded: a stale value answers 409. */
             'version' => ['sometimes', 'integer', 'min:0'],
             'posting_accounts' => ['sometimes', 'array:'.implode(',', array_keys(UpdateCompanySettings::POSTING_KEYS))],
@@ -38,6 +46,17 @@ final class UpdateCompanySettingsRequest extends CompanyRequest
             'base_currency' => ['prohibited'],
             'numbering' => ['prohibited'],
         ];
+        foreach (DocumentDefaults::EMAIL_TYPES as $type) {
+            $unknown = function (string $attribute, mixed $value, \Closure $fail): void {
+                $bad = MessageTemplate::unknown((string) $value);
+                if ($bad !== []) {
+                    $fail('Unknown placeholder '.implode(', ', array_map(fn (string $b) => '{{ '.$b.' }}', $bad)).'. Use only: '.implode(', ', array_keys(MessageTemplate::PLACEHOLDERS)).'.');
+                }
+            };
+            $rules["email_templates.{$type}"] = ['sometimes', 'array:subject,body'];
+            $rules["email_templates.{$type}.subject"] = ['required_with:email_templates.'.$type, 'string', 'min:1', 'max:200', $unknown];
+            $rules["email_templates.{$type}.body"] = ['required_with:email_templates.'.$type, 'string', 'min:1', 'max:5000', $unknown];
+        }
         foreach (array_keys(UpdateCompanySettings::POSTING_KEYS) as $key) {
             $rules["posting_accounts.{$key}"] = ['nullable', 'uuid', $this->inCompany('accounts')->whereNull('deleted_at')];
         }
@@ -62,6 +81,7 @@ final class UpdateCompanySettingsRequest extends CompanyRequest
             isset($v['po_price_tolerance_pct']) ? (string) $v['po_price_tolerance_pct'] : null,
             isset($v['po_quantity_tolerance_pct']) ? (string) $v['po_quantity_tolerance_pct'] : null,
             isset($v['receipt_over_tolerance_pct']) ? (string) $v['receipt_over_tolerance_pct'] : null,
+            array_intersect_key($v, array_flip(['accent_color', 'footer_text', 'payment_instructions', 'email_templates'])),
         );
     }
 }

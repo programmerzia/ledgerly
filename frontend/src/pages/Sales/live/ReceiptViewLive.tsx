@@ -1,11 +1,12 @@
 import React, { useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { CheckCircle, Clock, FilePlus, Pencil, Printer, RotateCcw, Send, Trash2 } from 'lucide-react';
+import { CheckCircle, Clock, FilePlus, Pencil, RotateCcw, Send, Trash2 } from 'lucide-react';
 import { PageHeader } from '@/components/domain/PageHeader';
 import { StatusPill } from '@/components/domain/StatusPill';
 import { SignDialog } from '@/components/domain/SignDialog';
 import { AttachmentsPanel } from '@/components/live/AttachmentsPanel';
+import { PdfButton } from '@/components/live/DocumentActions';
 import { MoneyInput } from '@/components/domain/MoneyInput';
 import { ConflictDialog, type VersionConflict } from '@/components/domain/ConflictDialog';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -177,7 +178,9 @@ export const ReceiptViewLive: React.FC<{ side?: Side }> = ({ side = 'sales' }) =
         title={r.number || `Draft ${what}`}
         subtitle={customer?.name}
         meta={<StatusPill status={r.status} />}
-        actions={<button type="button" onClick={() => window.print()} className={BTN_SECONDARY}><Printer className="size-4 text-text-muted" /> Print</button>}
+        actions={
+          <PdfButton family="settlements" id={r.id} />
+        }
       />
 
       {r.status === 'reversed' && (

@@ -14,13 +14,19 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useCurrentCompany } from '@/data/team';
 import { Field, FormError, LoadError, Loading, field, primary, secondary } from '@/components/live/form';
 import { SettingsCard } from '../settings-ui';
+import { LiveDocumentLook } from './LiveDocumentLook';
 
 export const LiveGeneral: React.FC = () => {
   const company = useCurrentCompany();
   const settings = useSettings(company.id);
   if (settings.isPending) return <Loading what="Loading company settings" />;
   if (settings.isError) return <LoadError error={settings.error} onRetry={() => void settings.refetch()} />;
-  return <GeneralForm key={settings.data.version} settings={settings.data} companyId={company.id} />;
+  return (
+    <div className="flex flex-col gap-5">
+      <GeneralForm key={settings.data.version} settings={settings.data} companyId={company.id} />
+      <LiveDocumentLook key={`look-${settings.data.version}`} settings={settings.data} companyId={company.id} />
+    </div>
+  );
 };
 
 const GeneralForm: React.FC<{ settings: ApiSettings; companyId: string }> = ({ settings: loaded, companyId }) => {

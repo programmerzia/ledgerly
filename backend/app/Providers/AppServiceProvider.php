@@ -11,6 +11,7 @@ use App\Contracts\Clock;
 use App\Contracts\CompanyAccess;
 use App\Contracts\ExchangeRateProvider;
 use App\Contracts\HostResolver;
+use App\Contracts\HtmlToPdf;
 use App\Contracts\IdGenerator;
 use App\Contracts\PermissionChecker;
 use App\Contracts\RoleChecker;
@@ -90,6 +91,7 @@ use App\Policies\Webhooks\WebhookEndpointPolicy;
 use App\Policies\Workflow\ApprovalRequestPolicy;
 use App\Policies\Workflow\ApprovalWorkflowPolicy;
 use App\Queries\Practice\PracticeOverview;
+use App\Services\Documents\BrowsershotHtmlToPdf;
 use App\Services\Files\ClamdScanner;
 use App\Services\Files\LocalAttachmentStore;
 use App\Services\Fx\EcbRateProvider;
@@ -152,6 +154,7 @@ class AppServiceProvider extends ServiceProvider
             (string) config('attachments.clamav.host'), (int) config('attachments.clamav.port'),
             (int) config('attachments.clamav.timeout'), (int) config('attachments.clamav.chunk_bytes'),
         ));
+        $this->app->singleton(HtmlToPdf::class, BrowsershotHtmlToPdf::class);
         $this->app->scoped(CompanyContext::class);
 
         $this->app->scoped(TenantContext::class, function ($app) {
@@ -238,6 +241,17 @@ class AppServiceProvider extends ServiceProvider
             $company = $request->route('company');
 
             return Limit::perHour((int) config('reports.exports_per_hour'))->by('report-exports:'.($company instanceof Company ? $company->id : (string) $company));
+        });
+        // Document PDFs and emails (plan 3c.4, 3c.5): per company, whoever asks.
+        RateLimiter::for('document-pdfs', function (Request $request): Limit {
+            $company = $request->route('company');
+
+            return Limit::perHour((int) config('documents.pdfs_per_hour'))->by('document-pdfs:'.($company instanceof Company ? $company->id : (string) $company));
+        });
+        RateLimiter::for('document-emails', function (Request $request): Limit {
+            $company = $request->route('company');
+
+            return Limit::perHour((int) config('documents.emails_per_hour'))->by('document-emails:'.($company instanceof Company ? $company->id : (string) $company));
         });
         Gate::define('sign', [SigningPolicy::class, 'sign']);
 

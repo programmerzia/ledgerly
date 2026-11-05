@@ -29,6 +29,10 @@ export interface SettingsPatch {
   po_price_tolerance_pct?: string;
   po_quantity_tolerance_pct?: string;
   receipt_over_tolerance_pct?: string;
+  accent_color?: string;
+  footer_text?: string;
+  payment_instructions?: string;
+  email_templates?: Record<string, { subject: string; body: string }>;
 }
 
 export async function fetchSettings(companyId: string): Promise<ApiSettings> {

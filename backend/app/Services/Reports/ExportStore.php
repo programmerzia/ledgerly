@@ -22,7 +22,8 @@ final class ExportStore
         $this->put($tenantId, $companyId, $id, ['id' => $id, 'status' => 'queued', 'report' => $report, 'format' => $format, 'owner' => $owner]);
     }
 
-    public function ready(string $tenantId, string $companyId, string $id, string $localFile): void
+    /** @param array<string, mixed> $extra more fields for the record (the filename a document PDF downloads as) */
+    public function ready(string $tenantId, string $companyId, string $id, string $localFile, array $extra = []): void
     {
         $record = $this->find($tenantId, $companyId, $id) ?? [];
         $path = self::path($tenantId, $companyId, $id, (string) ($record['format'] ?? 'bin'));
@@ -32,7 +33,7 @@ final class ExportStore
         }
         $this->disk()->put($path, $stream);
         fclose($stream);
-        $this->put($tenantId, $companyId, $id, ['status' => 'ready', 'path' => $path] + $record);
+        $this->put($tenantId, $companyId, $id, ['status' => 'ready', 'path' => $path] + $extra + $record);
     }
 
     public function failed(string $tenantId, string $companyId, string $id): void

@@ -51,6 +51,32 @@ services:
       MAIL_PORT: 1025
       AWS_ENDPOINT: http://minio:9000
       CLAMAV_HOST: clamav
+      QUEUE_CONNECTION: database
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  # Queue worker for document PDFs and report exports (`exports`) and document emails (`mail`). Chromium, node and the
+  # puppeteer module live in this image, not in php-fpm: a web process never renders a PDF (plan 3c.4, docs/06 Phase 4 ops).
+  exports:
+    profiles: ["app"]
+    build:
+      context: ./worker
+    command: php artisan queue:work --queue=exports,mail --tries=1 --timeout=120 --max-time=3600 --sleep=2
+    restart: unless-stopped
+    volumes:
+      - ../backend:/var/www/backend
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      REDIS_HOST: redis
+      MAIL_MAILER: smtp
+      MAIL_HOST: mailpit
+      MAIL_PORT: 1025
+      QUEUE_CONNECTION: database
+      CLAMAV_HOST: clamav
     depends_on:
       postgres:
         condition: service_healthy

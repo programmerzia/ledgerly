@@ -8,6 +8,7 @@ use App\Http\Controllers\Banking\BankAccountController;
 use App\Http\Controllers\Banking\BankMatchingController;
 use App\Http\Controllers\Banking\BankReconciliationController;
 use App\Http\Controllers\Banking\BankRuleController;
+use App\Http\Controllers\Documents\DocumentPdfController;
 use App\Http\Controllers\Files\AttachmentBlobController;
 use App\Http\Controllers\Files\AttachmentController;
 use App\Http\Controllers\Fiscal\FiscalPeriodController;
@@ -22,6 +23,7 @@ use App\Http\Controllers\Ledger\DimensionController;
 use App\Http\Controllers\Ledger\JournalController;
 use App\Http\Controllers\Organisation\ApiClientController;
 use App\Http\Controllers\Organisation\CompanyController;
+use App\Http\Controllers\Organisation\CompanyLogoController;
 use App\Http\Controllers\Organisation\CompanySettingsController;
 use App\Http\Controllers\Organisation\InvitationController;
 use App\Http\Controllers\Organisation\InvitationTokenController;
@@ -51,7 +53,9 @@ use App\Http\Controllers\Trade\WhtCertificateController;
 use App\Http\Controllers\Webhooks\WebhookEndpointController;
 use App\Http\Controllers\Workflow\ApprovalInboxController;
 use App\Http\Controllers\Workflow\ApprovalWorkflowController;
+use App\Services\Documents\DocumentRoutes;
 use App\Services\Reports\ReportExport;
+use App\Support\Reports\Report;
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Http\Controllers\RegisteredUserController;
@@ -127,6 +131,9 @@ Route::middleware(['auth:sanctum', 'tenant', 'tenant.writable', 'idempotent', 'c
         // Company profile, tax rounding and posting accounts
         Route::get('settings', [CompanySettingsController::class, 'show'])->name('settings.show');
         Route::put('settings', [CompanySettingsController::class, 'update'])->name('settings.update');
+        Route::get('settings/logo', [CompanyLogoController::class, 'show'])->name('settings.logo.show');
+        Route::post('settings/logo', [CompanyLogoController::class, 'store'])->name('settings.logo.store');
+        Route::delete('settings/logo', [CompanyLogoController::class, 'destroy'])->name('settings.logo.destroy');
 
         // Chart of accounts
         Route::get('chart-templates', [ChartTemplateController::class, 'index'])->name('chart-templates.index');
@@ -303,6 +310,17 @@ Route::middleware(['auth:sanctum', 'tenant', 'tenant.writable', 'idempotent', 'c
         }
         Route::get('wht-certificates', [WhtCertificateController::class, 'index'])->name('wht-certificates.index');
         Route::get('wht-certificates/{whtCertificate}', [WhtCertificateController::class, 'show'])->whereUuid('whtCertificate')->name('wht-certificates.show');
+
+        // Document PDFs (plan 3c.4) and emails (3c.5). Each route sits under the document it prints and carries that
+        // document's own policy, so whoever may view a document may download its PDF. A PDF is queued, never rendered in a request.
+        foreach (DocumentRoutes::FAMILIES as $family => $param) {
+            $statement = $family === 'contacts';
+            $base = $statement ? "contacts/{{$param}}/statement" : "{$family}/{{$param}}";
+            $key = $statement ? 'contacts.statement' : $family;
+            $guard = fn (Illuminate\Routing\Route $route, string $ability) => $statement ? $route->can($ability, $param)->can('view', Report::class) : $route->can($ability, $param);
+            $guard(Route::post("{$base}/pdf", [DocumentPdfController::class, 'store'])->whereUuid($param)->defaults('family', $family)->middleware('throttle:document-pdfs')->name("{$key}.pdf.store"), 'view');
+            $guard(Route::get("{$base}/pdf/{pdfId}", [DocumentPdfController::class, 'show'])->whereUuid([$param, 'pdfId'])->defaults('family', $family)->name("{$key}.pdf.show"), 'view');
+        }
 
         // Recurring invoices, bills and journals: schedules copy a posted template into drafts on each due date (doc 14 E2)
         foreach (['recurring-invoices' => [RecurringInvoiceController::class, 'recurringInvoice'], 'recurring-journals' => [RecurringJournalController::class, 'recurringJournal']] as $path => [$controller, $param]) {

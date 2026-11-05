@@ -22,6 +22,9 @@ return [
     // Chromium for PDF exports (Browsershot). Empty: let Browsershot find it.
     'chromium_path' => env('REPORTS_CHROMIUM_PATH', ''),
 
+    // Where node finds the `puppeteer` module (NODE_PATH). Empty: the global `npm root -g`.
+    'node_module_path' => env('REPORTS_NODE_MODULE_PATH', ''),
+
     // 13 §16: exports are limited per company.
     'exports_per_hour' => 10,
 ];

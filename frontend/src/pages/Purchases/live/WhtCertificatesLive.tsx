@@ -8,6 +8,7 @@ import { useContactDirectory } from '@/data/contacts';
 import { useDoc } from '@/data/invoices';
 import { useTradeRefs } from '@/data/tradeRefs';
 import { useWhtCertificateList } from '@/data/wht';
+import { PdfButton } from '@/components/live/DocumentActions';
 import { ErrorLine, LoadMore, LoadingLine, TableCard, inputClass } from '@/pages/Sales/live/parts';
 
 const BillLink: React.FC<{ id: string; coSlug: string }> = ({ id, coSlug }) => {
@@ -78,6 +79,7 @@ export const WhtCertificatesLive: React.FC = () => {
                 <th className="px-3 py-2">Issued</th>
                 <th className="px-3 py-2 text-right">Worked out on</th>
                 <th className="px-3 py-2 text-right">Withheld</th>
+                <th className="px-3 py-2"><span className="sr-only">PDF</span></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -94,6 +96,7 @@ export const WhtCertificatesLive: React.FC = () => {
                   <td className="px-3 py-2 tabular-nums text-text-muted">{c.issued_on ? formatDate(c.issued_on) : '—'}</td>
                   <td className="px-3 py-2 text-right tabular-nums">{formatMoney(c.base_amount, c.currency)}</td>
                   <td className="px-3 py-2 text-right font-medium tabular-nums text-text-primary">{formatMoney(c.wht_amount, c.currency)}</td>
+                  <td className="px-3 py-2 text-right"><PdfButton family="wht-certificates" id={c.id} label="PDF" /></td>
                 </tr>
               ))}
             </tbody>

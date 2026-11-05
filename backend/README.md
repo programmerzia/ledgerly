@@ -41,6 +41,16 @@ php artisan boost:install
 
 Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
 
+## PDFs and email (workers)
+
+Document PDFs, report PDFs and document emails never run in a web request. They are queued jobs: PDFs on the `exports` queue, email on `mail`. The machine that runs them needs:
+
+- node, with the `puppeteer` module findable by node (`REPORTS_NODE_MODULE_PATH` is its `node_modules` folder; empty means `npm root -g`);
+- a Chromium or Chrome binary (`REPORTS_CHROMIUM_PATH`), with fonts for the scripts you print;
+- a database queue worker: `php artisan queue:work --queue=exports,mail --tries=1 --timeout=120` and `QUEUE_CONNECTION=database` (or redis) on the API too.
+
+`docker compose --profile app up` starts this as the `exports` service (`docker/worker/Dockerfile`). Locally, outside Docker, point the two variables at an existing Chrome and a folder holding `puppeteer`, and run the worker command above. Mail goes through the normal Laravel mailer (`MAIL_*`; Mailpit at `127.0.0.1:11025` in development).
+
 ## Contributing
 
 Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).

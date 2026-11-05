@@ -1,10 +1,11 @@
 import React, { useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { CheckCircle, Clock, FilePlus, Link2, Pencil, Printer, Receipt, RotateCcw, Send, Trash2 } from 'lucide-react';
+import { CheckCircle, Clock, FilePlus, Link2, Pencil, Receipt, RotateCcw, Send, Trash2 } from 'lucide-react';
 import { PageHeader } from '@/components/domain/PageHeader';
 import { SignDialog } from '@/components/domain/SignDialog';
 import { AttachmentsPanel } from '@/components/live/AttachmentsPanel';
+import { PdfButton } from '@/components/live/DocumentActions';
 import { MoneyInput } from '@/components/domain/MoneyInput';
 import { ConflictDialog, type VersionConflict } from '@/components/domain/ConflictDialog';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -238,9 +239,7 @@ export const InvoiceViewLive: React.FC<{ side?: Side }> = ({ side = 'sales' }) =
         subtitle={customer?.name}
         meta={<DocStatusPill doc={doc} />}
         actions={
-          <button type="button" onClick={() => window.print()} className={BTN_SECONDARY}>
-            <Printer className="size-4 text-text-muted" /> Print
-          </button>
+          <PdfButton family={side === 'sales' ? 'invoices' : 'bills'} id={doc.id} />
         }
       />
 
