@@ -15,6 +15,7 @@ import { useCurrentCompany } from '@/data/team';
 import { Field, FormError, LoadError, Loading, field, primary, secondary } from '@/components/live/form';
 import { SettingsCard } from '../settings-ui';
 import { LiveDocumentLook } from './LiveDocumentLook';
+import { LiveFormats } from './LiveFormats';
 
 export const LiveGeneral: React.FC = () => {
   const company = useCurrentCompany();
@@ -24,6 +25,7 @@ export const LiveGeneral: React.FC = () => {
   return (
     <div className="flex flex-col gap-5">
       <GeneralForm key={settings.data.version} settings={settings.data} companyId={company.id} />
+      <LiveFormats key={`formats-${settings.data.version}`} settings={settings.data} companyId={company.id} />
       <LiveDocumentLook key={`look-${settings.data.version}`} settings={settings.data} companyId={company.id} />
     </div>
   );

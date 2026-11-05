@@ -22,12 +22,12 @@
 </head>
 <body>
     <h1>{{ $table->title }}</h1>
-    <div class="subtitle">{{ $table->subtitle }}</div>
+    <div class="subtitle">{{ $table->formats?->datesIn($table->subtitle) ?? $table->subtitle }}</div>
     <table>
         <thead>
             <tr>
                 @foreach ($table->columns as $column)
-                    <th @class(['num' => $column['numeric']])>{{ $column['label'] }}</th>
+                    <th @class(['num' => $column['numeric']])>{{ $table->formats?->datesIn($column['label']) ?? $column['label'] }}</th>
                 @endforeach
             </tr>
         </thead>
@@ -36,9 +36,9 @@
                 <tr class="{{ $row->style }}">
                     @foreach ($row->cells as $i => $cell)
                         @if (is_array($cell))
-                            <td class="num">{{ Amounts::text($cell['amount'], $table->decimals) }}</td>
+                            <td class="num">{{ $table->formats?->number($cell['amount'], $table->decimals) ?? Amounts::text($cell['amount'], $table->decimals) }}</td>
                         @else
-                            <td @class(['num' => $table->columns[$i]['numeric'] ?? false])>{{ $cell }}</td>
+                            <td @class(['num' => $table->columns[$i]['numeric'] ?? false])>{{ $table->formats?->date((string) $cell) ?? $cell }}</td>
                         @endif
                     @endforeach
                 </tr>

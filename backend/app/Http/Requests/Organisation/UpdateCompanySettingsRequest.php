@@ -9,6 +9,7 @@ use App\Actions\Organisation\UpdateCompanySettings;
 use App\Domain\Documents\DocumentDefaults;
 use App\Domain\Documents\MessageTemplate;
 use App\Domain\Ledger\PostingValidator;
+use App\Domain\Shared\FormatPreferences;
 use App\Http\Requests\CompanyRequest;
 use Illuminate\Validation\Rule;
 
@@ -39,6 +40,9 @@ final class UpdateCompanySettingsRequest extends CompanyRequest
             'payment_instructions' => ['sometimes', 'nullable', 'string', 'max:1000'],
             /** Email templates (plan 3c.5) by family. Only the listed `{{ placeholders }}` are allowed. */
             'email_templates' => ['sometimes', 'array:'.implode(',', DocumentDefaults::EMAIL_TYPES)],
+            /** How dates and numbers read on screens and printed documents (plan 3c.26b); null follows the company's country. */
+            'date_format' => ['sometimes', 'nullable', 'string', Rule::in(array_keys(FormatPreferences::DATE_FORMATS))],
+            'number_format' => ['sometimes', 'nullable', 'string', Rule::in(array_keys(FormatPreferences::NUMBER_FORMATS))],
             /** Send what you loaded: a stale value answers 409. */
             'version' => ['sometimes', 'integer', 'min:0'],
             'posting_accounts' => ['sometimes', 'array:'.implode(',', array_keys(UpdateCompanySettings::POSTING_KEYS))],
@@ -82,6 +86,7 @@ final class UpdateCompanySettingsRequest extends CompanyRequest
             isset($v['po_quantity_tolerance_pct']) ? (string) $v['po_quantity_tolerance_pct'] : null,
             isset($v['receipt_over_tolerance_pct']) ? (string) $v['receipt_over_tolerance_pct'] : null,
             array_intersect_key($v, array_flip(['accent_color', 'footer_text', 'payment_instructions', 'email_templates'])),
+            array_map(fn ($f) => $f === null ? null : (string) $f, array_intersect_key($v, array_flip(['date_format', 'number_format']))),
         );
     }
 }

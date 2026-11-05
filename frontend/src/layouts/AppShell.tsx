@@ -24,6 +24,7 @@ import { Sidebar } from './shell/Sidebar';
 import { buildNavSections, navSectionsFromMenu } from './shell/nav';
 import { useCompanyMenu } from '@/data/menu';
 import { useTheme } from './shell/useTheme';
+import { setFormatPrefs } from '@/lib/format';
 import type { AppNotification } from './shell/NotificationsMenu';
 
 export const AppShell: React.FC = () => {
@@ -114,6 +115,9 @@ export const AppShell: React.FC = () => {
   // Live: the server's menu for this person. While it loads nothing is offered; if it cannot be read, the full static list is the fallback
   // (the API refuses what a role may not do either way).
   const menu = useCompanyMenu();
+  // The company's date and number format, in force before the screens below render (plan 3c.26b). A change remounts them.
+  setFormatPrefs(IS_LIVE ? currentCompany.formats ?? null : null);
+  const formatsKey = IS_LIVE && currentCompany.formats ? `${currentCompany.formats.date}/${currentCompany.formats.number}` : 'default';
   const navSections = IS_LIVE
     ? (menu.data ? navSectionsFromMenu(coSlug, menu.data.sections) : menu.isError ? buildNavSections(coSlug, 0) : [])
     : buildNavSections(coSlug, pendingApprovalsCount);
@@ -194,7 +198,7 @@ export const AppShell: React.FC = () => {
 
           <main className="flex-1 overflow-y-auto bg-canvas p-3 sm:p-4 md:p-5">
             <div className="w-full h-full">
-              <LiveRouteGate>
+              <LiveRouteGate key={formatsKey}>
                 <Outlet />
               </LiveRouteGate>
             </div>

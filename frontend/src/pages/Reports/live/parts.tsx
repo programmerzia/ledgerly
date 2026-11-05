@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ApiError } from '@/api/errors';
 import { describeError } from '@/api/messages';
-import { formatMoney } from '@/lib/format';
+import { formatDateTime, formatMoney, getFormatPrefs } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import type { DrillKey, Figure } from '@/api/adapters/report';
 import { useDrill } from '@/data/reports';
@@ -48,6 +48,8 @@ export function generatedLabel(iso: string | null): string | null {
   if (!iso) return null;
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return null;
+  // The company's date format when it has one (plan 3c.26b); the demo's wording otherwise.
+  if (getFormatPrefs()) return `Calculated ${formatDateTime(iso)}`;
   return `Calculated ${d.toLocaleString('en-US', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}`;
 }
 

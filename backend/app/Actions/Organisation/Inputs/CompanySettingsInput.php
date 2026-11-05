@@ -25,5 +25,7 @@ final readonly class CompanySettingsInput
         public ?string $poQuantityTolerancePct = null,
         public ?string $receiptOverTolerancePct = null,
         public array $documentLook = [],
+        /** @var array<string, string|null> Plan 3c.26b: `date_format` / `number_format` the request carried; null puts that one back to the country's default */
+        public array $formats = [],
     ) {}
 }

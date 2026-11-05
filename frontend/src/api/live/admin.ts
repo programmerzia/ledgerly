@@ -33,6 +33,9 @@ export interface SettingsPatch {
   footer_text?: string;
   payment_instructions?: string;
   email_templates?: Record<string, { subject: string; body: string }>;
+  /** null puts that one back to the country's default. */
+  date_format?: string | null;
+  number_format?: string | null;
 }
 
 export async function fetchSettings(companyId: string): Promise<ApiSettings> {

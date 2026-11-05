@@ -18,6 +18,8 @@ beforeEach(function (): void {
     $this->engine = new FakePdfEngine;
     app()->instance(HtmlToPdf::class, $this->engine);
     $this->viewer = $this->person('Vic Viewer', ['Viewer']);
+    // These tests read dates as "15 Mar 2026"; a US company would otherwise print them month first (plan 3c.26b, DocumentFormatsTest).
+    $this->inTenant(fn () => DB::table('company_settings')->updateOrInsert(['company_id' => $this->f->companyId], ['tenant_id' => $this->f->tenantId, 'date_format' => 'd_mon_y']));
     $this->inTenant(fn () => DB::table('contacts')->where('id', $this->t->customer)->update([
         'legal_name' => 'Contact C1 Ltd', 'tax_id' => 'CUST-TAX-1', 'email' => 'billing@c1.example', 'billing_address' => json_encode(['1 Main Street', 'Springfield 12345']),
     ]));

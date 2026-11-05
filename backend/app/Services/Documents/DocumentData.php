@@ -7,6 +7,7 @@ namespace App\Services\Documents;
 use App\Domain\Documents\DocMoney;
 use App\Domain\Documents\Percent;
 use App\Domain\Shared\DomainRuleViolation;
+use App\Domain\Shared\FormatPreferences;
 use App\Domain\Trade\InvoiceKind;
 use App\Models\Banking\BankAccount;
 use App\Models\Ledger\Account;
@@ -25,6 +26,7 @@ use App\Models\Trade\Item;
 use App\Models\Trade\Settlement;
 use App\Models\Trade\WhtCertificate;
 use App\Queries\Reports\RunReport;
+use App\Support\Formats\CompanyFormats;
 use DateTimeInterface;
 use Illuminate\Support\Facades\DB;
 
@@ -51,6 +53,9 @@ final class DocumentData
         'customer_statement' => 'pdf.customer-statement', 'supplier_statement' => 'pdf.supplier-statement',
         'journal_voucher' => 'pdf.journal-voucher', 'wht_certificate' => 'pdf.wht-certificate',
     ];
+
+    /** The company being printed, set at the start of each build() (plan 3c.26b). */
+    private ?FormatPreferences $formats = null;
 
     public function __construct(
         private readonly DocumentLook $look,
@@ -80,6 +85,7 @@ final class DocumentData
      */
     public function build(string $type, Company $company, string $id, array $params = []): array
     {
+        $this->formats = CompanyFormats::for($company);
         $common = $this->common($company);
         $built = match ($type) {
             'invoice', 'credit_note', 'bill', 'debit_note' => $this->trade($type, $this->find(Invoice::class, $company, $id), $company),
@@ -111,7 +117,7 @@ final class DocumentData
                 'name' => $company->name, 'legal_name' => $company->getAttribute('legal_name'),
                 'tax_id' => $company->getAttribute('tax_id'), 'address' => self::addressLines($company->address),
             ],
-            'generated' => self::date(now()),
+            'generated' => $this->date(now()),
         ];
     }
 
@@ -168,9 +174,9 @@ final class DocumentData
             $totals[] = [$doc->kind->isNote() ? 'Credit remaining' : 'Balance due', $money->withCode($doc->amountDueFc()), 'due'];
         }
 
-        $meta = [[$doc->kind->isNote() ? 'Date' : 'Issue date', self::date($doc->issue_date)]];
+        $meta = [[$doc->kind->isNote() ? 'Date' : 'Issue date', $this->date($doc->issue_date)]];
         if (! $doc->kind->isNote()) {
-            $meta[] = ['Due date', self::date($doc->due_date)];
+            $meta[] = ['Due date', $this->date($doc->due_date)];
             $meta[] = ['Terms', $contact->payment_terms_days > 0 ? "Net {$contact->payment_terms_days} days" : 'Due on receipt'];
         }
         if ($doc->reference !== null && $doc->reference !== '') {
@@ -263,7 +269,7 @@ final class DocumentData
             $doc = $a->invoice_id === null ? null : $docs->get($a->invoice_id);
             $rows[] = [
                 'document' => $doc === null ? 'Credit on account' : ucfirst($doc->kind->label()).' '.($doc->number ?? ''),
-                'date' => $doc === null ? '' : self::date($doc->issue_date),
+                'date' => $doc === null ? '' : $this->date($doc->issue_date),
                 'reference' => (string) ($doc->reference ?? ''),
                 'amount' => $money->plain($a->amount_fc),
             ];
@@ -272,7 +278,7 @@ final class DocumentData
         $method = $bank->name ?? Account::query()->whereKey($s->cash_account_id)->value('name');
         $kindTitle = ['receipt' => 'Receipt', 'supplier_refund' => 'Refund receipt', 'payment' => 'Payment advice', 'refund' => 'Refund advice'][$s->kind] ?? 'Receipt';
         $in = $s->isCashIn();
-        $meta = [[$in ? 'Received on' : 'Paid on', self::date($s->settlement_date)], [$in ? 'Received into' : 'Paid from', (string) $method]];
+        $meta = [[$in ? 'Received on' : 'Paid on', $this->date($s->settlement_date)], [$in ? 'Received into' : 'Paid from', (string) $method]];
         if ($s->reference !== null && $s->reference !== '') {
             $meta[] = ['Reference', $s->reference];
         }
@@ -318,9 +324,9 @@ final class DocumentData
                 'amount' => $money->plain($line->line_total_fc),
             ];
         }
-        $meta = [['Order date', self::date($po->order_date)]];
+        $meta = [['Order date', $this->date($po->order_date)]];
         if ($po->expected_date !== null) {
-            $meta[] = ['Expected delivery', self::date($po->expected_date)];
+            $meta[] = ['Expected delivery', $this->date($po->expected_date)];
         }
         if ($po->reference !== null && $po->reference !== '') {
             $meta[] = ['Reference', $po->reference];
@@ -361,7 +367,7 @@ final class DocumentData
             ];
         }
         $names = User::query()->whereIn('id', array_filter([$j->created_by, $j->approved_by, $j->posted_by]))->pluck('name', 'id');
-        $meta = [['Journal date', self::date($j->journal_date)], ['Type', ucfirst($j->journal_type->value)]];
+        $meta = [['Journal date', $this->date($j->journal_date)], ['Type', ucfirst($j->journal_type->value)]];
         if ($j->reference !== null && $j->reference !== '') {
             $meta[] = ['Reference', $j->reference];
         }
@@ -377,7 +383,7 @@ final class DocumentData
                 'signatures' => [
                     ['Prepared by', (string) ($j->created_by === null ? '' : ($names[$j->created_by] ?? ''))],
                     ['Approved by', (string) ($j->approved_by === null ? '' : ($names[$j->approved_by] ?? ''))],
-                    ['Posted by', (string) ($j->posted_by === null ? '' : ($names[$j->posted_by] ?? '')).($j->posted_at === null ? '' : ' · '.self::date($j->posted_at))],
+                    ['Posted by', (string) ($j->posted_by === null ? '' : ($names[$j->posted_by] ?? '')).($j->posted_at === null ? '' : ' · '.$this->date($j->posted_at))],
                 ],
             ],
         ];
@@ -402,7 +408,7 @@ final class DocumentData
             'data' => [
                 'title' => 'Withholding tax certificate', 'number' => $c->number, 'watermark' => $c->status === 'void' ? 'VOID' : null,
                 'party' => $this->party($contact, 'Paid to (withholdee)'),
-                'meta' => [['Issued on', self::date($c->issued_on)], ['Payment', $payment->number ?? ''], ['Bill', $bill->number ?? '']],
+                'meta' => [['Issued on', $this->date($c->issued_on)], ['Payment', $payment->number ?? ''], ['Bill', $bill->number ?? '']],
                 'tax_name' => $code === null ? '' : $code->name.($rate === null || str_contains($code->name, Percent::ofFraction((string) $rate->rate)) ? '' : ' '.Percent::ofFraction((string) $rate->rate)),
                 'base' => $money->withCode($c->base_amount), 'withheld' => $money->withCode($c->wht_amount),
                 'words' => $money->words($c->wht_amount),
@@ -426,7 +432,7 @@ final class DocumentData
         $rows = [];
         foreach ((array) $report['rows'] as $r) {
             $rows[] = [
-                'date' => self::date(new \DateTimeImmutable((string) $r['date'])),
+                'date' => $this->date(new \DateTimeImmutable((string) $r['date'])),
                 'type' => str_replace('_', ' ', (string) $r['type']),
                 'number' => (string) ($r['document']['number'] ?? $r['journal_number'] ?? ''),
                 'description' => (string) ($r['description'] ?? ''),
@@ -443,7 +449,7 @@ final class DocumentData
             'data' => [
                 'title' => 'Statement of account', 'number' => null, 'watermark' => null,
                 'party' => $this->party($contact, $customer ? 'Statement for' : 'Supplier'),
-                'meta' => [['Period', self::date($from).' to '.self::date($to)], ['Currency', $company->base_currency]],
+                'meta' => [['Period', $this->date($from).' to '.$this->date($to)], ['Currency', $company->base_currency]],
                 'opening' => $money->plain($report['opening_balance']['amount']), 'statement_rows' => $rows,
                 'total_debit' => $money->plain($report['totals']['debit']['amount']), 'total_credit' => $money->plain($report['totals']['credit']['amount']),
                 'closing' => $money->withCode($report['closing_balance']['amount']),
@@ -469,7 +475,7 @@ final class DocumentData
     {
         $row = DB::selectOne('SELECT minor_unit FROM currencies WHERE code = ?', [$currency]);
 
-        return new DocMoney($currency, $row === null ? 2 : (int) $row->minor_unit);
+        return new DocMoney($currency, $row === null ? 2 : (int) $row->minor_unit, $this->formats);
     }
 
     /** @return list<string> */
@@ -500,10 +506,10 @@ final class DocumentData
         return preg_replace('/[^A-Za-z0-9._-]+/', '-', $title.'-'.$number).'.pdf';
     }
 
-    /** "05 Nov 2026": unambiguous in every locale. A company date format does not exist yet (plan 3c.26b). */
-    private static function date(?DateTimeInterface $date): string
+    /** A date in the company's own format (plan 3c.26b); the day-month-name form until the company is known. */
+    private function date(?DateTimeInterface $date): string
     {
-        return $date === null ? '' : $date->format('d M Y');
+        return $date === null ? '' : ($this->formats ?? FormatPreferences::resolve(null, null, null))->date($date);
     }
 
     private static function dateOf(DateTimeInterface $date): string
