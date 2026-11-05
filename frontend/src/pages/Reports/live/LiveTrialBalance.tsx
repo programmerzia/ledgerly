@@ -9,6 +9,7 @@ import { DrillDialog, Drillable, ReportError, ReportLoading, dash, fmt, type Dri
 import { useReportSelection } from './useSelection';
 
 const GRID = 'grid grid-cols-[1fr_8rem_8rem] gap-3';
+const gridOf = (n: number): React.CSSProperties => ({ gridTemplateColumns: `minmax(12rem,1fr) repeat(${n + 1}, 7.5rem)` });
 const GRID6 = 'grid grid-cols-[minmax(12rem,1fr)_repeat(6,7rem)] gap-3';
 const GROUPS: Record<string, string> = { asset: 'Assets', liability: 'Liabilities', equity: 'Equity', income: 'Income', expense: 'Expenses' };
 
@@ -44,7 +45,7 @@ export const LiveTrialBalance: React.FC = () => {
       generatedAt={tb?.generatedAt}
       toolbar={
         <>
-          <SelectBox aria-label="Columns" value={movement ? 'movement' : 'balances'} onChange={(e) => set({ ...selection, view: e.target.value === 'movement' ? 'movement' : undefined })}>
+          <SelectBox aria-label="Columns" value={movement ? 'movement' : 'balances'} onChange={(e) => set({ ...selection, view: e.target.value === 'movement' ? 'movement' : undefined, breakdown: e.target.value === 'movement' ? undefined : selection.breakdown })}>
             <option value="balances">Balances as of a date</option>
             <option value="movement">Opening, movement and closing</option>
           </SelectBox>
@@ -96,6 +97,32 @@ export const LiveTrialBalance: React.FC = () => {
             </div>
             <p className="mt-3 px-2 text-xs text-text-muted">Opening plus movement equals closing for every account. Year-end closing journals are included, as in the as-of trial balance.</p>
             {tb.filtered && <p className="mt-2 px-2 text-xs text-text-muted">A dimension filter selects part of each journal, so debits and credits can differ here without anything being wrong.</p>}
+          </div>
+        </ReportCard>
+      ) : tb && tb.breakdown ? (
+        <ReportCard>
+          <div style={{ minWidth: 360 + 120 * (tb.breakdown.columns.length + 1) }} data-testid="tb-breakdown">
+            <div style={gridOf(tb.breakdown.columns.length)} className="grid gap-3 px-2 pb-2 border-b border-border text-[11px] font-semibold uppercase tracking-[0.04em] text-text-muted">
+              <span>Account</span>
+              {tb.breakdown.columns.map((c) => <span key={c?.id ?? 'untagged'} className="text-right">{c ? c.name : 'Untagged'}</span>)}
+              <span className="text-right">Total</span>
+            </div>
+            {tb.rows.length === 0 && <p className="p-8 text-center text-xs text-text-muted">No balances as of this date.</p>}
+            <div className="divide-y divide-border/60">
+              {tb.rows.map((r) => (
+                <div key={r.account.id} style={gridOf(tb.breakdown!.columns.length)} className="grid gap-3 items-baseline px-2 py-1.5 text-xs tabular-nums">
+                  <span className="text-text-primary font-sans"><span className="font-code text-text-muted mr-2">{r.account.code}</span>{r.account.name}</span>
+                  {(r.byDimension ?? []).map((v, i) => <span key={i} className="text-right">{v === 0 ? dash : money(v)}</span>)}
+                  <span className="text-right">{r.debit - r.credit === 0 ? dash : <Drillable drill={r.drill} onDrill={(key) => setDrill({ key, title: r.account.name })}>{money(r.debit - r.credit)}</Drillable>}</span>
+                </div>
+              ))}
+            </div>
+            <div style={gridOf(tb.breakdown.columns.length)} className="grid gap-3 items-baseline px-2 py-3 mt-2 border-t border-text-primary border-b-[3px] border-double text-sm font-semibold tabular-nums" data-testid="tb-totals">
+              <span className="text-text-primary">Net (debit less credit)</span>
+              {(tb.totalsByDimension ?? []).map((v, i) => <span key={i} className="text-right">{money(v)}</span>)}
+              <span className="text-right">{money(tb.totalDebit - tb.totalCredit)}</span>
+            </div>
+            <p className="mt-3 px-2 text-xs text-text-muted">Each figure is the account balance, debit positive, in the {tb.breakdown.dimension.name} shown. The columns add up to the Total column, which is the trial balance without a breakdown. Untagged holds lines with no {tb.breakdown.dimension.name}.</p>
           </div>
         </ReportCard>
       ) : tb && (

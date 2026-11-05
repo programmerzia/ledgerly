@@ -15,9 +15,9 @@ import { toDimension } from '@/api/adapters/dimension';
 import { useRouteCompany } from './session';
 
 /** Which parameters each report reads (the others would be ignored or refused by the server). */
-export const REPORT_PARAMS: Record<ReportName, { basis: boolean; comparison: boolean; dims: boolean; hideZero: boolean }> = {
-  'trial-balance': { basis: false, comparison: false, dims: true, hideZero: true },
-  'profit-and-loss': { basis: true, comparison: true, dims: true, hideZero: true },
+export const REPORT_PARAMS: Record<ReportName, { basis: boolean; comparison: boolean; dims: boolean; hideZero: boolean; breakdown?: boolean }> = {
+  'trial-balance': { basis: false, comparison: false, dims: true, hideZero: true, breakdown: true },
+  'profit-and-loss': { basis: true, comparison: true, dims: true, hideZero: true, breakdown: true },
   'balance-sheet': { basis: false, comparison: true, dims: true, hideZero: true },
   'cash-flow': { basis: true, comparison: false, dims: false, hideZero: false },
   'general-ledger': { basis: false, comparison: false, dims: true, hideZero: false },
@@ -33,6 +33,9 @@ export function reportQuery(name: ReportName, sel: ReportSelection) {
   const p = REPORT_PARAMS[name];
   const q = selectionQuery(sel, { basis: p.basis, comparison: p.comparison, dims: p.dims });
   if (!p.hideZero) delete q.hide_zero;
+  if (!p.breakdown) delete q.breakdown;
+  if (name !== 'trial-balance') delete q.view;
+  if (name === 'trial-balance' && sel.view === 'movement') delete q.breakdown;
   return q;
 }
 

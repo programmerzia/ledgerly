@@ -6,6 +6,7 @@ namespace App\Queries\Reports;
 
 use App\Http\Support\Json;
 use App\Support\Reports\Dates;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Trial balance as of a date: every account's closing balance on its debit or credit side. Closing
@@ -18,22 +19,45 @@ use App\Support\Reports\Dates;
  * (D7), exactly as the as-of report does, so the closing columns equal the as-of trial balance at `to` and
  * opening + movement = closing for every account and in total. Opening and closing are shown on the debit or
  * credit side of each account's net; movement is the gross debits and credits of the range.
+ *
+ * With `breakdown` (3c.19, as-of only) each row also carries `by_dimension`: the account's net (debit - credit) in
+ * every value of the chosen dimension and in an untagged column, adding up to the row's debit - credit.
  */
 final class TrialBalance
 {
-    public function __construct(private readonly LedgerBalances $balances, private readonly AccountDirectory $accounts) {}
+    public function __construct(private readonly LedgerBalances $balances, private readonly AccountDirectory $accounts, private readonly DimensionBreakdown $breakdown) {}
 
     /** @return array<string, mixed> */
     public function __invoke(ReportParams $p): array
     {
         if ($p->from !== null) {
+            if ($p->breakdownSlot !== null) {
+                throw ValidationException::withMessages(['breakdown' => ['A breakdown by dimension is available on the trial balance as of a date, not on the opening, movement and closing view.']]);
+            }
+
             return $this->movement($p);
         }
         $accounts = $this->accounts->all($p->companyId);
         $net = [];
-        foreach ($this->balances->totals($p->companyId, null, $p->to, false, $p->dims) as $row) {
+        /** @var array<string, array<string, int>> $split account → column key ('' = untagged) → debit - credit */
+        $split = [];
+        foreach ($this->balances->totals($p->companyId, null, $p->to, false, $p->dims, $p->breakdownSlot) as $row) {
             $net[$row->accountId] = ($net[$row->accountId] ?? 0) + $row->debit - $row->credit;
+            $split[$row->accountId][$row->group ?? ''] = ($split[$row->accountId][$row->group ?? ''] ?? 0) + $row->debit - $row->credit;
         }
+        $columns = null;
+        if ($p->breakdownSlot !== null) {
+            $active = [];
+            foreach ($split as $byKey) {
+                foreach ($byKey as $key => $amount) {
+                    if ($amount !== 0 && $key !== '') {
+                        $active[] = (string) $key;
+                    }
+                }
+            }
+            $columns = $this->breakdown->columns($p, $active);
+        }
+        $columnTotals = [];
 
         $cur = $p->currency;
         $rows = [];
@@ -41,31 +65,47 @@ final class TrialBalance
         $credits = 0;
         foreach ($accounts as $a) {
             $n = $net[$a->id] ?? 0;
-            if ($n === 0 && ($p->hideZero || ! $a->postable)) {
+            $moved = array_filter($split[$a->id] ?? [], fn (int $v): bool => $v !== 0) !== [];
+            if ($n === 0 && ! $moved && ($p->hideZero || ! $a->postable)) {
                 continue;
             }
             $debit = max($n, 0);
             $credit = max(-$n, 0);
             $debits += $debit;
             $credits += $credit;
-            $rows[] = [
+            $row = [
                 'account' => $a->ref() + ['account_type' => $a->type, 'subtype' => $a->subtype],
                 'debit' => Json::money($debit, $cur),
                 'credit' => Json::money($credit, $cur),
                 'drill' => DrillKey::make($a->id, null, $p->to, false, $p->dimensionIds),
             ];
+            if ($columns !== null) {
+                $row['by_dimension'] = DimensionBreakdown::cells($columns['keys'], $split[$a->id] ?? [], $cur);
+                foreach ($columns['keys'] as $key) {
+                    $columnTotals[$key] = ($columnTotals[$key] ?? 0) + ($split[$a->id][$key] ?? 0);
+                }
+            }
+            $rows[] = $row;
         }
 
-        return [
+        $totals = ['debit' => Json::money($debits, $cur), 'credit' => Json::money($credits, $cur)];
+        $out = [
             'report' => 'trial_balance',
             'mode' => 'as_of',
             'currency' => $cur,
             'as_of' => $p->to,
             'rows' => $rows,
-            'totals' => ['debit' => Json::money($debits, $cur), 'credit' => Json::money($credits, $cur)],
+            'totals' => $totals,
             'balanced' => $debits === $credits,
             'filtered' => $p->dims !== [],
         ];
+        if ($columns !== null) {
+            // Each row's cells are its net (debit - credit) per column; a column's total is the net of the rows shown.
+            $out['breakdown'] = ['dimension' => $columns['dimension'], 'columns' => $columns['columns']];
+            $out['totals']['by_dimension'] = DimensionBreakdown::cells($columns['keys'], $columnTotals, $cur);
+        }
+
+        return $out;
     }
 
     /** @return array<string, mixed> */

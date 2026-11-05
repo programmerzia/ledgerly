@@ -29,6 +29,9 @@ final readonly class ReportParams
         public ?string $periodId = null,
         public ?string $accountId = null,
         public ?string $contactId = null,
+        /** 3c.19: the dimension (its line slot and id) whose values become columns; null for no breakdown. */
+        public ?int $breakdownSlot = null,
+        public ?string $breakdownId = null,
     ) {}
 
     /** @return array<string, mixed> everything that changes a result, for the cache key */
@@ -38,6 +41,7 @@ final readonly class ReportParams
             'from' => $this->from, 'to' => $this->to, 'basis' => $this->basis, 'comparison' => $this->comparison,
             'comparison_range' => $this->comparisonRange, 'dims' => $this->dimensionIds, 'hide_zero' => $this->hideZero,
             'account_id' => $this->accountId, 'currency' => $this->currency, 'contact_id' => $this->contactId,
+            'breakdown' => $this->breakdownId,
         ];
     }
 }

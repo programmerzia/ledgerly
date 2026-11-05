@@ -90,6 +90,35 @@ describe('trial balance with opening, movement and closing', () => {
   });
 });
 
+describe('breakdown by dimension', () => {
+  const cols = [{ value: { id: V1, code: 'SALES', name: 'Sales' } }, { value: null }];
+  it('maps the columns, the untagged column and each figure\'s cells on profit and loss', () => {
+    const pl = parseProfitAndLoss({
+      generated_at: '2026-11-02T03:24:16Z', currency: 'USD', from: '2026-01-01', to: '2026-02-28', comparison: null, filtered: false,
+      breakdown: { dimension: { id: D1, code: 'DEPT', name: 'Department' }, columns: cols },
+      sections: [{ key: 'operating_revenue', title: 'Revenue', lines: [{ account: acct('4000', 'Sales'), amount: m(130000), by_dimension: [m(100000), m(30000)] }], total: { amount: m(130000), by_dimension: [m(100000), m(30000)] } }],
+      subtotals: { gross_profit: { amount: m(1), by_dimension: [m(1), m(0)] }, operating_profit: { amount: m(1), by_dimension: [m(1), m(0)] }, net_profit: { amount: m(1), by_dimension: [m(1), m(0)] } },
+    });
+    expect(pl.breakdown?.columns.map((c) => c?.name ?? 'Untagged')).toEqual(['Sales', 'Untagged']);
+    expect(pl.sections[0].lines[0].byDimension).toEqual([100000, 30000]);
+    expect(pl.netProfit.byDimension).toEqual([1, 0]);
+  });
+  it('maps trial balance cells and column totals', () => {
+    const tb = parseTrialBalance({
+      generated_at: '2026-11-02T03:24:16Z', report: 'trial_balance', mode: 'as_of', currency: 'USD', as_of: '2026-02-28',
+      breakdown: { dimension: { id: D1, code: 'DEPT', name: 'Department' }, columns: cols },
+      rows: [{ account: acct('1000', 'Cash'), debit: m(5), credit: m(0), by_dimension: [m(7), m(-2)] }],
+      totals: { debit: m(5), credit: m(0), by_dimension: [m(7), m(-2)] }, balanced: true, filtered: false,
+    });
+    expect(tb.rows[0].byDimension).toEqual([7, -2]);
+    expect(tb.totalsByDimension).toEqual([7, -2]);
+  });
+  it('sends the dimension as breakdown', () => {
+    const sel = { when: { kind: 'asof' as const, date: '2026-02-28' }, basis: 'month' as const, comparison: 'none' as const, hideZero: false, dims: {}, breakdown: D1 };
+    expect(selectionQuery(sel)).toMatchObject({ as_of: '2026-02-28', breakdown: D1 });
+  });
+});
+
 describe('balance sheet (D9 gross presentation, D13 equity by fund)', () => {
   const fund = { id: V1, code: 'RESTR', name: 'Donor restricted' };
   const body = {

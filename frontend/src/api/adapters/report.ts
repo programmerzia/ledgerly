@@ -99,6 +99,8 @@ export interface ReportSelection {
   dims: Record<string, string>;
   accountId?: string;
   contactId?: string;
+  /** Dimension id whose values become columns (trial balance as of a date, profit and loss). */
+  breakdown?: string;
   /** Trial balance: `movement` adds opening, debit and credit movement and closing over the chosen range. */
   view?: 'movement';
 }
@@ -124,6 +126,7 @@ export function selectionQuery(sel: ReportSelection, opts: { basis?: boolean; co
   if (sel.accountId) q.account_id = sel.accountId;
   if (sel.contactId) q.contact_id = sel.contactId;
   if (sel.view) q.view = sel.view;
+  if (sel.breakdown) q.breakdown = sel.breakdown;
   return q;
 }
 
@@ -151,6 +154,8 @@ export interface Figure {
   variance?: number;
   /** Server-formatted percentage with one decimal ("12.5"), or null when there was nothing to divide by. */
   variancePct?: string | null;
+  /** Breakdown by dimension: the amount in each column, in the breakdown's column order. */
+  byDimension?: number[];
 }
 
 function figure(v: unknown, what: string): Figure {
@@ -159,7 +164,27 @@ function figure(v: unknown, what: string): Figure {
   if ('comparison' in o && isRec(o.comparison)) f.comparison = mon(o.comparison, `${what}.comparison`);
   if ('variance' in o && isRec(o.variance)) f.variance = mon(o.variance, `${what}.variance`);
   if ('variance_pct' in o) f.variancePct = optStr(o.variance_pct);
+  if (Array.isArray(o.by_dimension)) f.byDimension = o.by_dimension.map((c, i) => mon(c, `${what}.by_dimension[${i}]`));
   return f;
+}
+
+/** 3c.19: one dimension's values as columns; the last column is `null`, the lines with no value ("untagged"). */
+export interface Breakdown {
+  dimension: { id: string; code: string; name: string };
+  columns: Array<{ id: string; code: string; name: string } | null>;
+}
+
+function parseBreakdown(v: unknown): Breakdown | null {
+  if (!isRec(v)) return null;
+  const d = rec(v.dimension, 'breakdown.dimension');
+  return {
+    dimension: { id: str(d.id, 'dimension.id'), code: str(d.code, 'dimension.code'), name: str(d.name, 'dimension.name') },
+    columns: list(v.columns, 'breakdown.columns').map((c) => {
+      const value = rec(c, 'column').value;
+      if (!isRec(value)) return null;
+      return { id: str(value.id, 'value.id'), code: str(value.code, 'value.code'), name: str(value.name, 'value.name') };
+    }),
+  };
 }
 
 export interface FundRef {
@@ -211,6 +236,8 @@ export interface TrialBalanceRow {
   opening?: DebitCredit;
   movement?: DebitCredit;
   closing?: DebitCredit;
+  /** As-of with a breakdown: net (debit less credit) per column. */
+  byDimension?: number[];
   drills?: { opening?: DrillKey; movement?: DrillKey; closing?: DrillKey };
 }
 export interface TrialBalanceView extends Head {
@@ -228,6 +255,9 @@ export interface TrialBalanceView extends Head {
   balanced: boolean;
   /** A dimension filter selects part of each journal, so the sides can legitimately differ. */
   filtered: boolean;
+  /** As-of with a breakdown: the columns and each column's net total (debit less credit). */
+  breakdown?: Breakdown | null;
+  totalsByDimension?: number[];
 }
 
 function debitCredit(v: unknown, what: string): DebitCredit {
@@ -273,12 +303,16 @@ export function parseTrialBalance(data: unknown): TrialBalanceView {
     asOf: str(o.as_of, 'as_of'),
     rows: list(o.rows, 'rows').map((r) => {
       const row = rec(r, 'row');
-      return { account: accountRef(row.account, 'row.account'), debit: mon(row.debit, 'row.debit'), credit: mon(row.credit, 'row.credit'), drill: toDrillKey(row.drill) };
+      const out: TrialBalanceRow = { account: accountRef(row.account, 'row.account'), debit: mon(row.debit, 'row.debit'), credit: mon(row.credit, 'row.credit'), drill: toDrillKey(row.drill) };
+      if (Array.isArray(row.by_dimension)) out.byDimension = row.by_dimension.map((c, i) => mon(c, `row.by_dimension[${i}]`));
+      return out;
     }),
     totalDebit: mon(totals.debit, 'totals.debit'),
     totalCredit: mon(totals.credit, 'totals.credit'),
     balanced: bool(o.balanced),
     filtered: bool(o.filtered),
+    breakdown: parseBreakdown(o.breakdown),
+    totalsByDimension: Array.isArray(totals.by_dimension) ? totals.by_dimension.map((c, i) => mon(c, `totals.by_dimension[${i}]`)) : undefined,
   };
 }
 
@@ -305,6 +339,7 @@ export interface ProfitAndLossView extends Head {
   operatingProfit: Figure;
   netProfit: Figure;
   filtered: boolean;
+  breakdown: Breakdown | null;
 }
 
 export function parseProfitAndLoss(data: unknown): ProfitAndLossView {
@@ -331,6 +366,7 @@ export function parseProfitAndLoss(data: unknown): ProfitAndLossView {
     operatingProfit: figure(sub.operating_profit, 'operating_profit'),
     netProfit: figure(sub.net_profit, 'net_profit'),
     filtered: bool(o.filtered),
+    breakdown: parseBreakdown(o.breakdown),
   };
 }
 

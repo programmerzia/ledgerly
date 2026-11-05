@@ -40,6 +40,8 @@ final class ReportRequest extends CompanyRequest
             'comparison' => ['nullable', 'string', Rule::in(['none', 'previous_period', 'previous_year'])],
             /** Dimension id → a value id or a list of them; withValidator checks the shape. */
             'dimensions' => ['nullable', 'array', 'max:8'],
+            /** Trial balance (as of) and profit and loss: a dimension id whose values become columns, plus an untagged column. */
+            'breakdown' => ['nullable', 'uuid'],
             'hide_zero' => ['nullable', 'boolean'],
             'account_id' => ['nullable', 'uuid'],
             'exclude_closing' => ['nullable', 'boolean'],

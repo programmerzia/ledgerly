@@ -120,7 +120,7 @@ export const LiveReportShell: React.FC<LiveReportShellProps> = ({
           </SelectBox>
         )}
         {params.comparison && (
-          <SelectBox aria-label="Compare with" value={selection.comparison} onChange={(e) => onChange({ ...selection, comparison: e.target.value as Comparison })}>
+          <SelectBox aria-label="Compare with" disabled={Boolean(selection.breakdown)} title={selection.breakdown ? 'A breakdown by dimension cannot be compared with another period.' : undefined} value={selection.comparison} onChange={(e) => onChange({ ...selection, comparison: e.target.value as Comparison })}>
             <option value="none">No comparison</option>
             <option value="previous_period">Previous period</option>
             <option value="previous_year">Same time last year</option>
@@ -145,6 +145,18 @@ export const LiveReportShell: React.FC<LiveReportShellProps> = ({
               ))}
             </SelectBox>
           ))}
+        {params.breakdown && dims.length > 0 && selection.view !== 'movement' && (
+          <SelectBox
+            aria-label="Break down by"
+            value={selection.breakdown ?? ''}
+            onChange={(e) => onChange({ ...selection, breakdown: e.target.value || undefined, comparison: e.target.value ? 'none' : selection.comparison })}
+          >
+            <option value="">No breakdown</option>
+            {dims.map((d) => (
+              <option key={d.id} value={d.id}>By {d.name}</option>
+            ))}
+          </SelectBox>
+        )}
         {toolbar}
         {params.hideZero && (
           <CheckToggle checked={selection.hideZero} onChange={(v) => onChange({ ...selection, hideZero: v })}>
