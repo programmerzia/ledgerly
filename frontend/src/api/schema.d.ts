@@ -1595,6 +1595,42 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/companies/{company}/dunning": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["dunning.show"];
+        put: operations["dunning.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/dunning/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * What a run on `?date=` (default: tomorrow, by the company's own calendar) would send, one row per invoice. A contact with no
+         *     email address is listed and flagged (`will_send` false). With reminders off the list is empty
+         */
+        get: operations["dunning.preview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/companies/{company}/fx-rates": {
         parameters: {
             query?: never;
@@ -2230,6 +2266,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/companies/{company}/invoices/{invoice}/share-links": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The invoice's links, newest first */
+        get: operations["invoices.share-links.index"];
+        put?: never;
+        /** Make a link. `data.url` is the only time the address is shown */
+        post: operations["invoices.share-links.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/invoices/{link}/share-links/{link}/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Revoke a link: its address stops working at once. Revoking twice is fine */
+        post: operations["invoices.share-links.revoke"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/companies/{company}/items": {
         parameters: {
             query?: never;
@@ -2479,6 +2550,55 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/companies/{company}/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** `?unread=1` keeps unread ones only. `meta.unread_count` is always the person's full unread count */
+        get: operations["notifications.index"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/notifications/read-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["notifications.read-all"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/notifications/{notification}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["notifications.read"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/auth/user/password": {
         parameters: {
             query?: never;
@@ -2722,6 +2842,43 @@ export interface paths {
         get?: never;
         /** Update the user's profile information */
         put: operations["user-profile-information.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/public/invoices/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The invoice, its status and balance due, and how to pay. Opening it is logged */
+        get: operations["public.invoices.show"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/public/invoices/{token}/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The invoice as a PDF. 202 `{data: {status}}` while it is being made (ask again in a moment), 200 with the file when ready,
+         *     200 `{data: {status: failed}}` if it could not be made (add `?retry=1` to try again)
+         */
+        get: operations["public.invoices.pdf"];
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -3777,6 +3934,47 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/companies/{company}/statement-run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Customers with a balance at the end of the period, with `has_email` (a customer without one is flagged and cannot be sent to),
+         *     when a statement last went out, and the company's hourly email allowance in `meta.allowance`
+         */
+        get: operations["statement-run.index"];
+        put?: never;
+        /**
+         * Send the chosen customers' statements. 200 with one result per customer (`queued`, `skipped` or `failed`, with a reason), or
+         *     422 `statement_run_over_limit` with nothing sent when the run is larger than this hour's allowance
+         */
+        post: operations["statement-run.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/statement-run/sends": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** How the queued statements ended (`queued`, `sent` or `failed`): poll with the `send_id`s of a run */
+        get: operations["statement-run.sends"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/companies/{company}/tax-codes": {
         parameters: {
             query?: never;
@@ -4359,6 +4557,8 @@ export interface components {
             source: "any" | "user" | "api";
             min_amount: number;
             max_amount?: number | null;
+            /** @description Hours (1 to 720) a document may wait on its current step before its approvers are reminded; empty: no reminders. */
+            remind_after_hours?: number | null;
             steps: {
                 role: string;
                 count?: number | null;
@@ -4380,6 +4580,8 @@ export interface components {
                 currency: string;
             } | null;
             steps: unknown[];
+            /** @description Hours before the current step's approvers are reminded (then once per further interval); null: no reminders. */
+            remind_after_hours: number | null;
             is_active: boolean;
             version: number;
             can: {
@@ -4872,8 +5074,13 @@ export interface components {
                 footer_text: string;
                 payment_instructions: string;
                 has_logo: boolean;
+                /** @description Display name on outgoing mail (empty: the company name) and the address replies go to (empty: none). */
+                sender_name: string;
+                reply_to: string;
+                /** @description The address mail is sent from. It is fixed by the platform: a customer's own domain would fail SPF and DKIM. */
+                from_address: string;
             };
-            /** @description Subject and body per family (invoice, credit_note, statement, payment_advice), defaults filled in. */
+            /** @description Subject and body per family (invoice, credit_note, statement, payment_advice, receipt), defaults filled in. */
             email_templates: {
                 [key: string]: {
                     subject: string;
@@ -4898,6 +5105,10 @@ export interface components {
                 total: "Document total with currency";
                 /** @constant */
                 amount_due: "Amount still unpaid, with currency";
+                /** @constant */
+                days_overdue: "Days past the due date (overdue reminders)";
+                /** @constant */
+                invoice_link: "Online link to view and download the invoice (invoices only; making it needs the right to share)";
                 /** @constant */
                 period_from: "Statement start date";
                 /** @constant */
@@ -4949,6 +5160,8 @@ export interface components {
             default_branch?: string | null;
             default_dims?: string[] | null;
             notes?: string | null;
+            /** @description Do not send this contact overdue-invoice reminders. Left out: unchanged. */
+            dunning_opt_out?: boolean;
             version?: number;
         };
         /** ContactResource */
@@ -4985,6 +5198,7 @@ export interface components {
             };
             is_active: boolean;
             notes: string | null;
+            dunning_opt_out: boolean;
             balances?: {
                 receivable: {
                     amount: number;
@@ -5048,6 +5262,14 @@ export interface components {
             name: string;
             /** Format: date */
             starts_on: string;
+        };
+        /**
+         * CreateInvoiceLinkRequest
+         * @description Make an online link; it can be given a lifetime in days, or none.
+         */
+        CreateInvoiceLinkRequest: {
+            /** @description Days the link works for (1 to 365); empty: until revoked. */
+            expires_in_days?: number | null;
         };
         /** CreditApplicationResource */
         CreditApplicationResource: {
@@ -5182,6 +5404,86 @@ export interface components {
             queued_by_name: string | null;
             queued_at: string | null;
             sent_at: string | null;
+        };
+        /** DunningPreviewResource */
+        DunningPreviewResource: {
+            invoice_id: string;
+            number: string | null;
+            contact_id: string;
+            contact_name: string;
+            email: string | null;
+            stage_days: number;
+            days_overdue: number;
+            amount_due: {
+                amount: number;
+                currency: string;
+            };
+            /** @description False when the contact has no email address: the reminder is skipped and the row is flagged. */
+            will_send: boolean;
+        };
+        /**
+         * DunningRequest
+         * @description Replace the overdue-invoice reminder settings: on or off, and the whole list of stages.
+         */
+        DunningRequest: {
+            enabled: boolean;
+            stages: {
+                /** Format: uuid */
+                id?: string | null;
+                days_after_due: number;
+                subject: string;
+                body: string;
+            }[];
+            /** @description Send what you loaded: a stale value answers 409. */
+            version?: number;
+        };
+        /** DunningSettingsResource */
+        DunningSettingsResource: {
+            enabled: boolean;
+            stages: {
+                id: string;
+                days_after_due: number;
+                subject: string;
+                body: string;
+                sent_count: number;
+            }[];
+            /** @description The only `{{ placeholders }}` the wording may use, with what each stands for. */
+            placeholders: {
+                /** @constant */
+                company_name: "Your company name";
+                /** @constant */
+                contact_name: "The customer or supplier";
+                /** @constant */
+                document_number: "Invoice, credit note or payment number";
+                /** @constant */
+                document_type: "Invoice, Credit note, Statement or Payment advice";
+                /** @constant */
+                issue_date: "Date of the document";
+                /** @constant */
+                due_date: "Due date (invoices)";
+                /** @constant */
+                total: "Document total with currency";
+                /** @constant */
+                amount_due: "Amount still unpaid, with currency";
+                /** @constant */
+                days_overdue: "Days past the due date (overdue reminders)";
+                /** @constant */
+                invoice_link: "Online link to view and download the invoice (invoices only; making it needs the right to share)";
+                /** @constant */
+                period_from: "Statement start date";
+                /** @constant */
+                period_to: "Statement end date";
+                /** @constant */
+                closing_balance: "Statement closing balance";
+                /** @constant */
+                sender_name: "The person sending";
+                /** @constant */
+                payment_instructions: "Payment instructions from your document settings";
+            };
+            version: number;
+            can: {
+                [key: string]: boolean;
+            };
         };
         /**
          * ExchangeRateRequest
@@ -5669,6 +5971,21 @@ export interface components {
                 [key: string]: boolean;
             };
         };
+        /** InvoiceShareLinkResource */
+        InvoiceShareLinkResource: {
+            id: string;
+            /** @description active, expired or revoked */
+            status: string;
+            /** @description manual (made on the invoice page) or email (made when an email with the link went out) */
+            channel: string;
+            created_at: string | null;
+            created_by_name: string | null;
+            expires_at: string | null;
+            revoked_at: string | null;
+            /** @description How many times the page or its PDF was opened. */
+            view_count: number;
+            last_viewed_at: string | null;
+        };
         /**
          * ItemRequest
          * @description Create (POST) and replace (PUT, with the `version` it was based on) an item. Prices are whole minor units of its currency.
@@ -6013,6 +6330,49 @@ export interface components {
                     as_of: string | null;
                 }[];
             }[];
+        };
+        /** PublicInvoiceResource */
+        PublicInvoiceResource: {
+            company_name: string;
+            bill_to: string;
+            number: string;
+            issue_date: string;
+            due_date: string;
+            currency: string;
+            status: string;
+            balance_due: {
+                amount: number;
+                currency: string;
+            } | null;
+            subtotal: {
+                amount: number;
+                currency: string;
+            };
+            tax_total: {
+                amount: number;
+                currency: string;
+            };
+            total: {
+                amount: number;
+                currency: string;
+            };
+            lines: {
+                description: string | null;
+                quantity: string;
+                unit_price: {
+                    amount: number;
+                    currency: string;
+                };
+                line_total: {
+                    amount: number;
+                    currency: string;
+                };
+                tax_amount: {
+                    amount: number;
+                    currency: string;
+                };
+            }[];
+            payment_instructions: string;
         };
         /** PurchaseOrderLineResource */
         PurchaseOrderLineResource: {
@@ -6476,6 +6836,14 @@ export interface components {
             /** Format: email */
             email: string;
         };
+        /** SendStatusResource */
+        SendStatusResource: {
+            id: string;
+            contact_id: string | null;
+            /** @description queued, sent (the mail server accepted it) or failed */
+            status: string;
+            error: string | null;
+        };
         /** SessionResource */
         SessionResource: {
             id: string;
@@ -6584,6 +6952,50 @@ export interface components {
         SigningGrantResource: {
             granted: boolean;
             expires_at: string;
+        };
+        /** StatementRunCustomerResource */
+        StatementRunCustomerResource: {
+            contact_id: string;
+            code: string;
+            name: string;
+            email: string | null;
+            /** @description False when the customer has no email address: flagged in the list and skipped by the run. */
+            has_email: boolean;
+            /** @description Receivable balance at the end of the period, in the company's base currency; negative is a credit. */
+            balance: {
+                amount: number;
+                currency: string;
+            };
+            last_sent_at: string | null;
+        };
+        /**
+         * StatementRunRequest
+         * @description The period of a statement run, as a date or an explicit period; a POST also names the customers.
+         */
+        StatementRunRequest: {
+            /**
+             * @description `as_of`: the three months ending on `as_of`; `period`: exactly `from` to `to`.
+             * @enum {string}
+             */
+            basis: "as_of" | "period";
+            /** Format: date */
+            as_of?: string | null;
+            /** Format: date */
+            from?: string | null;
+            /** Format: date */
+            to?: string | null;
+            contact_ids: string[];
+        };
+        /** StatementRunResultResource */
+        StatementRunResultResource: {
+            contact_id: string;
+            name: string;
+            /** @description queued (on its way; follow it with `send_id`), skipped (no email, no balance, not a customer) or failed (the send path refused it). */
+            status: string;
+            code: string | null;
+            /** @description In plain words, for skipped and failed. */
+            reason: string | null;
+            send_id: string | null;
         };
         /**
          * SubmitBillRequest
@@ -6734,6 +7146,21 @@ export interface components {
             mime: "application/pdf" | "image/png" | "image/jpeg" | "image/gif" | "image/webp" | "text/plain" | "text/csv" | "application/vnd.openxmlformats-officedocument.wordprocessingml.document" | "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
             size: number;
             sha256: string;
+        };
+        /** UserNotificationResource */
+        UserNotificationResource: {
+            id: string;
+            /** @description approval_requested, approval_reminder, document_approved, document_returned, import_finished, import_failed, report_ready, send_failed */
+            kind: string;
+            title: string;
+            body: string | null;
+            subject_type: string | null;
+            subject_id: string | null;
+            /** @description Path inside the company; the SPA puts the company in front. */
+            link: string | null;
+            read: boolean;
+            read_at: string | null;
+            created_at: string | null;
         };
         /**
          * VersionRequest
@@ -9969,7 +10396,7 @@ export interface operations {
                     "application/json": {
                         data: {
                             /** @enum {string} */
-                            document_type: "credit_note" | "invoice" | "payment_advice" | "statement";
+                            document_type: "credit_note" | "invoice" | "receipt" | "payment_advice" | "statement";
                             recipients: string[] | [
                                 string | null
                             ];
@@ -9977,6 +10404,8 @@ export interface operations {
                             body: string;
                             contact_name: string;
                             can_send: boolean;
+                            /** @description May add an online link to the message (the invoice_link placeholder): invoices only, and needs the right to share. */
+                            can_share: boolean;
                         };
                     };
                 };
@@ -10078,7 +10507,7 @@ export interface operations {
                     "application/json": {
                         data: {
                             /** @enum {string} */
-                            document_type: "credit_note" | "invoice" | "payment_advice" | "statement";
+                            document_type: "credit_note" | "invoice" | "receipt" | "payment_advice" | "statement";
                             recipients: string[] | [
                                 string | null
                             ];
@@ -10086,6 +10515,8 @@ export interface operations {
                             body: string;
                             contact_name: string;
                             can_send: boolean;
+                            /** @description May add an online link to the message (the invoice_link placeholder): invoices only, and needs the right to share. */
+                            can_share: boolean;
                         };
                     };
                 };
@@ -10187,7 +10618,7 @@ export interface operations {
                     "application/json": {
                         data: {
                             /** @enum {string} */
-                            document_type: "credit_note" | "invoice" | "payment_advice" | "statement";
+                            document_type: "credit_note" | "invoice" | "receipt" | "payment_advice" | "statement";
                             recipients: string[] | [
                                 string | null
                             ];
@@ -10195,6 +10626,8 @@ export interface operations {
                             body: string;
                             contact_name: string;
                             can_send: boolean;
+                            /** @description May add an online link to the message (the invoice_link placeholder): invoices only, and needs the right to share. */
+                            can_share: boolean;
                         };
                     };
                 };
@@ -10786,6 +11219,102 @@ export interface operations {
             401: components["responses"]["AuthenticationException"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "dunning.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `DunningSettingsResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["DunningSettingsResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "dunning.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DunningRequest"];
+            };
+        };
+        responses: {
+            /** @description `DunningSettingsResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["DunningSettingsResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "dunning.preview": {
+        parameters: {
+            query?: {
+                date?: string;
+            };
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `DunningPreviewResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["DunningPreviewResource"][];
+                        meta: {
+                            date: string;
+                            enabled: boolean;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
         };
     };
     "fx-rates.index": {
@@ -12318,6 +12847,103 @@ export interface operations {
             422: components["responses"]["ValidationException"];
         };
     };
+    "invoices.share-links.index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The invoice ID */
+                invoice: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `InvoiceShareLinkResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["InvoiceShareLinkResource"][];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "invoices.share-links.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The invoice ID */
+                invoice: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["CreateInvoiceLinkRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            url: string;
+                        } & {
+                            [key: string]: unknown;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "invoices.share-links.revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                link: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `InvoiceShareLinkResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["InvoiceShareLinkResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
     "items.index": {
         parameters: {
             query?: {
@@ -12986,6 +13612,104 @@ export interface operations {
             422: components["responses"]["ValidationException"];
         };
     };
+    "notifications.index": {
+        parameters: {
+            query?: {
+                unread?: boolean;
+                /** @description Opaque, from `meta.next_cursor` or `meta.prev_cursor`. */
+                cursor?: string;
+                /** @description Page size, 1 to 200; default 50. */
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `UserNotificationResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["UserNotificationResource"][];
+                        meta: {
+                            next_cursor: string | null;
+                            prev_cursor: string | null;
+                            limit: number;
+                            unread_count: number;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "notifications.read-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            marked: number;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "notifications.read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                notification: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `UserNotificationResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["UserNotificationResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
     "user-password.update": {
         parameters: {
             query?: never;
@@ -13501,6 +14225,51 @@ export interface operations {
                 };
             };
             401: components["responses"]["AuthenticationException"];
+        };
+    };
+    "public.invoices.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `PublicInvoiceResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PublicInvoiceResource"];
+                    };
+                };
+            };
+        };
+    };
+    "public.invoices.pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
         };
     };
     "purchase-orders.index": {
@@ -16314,6 +17083,124 @@ export interface operations {
             };
             401: components["responses"]["AuthenticationException"];
             403: components["responses"]["AuthorizationException"];
+        };
+    };
+    "statement-run.index": {
+        parameters: {
+            query: {
+                /** @description `as_of`: the three months ending on `as_of`; `period`: exactly `from` to `to`. */
+                basis: "as_of" | "period";
+                as_of?: string | null;
+                from?: string | null;
+                to?: string | null;
+                "contact_ids[]"?: string[];
+            };
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `StatementRunCustomerResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["StatementRunCustomerResource"][];
+                        meta: {
+                            from: string;
+                            to: string;
+                            allowance: {
+                                used: number;
+                                limit: number;
+                                remaining: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "statement-run.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StatementRunRequest"];
+            };
+        };
+        responses: {
+            /** @description Array of `StatementRunResultResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["StatementRunResultResource"][];
+                        meta: {
+                            queued: number;
+                            not_sent: number;
+                            allowance: {
+                                used: number;
+                                limit: number;
+                                remaining: unknown;
+                            };
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "statement-run.sends": {
+        parameters: {
+            query?: {
+                "ids[]"?: string[];
+            };
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `SendStatusResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["SendStatusResource"][];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
         };
     };
     "tax-codes.index": {

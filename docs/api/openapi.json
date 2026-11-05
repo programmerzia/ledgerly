@@ -6633,6 +6633,7 @@
                                                     "enum": [
                                                         "credit_note",
                                                         "invoice",
+                                                        "receipt",
                                                         "payment_advice",
                                                         "statement"
                                                     ]
@@ -6673,6 +6674,10 @@
                                                 },
                                                 "can_send": {
                                                     "type": "boolean"
+                                                },
+                                                "can_share": {
+                                                    "type": "boolean",
+                                                    "description": "May add an online link to the message (the invoice_link placeholder): invoices only, and needs the right to share."
                                                 }
                                             },
                                             "required": [
@@ -6681,7 +6686,8 @@
                                                 "subject",
                                                 "body",
                                                 "contact_name",
-                                                "can_send"
+                                                "can_send",
+                                                "can_share"
                                             ]
                                         }
                                     },
@@ -6907,6 +6913,7 @@
                                                     "enum": [
                                                         "credit_note",
                                                         "invoice",
+                                                        "receipt",
                                                         "payment_advice",
                                                         "statement"
                                                     ]
@@ -6947,6 +6954,10 @@
                                                 },
                                                 "can_send": {
                                                     "type": "boolean"
+                                                },
+                                                "can_share": {
+                                                    "type": "boolean",
+                                                    "description": "May add an online link to the message (the invoice_link placeholder): invoices only, and needs the right to share."
                                                 }
                                             },
                                             "required": [
@@ -6955,7 +6966,8 @@
                                                 "subject",
                                                 "body",
                                                 "contact_name",
-                                                "can_send"
+                                                "can_send",
+                                                "can_share"
                                             ]
                                         }
                                     },
@@ -7181,6 +7193,7 @@
                                                     "enum": [
                                                         "credit_note",
                                                         "invoice",
+                                                        "receipt",
                                                         "payment_advice",
                                                         "statement"
                                                     ]
@@ -7221,6 +7234,10 @@
                                                 },
                                                 "can_send": {
                                                     "type": "boolean"
+                                                },
+                                                "can_share": {
+                                                    "type": "boolean",
+                                                    "description": "May add an online link to the message (the invoice_link placeholder): invoices only, and needs the right to share."
                                                 }
                                             },
                                             "required": [
@@ -7229,7 +7246,8 @@
                                                 "subject",
                                                 "body",
                                                 "contact_name",
-                                                "can_send"
+                                                "can_send",
+                                                "can_share"
                                             ]
                                         }
                                     },
@@ -8751,6 +8769,192 @@
                                 }
                             }
                         }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/v1/companies/{company}/dunning": {
+            "get": {
+                "operationId": "dunning.show",
+                "tags": [
+                    "Dunning"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`DunningSettingsResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/DunningSettingsResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            },
+            "put": {
+                "operationId": "dunning.update",
+                "tags": [
+                    "Dunning"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DunningRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`DunningSettingsResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/DunningSettingsResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/v1/companies/{company}/dunning/preview": {
+            "get": {
+                "operationId": "dunning.preview",
+                "summary": "What a run on `?date=` (default: tomorrow, by the company's own calendar) would send, one row per invoice. A contact with no\nemail address is listed and flagged (`will_send` false). With reminders off the list is empty",
+                "tags": [
+                    "Dunning"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "date",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of `DunningPreviewResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/DunningPreviewResource"
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "date": {
+                                                    "type": "string"
+                                                },
+                                                "enabled": {
+                                                    "type": "boolean"
+                                                }
+                                            },
+                                            "required": [
+                                                "date",
+                                                "enabled"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
                     },
                     "404": {
                         "$ref": "#/components/responses/ModelNotFoundException"
@@ -12311,6 +12515,201 @@
                 }
             }
         },
+        "/v1/companies/{company}/invoices/{invoice}/share-links": {
+            "get": {
+                "operationId": "invoices.share-links.index",
+                "summary": "The invoice's links, newest first",
+                "tags": [
+                    "InvoiceShareLink"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "invoice",
+                        "in": "path",
+                        "required": true,
+                        "description": "The invoice ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of `InvoiceShareLinkResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/InvoiceShareLinkResource"
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            },
+            "post": {
+                "operationId": "invoices.share-links.store",
+                "summary": "Make a link. `data.url` is the only time the address is shown",
+                "tags": [
+                    "InvoiceShareLink"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "invoice",
+                        "in": "path",
+                        "required": true,
+                        "description": "The invoice ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateInvoiceLinkRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "url": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "url"
+                                            ],
+                                            "additionalProperties": {}
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/v1/companies/{company}/invoices/{link}/share-links/{link}/revoke": {
+            "post": {
+                "operationId": "invoices.share-links.revoke",
+                "summary": "Revoke a link: its address stops working at once. Revoking twice is fine",
+                "tags": [
+                    "InvoiceShareLink"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "link",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`InvoiceShareLinkResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/InvoiceShareLinkResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
         "/v1/companies/{company}/items": {
             "get": {
                 "operationId": "items.index",
@@ -13824,6 +14223,225 @@
                 }
             }
         },
+        "/v1/companies/{company}/notifications": {
+            "get": {
+                "operationId": "notifications.index",
+                "summary": "`?unread=1` keeps unread ones only. `meta.unread_count` is always the person's full unread count",
+                "tags": [
+                    "Notification"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "unread",
+                        "in": "query",
+                        "schema": {
+                            "type": "boolean",
+                            "default": false
+                        }
+                    },
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "description": "Opaque, from `meta.next_cursor` or `meta.prev_cursor`.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Page size, 1 to 200; default 50.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of `UserNotificationResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/UserNotificationResource"
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "next_cursor": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "prev_cursor": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "limit": {
+                                                    "type": "integer"
+                                                },
+                                                "unread_count": {
+                                                    "type": "integer",
+                                                    "minimum": 0
+                                                }
+                                            },
+                                            "required": [
+                                                "next_cursor",
+                                                "prev_cursor",
+                                                "limit",
+                                                "unread_count"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/v1/companies/{company}/notifications/read-all": {
+            "post": {
+                "operationId": "notifications.read-all",
+                "tags": [
+                    "Notification"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "marked": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "required": [
+                                                "marked"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/v1/companies/{company}/notifications/{notification}/read": {
+            "post": {
+                "operationId": "notifications.read",
+                "tags": [
+                    "Notification"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "notification",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`UserNotificationResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/UserNotificationResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
         "/v1/auth/user/password": {
             "put": {
                 "operationId": "user-password.update",
@@ -14932,6 +15550,76 @@
                     },
                     "401": {
                         "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/v1/public/invoices/{token}": {
+            "get": {
+                "operationId": "public.invoices.show",
+                "summary": "The invoice, its status and balance due, and how to pay. Opening it is logged",
+                "tags": [
+                    "PublicInvoice"
+                ],
+                "parameters": [
+                    {
+                        "name": "token",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`PublicInvoiceResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/PublicInvoiceResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/public/invoices/{token}/pdf": {
+            "get": {
+                "operationId": "public.invoices.pdf",
+                "summary": "The invoice as a PDF. 202 `{data: {status}}` while it is being made (ask again in a moment), 200 with the file when ready,\n200 `{data: {status: failed}}` if it could not be made (add `?retry=1` to try again)",
+                "tags": [
+                    "PublicInvoice"
+                ],
+                "parameters": [
+                    {
+                        "name": "token",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -22582,6 +23270,319 @@
                 }
             }
         },
+        "/v1/companies/{company}/statement-run": {
+            "get": {
+                "operationId": "statement-run.index",
+                "summary": "Customers with a balance at the end of the period, with `has_email` (a customer without one is flagged and cannot be sent to),\nwhen a statement last went out, and the company's hourly email allowance in `meta.allowance`",
+                "tags": [
+                    "StatementRun"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "basis",
+                        "in": "query",
+                        "required": true,
+                        "description": "`as_of`: the three months ending on `as_of`; `period`: exactly `from` to `to`.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "as_of",
+                                "period"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "as_of",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "from",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "to",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "contact_ids[]",
+                        "in": "query",
+                        "schema": {
+                            "type": "array",
+                            "format": "uuid",
+                            "items": {
+                                "type": "string",
+                                "format": "uuid"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of `StatementRunCustomerResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/StatementRunCustomerResource"
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "from": {
+                                                    "type": "string"
+                                                },
+                                                "to": {
+                                                    "type": "string"
+                                                },
+                                                "allowance": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "used": {
+                                                            "type": "integer",
+                                                            "minimum": 0
+                                                        },
+                                                        "limit": {
+                                                            "type": "integer"
+                                                        },
+                                                        "remaining": {}
+                                                    },
+                                                    "required": [
+                                                        "used",
+                                                        "limit",
+                                                        "remaining"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "from",
+                                                "to",
+                                                "allowance"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            },
+            "post": {
+                "operationId": "statement-run.store",
+                "summary": "Send the chosen customers' statements. 200 with one result per customer (`queued`, `skipped` or `failed`, with a reason), or\n422 `statement_run_over_limit` with nothing sent when the run is larger than this hour's allowance",
+                "tags": [
+                    "StatementRun"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/StatementRunRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Array of `StatementRunResultResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/StatementRunResultResource"
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "queued": {
+                                                    "type": "integer"
+                                                },
+                                                "not_sent": {
+                                                    "type": "integer"
+                                                },
+                                                "allowance": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "used": {
+                                                            "type": "integer",
+                                                            "minimum": 0
+                                                        },
+                                                        "limit": {
+                                                            "type": "integer"
+                                                        },
+                                                        "remaining": {}
+                                                    },
+                                                    "required": [
+                                                        "used",
+                                                        "limit",
+                                                        "remaining"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "queued",
+                                                "not_sent",
+                                                "allowance"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/v1/companies/{company}/statement-run/sends": {
+            "get": {
+                "operationId": "statement-run.sends",
+                "summary": "How the queued statements ended (`queued`, `sent` or `failed`): poll with the `send_id`s of a run",
+                "tags": [
+                    "StatementRun"
+                ],
+                "parameters": [
+                    {
+                        "name": "company",
+                        "in": "path",
+                        "required": true,
+                        "description": "The company ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "ids[]",
+                        "in": "query",
+                        "schema": {
+                            "type": "array",
+                            "format": "uuid",
+                            "items": {
+                                "type": "string",
+                                "format": "uuid"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of `SendStatusResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/SendStatusResource"
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
         "/v1/companies/{company}/tax-codes": {
             "get": {
                 "operationId": "tax-codes.index",
@@ -25357,6 +26358,15 @@
                         ],
                         "maximum": 999999999999999
                     },
+                    "remind_after_hours": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
+                        "description": "Hours (1 to 720) a document may wait on its current step before its approvers are reminded; empty: no reminders.",
+                        "minimum": 1,
+                        "maximum": 720
+                    },
                     "steps": {
                         "type": "array",
                         "items": {
@@ -25451,6 +26461,13 @@
                         "type": "array",
                         "items": {}
                     },
+                    "remind_after_hours": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
+                        "description": "Hours before the current step's approvers are reminded (then once per further interval); null: no reminders."
+                    },
                     "is_active": {
                         "type": "boolean"
                     },
@@ -25472,6 +26489,7 @@
                     "min_amount",
                     "max_amount",
                     "steps",
+                    "remind_after_hours",
                     "is_active",
                     "version",
                     "can"
@@ -27407,18 +28425,32 @@
                             },
                             "has_logo": {
                                 "type": "boolean"
+                            },
+                            "sender_name": {
+                                "type": "string",
+                                "description": "Display name on outgoing mail (empty: the company name) and the address replies go to (empty: none)."
+                            },
+                            "reply_to": {
+                                "type": "string"
+                            },
+                            "from_address": {
+                                "type": "string",
+                                "description": "The address mail is sent from. It is fixed by the platform: a customer's own domain would fail SPF and DKIM."
                             }
                         },
                         "required": [
                             "accent_color",
                             "footer_text",
                             "payment_instructions",
-                            "has_logo"
+                            "has_logo",
+                            "sender_name",
+                            "reply_to",
+                            "from_address"
                         ]
                     },
                     "email_templates": {
                         "type": "object",
-                        "description": "Subject and body per family (invoice, credit_note, statement, payment_advice), defaults filled in.",
+                        "description": "Subject and body per family (invoice, credit_note, statement, payment_advice, receipt), defaults filled in.",
                         "additionalProperties": {
                             "type": "object",
                             "properties": {
@@ -27471,6 +28503,14 @@
                                 "type": "string",
                                 "const": "Amount still unpaid, with currency"
                             },
+                            "days_overdue": {
+                                "type": "string",
+                                "const": "Days past the due date (overdue reminders)"
+                            },
+                            "invoice_link": {
+                                "type": "string",
+                                "const": "Online link to view and download the invoice (invoices only; making it needs the right to share)"
+                            },
                             "period_from": {
                                 "type": "string",
                                 "const": "Statement start date"
@@ -27501,6 +28541,8 @@
                             "due_date",
                             "total",
                             "amount_due",
+                            "days_overdue",
+                            "invoice_link",
                             "period_from",
                             "period_to",
                             "closing_balance",
@@ -27697,6 +28739,10 @@
                         ],
                         "maxLength": 5000
                     },
+                    "dunning_opt_out": {
+                        "type": "boolean",
+                        "description": "Do not send this contact overdue-invoice reminders. Left out: unchanged."
+                    },
                     "version": {
                         "type": "integer",
                         "minimum": 0
@@ -27842,6 +28888,9 @@
                             "null"
                         ]
                     },
+                    "dunning_opt_out": {
+                        "type": "boolean"
+                    },
                     "balances": {
                         "type": "object",
                         "properties": {
@@ -27914,6 +28963,7 @@
                     "default_dims",
                     "is_active",
                     "notes",
+                    "dunning_opt_out",
                     "version",
                     "can"
                 ],
@@ -28093,6 +29143,22 @@
                     "starts_on"
                 ],
                 "title": "CreateFiscalYearRequest"
+            },
+            "CreateInvoiceLinkRequest": {
+                "type": "object",
+                "description": "Make an online link; it can be given a lifetime in days, or none.",
+                "properties": {
+                    "expires_in_days": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
+                        "description": "Days the link works for (1 to 365); empty: until revoked.",
+                        "minimum": 1,
+                        "maximum": 365
+                    }
+                },
+                "title": "CreateInvoiceLinkRequest"
             },
             "CreditApplicationResource": {
                 "type": "object",
@@ -28564,6 +29630,260 @@
                     "sent_at"
                 ],
                 "title": "DocumentSendResource"
+            },
+            "DunningPreviewResource": {
+                "type": "object",
+                "properties": {
+                    "invoice_id": {
+                        "type": "string"
+                    },
+                    "number": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "contact_id": {
+                        "type": "string"
+                    },
+                    "contact_name": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "stage_days": {
+                        "type": "integer"
+                    },
+                    "days_overdue": {
+                        "type": "integer"
+                    },
+                    "amount_due": {
+                        "type": "object",
+                        "properties": {
+                            "amount": {
+                                "type": "integer"
+                            },
+                            "currency": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "amount",
+                            "currency"
+                        ]
+                    },
+                    "will_send": {
+                        "type": "boolean",
+                        "description": "False when the contact has no email address: the reminder is skipped and the row is flagged."
+                    }
+                },
+                "required": [
+                    "invoice_id",
+                    "number",
+                    "contact_id",
+                    "contact_name",
+                    "email",
+                    "stage_days",
+                    "days_overdue",
+                    "amount_due",
+                    "will_send"
+                ],
+                "title": "DunningPreviewResource"
+            },
+            "DunningRequest": {
+                "type": "object",
+                "description": "Replace the overdue-invoice reminder settings: on or off, and the whole list of stages.",
+                "properties": {
+                    "enabled": {
+                        "type": "boolean"
+                    },
+                    "stages": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "id": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
+                                    "format": "uuid"
+                                },
+                                "days_after_due": {
+                                    "type": "integer",
+                                    "minimum": 1,
+                                    "maximum": 365
+                                },
+                                "subject": {
+                                    "type": "string",
+                                    "maxLength": 200
+                                },
+                                "body": {
+                                    "type": "string",
+                                    "maxLength": 5000
+                                }
+                            },
+                            "required": [
+                                "days_after_due",
+                                "subject",
+                                "body"
+                            ]
+                        },
+                        "maxItems": 6
+                    },
+                    "version": {
+                        "type": "integer",
+                        "description": "Send what you loaded: a stale value answers 409.",
+                        "minimum": 0
+                    }
+                },
+                "required": [
+                    "enabled",
+                    "stages"
+                ],
+                "title": "DunningRequest"
+            },
+            "DunningSettingsResource": {
+                "type": "object",
+                "properties": {
+                    "enabled": {
+                        "type": "boolean"
+                    },
+                    "stages": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "id": {
+                                    "type": "string"
+                                },
+                                "days_after_due": {
+                                    "type": "integer"
+                                },
+                                "subject": {
+                                    "type": "string"
+                                },
+                                "body": {
+                                    "type": "string"
+                                },
+                                "sent_count": {
+                                    "type": "integer"
+                                }
+                            },
+                            "required": [
+                                "id",
+                                "days_after_due",
+                                "subject",
+                                "body",
+                                "sent_count"
+                            ]
+                        }
+                    },
+                    "placeholders": {
+                        "type": "object",
+                        "description": "The only `{{ placeholders }}` the wording may use, with what each stands for.",
+                        "properties": {
+                            "company_name": {
+                                "type": "string",
+                                "const": "Your company name"
+                            },
+                            "contact_name": {
+                                "type": "string",
+                                "const": "The customer or supplier"
+                            },
+                            "document_number": {
+                                "type": "string",
+                                "const": "Invoice, credit note or payment number"
+                            },
+                            "document_type": {
+                                "type": "string",
+                                "const": "Invoice, Credit note, Statement or Payment advice"
+                            },
+                            "issue_date": {
+                                "type": "string",
+                                "const": "Date of the document"
+                            },
+                            "due_date": {
+                                "type": "string",
+                                "const": "Due date (invoices)"
+                            },
+                            "total": {
+                                "type": "string",
+                                "const": "Document total with currency"
+                            },
+                            "amount_due": {
+                                "type": "string",
+                                "const": "Amount still unpaid, with currency"
+                            },
+                            "days_overdue": {
+                                "type": "string",
+                                "const": "Days past the due date (overdue reminders)"
+                            },
+                            "invoice_link": {
+                                "type": "string",
+                                "const": "Online link to view and download the invoice (invoices only; making it needs the right to share)"
+                            },
+                            "period_from": {
+                                "type": "string",
+                                "const": "Statement start date"
+                            },
+                            "period_to": {
+                                "type": "string",
+                                "const": "Statement end date"
+                            },
+                            "closing_balance": {
+                                "type": "string",
+                                "const": "Statement closing balance"
+                            },
+                            "sender_name": {
+                                "type": "string",
+                                "const": "The person sending"
+                            },
+                            "payment_instructions": {
+                                "type": "string",
+                                "const": "Payment instructions from your document settings"
+                            }
+                        },
+                        "required": [
+                            "company_name",
+                            "contact_name",
+                            "document_number",
+                            "document_type",
+                            "issue_date",
+                            "due_date",
+                            "total",
+                            "amount_due",
+                            "days_overdue",
+                            "invoice_link",
+                            "period_from",
+                            "period_to",
+                            "closing_balance",
+                            "sender_name",
+                            "payment_instructions"
+                        ]
+                    },
+                    "version": {
+                        "type": "integer"
+                    },
+                    "can": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "boolean"
+                        }
+                    }
+                },
+                "required": [
+                    "enabled",
+                    "stages",
+                    "placeholders",
+                    "version",
+                    "can"
+                ],
+                "title": "DunningSettingsResource"
             },
             "ExchangeRateRequest": {
                 "type": "object",
@@ -30510,6 +31830,68 @@
                 ],
                 "title": "InvoiceResource"
             },
+            "InvoiceShareLinkResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string",
+                        "description": "active, expired or revoked"
+                    },
+                    "channel": {
+                        "type": "string",
+                        "description": "manual (made on the invoice page) or email (made when an email with the link went out)"
+                    },
+                    "created_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "created_by_name": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "expires_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "revoked_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "view_count": {
+                        "type": "integer",
+                        "description": "How many times the page or its PDF was opened."
+                    },
+                    "last_viewed_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    }
+                },
+                "required": [
+                    "id",
+                    "status",
+                    "channel",
+                    "created_at",
+                    "created_by_name",
+                    "expires_at",
+                    "revoked_at",
+                    "view_count",
+                    "last_viewed_at"
+                ],
+                "title": "InvoiceShareLinkResource"
+            },
             "ItemRequest": {
                 "type": "object",
                 "description": "Create (POST) and replace (PUT, with the `version` it was based on) an item. Prices are whole minor units of its currency.",
@@ -31923,6 +33305,183 @@
                     "practices"
                 ],
                 "title": "PracticeOverviewResource"
+            },
+            "PublicInvoiceResource": {
+                "type": "object",
+                "properties": {
+                    "company_name": {
+                        "type": "string"
+                    },
+                    "bill_to": {
+                        "type": "string"
+                    },
+                    "number": {
+                        "type": "string"
+                    },
+                    "issue_date": {
+                        "type": "string"
+                    },
+                    "due_date": {
+                        "type": "string"
+                    },
+                    "currency": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "balance_due": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "properties": {
+                            "amount": {
+                                "type": "integer"
+                            },
+                            "currency": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "amount",
+                            "currency"
+                        ]
+                    },
+                    "subtotal": {
+                        "type": "object",
+                        "properties": {
+                            "amount": {
+                                "type": "integer"
+                            },
+                            "currency": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "amount",
+                            "currency"
+                        ]
+                    },
+                    "tax_total": {
+                        "type": "object",
+                        "properties": {
+                            "amount": {
+                                "type": "integer"
+                            },
+                            "currency": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "amount",
+                            "currency"
+                        ]
+                    },
+                    "total": {
+                        "type": "object",
+                        "properties": {
+                            "amount": {
+                                "type": "integer"
+                            },
+                            "currency": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "amount",
+                            "currency"
+                        ]
+                    },
+                    "lines": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "description": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ]
+                                },
+                                "quantity": {
+                                    "type": "string"
+                                },
+                                "unit_price": {
+                                    "type": "object",
+                                    "properties": {
+                                        "amount": {
+                                            "type": "integer"
+                                        },
+                                        "currency": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "amount",
+                                        "currency"
+                                    ]
+                                },
+                                "line_total": {
+                                    "type": "object",
+                                    "properties": {
+                                        "amount": {
+                                            "type": "integer"
+                                        },
+                                        "currency": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "amount",
+                                        "currency"
+                                    ]
+                                },
+                                "tax_amount": {
+                                    "type": "object",
+                                    "properties": {
+                                        "amount": {
+                                            "type": "integer"
+                                        },
+                                        "currency": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "amount",
+                                        "currency"
+                                    ]
+                                }
+                            },
+                            "required": [
+                                "description",
+                                "quantity",
+                                "unit_price",
+                                "line_total",
+                                "tax_amount"
+                            ]
+                        }
+                    },
+                    "payment_instructions": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "company_name",
+                    "bill_to",
+                    "number",
+                    "issue_date",
+                    "due_date",
+                    "currency",
+                    "status",
+                    "balance_due",
+                    "subtotal",
+                    "tax_total",
+                    "total",
+                    "lines",
+                    "payment_instructions"
+                ],
+                "title": "PublicInvoiceResource"
             },
             "PurchaseOrderLineResource": {
                 "type": "object",
@@ -33659,6 +35218,37 @@
                 ],
                 "title": "SendPasswordResetLinkRequest"
             },
+            "SendStatusResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "contact_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "status": {
+                        "type": "string",
+                        "description": "queued, sent (the mail server accepted it) or failed"
+                    },
+                    "error": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    }
+                },
+                "required": [
+                    "id",
+                    "contact_id",
+                    "status",
+                    "error"
+                ],
+                "title": "SendStatusResource"
+            },
             "SessionResource": {
                 "type": "object",
                 "properties": {
@@ -34107,6 +35697,155 @@
                     "expires_at"
                 ],
                 "title": "SigningGrantResource"
+            },
+            "StatementRunCustomerResource": {
+                "type": "object",
+                "properties": {
+                    "contact_id": {
+                        "type": "string"
+                    },
+                    "code": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "has_email": {
+                        "type": "boolean",
+                        "description": "False when the customer has no email address: flagged in the list and skipped by the run."
+                    },
+                    "balance": {
+                        "type": "object",
+                        "description": "Receivable balance at the end of the period, in the company's base currency; negative is a credit.",
+                        "properties": {
+                            "amount": {
+                                "type": "integer"
+                            },
+                            "currency": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "amount",
+                            "currency"
+                        ]
+                    },
+                    "last_sent_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    }
+                },
+                "required": [
+                    "contact_id",
+                    "code",
+                    "name",
+                    "email",
+                    "has_email",
+                    "balance",
+                    "last_sent_at"
+                ],
+                "title": "StatementRunCustomerResource"
+            },
+            "StatementRunRequest": {
+                "type": "object",
+                "description": "The period of a statement run, as a date or an explicit period; a POST also names the customers.",
+                "properties": {
+                    "basis": {
+                        "type": "string",
+                        "description": "`as_of`: the three months ending on `as_of`; `period`: exactly `from` to `to`.",
+                        "enum": [
+                            "as_of",
+                            "period"
+                        ]
+                    },
+                    "as_of": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date"
+                    },
+                    "from": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date"
+                    },
+                    "to": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date"
+                    },
+                    "contact_ids": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "minItems": 1,
+                        "maxItems": 200,
+                        "uniqueItems": true
+                    }
+                },
+                "required": [
+                    "basis",
+                    "contact_ids"
+                ],
+                "title": "StatementRunRequest"
+            },
+            "StatementRunResultResource": {
+                "type": "object",
+                "properties": {
+                    "contact_id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string",
+                        "description": "queued (on its way; follow it with `send_id`), skipped (no email, no balance, not a customer) or failed (the send path refused it)."
+                    },
+                    "code": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "reason": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "In plain words, for skipped and failed."
+                    },
+                    "send_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    }
+                },
+                "required": [
+                    "contact_id",
+                    "name",
+                    "status",
+                    "code",
+                    "reason",
+                    "send_id"
+                ],
+                "title": "StatementRunResultResource"
             },
             "SubmitBillRequest": {
                 "type": "object",
@@ -34618,6 +36357,74 @@
                     "sha256"
                 ],
                 "title": "UploadIntentRequest"
+            },
+            "UserNotificationResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "kind": {
+                        "type": "string",
+                        "description": "approval_requested, approval_reminder, document_approved, document_returned, import_finished, import_failed, report_ready, send_failed"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "body": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "subject_type": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "subject_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "link": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Path inside the company; the SPA puts the company in front."
+                    },
+                    "read": {
+                        "type": "boolean"
+                    },
+                    "read_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "created_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    }
+                },
+                "required": [
+                    "id",
+                    "kind",
+                    "title",
+                    "body",
+                    "subject_type",
+                    "subject_id",
+                    "link",
+                    "read",
+                    "read_at",
+                    "created_at"
+                ],
+                "title": "UserNotificationResource"
             },
             "VersionRequest": {
                 "type": "object",
