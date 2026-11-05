@@ -32,6 +32,7 @@ final class UpdateCompanySettings
         'retained_earnings' => 'retained_earnings', 'fx_realised' => null, 'fx_realised_loss' => null, 'fx_unrealised' => null, 'fx_unrealised_loss' => null, 'rounding' => null,
         'suspense' => null, 'bank_clearing' => null,
         'asset_disposal_gain' => null, 'asset_disposal_loss' => null,
+        'impairment_loss' => null, 'impairment_reversal' => null, 'revaluation_reserve' => null,
     ];
 
     public function __construct(private readonly UnitOfWork $uow, private readonly SetupGuard $guard) {}

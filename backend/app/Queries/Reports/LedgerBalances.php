@@ -29,13 +29,14 @@ final class LedgerBalances
     /**
      * @param  array<int, list<string>>  $dims  dimension slot (1..8) → accepted value ids
      * @param  int|null  $groupSlot  also split the totals by this dimension slot
-     * @param  bool  $fxOnly  only revaluation journals and their reversals (lines only)
+     * @param  bool  $fxOnly  only FX revaluation journals and their reversals (lines only)
+     * @param  bool  $assetRevaluationOnly  only asset revaluation journals (source `asset_revaluation`) and their reversals (lines only)
      * @param  list<string>|null  $accountIds
      * @return list<BalanceRow>
      */
     public function totals(
         string $companyId, ?string $from, string $to, bool $excludeClosing,
-        array $dims = [], ?int $groupSlot = null, bool $fxOnly = false, ?array $accountIds = null,
+        array $dims = [], ?int $groupSlot = null, bool $fxOnly = false, ?array $accountIds = null, bool $assetRevaluationOnly = false,
     ): array {
         if ($from !== null && $from > $to) {
             return [];
@@ -47,7 +48,7 @@ final class LedgerBalances
             throw new InvalidArgumentException('Dimension slot out of range.');
         }
 
-        [$projectionIds, $dateRanges, $adjustmentIds] = $this->plan($companyId, $from, $to, $excludeClosing, $fxOnly);
+        [$projectionIds, $dateRanges, $adjustmentIds] = $this->plan($companyId, $from, $to, $excludeClosing, $fxOnly || $assetRevaluationOnly);
         $group = $groupSlot === null ? 'NULL::uuid' : "%s.dim{$groupSlot}_value_id";
 
         $parts = [];
@@ -60,6 +61,10 @@ final class LedgerBalances
         $lines = 'SELECT l.account_id, '.sprintf($group, 'l').' AS grp, l.debit, l.credit FROM journal_lines l JOIN journals j ON j.id = l.journal_id'
             ." WHERE l.company_id = ? AND j.company_id = ? AND j.status IN ('posted', 'reversed')";
         $fx = $fxOnly ? ' AND (j.journal_type = \'fx\' OR j.reversal_of_id IN (SELECT f.id FROM journals f WHERE f.company_id = ? AND f.journal_type = \'fx\'))' : '';
+        if ($assetRevaluationOnly) {
+            // A reversal copies its original's source type.
+            $fx = " AND j.source_type = 'asset_revaluation'";
+        }
         if ($dateRanges !== []) {
             $ranges = implode(' OR ', array_fill(0, count($dateRanges), '(j.journal_date BETWEEN ? AND ?)'));
             $parts[] = $lines." AND j.journal_type NOT IN ('closing', 'adjustment') AND ({$ranges})".$fx.($f = $this->filters('l', $dims, $accountIds))[0];
