@@ -85,4 +85,13 @@ trait TransactionsApi
     {
         return $this->balance($code);
     }
+
+    /** Puts $amount in the credit-loss allowance with a posted journal: Dr bad-debt expense, Cr allowance. */
+    protected function fundAllowance(int $amount, string $date = '2026-03-01'): void
+    {
+        $this->postedDoc('journals', [
+            'journal_date' => $date, 'reference' => 'PROV', 'memo' => 'Provision',
+            'lines' => [['account_id' => $this->f->account('6801'), 'debit' => $amount], ['account_id' => $this->f->account('1190'), 'credit' => $amount]],
+        ]);
+    }
 }

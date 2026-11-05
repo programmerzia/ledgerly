@@ -18,7 +18,8 @@ use App\Support\Reports\ReportRunner;
  *  - A document counts when it was posted with issue_date <= as_of and is not reversed by then (a reversal counts from
  *    its reversal journal's date). Open = total - WHT, less the allocations of settlements dated <= as_of that are not
  *    reversed by then, less credit applications applied_on <= as_of that are not reversed by then (as target at their
- *    target amount, as source - a credit or debit note giving its credit - at their source amount).
+ *    target amount, as source - a credit or debit note giving its credit - at their source amount), less customer write-offs
+ *    (plan 3c.9) dated <= as_of and not reversed by then, at the base amount they carried.
  *  - "Reversed by then" always means the reversal JOURNAL date <= as_of; a settlement or application reversed later was still
  *    standing on the as-of date.
  *  - Credits are listed apart and never netted into the buckets (D9): open credit notes (debit notes for payables) and credit
@@ -51,12 +52,14 @@ final class ArApAging
               (SELECT COALESCE(SUM(c.amount), 0) FROM credit_applications c LEFT JOIN journals cj ON cj.id = c.reversal_journal_id
                 WHERE c.invoice_id = i.id AND c.applied_on <= :d3 AND (c.reversed_at IS NULL OR cj.journal_date > :d4)) AS applied_to,
               (SELECT COALESCE(SUM(c.source_amount), 0) FROM credit_applications c LEFT JOIN journals cj ON cj.id = c.reversal_journal_id
-                WHERE c.note_id = i.id AND c.applied_on <= :d5 AND (c.reversed_at IS NULL OR cj.journal_date > :d6)) AS applied_from
+                WHERE c.note_id = i.id AND c.applied_on <= :d5 AND (c.reversed_at IS NULL OR cj.journal_date > :d6)) AS applied_from,
+              (SELECT COALESCE(SUM(w.amount), 0) FROM write_offs w LEFT JOIN journals wj ON wj.id = w.reversal_journal_id
+                WHERE w.invoice_id = i.id AND w.status IN ('posted', 'reversed') AND w.write_off_date <= :d9 AND (w.status = 'posted' OR wj.journal_date > :d10)) AS written_off
             FROM invoices i LEFT JOIN journals rj ON rj.id = i.reversal_journal_id
             WHERE i.company_id = :company AND i.kind::text IN (:k1, :k2) AND i.status IN ('posted', 'reversed') AND i.issue_date <= :d7
               AND (i.status = 'posted' OR rj.journal_date > :d8)
             SQL, [
-            'd1' => $asOf, 'd2' => $asOf, 'd3' => $asOf, 'd4' => $asOf, 'd5' => $asOf, 'd6' => $asOf, 'd7' => $asOf, 'd8' => $asOf,
+            'd1' => $asOf, 'd2' => $asOf, 'd3' => $asOf, 'd4' => $asOf, 'd5' => $asOf, 'd6' => $asOf, 'd7' => $asOf, 'd8' => $asOf, 'd9' => $asOf, 'd10' => $asOf,
             'company' => $p->companyId, 'k1' => $docKinds, 'k2' => $noteKind,
         ]);
 
@@ -85,7 +88,7 @@ final class ArApAging
         $creditContact = [];
 
         foreach ($docs as $d) {
-            $open = (int) $d->net - (int) $d->allocated - (int) $d->applied_to - (int) $d->applied_from;
+            $open = (int) $d->net - (int) $d->allocated - (int) $d->applied_to - (int) $d->applied_from - (int) $d->written_off;
             if ($open <= 0) {
                 continue;
             }

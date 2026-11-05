@@ -32,7 +32,7 @@ final class UpdateCompanySettings
         'retained_earnings' => 'retained_earnings', 'fx_realised' => null, 'fx_realised_loss' => null, 'fx_unrealised' => null, 'fx_unrealised_loss' => null, 'rounding' => null,
         'suspense' => null, 'bank_clearing' => null,
         // Added by plan 3c.8 onwards; a company on an older chart may lack them, and the documents that need them say so.
-        'bank_in_transit' => 'cash',
+        'bank_in_transit' => 'cash', 'credit_loss_allowance' => null, 'bad_debt_expense' => null, 'bad_debt_recovery' => null,
     ];
 
     public function __construct(private readonly UnitOfWork $uow, private readonly SetupGuard $guard) {}

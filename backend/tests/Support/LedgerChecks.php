@@ -108,7 +108,7 @@ final class LedgerChecks
             ...DB::table('wht_certificates')->pluck('number')->all(),
             ...DB::table('purchase_requisitions')->whereNotNull('number')->pluck('number')->all(), ...DB::table('purchase_orders')->whereNotNull('number')->pluck('number')->all(),
             ...DB::table('goods_receipts')->pluck('number')->all(),
-            ...DB::table('fund_transfers')->whereNotNull('number')->pluck('number')->all()];
+            ...DB::table('fund_transfers')->whereNotNull('number')->pluck('number')->all(), ...DB::table('write_offs')->whereNotNull('number')->pluck('number')->all()];
         foreach ($numbers as $number) {
             preg_match('/^(.*-)(\d+)$/', (string) $number, $m);
             $byPrefix[$m[1]][] = (int) $m[2];
@@ -178,10 +178,12 @@ final class LedgerChecks
                 WHERE i.status IN ('posted', 'reversed') AND (i.settled_fc, i.settled) IS DISTINCT FROM (
                   (SELECT COALESCE(SUM(a.amount_fc), 0) FROM settlement_allocations a JOIN settlements s ON s.id = a.settlement_id WHERE a.invoice_id = i.id AND s.status = 'posted')
                   + (SELECT COALESCE(SUM(c.amount_fc), 0) FROM credit_applications c WHERE c.invoice_id = i.id AND c.reversed_at IS NULL)
-                  + (SELECT COALESCE(SUM(c.amount_fc), 0) FROM credit_applications c WHERE c.note_id = i.id AND c.reversed_at IS NULL),
+                  + (SELECT COALESCE(SUM(c.amount_fc), 0) FROM credit_applications c WHERE c.note_id = i.id AND c.reversed_at IS NULL)
+                  + (SELECT COALESCE(SUM(w.amount_fc), 0) FROM write_offs w WHERE w.invoice_id = i.id AND w.status = 'posted'),
                   (SELECT COALESCE(SUM(a.amount), 0) FROM settlement_allocations a JOIN settlements s ON s.id = a.settlement_id WHERE a.invoice_id = i.id AND s.status = 'posted')
                   + (SELECT COALESCE(SUM(c.amount), 0) FROM credit_applications c WHERE c.invoice_id = i.id AND c.reversed_at IS NULL)
-                  + (SELECT COALESCE(SUM(c.source_amount), 0) FROM credit_applications c WHERE c.note_id = i.id AND c.reversed_at IS NULL))
+                  + (SELECT COALESCE(SUM(c.source_amount), 0) FROM credit_applications c WHERE c.note_id = i.id AND c.reversed_at IS NULL)
+                  + (SELECT COALESCE(SUM(w.amount), 0) FROM write_offs w WHERE w.invoice_id = i.id AND w.status = 'posted'))
             SQL),
             ...DB::select(<<<'SQL'
                 SELECT s.id, s.number, 'unallocated differs from allocations' AS problem FROM settlements s

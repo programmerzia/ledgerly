@@ -48,6 +48,7 @@ use App\Http\Controllers\Trade\ItemController;
 use App\Http\Controllers\Trade\PaymentRunController;
 use App\Http\Controllers\Trade\SettlementController;
 use App\Http\Controllers\Trade\WhtCertificateController;
+use App\Http\Controllers\Transactions\WriteOffController;
 use App\Http\Controllers\Transfers\FundTransferController;
 use App\Http\Controllers\Webhooks\WebhookEndpointController;
 use App\Http\Controllers\Workflow\ApprovalInboxController;
@@ -310,6 +311,14 @@ Route::middleware(['auth:sanctum', 'tenant', 'tenant.writable', 'idempotent', 'c
         Route::put('fund-transfers/{fundTransfer}', [FundTransferController::class, 'update'])->whereUuid('fundTransfer')->name('fund-transfers.update');
         foreach (['posting-preview' => 'preview', 'submit' => 'submit', 'approve' => 'approve', 'return' => 'return', 'void' => 'void', 'receive' => 'receive', 'reverse' => 'reverse'] as $verb => $method) {
             Route::post("fund-transfers/{fundTransfer}/{$verb}", [FundTransferController::class, $method])->whereUuid('fundTransfer')->name("fund-transfers.{$method}");
+        }
+        // Customer write-offs against one posted invoice (D15 item 2)
+        Route::get('write-offs', [WriteOffController::class, 'index'])->name('write-offs.index');
+        Route::post('write-offs', [WriteOffController::class, 'store'])->name('write-offs.store');
+        Route::get('write-offs/{writeOff}', [WriteOffController::class, 'show'])->whereUuid('writeOff')->name('write-offs.show');
+        Route::put('write-offs/{writeOff}', [WriteOffController::class, 'update'])->whereUuid('writeOff')->name('write-offs.update');
+        foreach (['posting-preview' => 'preview', 'submit' => 'submit', 'approve' => 'approve', 'return' => 'return', 'void' => 'void', 'reverse' => 'reverse'] as $verb => $method) {
+            Route::post("write-offs/{writeOff}/{$verb}", [WriteOffController::class, $method])->whereUuid('writeOff')->name("write-offs.{$method}");
         }
         Route::get('wht-certificates', [WhtCertificateController::class, 'index'])->name('wht-certificates.index');
         Route::get('wht-certificates/{whtCertificate}', [WhtCertificateController::class, 'show'])->whereUuid('whtCertificate')->name('wht-certificates.show');

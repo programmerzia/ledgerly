@@ -53,3 +53,26 @@ it('keeps every ledger invariant through a mix of transfers, and leaves nothing 
             ->and(LedgerChecks::makerCheckerBreaches())->toBe([]);
     });
 });
+
+it('keeps AR, the aging and the allowance in step through write-offs, partial and full, and a reversal', function (): void {
+    $this->fundAllowance(3000);
+    $a = $this->sale(10000);
+    $b = $this->sale(20000);
+    $this->workflow('write_off');
+    $write = function (array $invoice, int $amount) {
+        $w = $this->draftDoc('write-offs', ['invoice_id' => $invoice['id'], 'write_off_date' => '2026-04-20', 'amount_fc' => $amount, 'reason' => 'Uncollectable']);
+        $this->asPerson($this->accountant, signing: true)->postJson($this->api("write-offs/{$w['id']}/submit"), [], $this->key())->assertOk();
+
+        return $this->asPerson($this->approver, signing: true)->postJson($this->api("write-offs/{$w['id']}/approve"), [], $this->key())->assertOk()->json('data');
+    };
+    $w1 = $write($a, 4000);
+    $write($b, 22000);
+    $write($a, 7000);
+    $this->asPerson($this->owner, signing: true)->postJson($this->api("write-offs/{$w1['id']}/reverse"), [], $this->key())->assertOk();
+
+    $this->inTenant(function (): void {
+        expect(LedgerChecks::problems())->toBe([])->and(LedgerChecks::makerCheckerBreaches())->toBe([]);
+    });
+    $aging = $this->asPerson($this->owner)->getJson($this->api('reports/ar-aging?as_of=2026-04-30'))->assertOk()->json('data');
+    expect($aging['totals']['open']['amount'])->toBe($this->net('1100'))->and($this->net('1100'))->toBe(4000);
+});
