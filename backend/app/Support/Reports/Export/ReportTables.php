@@ -22,6 +22,7 @@ final class ReportTables
             'ar_aging', 'ap_aging' => self::aging($data, $company, $decimals),
             'customer_statement', 'supplier_statement' => self::statement($data, $company, $decimals),
             'tax_return' => self::taxReturn($data, $company, $decimals),
+            'budget_vs_actual' => self::budgetVsActual($data, $company, $decimals),
             default => throw new InvalidArgumentException("No table for report {$report}."),
         };
     }
@@ -64,6 +65,37 @@ final class ReportTables
         }
 
         return new ReportTable('Profit and loss', "{$company} · {$d['from']} to {$d['to']}", $head, $rows, $decimals);
+    }
+
+    /** @param array<string, mixed> $d */
+    private static function budgetVsActual(array $d, string $company, int $decimals): ReportTable
+    {
+        $head = [
+            ['label' => 'Account', 'numeric' => false], ['label' => 'Budget', 'numeric' => true], ['label' => 'Actual', 'numeric' => true],
+            ['label' => 'Variance', 'numeric' => true], ['label' => 'Variance %', 'numeric' => true], ['label' => 'Result', 'numeric' => false],
+        ];
+        $figures = fn (array $x): array => [
+            $x['budget'], $x['actual'], $x['variance'], $x['variance_pct'] === null ? '' : $x['variance_pct'].'%',
+            $x['favourable'] === null ? '' : ($x['favourable'] ? 'Favourable' : 'Adverse'),
+        ];
+
+        $rows = [];
+        foreach ($d['sections'] as $s) {
+            if ($s['lines'] === []) {
+                continue;
+            }
+            $rows[] = new ReportRow([$s['title']], 'heading');
+            foreach ($s['lines'] as $l) {
+                $rows[] = new ReportRow(["{$l['account']['code']} {$l['account']['name']}", ...$figures($l)]);
+            }
+            $rows[] = new ReportRow(["Total {$s['title']}", ...$figures($s['total'])], 'total');
+        }
+        foreach (['gross_profit' => 'Gross profit', 'operating_profit' => 'Operating profit', 'net_profit' => 'Net profit'] as $k => $label) {
+            $rows[] = new ReportRow([$label, ...$figures($d['subtotals'][$k])], $k === 'net_profit' ? 'grand_total' : 'total');
+        }
+        $b = $d['budget'];
+
+        return new ReportTable('Budget vs actual', "{$company} · {$d['from']} to {$d['to']} · {$b['name']} (version {$b['revision']}, {$b['status']})", $head, $rows, $decimals);
     }
 
     /** @param array<string, mixed> $d */

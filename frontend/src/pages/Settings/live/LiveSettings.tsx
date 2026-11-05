@@ -13,6 +13,7 @@ import { useCurrentCompany } from '@/data/team';
 import { cn } from '@/lib/utils';
 import { LiveApiClients } from './LiveApiClients';
 import { LiveGeneral } from './LiveGeneral';
+import { LiveNumbering } from './LiveNumbering';
 import { LivePosting } from './LivePosting';
 import { LiveSecurity } from './LiveSecurity';
 import { LiveTeam } from './LiveTeam';
@@ -32,6 +33,7 @@ export const LiveSettings: React.FC = () => {
   const tabs = [
     { to: 'general', label: 'Company', show: companyTabs },
     { to: 'posting', label: 'Posting accounts', show: companyTabs },
+    { to: 'numbering', label: 'Numbering', show: companyTabs },
     { to: 'workflows', label: 'Approvals', show: canApprovals },
     { to: 'security', label: 'Security', show: true },
     { to: 'team', label: 'Team', show: canManage },
@@ -57,6 +59,7 @@ export const LiveSettings: React.FC = () => {
       <Routes>
         <Route path="general" element={companyTabs ? <LiveGeneral /> : <Navigate to="../security" replace />} />
         <Route path="posting" element={companyTabs ? <LivePosting /> : <Navigate to="../security" replace />} />
+        <Route path="numbering" element={companyTabs ? <LiveNumbering /> : <Navigate to="../security" replace />} />
         <Route path="workflows" element={canApprovals ? <LiveWorkflows /> : <Navigate to="../security" replace />} />
         <Route path="security" element={<LiveSecurity />} />
         <Route path="team" element={canManage ? <LiveTeam /> : <Navigate to="../security" replace />} />

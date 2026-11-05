@@ -5,7 +5,7 @@ afterEach(() => {
   vi.resetModules();
 });
 
-const HIDDEN = ['Fixed assets', 'Budgets'];
+const HIDDEN = ['Fixed assets'];
 const labels = (sections: { items: { label: string }[] }[]) => sections.flatMap((s) => s.items.map((i) => i.label));
 
 async function menus(mode: 'live' | 'mock') {
@@ -19,7 +19,8 @@ describe('menu in live mode', () => {
   it('lists procurement and leaves out screens that are not connected', async () => {
     const live = labels(await menus('live'));
     for (const l of ['Requisitions', 'Purchase orders', 'Receipts', 'Procurement reports', 'Bills', 'Import data']) expect(live).toContain(l);
-    for (const l of ['Fixed assets', 'Budgets']) expect(live).not.toContain(l);
+    expect(live).toContain('Budgets');
+    expect(live).not.toContain('Fixed assets');
   });
 
   it('hides exactly the unconnected items', async () => {

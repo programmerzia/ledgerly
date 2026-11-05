@@ -4,12 +4,12 @@ import { ApiError, NetworkError, problemToError } from '../errors';
 import { buildUrl, http } from '../http';
 import {
   drillQuery, parseAging, parseBalanceSheet, parseCashFlow, parseDrillSummary, parseExportTicket, parseLedgerHeader, parseLedgerLine,
-  parseProfitAndLoss, parseStatement, parseTaxReturn, parseTrialBalance, type DrillKey, type QueryPairs,
+  parseBudgetVsActual, parseProfitAndLoss, parseStatement, parseTaxReturn, parseTrialBalance, type DrillKey, type QueryPairs,
 } from '../adapters/report';
 
 export type ReportName =
   | 'trial-balance' | 'profit-and-loss' | 'balance-sheet' | 'cash-flow' | 'general-ledger'
-  | 'ar-aging' | 'ap-aging' | 'customer-statement' | 'supplier-statement' | 'tax-return';
+  | 'ar-aging' | 'ap-aging' | 'customer-statement' | 'supplier-statement' | 'tax-return' | 'budget-vs-actual';
 
 const reportPath = (name: string) => `/v1/companies/{company}/reports/${name}`;
 
@@ -34,6 +34,7 @@ const PARSERS = {
   'customer-statement': parseStatement,
   'supplier-statement': parseStatement,
   'tax-return': parseTaxReturn,
+  'budget-vs-actual': parseBudgetVsActual,
 } as const;
 
 export type StatementName = keyof typeof PARSERS;

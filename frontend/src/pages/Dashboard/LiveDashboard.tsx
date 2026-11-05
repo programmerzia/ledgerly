@@ -13,6 +13,7 @@ import { countLabel } from '@/api/adapters/dashboard';
 import { isSetupComplete, loadSkipped } from '@/api/adapters/onboarding';
 import { describeError } from '@/api/messages';
 import { panelState, useLiveDashboard, type PanelState } from '@/data/dashboard';
+import { useBudgetCard } from '@/data/budgets';
 import { useSetupState } from '@/data/setup';
 import { useClosingCash, useMonthlyPnl, useRecentActivity, useYearStart } from '@/data/dashboardExtras';
 import { useMe } from '@/data/session';
@@ -41,6 +42,8 @@ export const LiveDashboard: React.FC = () => {
   const yearStart = useYearStart(company, d.today);
   const monthly = useMonthlyPnl(company, d.today, yearStart.data);
   const cash = useClosingCash(company, d.today, yearStart.data);
+  // The budget note appears only when an approved budget exists; on no budget, no permission or any error there is nothing to show.
+  const budgetCard = useBudgetCard();
   const activity = useRecentActivity(company);
   const setup = useSetupState(company.id, me.data?.id ?? '');
   const [showChecklist, setShowChecklist] = useState(true);
@@ -83,7 +86,10 @@ export const LiveDashboard: React.FC = () => {
       label: 'Net profit, year to date', to: `${co}/reports/profit-and-loss`,
       valueClass: (d.profit.data?.minor ?? 0) < 0 ? 'text-danger' : undefined,
       value: () => (d.profit.data ? formatMoney(d.profit.data.minor, d.profit.data.currency, { parenthesesNegative: true }) : 'No data'),
-      note: () => `To ${formatDate(d.today)}`,
+      note: () => {
+        const v = budgetCard.data?.net_profit.variance;
+        return v ? <span data-testid="budget-note">{formatMoney(Math.abs(v.amount), v.currency)} {v.amount >= 0 ? 'ahead of' : 'behind'} budget</span> : `To ${formatDate(d.today)}`;
+      },
     }),
   ].filter((f): f is Figure => f !== null);
 

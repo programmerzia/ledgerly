@@ -99,6 +99,8 @@ export interface ReportSelection {
   dims: Record<string, string>;
   accountId?: string;
   contactId?: string;
+  /** Budget vs actual: the budget version to read; the approved one of the period's year when absent. */
+  budgetId?: string;
 }
 
 /** The query for a report run. As-of reports ignore from/to and range reports ignore as_of, as the server does. */
@@ -121,6 +123,7 @@ export function selectionQuery(sel: ReportSelection, opts: { basis?: boolean; co
   }
   if (sel.accountId) q.account_id = sel.accountId;
   if (sel.contactId) q.contact_id = sel.contactId;
+  if (sel.budgetId) q.budget_id = sel.budgetId;
   return q;
 }
 
@@ -276,6 +279,80 @@ export function parseProfitAndLoss(data: unknown): ProfitAndLossView {
     grossProfit: figure(sub.gross_profit, 'gross_profit'),
     operatingProfit: figure(sub.operating_profit, 'operating_profit'),
     netProfit: figure(sub.net_profit, 'net_profit'),
+    filtered: bool(o.filtered),
+  };
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// Budget vs actual (D15 item 5): the server computes variance, percentage and favourable/adverse; nothing is derived here
+// ---------------------------------------------------------------------------------------------------------------
+
+export interface BudgetFigure {
+  budget: number;
+  actual: number;
+  variance: number;
+  /** One decimal ("25.0"), null when the budget is zero. */
+  variancePct: string | null;
+  /** true favourable, false adverse, null on target. */
+  favourable: boolean | null;
+}
+export interface BvaLine extends BudgetFigure {
+  account: AccountRef;
+  drill?: DrillKey;
+}
+export interface BvaSection {
+  key: string;
+  title: string;
+  lines: BvaLine[];
+  total: BudgetFigure;
+}
+export interface BudgetVsActualView extends Head {
+  from: string;
+  to: string;
+  basis: string;
+  period: { id: string; name: string | null } | null;
+  budget: { id: string; name: string; revision: number; status: string; version: number };
+  sections: BvaSection[];
+  grossProfit: BudgetFigure;
+  operatingProfit: BudgetFigure;
+  netProfit: BudgetFigure;
+  filtered: boolean;
+}
+
+function budgetFigure(v: unknown, what: string): BudgetFigure {
+  const o = rec(v, what);
+  const fav = o.favourable;
+  if (fav !== null && typeof fav !== 'boolean') throw new ReportShapeError(`${what}.favourable`);
+  return { budget: mon(o.budget, `${what}.budget`), actual: mon(o.actual, `${what}.actual`), variance: mon(o.variance, `${what}.variance`), variancePct: optStr(o.variance_pct), favourable: fav };
+}
+
+export function parseBudgetVsActual(data: unknown): BudgetVsActualView {
+  const o = rec(data, 'budget vs actual');
+  const sub = rec(o.subtotals, 'subtotals');
+  const b = rec(o.budget, 'budget');
+  const p = isRec(o.period) && typeof o.period.id === 'string' ? { id: o.period.id, name: optStr(o.period.name) } : null;
+  return {
+    ...head(o),
+    from: str(o.from, 'from'),
+    to: str(o.to, 'to'),
+    basis: str(o.basis, 'basis'),
+    period: p,
+    budget: { id: str(b.id, 'budget.id'), name: str(b.name, 'budget.name'), revision: Number(b.revision), status: str(b.status, 'budget.status'), version: Number(b.version) },
+    sections: list(o.sections, 'sections').map((s) => {
+      const sec = rec(s, 'section');
+      return {
+        key: str(sec.key, 'section.key'),
+        title: str(sec.title, 'section.title'),
+        lines: list(sec.lines, 'section.lines').map((l) => {
+          const line = rec(l, 'line');
+          return { ...budgetFigure(line, 'line'), account: accountRef(line.account, 'line.account'), drill: toDrillKey(line.drill) };
+        }),
+        total: budgetFigure(sec.total, 'section.total'),
+      };
+    }),
+    grossProfit: budgetFigure(sub.gross_profit, 'gross_profit'),
+    operatingProfit: budgetFigure(sub.operating_profit, 'operating_profit'),
+    netProfit: budgetFigure(sub.net_profit, 'net_profit'),
     filtered: bool(o.filtered),
   };
 }

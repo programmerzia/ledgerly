@@ -10,6 +10,8 @@ use App\Http\Controllers\Banking\BankReconciliationController;
 use App\Http\Controllers\Banking\BankRuleController;
 use App\Http\Controllers\Documents\DocumentEmailController;
 use App\Http\Controllers\Documents\DocumentPdfController;
+use App\Http\Controllers\Budgets\BudgetController;
+use App\Http\Controllers\Budgets\BudgetReportController;
 use App\Http\Controllers\Files\AttachmentBlobController;
 use App\Http\Controllers\Files\AttachmentController;
 use App\Http\Controllers\Fiscal\FiscalPeriodController;
@@ -29,6 +31,7 @@ use App\Http\Controllers\Organisation\CompanySettingsController;
 use App\Http\Controllers\Organisation\InvitationController;
 use App\Http\Controllers\Organisation\InvitationTokenController;
 use App\Http\Controllers\Organisation\MemberController;
+use App\Http\Controllers\Organisation\NumberingController;
 use App\Http\Controllers\Practice\PracticeController;
 use App\Http\Controllers\Procurement\GoodsReceiptController;
 use App\Http\Controllers\Procurement\ProcurementReportController;
@@ -136,6 +139,10 @@ Route::middleware(['auth:sanctum', 'tenant', 'tenant.writable', 'idempotent', 'c
         Route::post('settings/logo', [CompanyLogoController::class, 'store'])->name('settings.logo.store');
         Route::delete('settings/logo', [CompanyLogoController::class, 'destroy'])->name('settings.logo.destroy');
 
+        // Document numbering: prefix and padding per kind, from the next fiscal year only (D15 item 6)
+        Route::get('numbering', [NumberingController::class, 'index'])->name('numbering.index');
+        Route::put('numbering/{kind}', [NumberingController::class, 'update'])->where('kind', '[a-z_]+')->name('numbering.update');
+
         // Chart of accounts
         Route::get('chart-templates', [ChartTemplateController::class, 'index'])->name('chart-templates.index');
         Route::post('apply-chart-template', [ChartTemplateController::class, 'apply'])->name('chart-templates.apply');
@@ -213,6 +220,21 @@ Route::middleware(['auth:sanctum', 'tenant', 'tenant.writable', 'idempotent', 'c
         Route::post('attachments/{attachment}/complete', [AttachmentController::class, 'complete'])->whereUuid('attachment')->name('attachments.complete');
         Route::get('attachments/{attachment}/download', [AttachmentController::class, 'download'])->whereUuid('attachment')->name('attachments.download');
         Route::delete('attachments/{attachment}', [AttachmentController::class, 'destroy'])->whereUuid('attachment')->name('attachments.destroy');
+
+        // Budgets (D15 item 5): versions per fiscal year, grid, approval, budget vs actual. Nothing here posts or bumps ledger_version.
+        Route::get('budgets', [BudgetController::class, 'index'])->name('budgets.index');
+        Route::post('budgets', [BudgetController::class, 'store'])->name('budgets.store');
+        Route::get('budgets/dashboard-card', [BudgetReportController::class, 'card'])->name('budgets.card');
+        Route::get('budgets/{budget}', [BudgetController::class, 'show'])->whereUuid('budget')->name('budgets.show');
+        Route::put('budgets/{budget}', [BudgetController::class, 'update'])->whereUuid('budget')->name('budgets.update');
+        Route::delete('budgets/{budget}', [BudgetController::class, 'destroy'])->whereUuid('budget')->name('budgets.destroy');
+        Route::put('budgets/{budget}/lines', [BudgetController::class, 'saveLines'])->whereUuid('budget')->name('budgets.lines');
+        Route::post('budgets/{budget}/approve', [BudgetController::class, 'approve'])->whereUuid('budget')->name('budgets.approve');
+        Route::post('budgets/{budget}/archive', [BudgetController::class, 'archive'])->whereUuid('budget')->name('budgets.archive');
+        Route::get('budgets/{budget}/spread', [BudgetController::class, 'spread'])->whereUuid('budget')->name('budgets.spread');
+        Route::get('budgets/{budget}/suggestions', [BudgetController::class, 'suggestions'])->whereUuid('budget')->name('budgets.suggestions');
+        Route::get('budgets/{budget}/export', [BudgetController::class, 'export'])->whereUuid('budget')->middleware('throttle:report-exports')->name('budgets.export');
+        Route::get('reports/budget-vs-actual', [BudgetReportController::class, 'budgetVsActual'])->name('reports.budget-vs-actual');
 
         // Reports (13 §13): statements and ledger detail from the reporting connection, the drill behind every cell, exports.
         Route::get('reports/trial-balance', [ReportController::class, 'trialBalance'])->name('reports.trial-balance');

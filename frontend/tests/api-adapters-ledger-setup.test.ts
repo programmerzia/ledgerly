@@ -141,7 +141,7 @@ describe('dimension adapter and live routes (3.2)', () => {
   });
   it('registers the finished screens', () => {
     for (const p of ['accounts', 'dimensions', 'periods', 'fx-rates']) expect(isLiveRoute(`/acme/${p}`)).toBe(true);
-    expect(isLiveRoute('/acme/periods/close-pack')).toBe(false);
+    expect(isLiveRoute('/acme/periods/close-pack')).toBe(true);
   });
 });
 

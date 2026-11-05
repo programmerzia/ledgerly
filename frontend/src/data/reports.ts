@@ -26,6 +26,7 @@ export const REPORT_PARAMS: Record<ReportName, { basis: boolean; comparison: boo
   'customer-statement': { basis: false, comparison: false, dims: false, hideZero: false },
   'supplier-statement': { basis: false, comparison: false, dims: false, hideZero: false },
   'tax-return': { basis: false, comparison: false, dims: false, hideZero: false },
+  'budget-vs-actual': { basis: true, comparison: false, dims: true, hideZero: false },
 };
 
 /** The query string a report run (and its export) sends, from the screen's selection. */

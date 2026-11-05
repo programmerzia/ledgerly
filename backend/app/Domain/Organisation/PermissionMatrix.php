@@ -36,7 +36,7 @@ final class PermissionMatrix
     private const array MODULES = [
         'journals', 'invoices', 'bills', 'receipts', 'payments', 'contacts', 'items', 'banking', 'recurring',
         'periods', 'accounts', 'dimensions', 'tax', 'fx', 'settings', 'reports',
-        'purchase_requisitions', 'purchase_orders', 'goods_receipts',
+        'purchase_requisitions', 'purchase_orders', 'goods_receipts', 'budgets',
     ];
 
     private const array SALES_VIEWS = ['contacts.view', 'invoices.view', 'items.view', 'receipts.view'];
@@ -54,9 +54,10 @@ final class PermissionMatrix
         'periods.reopen.request',
         'purchase_requisitions.create', 'purchase_requisitions.submit', 'purchase_orders.create', 'purchase_orders.submit', 'goods_receipts.create',
         'documents.send',
+        'budgets.manage',
     ];
 
-    private const array APPROVE = ['journals.approve', 'invoices.approve', 'bills.approve', 'payments.approve', 'purchase_requisitions.approve', 'purchase_orders.approve'];
+    private const array APPROVE = ['journals.approve', 'invoices.approve', 'bills.approve', 'payments.approve', 'purchase_requisitions.approve', 'purchase_orders.approve', 'budgets.approve'];
 
     private const array REVERSE = ['journals.reverse', 'invoices.reverse', 'bills.reverse', 'receipts.reverse', 'payments.reverse', 'purchase_orders.cancel', 'goods_receipts.reverse', 'bills.match_override'];
 
@@ -80,6 +81,12 @@ final class PermissionMatrix
     {
         return str_starts_with($permission, 'purchase_requisitions.') || str_starts_with($permission, 'purchase_orders.')
             || str_starts_with($permission, 'goods_receipts.') || $permission === 'bills.match_override';
+    }
+
+    /** Added with budgets (plan 3c.16); existing companies got these from a backfill migration. */
+    public static function isBudget(string $permission): bool
+    {
+        return str_starts_with($permission, 'budgets.');
     }
 
     /** @return list<string> */
