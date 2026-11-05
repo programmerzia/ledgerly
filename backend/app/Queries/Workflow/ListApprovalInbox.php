@@ -37,6 +37,7 @@ final class ListApprovalInbox
                 THEN (SELECT GREATEST(COALESCE(SUM(l.debit), 0), COALESCE(SUM(l.credit), 0)) FROM journal_lines l WHERE l.journal_id = approval_requests.document_id)
                 WHEN approval_requests.document_type = 'settlement' THEN (SELECT s.amount FROM settlements s WHERE s.id = approval_requests.document_id)
                 WHEN approval_requests.document_type = 'payment_run' THEN (SELECT r.total FROM payment_runs r WHERE r.id = approval_requests.document_id)
+                WHEN approval_requests.document_type = 'fund_transfer' THEN (SELECT f.send_base FROM fund_transfers f WHERE f.id = approval_requests.document_id)
                 WHEN approval_requests.document_type = 'purchase_requisition' THEN (SELECT q.total FROM purchase_requisitions q WHERE q.id = approval_requests.document_id)
                 WHEN approval_requests.document_type = 'purchase_order' THEN (SELECT o.total FROM purchase_orders o WHERE o.id = approval_requests.document_id)
                 WHEN approval_requests.document_type = 'purchase_order_revision' THEN (SELECT v.total FROM purchase_order_revisions v WHERE v.id = approval_requests.document_id)
@@ -69,6 +70,7 @@ final class ListApprovalInbox
                     ->where('payment_runs.status', 'pending_approval')
                     ->whereRaw('payment_runs.created_by IS DISTINCT FROM ?', [$me])
                     ->whereRaw('payment_runs.submitted_by IS DISTINCT FROM ?', [$me]))
+                ->orWhereExists(fn (QueryBuilder $q) => $this->waiting($q, 'fund_transfers', $me))
                 ->orWhereExists(fn (QueryBuilder $q) => $this->waiting($q, 'purchase_requisitions', $me))
                 ->orWhereExists(fn (QueryBuilder $q) => $this->waiting($q, 'purchase_orders', $me))
                 ->orWhereExists(fn (QueryBuilder $q) => $this->waiting($q, 'purchase_order_revisions', $me)))
@@ -76,7 +78,7 @@ final class ListApprovalInbox
                 ->whereColumn('s.document_id', 'approval_requests.document_id')
                 ->whereColumn('s.document_type', 'approval_requests.document_type')
                 ->where('s.signed_by', $me))
-            ->with(['journal', 'invoice', 'settlement', 'paymentRun', 'purchaseRequisition', 'purchaseOrder', 'orderRevision.order', 'requester:id,name']);
+            ->with(['journal', 'invoice', 'settlement', 'paymentRun', 'fundTransfer', 'purchaseRequisition', 'purchaseOrder', 'orderRevision.order', 'requester:id,name']);
     }
 
     private function waiting(QueryBuilder $q, string $table, string $me): QueryBuilder

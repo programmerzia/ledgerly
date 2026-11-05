@@ -34,6 +34,20 @@ final class PostingAccountResolver
         );
     }
 
+    /**
+     * A posting account a newer feature needs, which a company on an older chart may not have: refuses with a message that
+     * says where to set it. Never guesses an account.
+     */
+    public function required(Company $company, string $key, string $label): string
+    {
+        $found = $this->named($company, $key);
+        if ($found === null) {
+            throw DomainRuleViolation::single('posting_account_missing', "This needs the {$label} account. Set it in Settings → Posting ({$key}) and try again.");
+        }
+
+        return $found;
+    }
+
     /** One configured posting account (`posting_accounts.<key>`) by id or code; null when it is not set. */
     public function named(Company $company, string $key): ?string
     {

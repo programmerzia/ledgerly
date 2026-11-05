@@ -107,7 +107,8 @@ final class LedgerChecks
             ...DB::table('settlements')->whereNotNull('number')->pluck('number')->all(), ...DB::table('payment_runs')->whereNotNull('number')->pluck('number')->all(),
             ...DB::table('wht_certificates')->pluck('number')->all(),
             ...DB::table('purchase_requisitions')->whereNotNull('number')->pluck('number')->all(), ...DB::table('purchase_orders')->whereNotNull('number')->pluck('number')->all(),
-            ...DB::table('goods_receipts')->pluck('number')->all()];
+            ...DB::table('goods_receipts')->pluck('number')->all(),
+            ...DB::table('fund_transfers')->whereNotNull('number')->pluck('number')->all()];
         foreach ($numbers as $number) {
             preg_match('/^(.*-)(\d+)$/', (string) $number, $m);
             $byPrefix[$m[1]][] = (int) $m[2];

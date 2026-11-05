@@ -79,6 +79,20 @@ final class ApprovalRequestResource extends JsonResource
                 'version' => $run->lock_version,
             ];
         }
+        $transfer = $this->fundTransfer;
+        if ($transfer !== null) {
+            return [
+                'id' => $transfer->id,
+                'number' => $transfer->number,
+                'send_date' => Json::date($transfer->send_date),
+                'reference' => $transfer->reference,
+                'memo' => $transfer->memo,
+                'amount' => $amount,
+                'created_by' => $transfer->created_by,
+                'submitted_by' => $transfer->submitted_by,
+                'version' => $transfer->lock_version,
+            ];
+        }
         $requisition = $this->purchaseRequisition;
         if ($requisition !== null) {
             return [

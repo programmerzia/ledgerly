@@ -18,6 +18,7 @@ use App\Http\Resources\DimensionResource;
 use App\Http\Resources\DimensionValueResource;
 use App\Http\Resources\FiscalPeriodResource;
 use App\Http\Resources\FiscalYearResource;
+use App\Http\Resources\FundTransferResource;
 use App\Http\Resources\InvitationResource;
 use App\Http\Resources\InvoiceResource;
 use App\Http\Resources\ItemResource;
@@ -52,6 +53,7 @@ use App\Models\Trade\Invoice;
 use App\Models\Trade\Item;
 use App\Models\Trade\PaymentRun;
 use App\Models\Trade\Settlement;
+use App\Models\Transfers\FundTransfer;
 use App\Models\Workflow\ApprovalWorkflow;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
@@ -84,6 +86,7 @@ final class SubjectRepresenter
         'items' => [Item::class, ItemResource::class, []],
         'settlements' => [Settlement::class, SettlementResource::class, ['allocations']],
         'payment_runs' => [PaymentRun::class, PaymentRunResource::class, ['items']],
+        'fund_transfers' => [FundTransfer::class, FundTransferResource::class, []],
         'bank_accounts' => [BankAccount::class, BankAccountResource::class, []],
         'bank_rules' => [BankRule::class, BankRuleResource::class, []],
         'bank_matches' => [BankMatch::class, BankMatchResource::class, ['items']],

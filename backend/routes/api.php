@@ -48,6 +48,7 @@ use App\Http\Controllers\Trade\ItemController;
 use App\Http\Controllers\Trade\PaymentRunController;
 use App\Http\Controllers\Trade\SettlementController;
 use App\Http\Controllers\Trade\WhtCertificateController;
+use App\Http\Controllers\Transfers\FundTransferController;
 use App\Http\Controllers\Webhooks\WebhookEndpointController;
 use App\Http\Controllers\Workflow\ApprovalInboxController;
 use App\Http\Controllers\Workflow\ApprovalWorkflowController;
@@ -301,6 +302,14 @@ Route::middleware(['auth:sanctum', 'tenant', 'tenant.writable', 'idempotent', 'c
         Route::get('payment-runs/{paymentRun}/export', [PaymentRunController::class, 'export'])->whereUuid('paymentRun')->name('payment-runs.export');
         foreach (['posting-preview' => 'preview', 'submit' => 'submit', 'approve' => 'approve', 'return' => 'return', 'void' => 'void'] as $verb => $method) {
             Route::post("payment-runs/{paymentRun}/{$verb}", [PaymentRunController::class, $method])->whereUuid('paymentRun')->name("payment-runs.{$method}");
+        }
+        // Fund transfers: two legs through funds in transit (13 §23 D15 item 3)
+        Route::get('fund-transfers', [FundTransferController::class, 'index'])->name('fund-transfers.index');
+        Route::post('fund-transfers', [FundTransferController::class, 'store'])->name('fund-transfers.store');
+        Route::get('fund-transfers/{fundTransfer}', [FundTransferController::class, 'show'])->whereUuid('fundTransfer')->name('fund-transfers.show');
+        Route::put('fund-transfers/{fundTransfer}', [FundTransferController::class, 'update'])->whereUuid('fundTransfer')->name('fund-transfers.update');
+        foreach (['posting-preview' => 'preview', 'submit' => 'submit', 'approve' => 'approve', 'return' => 'return', 'void' => 'void', 'receive' => 'receive', 'reverse' => 'reverse'] as $verb => $method) {
+            Route::post("fund-transfers/{fundTransfer}/{$verb}", [FundTransferController::class, $method])->whereUuid('fundTransfer')->name("fund-transfers.{$method}");
         }
         Route::get('wht-certificates', [WhtCertificateController::class, 'index'])->name('wht-certificates.index');
         Route::get('wht-certificates/{whtCertificate}', [WhtCertificateController::class, 'show'])->whereUuid('whtCertificate')->name('wht-certificates.show');
