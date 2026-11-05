@@ -27,6 +27,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Routing\Attributes\Controllers\Authorize;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * Data imports (plan 2.18): upload a CSV or XLSX, map its columns, preview every row, then apply on the queue. People only (an API token
@@ -63,6 +64,18 @@ final class ImportController extends Controller
                 'fields' => array_map(fn ($f) => $f->toArray(), $kind->fields()),
             ];
         }, ImportKinds::keys())]);
+    }
+
+    /** A CSV with the header row for one kind: save it, fill it in, upload it. The headers are the field labels, so the mapping suggests itself. */
+    #[Authorize('viewAny', Import::class)]
+    public function template(Company $company, string $kind, ImportKinds $kinds): StreamedResponse
+    {
+        abort_unless(in_array($kind, ImportKinds::keys(), true), 404);
+        $headers = $kinds->get($kind)->templateHeaders();
+
+        return response()->streamDownload(function () use ($headers): void {
+            (new \SplFileObject('php://output', 'w'))->fputcsv($headers, ',', '"', '');
+        }, "{$kind}-template.csv", ['Content-Type' => 'text/csv; charset=UTF-8']);
     }
 
     #[Authorize('view', 'import')]

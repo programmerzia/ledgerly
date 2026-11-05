@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { PageHeader } from '@/components/domain/PageHeader';
 import { formatDate, formatMoney } from '@/lib/format';
 import { useRouteCompany } from '@/data/session';
 import { useRequisitionActions, useRequisitionList } from '@/data/procurement';
+import { useListKeys } from '@/lib/pageKeys';
 import { useBulkRun, useRowSelection } from '@/data/bulk';
 import { BulkBar, BulkDiscardDialog, BulkResultsSheet } from '@/components/live/BulkBar';
 import { SignDialog } from '@/components/domain/SignDialog';
@@ -24,6 +26,7 @@ export const RequisitionsList: React.FC = () => {
 
   const actions = useRequisitionActions();
   const sel = useRowSelection(list.rows);
+  const cursor = useListKeys({ rows: list.rows, onOpen: (r) => navigate(`/${co}/requisitions/${r.id}`), onToggle: (r) => sel.toggle(r.id) });
   const bulk = useBulkRun();
   const [discarding, setDiscarding] = useState(false);
   const items = sel.selected.map((r) => ({ ...r, label: r.number ?? `Draft of ${formatDate(r.requisition_date)}` }));
@@ -91,7 +94,7 @@ export const RequisitionsList: React.FC = () => {
             </thead>
             <tbody className="divide-y divide-border">
               {list.rows.map((r) => (
-                <tr key={r.id} onClick={() => navigate(`/${co}/requisitions/${r.id}`)} className="cursor-pointer hover:bg-surface-neutral/60" data-selected={sel.isSelected(r.id) || undefined}>
+                <tr key={r.id} data-row-id={r.id} aria-current={cursor === r.id || undefined} onClick={() => navigate(`/${co}/requisitions/${r.id}`)} className={cn('cursor-pointer hover:bg-surface-neutral/60', cursor === r.id && 'bg-accent-soft/40')} data-selected={sel.isSelected(r.id) || undefined}>
                   <td className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
                     <Checkbox checked={sel.isSelected(r.id)} onCheckedChange={() => sel.toggle(r.id)} aria-label={`Select ${r.number ?? 'draft requisition'}`} />
                   </td>

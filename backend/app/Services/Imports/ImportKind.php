@@ -88,6 +88,16 @@ abstract class ImportKind
     }
 
     /**
+     * The header row of a template file: one column per target field, named by its label. A file with these headers maps itself (`suggest` matches the label).
+     *
+     * @return list<string>
+     */
+    final public function templateHeaders(): array
+    {
+        return array_map(fn (FieldSpec $f): string => $f->label, $this->fields());
+    }
+
+    /**
      * What the file's headers suggest: a header whose normalised name is one of a field's synonyms (or its key) maps to it.
      *
      * @param  list<string>  $headers

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { useLedgerStore } from '@/mock/store';
@@ -8,6 +8,7 @@ import { Kbd } from '@/components/ui/kbd';
 import { cn } from '@/lib/utils';
 import { formatDate, formatMoney } from '@/lib/format';
 import { useJournalActions, useJournalList, type JournalFilters } from '@/data/journals';
+import { useListKeys } from '@/lib/pageKeys';
 import { useBulkRun, useRowSelection } from '@/data/bulk';
 import { BulkBar, BulkDiscardDialog, BulkResultsSheet } from '@/components/live/BulkBar';
 import { SignDialog } from '@/components/domain/SignDialog';
@@ -51,6 +52,8 @@ export const JournalsListLive: React.FC = () => {
 
   const actions = useJournalActions();
   const sel = useRowSelection(list.rows);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const cursor = useListKeys({ rows: list.rows, onOpen: (r) => open(r.id, r.number), onToggle: (r) => sel.toggle(r.id), searchRef });
   const bulk = useBulkRun();
   const [discarding, setDiscarding] = useState(false);
   const items = sel.selected.map((j) => ({ ...j, label: j.number || `Draft of ${formatDate(j.journal_date)}` }));
@@ -174,7 +177,7 @@ export const JournalsListLive: React.FC = () => {
             </thead>
             <tbody className="divide-y divide-border">
               {list.rows.map((j) => (
-                <tr key={j.id} onClick={() => open(j.id, j.number)} className="cursor-pointer hover:bg-surface-neutral/60" data-selected={sel.isSelected(j.id) || undefined}>
+                <tr key={j.id} data-row-id={j.id} aria-current={cursor === j.id || undefined} onClick={() => open(j.id, j.number)} className={cn('cursor-pointer hover:bg-surface-neutral/60', cursor === j.id && 'bg-accent-soft/40')} data-selected={sel.isSelected(j.id) || undefined}>
                   <td className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
                     <Checkbox checked={sel.isSelected(j.id)} onCheckedChange={() => sel.toggle(j.id)} aria-label={`Select ${j.number || 'draft journal'}`} />
                   </td>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { PageHeader } from '@/components/domain/PageHeader';
@@ -8,6 +8,7 @@ import { formatDate, formatMoney } from '@/lib/format';
 import { useRouteCompany } from '@/data/session';
 import { useLedgerStore } from '@/mock/store';
 import { useDocActions, useDocList, type DocFilters } from '@/data/invoices';
+import { useListKeys } from '@/lib/pageKeys';
 import { useBulkRun, useRowSelection } from '@/data/bulk';
 import { BulkBar, BulkDiscardDialog, BulkResultsSheet } from '@/components/live/BulkBar';
 import { SignDialog } from '@/components/domain/SignDialog';
@@ -49,6 +50,8 @@ export const InvoicesListLive: React.FC<{ initialTab?: string; side?: Side }> = 
 
   const actions = useDocActions(S.resource);
   const sel = useRowSelection(list.rows);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const cursor = useListKeys({ rows: list.rows, onOpen: (r) => open(r.id, r.number), onToggle: (r) => sel.toggle(r.id), searchRef });
   const bulk = useBulkRun();
   const [discarding, setDiscarding] = useState(false);
   const labelOf = (d: (typeof list.rows)[number]) => `${numberOf(d)} · ${customers.byId.get(d.contact_id)?.name ?? S.Contact}`;
@@ -119,7 +122,7 @@ export const InvoicesListLive: React.FC<{ initialTab?: string; side?: Side }> = 
           ))}
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <input type="search" aria-label="Search documents" value={searchText} onChange={(e) => setSearchText(e.target.value)} placeholder="Search by number or reference" className={cn(inputClass, 'w-56')} />
+          <input ref={searchRef} type="search" aria-label="Search documents" value={searchText} onChange={(e) => setSearchText(e.target.value)} placeholder="Search by number or reference" className={cn(inputClass, 'w-56')} />
           <label className="flex items-center gap-1.5 text-xs text-text-muted">
             Issued from
             <input type="date" aria-label="Issued from" value={from} onChange={(e) => setFrom(e.target.value)} className={inputClass} />
@@ -164,7 +167,7 @@ export const InvoicesListLive: React.FC<{ initialTab?: string; side?: Side }> = 
             </thead>
             <tbody className="divide-y divide-border">
               {list.rows.map((d) => (
-                <tr key={d.id} onClick={() => open(d.id, d.number)} className="cursor-pointer hover:bg-surface-neutral/60" data-selected={sel.isSelected(d.id) || undefined}>
+                <tr key={d.id} data-row-id={d.id} aria-current={cursor === d.id || undefined} onClick={() => open(d.id, d.number)} className={cn('cursor-pointer hover:bg-surface-neutral/60', cursor === d.id && 'bg-accent-soft/40')} data-selected={sel.isSelected(d.id) || undefined}>
                   <td className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
                     <Checkbox checked={sel.isSelected(d.id)} onCheckedChange={() => sel.toggle(d.id)} aria-label={`Select ${numberOf(d)}`} />
                   </td>

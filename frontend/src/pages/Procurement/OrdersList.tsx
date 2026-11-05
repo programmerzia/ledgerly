@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { PageHeader } from '@/components/domain/PageHeader';
 import { formatDate, formatMoney } from '@/lib/format';
 import { useRouteCompany } from '@/data/session';
 import { useOrderActions, useOrderList } from '@/data/procurement';
+import { useListKeys } from '@/lib/pageKeys';
 import { useBulkRun, useRowSelection } from '@/data/bulk';
 import { BulkBar, BulkResultsSheet } from '@/components/live/BulkBar';
 import { SignDialog } from '@/components/domain/SignDialog';
@@ -24,6 +26,7 @@ export const OrdersList: React.FC = () => {
 
   const actions = useOrderActions();
   const sel = useRowSelection(list.rows);
+  const cursor = useListKeys({ rows: list.rows, onOpen: (r) => navigate(`/${co}/purchase-orders/${r.id}`), onToggle: (r) => sel.toggle(r.id) });
   const bulk = useBulkRun();
   const items = sel.selected.map((o) => ({ ...o, label: `${o.number ?? 'Draft'} · ${o.contact_name || 'Supplier'}` }));
   const submittable = items.filter((o) => o.status === 'draft' && o.can.submit);
@@ -86,7 +89,7 @@ export const OrdersList: React.FC = () => {
             </thead>
             <tbody className="divide-y divide-border">
               {list.rows.map((o) => (
-                <tr key={o.id} onClick={() => navigate(`/${co}/purchase-orders/${o.id}`)} className="cursor-pointer hover:bg-surface-neutral/60" data-selected={sel.isSelected(o.id) || undefined}>
+                <tr key={o.id} data-row-id={o.id} aria-current={cursor === o.id || undefined} onClick={() => navigate(`/${co}/purchase-orders/${o.id}`)} className={cn('cursor-pointer hover:bg-surface-neutral/60', cursor === o.id && 'bg-accent-soft/40')} data-selected={sel.isSelected(o.id) || undefined}>
                   <td className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
                     <Checkbox checked={sel.isSelected(o.id)} onCheckedChange={() => sel.toggle(o.id)} aria-label={`Select ${o.number ?? 'draft order'}`} />
                   </td>

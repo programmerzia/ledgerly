@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { PageHeader } from '@/components/domain/PageHeader';
@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { useRouteCompany } from '@/data/session';
 import { useLedgerStore } from '@/mock/store';
 import { useContactList } from '@/data/contacts';
+import { useListKeys } from '@/lib/pageKeys';
 import { useRowSelection } from '@/data/bulk';
 import { BulkBar } from '@/components/live/BulkBar';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -29,6 +30,8 @@ export const CustomersListLive: React.FC<{ side?: Side }> = ({ side = 'sales' })
   const list = useContactList({ kind: S.contactKind, active, search });
   const filtered = Boolean(search) || active !== 'true';
   const sel = useRowSelection(list.rows);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const cursor = useListKeys({ rows: list.rows, onOpen: (r) => open(r.id, r.name), onToggle: (r) => sel.toggle(r.id), searchRef });
   const exportCsv = () =>
     downloadCsv(`${S.contacts}-selected.csv`, [
       ['Name', 'Code', 'Email', 'Terms (days)', 'Currency', 'Active', S.balanceLabel],
@@ -66,7 +69,7 @@ export const CustomersListLive: React.FC<{ side?: Side }> = ({ side = 'sales' })
             </button>
           ))}
         </div>
-        <input type="search" aria-label={`Search ${S.contacts}`} value={searchText} onChange={(e) => setSearchText(e.target.value)} placeholder="Search by name, code or email" className={cn(inputClass, 'w-64')} />
+        <input ref={searchRef} type="search" aria-label={`Search ${S.contacts}`} value={searchText} onChange={(e) => setSearchText(e.target.value)} placeholder="Search by name, code or email" className={cn(inputClass, 'w-64')} />
       </div>
 
       <TableCard>
@@ -101,7 +104,7 @@ export const CustomersListLive: React.FC<{ side?: Side }> = ({ side = 'sales' })
             </thead>
             <tbody className="divide-y divide-border">
               {list.rows.map((c) => (
-                <tr key={c.id} onClick={() => open(c.id, c.name)} className="cursor-pointer hover:bg-surface-neutral/60" data-selected={sel.isSelected(c.id) || undefined}>
+                <tr key={c.id} data-row-id={c.id} aria-current={cursor === c.id || undefined} onClick={() => open(c.id, c.name)} className={cn('cursor-pointer hover:bg-surface-neutral/60', cursor === c.id && 'bg-accent-soft/40')} data-selected={sel.isSelected(c.id) || undefined}>
                   <td className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
                     <Checkbox checked={sel.isSelected(c.id)} onCheckedChange={() => sel.toggle(c.id)} aria-label={`Select ${c.name}`} />
                   </td>
