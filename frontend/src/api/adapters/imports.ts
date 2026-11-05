@@ -10,7 +10,7 @@ export type ApiImport = components['schemas']['ImportResource'];
 export type ApiImportRow = components['schemas']['ImportRowResource'];
 export type ImportField = ApiImport['fields'][number];
 
-export type ImportKindKey = 'contacts' | 'accounts' | 'opening_balances' | 'invoices' | 'bank_lines';
+export type ImportKindKey = 'contacts' | 'accounts' | 'opening_balances' | 'invoices' | 'bank_lines' | 'budget_lines';
 
 export interface KindInfo {
   title: string;
@@ -25,9 +25,10 @@ export const KIND_INFO: Record<ImportKindKey, KindInfo> = {
   opening_balances: { title: 'Opening balances', desc: 'Your starting balances, posted as one journal. Needs your signing PIN', after: { label: 'View journals', to: 'journals' } },
   invoices: { title: 'Sales invoices', desc: 'Invoices to customers; rows with the same reference are the lines of one invoice', after: { label: 'View invoices', to: 'invoices' } },
   bank_lines: { title: 'Bank statement lines', desc: 'Transactions to match against your books', after: { label: 'Go to bank accounts', to: 'banking' } },
+  budget_lines: { title: 'Budget amounts', desc: 'One amount per row: account code, period and amount, into a draft budget', after: { label: 'Open budgets', to: 'budgets' } },
 };
 
-export const KIND_ORDER: ImportKindKey[] = ['contacts', 'accounts', 'opening_balances', 'invoices', 'bank_lines'];
+export const KIND_ORDER: ImportKindKey[] = ['contacts', 'accounts', 'opening_balances', 'invoices', 'bank_lines', 'budget_lines'];
 
 export const isKnownKind = (k: string): k is ImportKindKey => k in KIND_INFO;
 
@@ -71,6 +72,7 @@ export function cleanOptions(options: ImportOptions): ImportOptions {
 export function missingUploadOptions(kind: string, options: ImportOptions): string[] {
   if (kind === 'opening_balances') return options.as_of ? [] : ['as_of'];
   if (kind === 'bank_lines') return options.bank_account_id ? [] : ['bank_account_id'];
+  if (kind === 'budget_lines') return options.budget_id ? [] : ['budget_id'];
   return [];
 }
 

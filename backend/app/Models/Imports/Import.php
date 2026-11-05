@@ -43,7 +43,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class Import extends BaseModel
 {
-    public const array KINDS = ['contacts', 'accounts', 'opening_balances', 'invoices', 'bank_lines'];
+    public const array KINDS = ['contacts', 'accounts', 'opening_balances', 'invoices', 'bank_lines', 'budget_lines'];
 
     /** @return array<string, string> */
     protected function casts(): array

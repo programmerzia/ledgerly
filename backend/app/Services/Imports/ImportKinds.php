@@ -7,6 +7,7 @@ namespace App\Services\Imports;
 use App\Domain\Shared\DomainRuleViolation;
 use App\Services\Imports\Kinds\AccountsKind;
 use App\Services\Imports\Kinds\BankLinesKind;
+use App\Services\Imports\Kinds\BudgetLinesKind;
 use App\Services\Imports\Kinds\ContactsKind;
 use App\Services\Imports\Kinds\InvoicesKind;
 use App\Services\Imports\Kinds\OpeningBalancesKind;
@@ -20,6 +21,7 @@ final class ImportKinds
         'opening_balances' => OpeningBalancesKind::class,
         'invoices' => InvoicesKind::class,
         'bank_lines' => BankLinesKind::class,
+        'budget_lines' => BudgetLinesKind::class,
     ];
 
     public function get(string $key): ImportKind

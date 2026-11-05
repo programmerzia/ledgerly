@@ -466,7 +466,7 @@ it('purges the cells of an import but keeps its history, and a purged import can
 it('lists the kinds with their fields', function (): void {
     $kinds = $this->asPerson($this->owner)->getJson($this->api('imports/kinds'))->assertOk()->json('data');
     $byKind = array_column($kinds, null, 'kind');
-    expect(array_keys($byKind))->toBe(['contacts', 'accounts', 'opening_balances', 'invoices', 'bank_lines'])
+    expect(array_keys($byKind))->toBe(['contacts', 'accounts', 'opening_balances', 'invoices', 'bank_lines', 'budget_lines'])
         ->and($byKind['opening_balances']['permission'])->toBe('settings.manage')->and($byKind['opening_balances']['all_or_nothing'])->toBeTrue()
         ->and($byKind['contacts']['permission'])->toBe('contacts.manage')->and($byKind['invoices']['permission'])->toBe('invoices.create')
         ->and($byKind['bank_lines']['permission'])->toBe('banking.reconcile')->and($byKind['accounts']['permission'])->toBe('accounts.manage');

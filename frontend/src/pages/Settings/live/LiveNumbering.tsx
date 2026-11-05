@@ -7,7 +7,7 @@ import React, { useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { ApiError } from '@/api/errors';
 import { IntentSlot } from '@/api/intentSlot';
-import { describeError } from '@/api/messages';
+import { describeError, fieldError } from '@/api/messages';
 import type { NumberingKindRow, NumberingOverview } from '@/api/live/numbering';
 import { useNumbering, useNumberingActions } from '@/data/numbering';
 import { useSettings } from '@/data/admin';
@@ -89,9 +89,9 @@ const Row: React.FC<{ row: NumberingKindRow; year: NumberingOverview['current_fi
             Waiting: from {startsWith(row.pending.fiscal_year, row.pending.effective_from)} numbers read <span className="font-mono">{row.pending.example}</span>. Until then the current numbering continues.
           </p>
         ) : (
-          <p className="text-xs text-text-muted" data-testid={`numbering-next-${row.kind}`}>A change starts with {startsWith(null, row.next_change_from)} or the first year after it without numbers; numbers already issued stay as they are.</p>
+          <p className="text-xs text-text-muted" data-testid={`numbering-next-${row.kind}`}>A change saved now starts on {formatDate(row.next_change_from)}, or with a later year if that year&apos;s numbers have already started. Numbers already issued stay as they are.</p>
         )}
-        {error ? <p role="alert" className="text-xs text-danger">{describeError(error)}</p> : null}
+        {error ? <p role="alert" className="text-xs text-danger">{fieldError(error, 'prefix') ?? fieldError(error, 'padding') ?? describeError(error)}</p> : null}
       </div>
     </li>
   );

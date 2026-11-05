@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Queries\Reports;
 
 use App\Models\Organisation\Company;
+use App\Queries\Budgets\BudgetVsActual;
 use App\Support\Reports\ReportRunner;
 use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
@@ -27,6 +28,7 @@ final class RunReport
         'customer-statement' => 'customer_statement',
         'supplier-statement' => 'supplier_statement',
         'tax-return' => 'tax_return',
+        'budget-vs-actual' => 'budget_vs_actual',
     ];
 
     public function __construct(
@@ -39,6 +41,8 @@ final class RunReport
         private readonly ArApAging $aging,
         private readonly ContactStatement $statement,
         private readonly TaxReturn $taxReturn,
+        private readonly BudgetVsActual $budgetVsActual,
+        private readonly PeriodCalendar $calendar,
     ) {}
 
     /**
@@ -48,6 +52,9 @@ final class RunReport
     public function __invoke(string $name, Company $company, array $input): array
     {
         $key = self::STATEMENTS[$name] ?? throw new InvalidArgumentException("Unknown report {$name}.");
+        if ($name === 'budget-vs-actual') {
+            return $this->budget($key, $company, $input);
+        }
         [$p, $query] = match ($name) {
             'trial-balance' => [$this->params->asOf($company, $input), $this->trialBalance],
             'balance-sheet' => [$this->params->asOf($company, $input), $this->balanceSheet],
@@ -64,5 +71,24 @@ final class RunReport
         }
 
         return $this->runner->cached($company->id, $key, $p->cacheKey(), fn (): array => ['generated_at' => gmdate('Y-m-d\TH:i:s\Z')] + $query($p));
+    }
+
+    /**
+     * Budget vs actual for a period (month or year to date). The budget's own version is part of the cache key, because editing or
+     * approving a budget never changes the ledger version.
+     *
+     * @param  array<string, mixed>  $input
+     * @return array<string, mixed>
+     */
+    private function budget(string $key, Company $company, array $input): array
+    {
+        $p = $this->params->range($company, $input);
+        $period = $p->periodId === null ? null : $this->calendar->find($company->id, $p->periodId);
+        if ($period === null || ! $period->isRegular()) {
+            throw ValidationException::withMessages(['period_id' => ['Budget vs actual is read for a period: give a period_id, and basis month or ytd.']]);
+        }
+        $budget = $this->budgetVsActual->budgetFor($company->id, $period, isset($input['budget_id']) ? (string) $input['budget_id'] : null);
+
+        return $this->runner->cached($company->id, $key, $p->cacheKey() + $this->budgetVsActual->cacheStamp($budget), fn (): array => ['generated_at' => gmdate('Y-m-d\TH:i:s\Z')] + ($this->budgetVsActual)($p, $budget));
     }
 }

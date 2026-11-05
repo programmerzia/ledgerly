@@ -43,6 +43,8 @@ final class ReportRequest extends CompanyRequest
             'exclude_closing' => ['nullable', 'boolean'],
             'contact_side' => ['nullable', 'string', Rule::in(['debit', 'credit'])],
             'contact_id' => ['nullable', 'uuid'],
+            /** Budget vs actual only: the budget version to read; default is the approved one of the period's fiscal year. */
+            'budget_id' => ['nullable', 'uuid', $this->inCompany('budgets')],
             'format' => ['nullable', 'string', Rule::in(['xlsx', 'csv', 'pdf'])],
         ];
     }

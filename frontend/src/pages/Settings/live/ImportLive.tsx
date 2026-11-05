@@ -21,6 +21,7 @@ import {
 } from '@/api/adapters/imports';
 import { useRouteCompany } from '@/data/session';
 import { useBankAccounts } from '@/data/banking';
+import { useBudgets } from '@/data/budgets';
 import { useImport, useImportActions, useImportKinds, useImportRows, useRecentImports } from '@/data/imports';
 import { isSigningCancelled, useSignedRun } from '@/data/signing';
 import { formatDateTime } from '@/lib/format';
@@ -107,6 +108,7 @@ const ChooseStep: React.FC<{ onCreated: (i: ApiImport) => void }> = ({ onCreated
   const company = useRouteCompany();
   const kinds = useImportKinds();
   const banks = useBankAccounts();
+  const budgets = useBudgets();
   const actions = useImportActions();
   const slot = useRef(new IntentSlot()).current;
   const [kind, setKind] = useState<ImportKindKey>('contacts');
@@ -202,6 +204,16 @@ const ChooseStep: React.FC<{ onCreated: (i: ApiImport) => void }> = ({ onCreated
             <p className="text-[13px] text-text-secondary">There is no bank account you can import into. <Link to={`/${company.slug}/banking`} className="text-accent hover:underline">Add one first</Link>.</p>
           ) : (
             <SimpleSelect aria-label="Bank account" allowNone={false} value={String(options.bank_account_id ?? '') || undefined} onChange={(v) => setOption('bank_account_id', v ?? '')} placeholder="Choose an account..." options={bankChoices.map((b) => ({ value: b.id, label: `${b.name} (${b.currency})` }))} />
+          )}
+        </Field>
+      )}
+
+      {kind === 'budget_lines' && (
+        <Field label="Import into" hint="A draft budget. Amounts already in it for the same account and period are replaced.">
+          {(budgets.data ?? []).filter((b) => b.status === 'draft').length === 0 && !budgets.isLoading ? (
+            <p className="text-[13px] text-text-secondary">There is no draft budget. <Link to={`/${company.slug}/budgets`} className="text-accent hover:underline">Make one first</Link>.</p>
+          ) : (
+            <SimpleSelect aria-label="Budget" allowNone={false} value={String(options.budget_id ?? '') || undefined} onChange={(v) => setOption('budget_id', v ?? '')} placeholder="Choose a draft budget..." options={(budgets.data ?? []).filter((b) => b.status === 'draft').map((b) => ({ value: b.id, label: `${b.fiscal_year?.name ?? ''} · ${b.name} (version ${b.revision})` }))} />
           )}
         </Field>
       )}

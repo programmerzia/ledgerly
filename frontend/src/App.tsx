@@ -46,6 +46,8 @@ import { FxRates } from './pages/Accounting/FxRates';
 import { Dimensions } from './pages/Accounting/Dimensions';
 import { FixedAssets } from './pages/Accounting/FixedAssets';
 import { Budgets } from './pages/Accounting/Budgets';
+import { BudgetsLive } from './pages/Accounting/live/BudgetsLive';
+import { LiveBudgetVsActual } from './pages/Reports/live/LiveBudgetVsActual';
 import { AuditLog } from './pages/Accounting/AuditLog';
 import { AuditLogLive } from './pages/Accounting/live/AuditLogLive';
 
@@ -248,7 +250,8 @@ export default function App() {
           <Route path="fx-rates" element={<FxRates />} />
           {IS_LIVE && <Route path="dimensions" element={<Dimensions />} />}
           <Route path="assets" element={<FixedAssets />} />
-          <Route path="budgets" element={<Budgets />} />
+          <Route path="budgets" element={IS_LIVE ? <BudgetsLive /> : <Budgets />} />
+          {IS_LIVE && <Route path="reports/budget-vs-actual" element={<LiveBudgetVsActual />} />}
 
           {/* Banking */}
           <Route path="banking" element={<BankAccountsList />} />

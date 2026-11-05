@@ -5,7 +5,7 @@ import type { ReportSelection } from '@/api/adapters/report';
 import { resolveSelection, selectionToSearch, type ReportKind } from '@/api/adapters/reportSelection';
 import { useReportPeriods } from '@/data/reports';
 
-const OWN_KEYS = ['period', 'from', 'to', 'asof', 'basis', 'cmp', 'zero', 'account', 'contact'];
+const OWN_KEYS = ['period', 'from', 'to', 'asof', 'basis', 'cmp', 'zero', 'account', 'contact', 'budget'];
 
 /** The report's parameters, kept in the query string. `ready` is false until the periods are known (for the default). */
 export function useReportSelection(kind: ReportKind, hideZero = false) {

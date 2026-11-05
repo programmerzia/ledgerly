@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Reports\ReportRequest;
 use App\Http\Support\RequestActor;
 use App\Jobs\Reports\RunReportExport;
+use App\Models\Budgets\Budget;
 use App\Models\Organisation\Company;
 use App\Services\Reports\ExportStore;
 use App\Services\Reports\ReportExport;
@@ -16,6 +17,7 @@ use App\Support\Reports\Report;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Attributes\Controllers\Authorize;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\Response;
@@ -32,6 +34,9 @@ final class ReportExportController extends Controller
     #[Authorize('export', Report::class)]
     public function export(ReportRequest $request, Company $company, string $report, ReportExport $exports, ExportStore $store, DetachedAudit $audit, TenantContext $tenant): Response
     {
+        if ($report === 'budget-vs-actual') {
+            Gate::authorize('viewAny', Budget::class);   // the figures are budget figures: reports.export alone is not enough
+        }
         $input = $request->validated();
         $format = (string) ($input['format'] ?? '');
         if (! isset(ReportExport::FORMATS[$format])) {
