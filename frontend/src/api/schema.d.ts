@@ -1503,6 +1503,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/companies/{company}/imports/kinds/{kind}/template": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A CSV with the header row for one kind: save it, fill it in, upload it. The headers are the field labels, so the mapping suggests itself */
+        get: operations["imports.template"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/companies/{company}/imports/{import}": {
         parameters: {
             query?: never;
@@ -5378,6 +5395,8 @@ export interface components {
             statement_line_ids: string[];
             journal_line_ids?: string[] | null;
             settlement_ids?: string[] | null;
+            /** Format: uuid */
+            payment_run_id?: string | null;
         };
         /** MemberResource */
         MemberResource: {
@@ -10051,6 +10070,33 @@ export interface operations {
                     "application/json": {
                         data: unknown[];
                     };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "imports.template": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                kind: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "Transfer-Encoding": "chunked";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv; charset=UTF-8": string;
                 };
             };
             401: components["responses"]["AuthenticationException"];
