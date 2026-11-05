@@ -27,8 +27,9 @@ final class EmailTargets
 
     /**
      * @param  array<string, mixed>  $params  statement: from, to, side
+     * @param  array<string, string>  $extraValues  more placeholder values from the caller
      */
-    public function resolve(BaseModel $model, Company $company, array $params, string $senderName): EmailTarget
+    public function resolve(BaseModel $model, Company $company, array $params, string $senderName, array $extraValues = []): EmailTarget
     {
         [$family, $pdfType, $contact, $parameters, $values] = match (true) {
             $model instanceof Invoice => $this->invoice($model, $company),
@@ -41,7 +42,7 @@ final class EmailTargets
         return new EmailTarget($family, $pdfType, $model, $contact, $parameters, $values + [
             'company_name' => $company->name, 'contact_name' => $contact->name, 'sender_name' => $senderName,
             'payment_instructions' => $look['payment_instructions'],
-        ]);
+        ] + $extraValues);
     }
 
     /** The document a stored send belongs to. */

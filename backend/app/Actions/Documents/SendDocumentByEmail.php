@@ -19,6 +19,7 @@ use App\Services\Documents\DocumentLook;
 use App\Services\Documents\EmailTarget;
 use App\Services\Documents\EmailTargets;
 use App\Support\Actor;
+use App\Support\ActorType;
 use App\Support\UnitOfWork\AuditBuffer;
 use App\Support\UnitOfWork\LockSet;
 use App\Support\UnitOfWork\Outbox;
@@ -52,36 +53,57 @@ final class SendDocumentByEmail
             }
             $this->guard->require($actor, 'documents.send', $in->companyId);
 
-            $locked = $locks->document($document);
-            $company = Company::query()->findOrFail($in->companyId);
-            $target = $this->targets->resolve($locked, $company, $in->parameters, $this->senderName($actor));
-
-            $recipients = self::recipients($in->recipients);
-            $template = $this->look->for($company->id)['email'][$target->family];
-            $subject = trim(preg_replace('/\s+/', ' ', MessageTemplate::render($in->subject ?? $template['subject'], $target->values)) ?? '');
-            $body = trim(str_replace("\r\n", "\n", MessageTemplate::render($in->body ?? $template['body'], $target->values)));
-            if ($subject === '' || mb_strlen($subject) > 200) {
-                throw DomainRuleViolation::single('subject_invalid', 'Give the email a subject of at most 200 characters.');
-            }
-            if ($body === '' || mb_strlen($body) > 5000) {
-                throw DomainRuleViolation::single('body_invalid', 'Give the email a message of at most 5,000 characters.');
-            }
-            $this->refuseDoubleClick($company->id, $locked, $recipients);
-
-            $send = new DocumentSend;
-            $send->forceFill([
-                'id' => $this->ids->next(), 'tenant_id' => $actor->tenantId, 'company_id' => $company->id,
-                'document_type' => $target->family, 'document_id' => (string) $locked->getKey(), 'contact_id' => $target->contact->id,
-                'recipients' => $recipients, 'subject' => $subject, 'body' => $body,
-                'attachment_name' => $this->attachmentName($target),
-                'parameters' => $target->parameters, 'status' => 'queued', 'queued_by' => $actor->id, 'queued_at' => $this->clock->now(),
-            ])->save();
-            $send->refresh();
-            $audit->add('document.email_queued', $locked, context: ['send_id' => $send->id, 'document_type' => $target->family, 'to' => $recipients]);
-            $this->uow->afterCommit(fn () => SendDocumentEmail::dispatch($actor->tenantId, $company->id, $send->id));
-
-            return $send;
+            return $this->queue($actor, $document, $in, $locks, $audit);
         });
+    }
+
+    /**
+     * The same send path for the scheduler (overdue-invoice reminders, plan 3c.7): the system, not a person, so there is no
+     * permission to check; the caller decided what to send and to whom. The rules about the document and the log are the same.
+     * Runs inside the caller's transaction when there is one, so the caller's own record commits with the send row.
+     */
+    public function automatic(Actor $system, BaseModel $document, SendDocumentInput $in): DocumentSend
+    {
+        return $this->uow->run($system, function (LockSet $locks, AuditBuffer $audit, Outbox $outbox) use ($system, $document, $in) {
+            if ($system->type !== ActorType::System) {
+                throw DomainRuleViolation::single('forbidden', 'Only the scheduler sends without a person.');
+            }
+
+            return $this->queue($system, $document, $in, $locks, $audit);
+        });
+    }
+
+    private function queue(Actor $actor, BaseModel $document, SendDocumentInput $in, LockSet $locks, AuditBuffer $audit): DocumentSend
+    {
+        $locked = $locks->document($document);
+        $company = Company::query()->findOrFail($in->companyId);
+        $target = $this->targets->resolve($locked, $company, $in->parameters, $this->senderName($actor, $company), $in->extraValues);
+
+        $recipients = self::recipients($in->recipients);
+        $template = $this->look->for($company->id)['email'][$target->family];
+        $subject = trim(preg_replace('/\s+/', ' ', MessageTemplate::render($in->subject ?? $template['subject'], $target->values)) ?? '');
+        $body = trim(str_replace("\r\n", "\n", MessageTemplate::render($in->body ?? $template['body'], $target->values)));
+        if ($subject === '' || mb_strlen($subject) > 200) {
+            throw DomainRuleViolation::single('subject_invalid', 'Give the email a subject of at most 200 characters.');
+        }
+        if ($body === '' || mb_strlen($body) > 5000) {
+            throw DomainRuleViolation::single('body_invalid', 'Give the email a message of at most 5,000 characters.');
+        }
+        $this->refuseDoubleClick($company->id, $locked, $recipients);
+
+        $send = new DocumentSend;
+        $send->forceFill([
+            'id' => $this->ids->next(), 'tenant_id' => $actor->tenantId, 'company_id' => $company->id,
+            'document_type' => $target->family, 'document_id' => (string) $locked->getKey(), 'contact_id' => $target->contact->id,
+            'recipients' => $recipients, 'subject' => $subject, 'body' => $body,
+            'attachment_name' => $this->attachmentName($target),
+            'parameters' => $target->parameters, 'status' => 'queued', 'queued_by' => $actor->id, 'queued_at' => $this->clock->now(),
+        ])->save();
+        $send->refresh();
+        $audit->add('document.email_queued', $locked, context: ['send_id' => $send->id, 'document_type' => $target->family, 'to' => $recipients]);
+        $this->uow->afterCommit(fn () => SendDocumentEmail::dispatch($actor->tenantId, $company->id, $send->id));
+
+        return $send;
     }
 
     /**
@@ -131,8 +153,13 @@ final class SendDocumentByEmail
         return preg_replace('/[^A-Za-z0-9._-]+/', '-', ($target->values['document_type'] ?? 'Document').'-'.$number).'.pdf';
     }
 
-    private function senderName(Actor $actor): string
+    private function senderName(Actor $actor, Company $company): string
     {
+        if ($actor->type === ActorType::System) {
+            $configured = $this->look->for($company->id)['sender_name'];
+
+            return $configured !== '' ? $configured : $company->name;
+        }
         $user = $actor->id === null ? null : User::query()->find($actor->id);
 
         return $user === null ? '' : (string) $user->getAttribute('name');

@@ -110,6 +110,7 @@ final class ManageContact
             'default_account_id' => $in->defaultAccountId, 'default_tax_code_id' => $in->defaultTaxCodeId,
             'default_branch' => $in->defaultBranch, 'default_dims' => $in->defaultDims,
             'notes' => $in->notes,
+            ...($in->dunningOptOut === null ? [] : ['dunning_opt_out' => $in->dunningOptOut]),
         ];
     }
 

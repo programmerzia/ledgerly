@@ -21,6 +21,7 @@ final class MessageTemplate
         'due_date' => 'Due date (invoices)',
         'total' => 'Document total with currency',
         'amount_due' => 'Amount still unpaid, with currency',
+        'days_overdue' => 'Days past the due date (overdue reminders)',
         'period_from' => 'Statement start date',
         'period_to' => 'Statement end date',
         'closing_balance' => 'Statement closing balance',

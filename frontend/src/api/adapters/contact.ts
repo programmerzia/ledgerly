@@ -23,6 +23,8 @@ export interface LiveContact extends Contact {
   baseCurrency: string;
   creditLimitCurrency?: string;
   notes: string;
+  /** Overdue-invoice reminders are not sent to this contact (3c.7). */
+  dunning_opt_out: boolean;
   billing_address: string[];
   shipping_address: string[];
   can: ContactCan;
@@ -69,6 +71,7 @@ export function toContact(a: ApiContact, scope: { tenantId: string; companyId: s
     payable: balances?.payable ? fromApiMoney(balances.payable) : 0,
     baseCurrency: balances?.receivable?.currency ?? a.default_currency,
     notes: a.notes ?? '',
+    dunning_opt_out: a.dunning_opt_out ?? false,
     billing_address: addressLines(a.billing_address),
     shipping_address: addressLines(a.shipping_address),
     can: toContactCan(a.can),
@@ -90,6 +93,7 @@ export interface ContactDraft {
   credit_limit: number | null;
   billing_address: string[];
   notes: string;
+  dunning_opt_out: boolean;
 }
 
 const orNull = (s: string): string | null => (s.trim() === '' ? null : s.trim());
@@ -112,6 +116,7 @@ export function toContactRequest(d: ContactDraft, existing?: LiveContact): Recor
     payment_terms_days: d.payment_terms_days,
     credit_limit: d.credit_limit == null ? null : { amount: d.credit_limit, currency: d.default_currency },
     notes: orNull(d.notes),
+    dunning_opt_out: d.dunning_opt_out,
   };
   if (existing) {
     const r = existing.raw;
@@ -140,4 +145,5 @@ export const draftOf = (c: LiveContact): ContactDraft => ({
   credit_limit: c.credit_limit ?? null,
   billing_address: c.billing_address,
   notes: c.notes,
+  dunning_opt_out: c.dunning_opt_out,
 });

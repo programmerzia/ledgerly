@@ -58,7 +58,7 @@ describe('approval workflows', () => {
   it('builds integer minor units from text and carries the version on update', () => {
     const f = { ...blankWorkflow(), name: ' Big ', min: '1,000.50', max: '5000', steps: [{ role: 'Owner', count: '2' }] };
     const r = toWorkflowRequest(f, 2, 7);
-    expect(r).toEqual({ ok: true, body: { document_type: 'journal', name: 'Big', source: 'any', min_amount: 100050, max_amount: 500000, steps: [{ role: 'Owner', count: 2 }], version: 7 } });
+    expect(r).toEqual({ ok: true, body: { document_type: 'journal', name: 'Big', source: 'any', min_amount: 100050, max_amount: 500000, steps: [{ role: 'Owner', count: 2 }], remind_after_hours: null, version: 7 } });
     const create = toWorkflowRequest({ ...f, max: '' }, 2);
     expect(create.ok && create.body.max_amount).toBe(null);
     expect(create.ok && 'version' in create.body).toBe(false);

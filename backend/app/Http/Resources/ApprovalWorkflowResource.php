@@ -25,6 +25,8 @@ final class ApprovalWorkflowResource extends JsonResource
             'min_amount' => Json::money($this->min_amount, $currency),
             'max_amount' => $this->max_amount === null ? null : Json::money($this->max_amount, $currency),
             'steps' => array_map(fn (array $s): array => ['role' => $s['role'], 'count' => (int) ($s['count'] ?? 1)], $this->steps),
+            /** Hours before the current step's approvers are reminded (then once per further interval); null: no reminders. */
+            'remind_after_hours' => $this->remind_after_hours,
             'is_active' => $this->is_active,
             'version' => $this->lock_version,
             'can' => Json::can($request, $this->resource, ['update' => 'update', 'deactivate' => 'deactivate']),

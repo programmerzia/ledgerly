@@ -87,6 +87,7 @@ final class ManageApprovalWorkflow
         return [
             'document_type' => $in->documentType, 'name' => $in->name, 'source' => $in->source,
             'min_amount' => $in->minAmount, 'max_amount' => $in->maxAmount, 'steps' => $in->steps,
+            'remind_after_hours' => $in->remindAfterHours,
         ];
     }
 

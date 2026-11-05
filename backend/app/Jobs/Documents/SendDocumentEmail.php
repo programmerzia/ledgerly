@@ -46,7 +46,7 @@ final class SendDocumentEmail implements ShouldQueue
             if ($send === null || $send->status !== 'queued') {
                 return;
             }
-            $actor = new Actor(ActorType::User, $send->queued_by, $this->tenantId, $this->companyId);
+            $actor = $send->queued_by === null ? Actor::system($this->tenantId, $this->companyId) : new Actor(ActorType::User, $send->queued_by, $this->tenantId, $this->companyId);
             $subject = $targets->subjectOf($send);
 
             try {

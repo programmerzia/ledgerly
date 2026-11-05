@@ -21,6 +21,8 @@ final class ApprovalWorkflowRequest extends CompanyRequest
             'source' => ['required', 'string', Rule::in(['any', 'user', 'api'])],
             'min_amount' => ['required', 'integer', 'min:0', 'max:999999999999999'],
             'max_amount' => ['nullable', 'integer', 'gt:min_amount', 'max:999999999999999'],
+            /** Hours (1 to 720) a document may wait on its current step before its approvers are reminded; empty: no reminders. */
+            'remind_after_hours' => ['nullable', 'integer', 'between:1,720'],
             'steps' => ['required', 'array', 'min:1', 'max:10'],
             'steps.*.role' => ['required', 'string', 'max:64', $this->inCompany('roles', 'name')],
             'steps.*.count' => ['nullable', 'integer', 'between:1,10'],
@@ -41,6 +43,7 @@ final class ApprovalWorkflowRequest extends CompanyRequest
             source: (string) $v['source'],
             minAmount: (int) $v['min_amount'],
             maxAmount: isset($v['max_amount']) ? (int) $v['max_amount'] : null,
+            remindAfterHours: isset($v['remind_after_hours']) ? (int) $v['remind_after_hours'] : null,
             steps: array_map(fn (array $s): array => ['role' => $s['role'], 'count' => (int) ($s['count'] ?? 1)], $steps),
         );
     }

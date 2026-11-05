@@ -17,5 +17,7 @@ final readonly class SendDocumentInput
         public ?string $subject = null,
         public ?string $body = null,
         public array $parameters = [],
+        /** @var array<string, string> placeholder values only the caller knows (the overdue reminder's days late) */
+        public array $extraValues = [],
     ) {}
 }

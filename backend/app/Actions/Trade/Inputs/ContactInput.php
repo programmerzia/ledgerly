@@ -35,5 +35,7 @@ final readonly class ContactInput
         public ?string $defaultBranch = null,
         public array $defaultDims = [],
         public ?string $notes = null,
+        /** Stop overdue-invoice reminders for this contact (plan 3c.7); null leaves the stored choice as it is. */
+        public ?bool $dunningOptOut = null,
     ) {}
 }

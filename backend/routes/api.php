@@ -10,6 +10,7 @@ use App\Http\Controllers\Banking\BankReconciliationController;
 use App\Http\Controllers\Banking\BankRuleController;
 use App\Http\Controllers\Documents\DocumentEmailController;
 use App\Http\Controllers\Documents\DocumentPdfController;
+use App\Http\Controllers\Documents\DunningController;
 use App\Http\Controllers\Files\AttachmentBlobController;
 use App\Http\Controllers\Files\AttachmentController;
 use App\Http\Controllers\Fiscal\FiscalPeriodController;
@@ -141,6 +142,11 @@ Route::middleware(['auth:sanctum', 'tenant', 'tenant.writable', 'idempotent', 'c
         Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
         Route::post('notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.read-all');
         Route::post('notifications/{notification}/read', [NotificationController::class, 'read'])->whereUuid('notification')->name('notifications.read');
+
+        // Overdue-invoice reminders (plan 3c.7): settings, stages and a preview of the next run
+        Route::get('dunning', [DunningController::class, 'show'])->name('dunning.show');
+        Route::put('dunning', [DunningController::class, 'update'])->name('dunning.update');
+        Route::get('dunning/preview', [DunningController::class, 'preview'])->name('dunning.preview');
 
         // Chart of accounts
         Route::get('chart-templates', [ChartTemplateController::class, 'index'])->name('chart-templates.index');

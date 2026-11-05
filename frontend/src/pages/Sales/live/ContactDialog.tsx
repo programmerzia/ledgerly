@@ -30,7 +30,7 @@ export const ContactDialog: React.FC<Props> = ({ open, onClose, contact, kind = 
   const [draft, setDraft] = useState<ContactDraft>(() =>
     contact
       ? draftOf(contact)
-      : { kind, code: '', name: '', email: '', phone: '', tax_id: '', default_currency: baseCurrency, payment_terms_days: 30, credit_limit: null, billing_address: [], notes: '' },
+      : { kind, code: '', name: '', email: '', phone: '', tax_id: '', default_currency: baseCurrency, payment_terms_days: 30, credit_limit: null, billing_address: [], notes: '', dunning_opt_out: false },
   );
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [banner, setBanner] = useState('');
@@ -153,6 +153,12 @@ export const ContactDialog: React.FC<Props> = ({ open, onClose, contact, kind = 
             <div className="col-span-2">
               {field('c-notes', 'Notes', <input id="c-notes" value={draft.notes} onChange={(e) => set('notes', e.target.value)} className={inputClass} />, errors.notes)}
             </div>
+            {kind === 'customer' && (
+              <label className="col-span-2 flex items-center gap-2 text-xs text-text-secondary">
+                <input type="checkbox" checked={draft.dunning_opt_out} onChange={(e) => set('dunning_opt_out', e.target.checked)} />
+                Do not send this customer overdue-invoice reminders
+              </label>
+            )}
             {banner && (
               <p role="alert" className="col-span-2 text-xs font-medium text-danger">
                 {banner}

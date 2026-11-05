@@ -77,6 +77,7 @@ export const LiveWorkflows: React.FC = () => {
                     {documentTypeLabel(w.document_type)} · {describeRange(w, currency)} · {sourceLabel(w.source)}
                   </div>
                   <div className="text-xs text-text-secondary">Approved by {describeSteps(w)}</div>
+                  {w.remind_after_hours != null && <div className="text-xs text-text-muted">Reminds after {w.remind_after_hours} hour{w.remind_after_hours === 1 ? '' : 's'}</div>}
                 </div>
                 {w.can.update && (
                   <button type="button" className={`${secondary} h-7 px-2.5 text-xs`} onClick={() => setEditing(w)}>Edit</button>
@@ -214,6 +215,9 @@ const WorkflowDialog: React.FC<{
               <button type="button" className="self-start text-[13px] text-accent hover:underline cursor-pointer" onClick={() => setForm({ ...form, steps: [...form.steps, { role: '', count: '1' }] })}>Add a step</button>
             )}
           </fieldset>
+          <Field id="wf-remind" label="Remind approvers after (hours)" hint="If a document waits this long on a step, the approvers are reminded in the bell and by email, then again every time this many hours pass. Leave empty for no reminders." error={errors.remind ?? fieldError(serverError, 'remind_after_hours')}>
+            <input id="wf-remind" className={`${field} w-28 text-right tabular-nums`} inputMode="numeric" value={form.remind} onChange={set('remind')} />
+          </Field>
           {serverError != null && <p role="alert" className="text-[13px] text-danger">{describeProblem(serverError)}</p>}
           <DialogFooter className="gap-2">
             <button type="button" className={secondary} disabled={busy} onClick={onClose}>Cancel</button>
