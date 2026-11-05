@@ -24,5 +24,7 @@ final readonly class ComputedDocument
         public ?string $whtCodeId,
         public int $whtAmountFc,
         public int $whtAmount,
+        public int $reverseChargeFc = 0,
+        public int $reverseCharge = 0,
     ) {}
 }

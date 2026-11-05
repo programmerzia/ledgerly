@@ -18,9 +18,7 @@ use App\Support\UnitOfWork\AuditBuffer;
 use App\Support\UnitOfWork\LockSet;
 use App\Support\UnitOfWork\Outbox;
 use App\Support\UnitOfWork\UnitOfWork;
-use Brick\Math\BigDecimal;
 use DateTimeImmutable;
-use Illuminate\Support\Facades\DB;
 
 /**
  * The setup and the draft of provisioning: the rates per aging bucket (`provisions.manage`, replaced as a whole, audited) and a
@@ -49,17 +47,8 @@ final class ManageProvisioning
             if (array_diff(ProvisionMatrix::BUCKETS, array_keys($ratesPct)) !== []) {
                 throw DomainRuleViolation::single('provision_rates_incomplete', 'State a rate for every aging bucket.');
             }
-            $before = DB::table('provision_rates')->where('company_id', $companyId)->pluck('rate_pct', 'bucket')->all();
-            foreach (ProvisionMatrix::BUCKETS as $bucket) {
-                $rate = $ratesPct[$bucket];
-                if (preg_match('/^\d{1,3}(\.\d{1,4})?$/', $rate) !== 1 || BigDecimal::of($rate)->isGreaterThan(100)) {
-                    throw DomainRuleViolation::single('provision_rate_invalid', 'A rate is a percentage from 0 to 100 with up to four decimals.');
-                }
-                DB::table('provision_rates')->updateOrInsert(['company_id' => $companyId, 'bucket' => $bucket], [
-                    'id' => DB::table('provision_rates')->where('company_id', $companyId)->where('bucket', $bucket)->value('id') ?? $this->ids->next(),
-                    'tenant_id' => $actor->tenantId, 'rate_pct' => $rate, 'updated_at' => now(), 'created_at' => now(),
-                ]);
-            }
+            $before = $this->service->storedRates($companyId);
+            $this->service->writeRates($actor->tenantId, $companyId, $ratesPct);
             $audit->add('provision_rates.updated', Company::query()->findOrFail($companyId), before: ['rates' => $before], after: ['rates' => $ratesPct]);
 
             return $this->service->rates($companyId);

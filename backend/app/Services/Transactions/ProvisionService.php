@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Transactions;
 
+use App\Contracts\IdGenerator;
 use App\Domain\Ledger\DraftLine;
 use App\Domain\Ledger\JournalDraft;
 use App\Domain\Ledger\JournalType;
@@ -14,6 +15,7 @@ use App\Models\Transactions\ProvisionRun;
 use App\Queries\Reports\ArApAging;
 use App\Queries\Reports\ReportParams;
 use App\Services\Trade\PostingAccountResolver;
+use Brick\Math\BigDecimal;
 use DateTimeImmutable;
 use Illuminate\Support\Facades\DB;
 
@@ -81,5 +83,28 @@ final class ProvisionService
             $company->id, JournalType::Manual, new DateTimeImmutable($day), $lines, $number,
             "Bad-debt provision {$number}: required {$run->required}, held {$run->existing}", 'provision_run', $run->id,
         );
+    }
+
+    /** @return array<string, string> whatever rates are stored, possibly none */
+    public function storedRates(string $companyId): array
+    {
+        return DB::table('provision_rates')->where('company_id', $companyId)->pluck('rate_pct', 'bucket')->map(fn ($v): string => (string) $v)->all();
+    }
+
+    /** @param array<string, string> $ratesPct all five buckets */
+    public function writeRates(string $tenantId, string $companyId, array $ratesPct): void
+    {
+        foreach (ProvisionMatrix::BUCKETS as $bucket) {
+            $rate = $ratesPct[$bucket];
+            if (preg_match('/^\d{1,3}(\.\d{1,4})?$/', $rate) !== 1 || BigDecimal::of($rate)->isGreaterThan(100)) {
+                throw DomainRuleViolation::single('provision_rate_invalid', 'A rate is a percentage from 0 to 100 with up to four decimals.');
+            }
+            $id = DB::table('provision_rates')->where('company_id', $companyId)->where('bucket', $bucket)->value('id');
+            if ($id === null) {
+                DB::table('provision_rates')->insert(['id' => app(IdGenerator::class)->next(), 'tenant_id' => $tenantId, 'company_id' => $companyId, 'bucket' => $bucket, 'rate_pct' => $rate, 'created_at' => now(), 'updated_at' => now()]);
+            } else {
+                DB::table('provision_rates')->where('id', $id)->update(['rate_pct' => $rate, 'updated_at' => now()]);
+            }
+        }
     }
 }

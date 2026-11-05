@@ -28,8 +28,8 @@ trait TransactionsApi
                 ['1190', 'Allowance for credit losses', 'asset', 'credit', 'none', 'base_only'],
                 ['6801', 'Bad debt expense', 'expense', 'debit', 'none', 'base_only'],
                 ['7105', 'Bad debts recovered', 'income', 'credit', 'none', 'base_only'],
-                ['2302', 'Reverse-charge output VAT', 'liability', 'credit', 'tax', 'base_only'],
-                ['1302', 'Reverse-charge input VAT', 'asset', 'debit', 'tax', 'base_only'],
+                ['2302', 'Reverse-charge output VAT', 'liability', 'credit', 'tax', 'any'],
+                ['1302', 'Reverse-charge input VAT', 'asset', 'debit', 'tax', 'any'],
                 ['6312', 'Bank charges', 'expense', 'debit', 'none', 'base_only'],
             ] as [$code, $name, $type, $normal, $control, $policy]) {
                 $f->accounts[$code] = (string) Str::uuid7();

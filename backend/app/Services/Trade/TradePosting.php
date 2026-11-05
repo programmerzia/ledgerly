@@ -66,8 +66,20 @@ final class TradePosting
 
         $docLines = [];
         $taxFc = 0;
+        $reverseFc = 0;
+        $reverseRecoverableFc = 0;
+        $reverseRecoverable = $purchase ? $this->reverseChargeRecoverability($lines) : [];
         foreach ($lines as $l) {
             $irrecoverable = 0;
+            if ($l->reverse_charge_fc > 0) {
+                // D15 item 4: output on all of it; input on the recoverable part; the rest is cost of the line (D10).
+                $reverseFc += $l->reverse_charge_fc;
+                if ($reverseRecoverable[(string) $l->tax_code_id] ?? false) {
+                    $reverseRecoverableFc += $l->reverse_charge_fc;
+                } else {
+                    $irrecoverable += $l->reverse_charge_fc;
+                }
+            }
             foreach ($l->tax_detail as $codeId => $amount) {
                 if ($purchase && ! ($recoverable[$codeId] ?? false)) {
                     $irrecoverable += $amount;
@@ -93,7 +105,7 @@ final class TradePosting
             throw DomainRuleViolation::single('document_totals_inconsistent', 'The tax detail of the lines does not match their tax; save the document again.');
         }
 
-        $accounts = $this->accounts($doc, $company, $taxFc, $doc->wht_amount_fc);
+        $accounts = $this->accounts($doc, $company, $taxFc, $doc->wht_amount_fc, $reverseFc > 0, $reverseRecoverableFc > 0);
         $rate = (string) $doc->fx_rate;
         $reference = $doc->reference ?? '';
         $contactRef = $doc->contact_id;
@@ -112,10 +124,27 @@ final class TradePosting
 
         $document = new BillDocument(
             $doc->id, $number, $reference, $doc->memo, $contactRef, $issue, $doc->currency, $rate,
-            $docLines, $taxFc, $baseTax, $doc->total_fc, $doc->wht_amount_fc,
+            $docLines, $taxFc, $baseTax, $doc->total_fc, $doc->wht_amount_fc, $reverseFc, $reverseRecoverableFc,
         );
 
         return $doc->kind === InvoiceKind::DebitNote ? BillPosting::debitNote($document, $accounts) : BillPosting::journal($document, $accounts);
+    }
+
+    /**
+     * @param  list<InvoiceLine>  $lines
+     * @return array<string, bool> reverse-charge tax code id → recoverable
+     */
+    private function reverseChargeRecoverability(array $lines): array
+    {
+        $ids = array_values(array_unique(array_filter(array_map(fn (InvoiceLine $l): ?string => $l->reverse_charge_fc > 0 ? $l->tax_code_id : null, $lines))));
+        if ($ids === []) {
+            return [];
+        }
+
+        /** @var array<string, bool> $map */
+        $map = TaxCode::query()->whereIn('id', $ids)->pluck('is_recoverable', 'id')->map(fn ($v): bool => (bool) $v)->all();
+
+        return $map;
     }
 
     /**
@@ -141,7 +170,7 @@ final class TradePosting
     }
 
     /** The control account is the contact's own when set, else the company's; the other accounts come from the company settings. */
-    private function accounts(Invoice $doc, Company $company, int $recoverableTaxFc, int $whtFc): PostingAccounts
+    private function accounts(Invoice $doc, Company $company, int $recoverableTaxFc, int $whtFc, bool $reverseCharge = false, bool $reverseRecoverable = false): PostingAccounts
     {
         $raw = CompanySettings::query()->where('company_id', $company->id)->first()?->getAttribute('posting_accounts');
         /** @var array<string, mixed> $settings */
@@ -164,7 +193,24 @@ final class TradePosting
             fxUnrealised: '',
             rounding: $foreign ? $this->account($company, $settings, 'rounding') : '',
             whtPayable: ! $sales && $whtFc > 0 ? $this->account($company, $settings, 'wht_payable') : '',
+            reverseChargeOutput: $reverseCharge ? $this->accountOrPointer($company, $settings, 'reverse_charge_output', 'reverse-charge output VAT') : '',
+            reverseChargeInput: $reverseRecoverable ? $this->accountOrPointer($company, $settings, 'reverse_charge_input', 'reverse-charge input VAT') : '',
         );
+    }
+
+    /**
+     * An account a newer feature needs; a company on an older chart may not have it, and says where to set it (never guessed).
+     *
+     * @param  array<string, mixed>  $settings
+     */
+    private function accountOrPointer(Company $company, array $settings, string $key, string $label): string
+    {
+        $ref = $settings[$key] ?? null;
+        if (! is_string($ref) || $ref === '') {
+            throw DomainRuleViolation::single('posting_account_missing', "This bill needs the {$label} account. Set it in Settings → Posting ({$key}) and try again.");
+        }
+
+        return $this->account($company, $settings, $key);
     }
 
     /** @param array<string, mixed> $settings */

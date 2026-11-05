@@ -22,5 +22,8 @@ final readonly class BillDocument
         public int $taxTotal,
         public int $totalFc,
         public int $whtAmountFc = 0,
+        /** Self-assessed reverse-charge tax in the document currency (D15 item 4): output on all of it, input on the recoverable part. */
+        public int $reverseChargeFc = 0,
+        public int $reverseChargeRecoverableFc = 0,
     ) {}
 }

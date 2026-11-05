@@ -45,6 +45,9 @@ final class InvoiceResource extends JsonResource
             'total_fc' => Json::money($this->total_fc, $cur),
             'subtotal' => Json::money($this->subtotal, $base),
             'tax_total' => Json::money($this->tax_total, $base),
+            /** Self-assessed reverse-charge tax (bills): not in the total, not owed to the supplier. */
+            'reverse_charge_total_fc' => Json::money($this->reverse_charge_total_fc, $cur),
+            'reverse_charge_total' => Json::money($this->reverse_charge_total, $base),
             'total' => Json::money($this->total, $base),
             'wht_code_id' => $this->wht_code_id,
             'wht_amount_fc' => Json::money($this->wht_amount_fc, $cur),
