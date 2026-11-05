@@ -138,6 +138,20 @@ export const LiveDocumentLook: React.FC<{ settings: ApiSettings; companyId: stri
         </div>
       </SettingsCard>
 
+      <SettingsCard title="Email sender" description="How your emails appear in a customer's inbox.">
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+          <Field id="co-sender" label="Sender name" hint="Shown as the sender. Leave empty to use your company name." error={fieldError(error, 'sender_name')}>
+            <input id="co-sender" className={field} value={form.sender_name} onChange={(e) => setForm({ ...form, sender_name: e.target.value })} disabled={!canEdit} maxLength={100} />
+          </Field>
+          <Field id="co-reply" label="Reply-to address" hint="Where a customer's reply goes. Leave empty to have no reply address." error={fieldError(error, 'reply_to')}>
+            <input id="co-reply" type="email" className={field} value={form.reply_to} onChange={(e) => setForm({ ...form, reply_to: e.target.value })} disabled={!canEdit} maxLength={254} />
+          </Field>
+        </div>
+        <p className="mt-3 rounded-md bg-surface-neutral p-3 text-xs text-text-secondary">
+          Emails are always sent from <strong className="text-text-primary">{settings.document_look.from_address}</strong>, the address Ledgerly is set up to send from. Your own address cannot be used as the sender, because mail that claims to come from your domain without being sent by it is rejected or lands in spam (SPF and DKIM). Replies go to the reply-to address above.
+        </p>
+      </SettingsCard>
+
       <SettingsCard title="Email templates" description="The wording that fills the email box when you send a document. You can still change it for each email.">
         <div className="flex flex-col gap-6">
           {EMAIL_FAMILIES.map(({ key, label }) => (

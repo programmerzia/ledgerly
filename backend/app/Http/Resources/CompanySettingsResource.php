@@ -59,9 +59,13 @@ final class CompanySettingsResource extends JsonResource
             'document_look' => [
                 'accent_color' => (string) $look['accent_color'], 'footer_text' => (string) $look['footer_text'],
                 'payment_instructions' => (string) $look['payment_instructions'], 'has_logo' => $this->getAttribute('logo_path') !== null,
+                /** Display name on outgoing mail (empty: the company name) and the address replies go to (empty: none). */
+                'sender_name' => (string) $look['sender_name'], 'reply_to' => (string) $look['reply_to'],
+                /** The address mail is sent from. It is fixed by the platform: a customer's own domain would fail SPF and DKIM. */
+                'from_address' => (string) config('mail.from.address'),
             ],
             /**
-             * Subject and body per family (invoice, credit_note, statement, payment_advice), defaults filled in.
+             * Subject and body per family (invoice, credit_note, statement, payment_advice, receipt), defaults filled in.
              *
              * @var array<string, array{subject: string, body: string}>
              */

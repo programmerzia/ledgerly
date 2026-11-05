@@ -9,12 +9,12 @@ use App\Models\Organisation\CompanySettings;
 
 /**
  * A company's document look and email templates, read from `company_settings.document_templates` with the defaults
- * filled in. Stored shape: `{accent_color, footer_text, payment_instructions, email: {type: {subject, body}}}`.
+ * filled in. Stored shape: `{accent_color, footer_text, payment_instructions, sender_name, reply_to, email: {type: {subject, body}}}`.
  */
 final class DocumentLook
 {
     /**
-     * @return array{accent_color: string, footer_text: string, payment_instructions: string, email: array<string, array{subject: string, body: string}>}
+     * @return array{accent_color: string, footer_text: string, payment_instructions: string, sender_name: string, reply_to: string, email: array<string, array{subject: string, body: string}>}
      */
     public function for(string $companyId): array
     {
@@ -27,7 +27,7 @@ final class DocumentLook
 
     /**
      * @param  array<string, mixed>  $stored
-     * @return array{accent_color: string, footer_text: string, payment_instructions: string, email: array<string, array{subject: string, body: string}>}
+     * @return array{accent_color: string, footer_text: string, payment_instructions: string, sender_name: string, reply_to: string, email: array<string, array{subject: string, body: string}>}
      */
     public static function normalise(array $stored): array
     {
@@ -48,6 +48,8 @@ final class DocumentLook
             'accent_color' => is_string($accent) && preg_match('/^#[0-9A-Fa-f]{6}$/', $accent) === 1 ? strtoupper($accent) : DocumentDefaults::ACCENT,
             'footer_text' => is_string($stored['footer_text'] ?? null) ? $stored['footer_text'] : '',
             'payment_instructions' => is_string($stored['payment_instructions'] ?? null) ? $stored['payment_instructions'] : '',
+            'sender_name' => is_string($stored['sender_name'] ?? null) ? $stored['sender_name'] : '',
+            'reply_to' => is_string($stored['reply_to'] ?? null) ? $stored['reply_to'] : '',
             'email' => $email,
         ];
     }

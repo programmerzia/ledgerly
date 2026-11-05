@@ -9,6 +9,7 @@ use App\Events\Notifications\NotificationEvent;
 use App\Mail\DocumentMail;
 use App\Models\Documents\DocumentSend;
 use App\Models\Organisation\Company;
+use App\Services\Documents\DocumentLook;
 use App\Services\Documents\DocumentPdf;
 use App\Services\Documents\EmailTargets;
 use App\Support\Actor;
@@ -38,9 +39,9 @@ final class SendDocumentEmail implements ShouldQueue
         $this->onQueue('mail');
     }
 
-    public function handle(TenantContext $tenant, DocumentPdf $pdf, EmailTargets $targets, Clock $clock, DetachedAudit $audit): void
+    public function handle(TenantContext $tenant, DocumentPdf $pdf, EmailTargets $targets, Clock $clock, DetachedAudit $audit, DocumentLook $looks): void
     {
-        $tenant->run($this->tenantId, function () use ($pdf, $targets, $clock, $audit): void {
+        $tenant->run($this->tenantId, function () use ($pdf, $targets, $clock, $audit, $looks): void {
             $send = DocumentSend::query()->where('company_id', $this->companyId)->whereKey($this->sendId)->first();
             if ($send === null || $send->status !== 'queued') {
                 return;
@@ -55,7 +56,8 @@ final class SendDocumentEmail implements ShouldQueue
                 if (strlen($built['pdf']) > (int) config('documents.max_attachment_bytes')) {
                     throw new \RuntimeException('The PDF is too large to attach.');
                 }
-                Mail::to($send->recipients)->send(new DocumentMail($company->name, $send->subject, $send->body, $send->attachment_name, $built['pdf']));
+                $look = $looks->for($this->companyId);
+                Mail::to($send->recipients)->send(new DocumentMail($company->name, $send->subject, $send->body, $send->attachment_name, $built['pdf'], $look['sender_name'], $look['reply_to']));
                 $send->forceFill(['status' => 'sent', 'sent_at' => $clock->now()])->save();
                 $audit->record($actor, 'document.emailed', $subject, ['send_id' => $send->id, 'document_type' => $send->document_type, 'to' => $send->recipients]);
             } catch (Throwable $e) {
