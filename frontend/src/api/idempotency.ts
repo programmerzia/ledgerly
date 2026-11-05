@@ -10,7 +10,14 @@ export const MUTATING_METHODS: ReadonlySet<string> = new Set(['POST', 'PUT', 'PA
 export const isMutating = (method: string): boolean => MUTATING_METHODS.has(method.toUpperCase());
 
 export function newIdempotencyKey(): string {
-  return globalThis.crypto.randomUUID();
+  const c = globalThis.crypto;
+  // randomUUID exists only in secure contexts (https or localhost); plain http on an address needs the long way round.
+  if (typeof c.randomUUID === 'function') return c.randomUUID();
+  const b = c.getRandomValues(new Uint8Array(16));
+  b[6] = (b[6] & 0x0f) | 0x40;
+  b[8] = (b[8] & 0x3f) | 0x80;
+  const h = Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('');
+  return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
 }
 
 /** A handle for one intent. Pass the same handle to every attempt; call `settle()` when it succeeded. */
