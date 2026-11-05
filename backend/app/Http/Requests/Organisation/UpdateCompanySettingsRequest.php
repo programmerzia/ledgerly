@@ -37,6 +37,12 @@ final class UpdateCompanySettingsRequest extends CompanyRequest
             'accent_color' => ['sometimes', 'required', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'footer_text' => ['sometimes', 'nullable', 'string', 'max:300'],
             'payment_instructions' => ['sometimes', 'nullable', 'string', 'max:1000'],
+            /**
+             * Who the email says it is from (plan 3c.6a): a display name and a reply-to address. The From address itself stays the one
+             * Ledgerly is configured to send from, because mail sent "from" a customer's own domain fails SPF and DKIM.
+             */
+            'sender_name' => ['sometimes', 'nullable', 'string', 'max:100', 'regex:/^[^\x00-\x1F\x7F<>"]*$/u'],
+            'reply_to' => ['sometimes', 'nullable', 'email:rfc', 'max:254'],
             /** Email templates (plan 3c.5) by family. Only the listed `{{ placeholders }}` are allowed. */
             'email_templates' => ['sometimes', 'array:'.implode(',', DocumentDefaults::EMAIL_TYPES)],
             /** What happens at invoice submit when a customer's open receivables plus the invoice pass their credit limit. */
@@ -83,7 +89,7 @@ final class UpdateCompanySettingsRequest extends CompanyRequest
             isset($v['po_price_tolerance_pct']) ? (string) $v['po_price_tolerance_pct'] : null,
             isset($v['po_quantity_tolerance_pct']) ? (string) $v['po_quantity_tolerance_pct'] : null,
             isset($v['receipt_over_tolerance_pct']) ? (string) $v['receipt_over_tolerance_pct'] : null,
-            array_intersect_key($v, array_flip(['accent_color', 'footer_text', 'payment_instructions', 'email_templates'])),
+            array_intersect_key($v, array_flip(['accent_color', 'footer_text', 'payment_instructions', 'sender_name', 'reply_to', 'email_templates'])),
             isset($v['credit_limit_mode']) ? (string) $v['credit_limit_mode'] : null,
         );
     }

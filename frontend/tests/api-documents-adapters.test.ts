@@ -43,10 +43,10 @@ describe('send log words', () => {
 
 describe('document look form', () => {
   const settings = {
-    document_look: { accent_color: '#1F4E79', footer_text: '', payment_instructions: 'IBAN 1', has_logo: false },
+    document_look: { accent_color: '#1F4E79', footer_text: '', payment_instructions: 'IBAN 1', has_logo: false, sender_name: '', reply_to: '', from_address: 'no-reply@ledgerly.test' },
     email_templates: {
       invoice: { subject: 'S {{document_number}}', body: 'B' }, credit_note: { subject: 'c', body: 'c' },
-      statement: { subject: 's', body: 's' }, payment_advice: { subject: 'p', body: 'p' },
+      statement: { subject: 's', body: 's' }, payment_advice: { subject: 'p', body: 'p' }, receipt: { subject: 'r', body: 'r' },
     },
   };
 
@@ -56,6 +56,7 @@ describe('document look form', () => {
     const next = { ...saved, accent_color: '#0a7c5a', email: { ...saved.email, invoice: { subject: 'New', body: 'B' } } };
     expect(lookPatch(saved, next)).toEqual({ accent_color: '#0a7c5a', email_templates: { invoice: { subject: 'New', body: 'B' } } });
     expect(lookPatch(saved, { ...saved, accent_color: '#1f4e79' })).toEqual({});
+    expect(lookPatch(saved, { ...saved, sender_name: 'Acme Accounts', reply_to: 'ar@acme.example' })).toEqual({ sender_name: 'Acme Accounts', reply_to: 'ar@acme.example' });
   });
 
   it('checks colours, placeholders and the logo file before sending', () => {

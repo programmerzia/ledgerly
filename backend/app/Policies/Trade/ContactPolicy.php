@@ -42,6 +42,12 @@ final class ContactPolicy
         return $contact->is_active && $this->update($principal, $contact);
     }
 
+    /** The statement run (plan 3c.7a): sends statements for many customers, so it needs the right to send and to read reports. */
+    public function runStatements(Authenticatable $principal): bool
+    {
+        return $this->context->personCan($principal, 'documents.send') && $this->context->personCan($principal, 'reports.view');
+    }
+
     /** Email a statement (plan 3c.5): also needs to read reports, because a statement is one. */
     public function send(Authenticatable $principal, Contact $contact): bool
     {

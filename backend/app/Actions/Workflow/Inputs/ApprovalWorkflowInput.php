@@ -16,5 +16,7 @@ final readonly class ApprovalWorkflowInput
         public int $minAmount,
         public ?int $maxAmount,
         public array $steps,
+        /** Remind the current step's approvers when the document has waited this many hours, then again each further interval; null: never. */
+        public ?int $remindAfterHours = null,
     ) {}
 }

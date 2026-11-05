@@ -6,6 +6,7 @@ import { PageHeader } from '@/components/domain/PageHeader';
 import { SignDialog } from '@/components/domain/SignDialog';
 import { AttachmentsPanel } from '@/components/live/AttachmentsPanel';
 import { EmailButton, PdfButton, SendLog } from '@/components/live/DocumentActions';
+import { InvoiceLinks } from '@/components/live/InvoiceLinks';
 import { MoneyInput } from '@/components/domain/MoneyInput';
 import { ConflictDialog, type VersionConflict } from '@/components/domain/ConflictDialog';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -487,6 +488,7 @@ export const InvoiceViewLive: React.FC<{ side?: Side }> = ({ side = 'sales' }) =
         onUndo={(p) => { setProblem(''); setUndoTarget(p); setDialog('undo'); }}
       />
 
+      {side === 'sales' && !isCredit && <InvoiceLinks invoiceId={doc.id} posted={doc.status === 'posted'} canShare={doc.can.share} />}
       {side === 'sales' && <SendLog family="invoices" id={doc.id} />}
 
       <AttachmentsPanel type={side === 'sales' ? 'invoice' : 'bill'} parentId={doc.id} posted={doc.status === 'posted' || doc.status === 'reversed'} />

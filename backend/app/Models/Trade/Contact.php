@@ -31,6 +31,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property array<string, string> $default_dims dimension id → value id
  * @property bool $is_active
  * @property string|null $notes
+ * @property bool $dunning_opt_out
  * @property int $lock_version
  */
 class Contact extends BaseModel
@@ -42,7 +43,7 @@ class Contact extends BaseModel
     {
         return [
             'billing_address' => 'array', 'shipping_address' => 'array', 'default_dims' => 'array',
-            'payment_terms_days' => 'integer', 'credit_limit' => 'integer', 'is_active' => 'boolean', 'lock_version' => 'integer',
+            'payment_terms_days' => 'integer', 'credit_limit' => 'integer', 'is_active' => 'boolean', 'dunning_opt_out' => 'boolean', 'lock_version' => 'integer',
         ];
     }
 }

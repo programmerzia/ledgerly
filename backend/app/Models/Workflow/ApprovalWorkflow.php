@@ -19,6 +19,7 @@ use App\Models\BaseModel;
  * @property int $min_amount
  * @property int|null $max_amount
  * @property list<array{role: string, count?: int}> $steps
+ * @property int|null $remind_after_hours
  * @property bool $is_active
  * @property int $lock_version
  */
@@ -27,7 +28,7 @@ class ApprovalWorkflow extends BaseModel
     /** @return array<string, string> */
     protected function casts(): array
     {
-        return ['steps' => 'array', 'is_active' => 'boolean', 'min_amount' => 'integer', 'max_amount' => 'integer', 'lock_version' => 'integer'];
+        return ['steps' => 'array', 'is_active' => 'boolean', 'min_amount' => 'integer', 'max_amount' => 'integer', 'remind_after_hours' => 'integer', 'lock_version' => 'integer'];
     }
 
     public function toDefinition(): WorkflowDefinition

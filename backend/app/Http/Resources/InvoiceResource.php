@@ -69,7 +69,7 @@ final class InvoiceResource extends JsonResource
             'lines' => $this->whenLoaded('lines', fn () => InvoiceLineResource::collection($this->lines->each(fn ($l) => $l->setRelation('invoice', $this->resource)))),
             'can' => Json::can($request, $this->resource, [
                 'update' => 'update', 'submit' => 'submit', 'approve' => 'approve',
-                'return' => 'return', 'void' => 'void', 'reverse' => 'reverse', 'override_match' => 'overrideMatch', 'send' => 'send',
+                'return' => 'return', 'void' => 'void', 'reverse' => 'reverse', 'override_match' => 'overrideMatch', 'send' => 'send', 'share' => 'share',
             ]),
         ];
     }

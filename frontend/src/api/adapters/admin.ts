@@ -216,9 +216,11 @@ export interface WorkflowForm {
   min: string;
   max: string;
   steps: { role: string; count: string }[];
+  /** Hours before the current step's approvers are reminded; empty: no reminders. */
+  remind: string;
 }
 
-export const blankWorkflow = (): WorkflowForm => ({ name: '', document_type: 'journal', source: 'any', min: '0', max: '', steps: [{ role: '', count: '1' }] });
+export const blankWorkflow = (): WorkflowForm => ({ name: '', document_type: 'journal', source: 'any', min: '0', max: '', steps: [{ role: '', count: '1' }], remind: '' });
 
 export function toWorkflowForm(w: ApiWorkflow, digits: number): WorkflowForm {
   return {
@@ -228,6 +230,7 @@ export function toWorkflowForm(w: ApiWorkflow, digits: number): WorkflowForm {
     min: minorToInput(w.min_amount.amount, digits),
     max: w.max_amount && w.max_amount.amount !== null ? minorToInput(w.max_amount.amount, digits) : '',
     steps: (w.steps as { role: string; count?: number }[]).map((s) => ({ role: s.role, count: String(s.count ?? 1) })),
+    remind: w.remind_after_hours == null ? '' : String(w.remind_after_hours),
   };
 }
 
@@ -254,6 +257,8 @@ export function toWorkflowRequest(f: WorkflowForm, digits: number, version?: num
     else if (count < 1 || count > 10) errors[`step${i}`] = 'Between 1 and 10 approvers.';
     else steps.push({ role: s.role, count });
   });
+  const remind = f.remind.trim();
+  if (remind !== '' && !(/^\d+$/.test(remind) && Number(remind) >= 1 && Number(remind) <= 720)) errors.remind = 'Enter a whole number of hours from 1 to 720, or leave it empty.';
   if (Object.keys(errors).length > 0) return { ok: false, errors };
   const body: WorkflowBody = {
     document_type: f.document_type as WorkflowBody['document_type'],
@@ -262,6 +267,7 @@ export function toWorkflowRequest(f: WorkflowForm, digits: number, version?: num
     min_amount: minor,
     max_amount: maxMinor,
     steps,
+    remind_after_hours: remind === '' ? null : Number(remind),
     ...(version === undefined ? {} : { version }),
   };
   return { ok: true, body };

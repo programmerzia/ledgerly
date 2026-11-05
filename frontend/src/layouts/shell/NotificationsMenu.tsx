@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Bell, CheckCheck, CheckSquare, Calendar, Landmark, BellOff } from 'lucide-react';
+import { Bell, CheckCheck, CheckSquare, Calendar, Landmark, BellOff, FileDown, Upload, MailWarning } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
@@ -12,25 +12,36 @@ export interface AppNotification {
   time: string;
   unread: boolean;
   link: string;
-  kind: 'approval' | 'period' | 'bank';
+  kind: 'approval' | 'period' | 'bank' | 'report' | 'import' | 'send';
+}
+
+/** Live mode: the list comes from the server, read marks go back to it. `unreadTotal` counts beyond the loaded page. */
+export interface LiveBell {
+  unreadTotal: number;
+  markRead: (id: string) => void;
+  markAllRead: () => void;
 }
 
 const KIND = {
   approval: { icon: CheckSquare, tone: 'bg-warning-soft text-warning' },
   period: { icon: Calendar, tone: 'bg-accent-soft text-accent' },
   bank: { icon: Landmark, tone: 'bg-success-soft text-success' },
+  report: { icon: FileDown, tone: 'bg-success-soft text-success' },
+  import: { icon: Upload, tone: 'bg-accent-soft text-accent' },
+  send: { icon: MailWarning, tone: 'bg-danger-soft text-danger' },
 } as const;
 
 interface Props {
   notifications: AppNotification[];
   setNotifications: React.Dispatch<React.SetStateAction<AppNotification[]>>;
   onNavigate: (to: string) => void;
+  liveBell?: LiveBell;
 }
 
-export const NotificationsMenu: React.FC<Props> = ({ notifications, setNotifications, onNavigate }) => {
+export const NotificationsMenu: React.FC<Props> = ({ notifications, setNotifications, onNavigate, liveBell }) => {
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<'all' | 'unread'>('all');
-  const unread = notifications.filter((n) => n.unread).length;
+  const unread = liveBell ? liveBell.unreadTotal : notifications.filter((n) => n.unread).length;
   const list = tab === 'unread' ? notifications.filter((n) => n.unread) : notifications;
 
   return (
@@ -56,7 +67,7 @@ export const NotificationsMenu: React.FC<Props> = ({ notifications, setNotificat
           <button
             type="button"
             disabled={unread === 0}
-            onClick={() => setNotifications((p) => p.map((n) => ({ ...n, unread: false })))}
+            onClick={() => (liveBell ? liveBell.markAllRead() : setNotifications((p) => p.map((n) => ({ ...n, unread: false }))))}
             className="flex items-center gap-1 text-xs font-medium text-accent hover:underline disabled:text-text-disabled disabled:no-underline disabled:cursor-not-allowed cursor-pointer"
           >
             <CheckCheck className="size-3.5" /> Mark all read
@@ -93,7 +104,8 @@ export const NotificationsMenu: React.FC<Props> = ({ notifications, setNotificat
                   key={n.id}
                   type="button"
                   onClick={() => {
-                    setNotifications((p) => p.map((i) => (i.id === n.id ? { ...i, unread: false } : i)));
+                    if (liveBell) liveBell.markRead(n.id);
+                    else setNotifications((p) => p.map((i) => (i.id === n.id ? { ...i, unread: false } : i)));
                     setOpen(false);
                     onNavigate(n.link);
                   }}

@@ -44,6 +44,7 @@ final class ContactResource extends JsonResource
             'default_dims' => (object) ($this->default_dims ?? []),
             'is_active' => $this->is_active,
             'notes' => $this->notes,
+            'dunning_opt_out' => (bool) $this->dunning_opt_out,
             'balances' => $this->when(array_key_exists('open_balances', $this->resource->getAttributes()), fn (): array => [
                 'receivable' => Json::money((int) $this->resource->getAttributes()['open_balances']['receivable'], Json::baseCurrency($request)),
                 'payable' => Json::money((int) $this->resource->getAttributes()['open_balances']['payable'], Json::baseCurrency($request)),

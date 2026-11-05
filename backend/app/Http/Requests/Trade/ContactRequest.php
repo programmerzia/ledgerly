@@ -40,6 +40,8 @@ final class ContactRequest extends CompanyRequest
             'default_dims' => ['nullable', 'array', $this->dimensionsInCompany()],
             'default_dims.*' => ['string'],
             'notes' => ['nullable', 'string', 'max:5000'],
+            /** Do not send this contact overdue-invoice reminders. Left out: unchanged. */
+            'dunning_opt_out' => ['sometimes', 'boolean'],
             'version' => [$this->isMethod('PUT') ? 'required' : 'prohibited', 'integer', 'min:0'],
         ];
     }
@@ -88,6 +90,7 @@ final class ContactRequest extends CompanyRequest
             defaultBranch: $v['default_branch'] ?? null,
             defaultDims: $dims,
             notes: $v['notes'] ?? null,
+            dunningOptOut: isset($v['dunning_opt_out']) ? (bool) $v['dunning_opt_out'] : null,
         );
     }
 

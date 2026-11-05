@@ -27,12 +27,14 @@ export interface DocCan {
   override_match: boolean;
   /** May email this document (3c.5); a sales document only. */
   send: boolean;
+  /** May make and revoke the online link of this invoice (3c.7b); a sales invoice only. */
+  share: boolean;
 }
 
 export function toDocCan(raw: unknown): DocCan {
   const r = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
   const b = (k: string) => r[k] === true;
-  return { update: b('update'), submit: b('submit'), approve: b('approve'), return: b('return'), void: b('void'), reverse: b('reverse'), override_match: b('override_match'), send: b('send') };
+  return { update: b('update'), submit: b('submit'), approve: b('approve'), return: b('return'), void: b('void'), reverse: b('reverse'), override_match: b('override_match'), send: b('send'), share: b('share') };
 }
 
 export interface LiveDocLine {

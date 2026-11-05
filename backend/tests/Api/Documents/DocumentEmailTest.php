@@ -70,11 +70,42 @@ it('refuses a document that is not posted with a plain sentence, and receipts an
     $this->asPerson($this->accountant)->postJson($this->api("invoices/{$draft['id']}/emails"), ['recipients' => ['a@b.example']], $this->key())
         ->assertStatus(422)->assertJson(['code' => 'document_not_posted', 'detail' => 'Only a posted document can be sent. Post it first, then send it.']);
 
+    $bill = $this->postedDoc('bills', $this->t->body($this->t->supplier, [[5000, '1', 'VAT10', '0', '5000']]));
+    $this->asPerson($this->accountant)->postJson($this->api("bills/{$bill['id']}/emails"), ['recipients' => ['a@b.example']], $this->key())->assertStatus(404);
+    expect(sentMessages())->toBe([]);
+});
+
+it('sends a customer receipt with its PDF, from the configured address under the company display name, with its reply-to', function (): void {
     $sale = $this->sale(5000);
     $receipt = $this->postedSettlement('receipt', $this->t->customer, 1000, [[$sale['id'], 1000]]);
-    $this->asPerson($this->accountant)->postJson($this->api("settlements/{$receipt['id']}/emails"), ['recipients' => ['a@b.example']], $this->key())
-        ->assertStatus(422)->assertJson(['code' => 'not_sendable']);
-    expect(sentMessages())->toBe([]);
+    $this->asPerson($this->owner)->putJson($this->api('settings'), ['sender_name' => 'Acme Accounts', 'reply_to' => 'ar@acme.example'], $this->key())
+        ->assertOk()->assertJsonPath('data.document_look.sender_name', 'Acme Accounts')->assertJsonPath('data.document_look.reply_to', 'ar@acme.example')
+        ->assertJsonPath('data.document_look.from_address', config('mail.from.address'));
+
+    $draft = $this->asPerson($this->accountant)->getJson($this->api("settlements/{$receipt['id']}/email-draft"))->assertOk()
+        ->assertJsonPath('data.document_type', 'receipt')->json('data');
+    expect($draft['subject'])->toStartWith('Receipt ')->and($draft['body'])->toContain('We have received your payment');
+
+    $this->asPerson($this->accountant)->postJson($this->api("settlements/{$receipt['id']}/emails"), ['recipients' => ['billing@c1.example']], $this->key())
+        ->assertStatus(202)->assertJsonPath('data.document_type', 'receipt');
+
+    $mail = sentMessages()[0];
+    expect($mail->getAttachments()[0]->getFilename())->toBe("Receipt-{$receipt['number']}.pdf")
+        ->and($mail->getFrom()[0]->getAddress())->toBe(config('mail.from.address'))
+        ->and($mail->getFrom()[0]->getName())->toBe('Acme Accounts')
+        ->and($mail->getReplyTo()[0]->getAddress())->toBe('ar@acme.example');
+});
+
+it('refuses a sender name that could inject headers or a reply-to that is not an address, and falls back to the company name', function (): void {
+    $this->asPerson($this->owner);
+    $this->putJson($this->api('settings'), ['sender_name' => "Evil\r\nBcc: x@y.example"], $this->key())->assertStatus(422)->assertJsonValidationErrors(['sender_name']);
+    $this->putJson($this->api('settings'), ['sender_name' => 'A <b@c.example>'], $this->key())->assertStatus(422)->assertJsonValidationErrors(['sender_name']);
+    $this->putJson($this->api('settings'), ['reply_to' => 'nope'], $this->key())->assertStatus(422)->assertJsonValidationErrors(['reply_to']);
+
+    $doc = $this->sale(5000);
+    $this->asPerson($this->accountant)->postJson($this->api("invoices/{$doc['id']}/emails"), ['recipients' => ['a@b.example']], $this->key())->assertStatus(202);
+    $mail = sentMessages()[0];
+    expect($mail->getFrom()[0]->getName())->toBe('Acme acme')->and($mail->getReplyTo())->toBe([]);
 });
 
 it('refuses a reversed invoice', function (): void {

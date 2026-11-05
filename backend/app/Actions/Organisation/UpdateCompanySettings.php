@@ -112,9 +112,9 @@ final class UpdateCompanySettings
         $raw = $settings->getAttribute('document_templates');
         $raw = is_string($raw) ? json_decode($raw, true) : $raw;
         $stored = is_array($raw) ? $raw : [];
-        foreach (['accent_color', 'footer_text', 'payment_instructions'] as $key) {
+        foreach (['accent_color', 'footer_text', 'payment_instructions', 'sender_name', 'reply_to'] as $key) {
             if (array_key_exists($key, $change)) {
-                $stored[$key] = $change[$key] === null ? '' : (string) $change[$key];
+                $stored[$key] = $change[$key] === null ? '' : trim((string) $change[$key]);
             }
         }
         foreach ((array) ($change['email_templates'] ?? []) as $type => $template) {

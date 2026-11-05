@@ -28,6 +28,8 @@ export interface EmailDraft {
   body: string;
   contact_name: string;
   can_send: boolean;
+  /** May add an online link to the message (3c.7b): an invoice, and the right to share. */
+  can_share?: boolean;
 }
 
 /** "a@b.com, c@d.com; e@f.com" → three lower-case addresses, no blanks. */

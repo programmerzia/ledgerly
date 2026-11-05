@@ -107,6 +107,13 @@ final class InvoicePolicy
             && $this->view($principal, $invoice);
     }
 
+    /** Make or revoke the online link of a sales invoice (plan 3c.7b); whether it is posted is the Action's call. */
+    public function share(Authenticatable $principal, Invoice $invoice): bool
+    {
+        return $invoice->kind === InvoiceKind::SalesInvoice && $this->context->personCan($principal, 'documents.share', $invoice->company_id)
+            && $this->view($principal, $invoice);
+    }
+
     /** Submit this draft bill past a purchase order mismatch, with a reason (13 §10). People only, and never its own maker. */
     public function overrideMatch(Authenticatable $principal, Invoice $invoice): bool
     {

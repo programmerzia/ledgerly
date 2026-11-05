@@ -6,12 +6,15 @@ export const EMAIL_FAMILIES: { key: string; label: string }[] = [
   { key: 'credit_note', label: 'Credit note' },
   { key: 'statement', label: 'Statement' },
   { key: 'payment_advice', label: 'Payment advice' },
+  { key: 'receipt', label: 'Receipt' },
 ];
 
 export interface LookForm {
   accent_color: string;
   footer_text: string;
   payment_instructions: string;
+  sender_name: string;
+  reply_to: string;
   email: Record<string, { subject: string; body: string }>;
 }
 
@@ -22,6 +25,8 @@ export function toLookForm(s: SettingsWithLook): LookForm {
     accent_color: s.document_look.accent_color,
     footer_text: s.document_look.footer_text,
     payment_instructions: s.document_look.payment_instructions,
+    sender_name: s.document_look.sender_name,
+    reply_to: s.document_look.reply_to,
     email: Object.fromEntries(EMAIL_FAMILIES.map((f) => [f.key, { subject: s.email_templates[f.key]?.subject ?? '', body: s.email_templates[f.key]?.body ?? '' }])),
   };
 }
@@ -30,6 +35,8 @@ export interface LookPatch {
   accent_color?: string;
   footer_text?: string;
   payment_instructions?: string;
+  sender_name?: string;
+  reply_to?: string;
   email_templates?: Record<string, { subject: string; body: string }>;
 }
 
@@ -39,6 +46,8 @@ export function lookPatch(saved: LookForm, next: LookForm): LookPatch {
   if (next.accent_color.toUpperCase() !== saved.accent_color.toUpperCase()) patch.accent_color = next.accent_color;
   if (next.footer_text !== saved.footer_text) patch.footer_text = next.footer_text;
   if (next.payment_instructions !== saved.payment_instructions) patch.payment_instructions = next.payment_instructions;
+  if (next.sender_name !== saved.sender_name) patch.sender_name = next.sender_name;
+  if (next.reply_to !== saved.reply_to) patch.reply_to = next.reply_to;
   for (const { key } of EMAIL_FAMILIES) {
     const a = saved.email[key];
     const b = next.email[key];

@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Jobs\Reports;
 
+use App\Events\Notifications\NotificationEvent;
 use App\Models\Organisation\Company;
 use App\Services\Reports\ExportStore;
 use App\Services\Reports\ReportExport;
+use App\Support\Outbox\OutboxPublisher;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -62,6 +64,13 @@ final class RunReportExport implements ShouldQueue
                 $store->ready($this->tenantId, $this->companyId, $this->exportId, $file);
             } finally {
                 @unlink($file);
+            }
+            // The bell tells whoever asked that the file is ready (plan 3c.6).
+            $owner = $store->find($this->tenantId, $this->companyId, $this->exportId)['owner'] ?? null;
+            if (is_string($owner)) {
+                app(OutboxPublisher::class)->publish(new NotificationEvent(NotificationEvent::REPORT_READY, [
+                    'company_id' => $this->companyId, 'user_id' => $owner, 'report' => $this->report, 'export_id' => $this->exportId,
+                ]));
             }
         });
     }

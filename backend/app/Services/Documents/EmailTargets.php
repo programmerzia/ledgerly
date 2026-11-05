@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Decides whether a document may be emailed and what the placeholders in its message stand for. Sendable: posted
- * invoices and credit notes, statements, and payment advices (payments to suppliers). Anything else, and anything that is
+ * invoices and credit notes, statements, customer receipts and payment advices (payments to suppliers). Anything else, and anything that is
  * not posted, is refused with a plain sentence.
  */
 final class EmailTargets
@@ -27,8 +27,9 @@ final class EmailTargets
 
     /**
      * @param  array<string, mixed>  $params  statement: from, to, side
+     * @param  array<string, string>  $extraValues  more placeholder values from the caller
      */
-    public function resolve(BaseModel $model, Company $company, array $params, string $senderName): EmailTarget
+    public function resolve(BaseModel $model, Company $company, array $params, string $senderName, array $extraValues = []): EmailTarget
     {
         [$family, $pdfType, $contact, $parameters, $values] = match (true) {
             $model instanceof Invoice => $this->invoice($model, $company),
@@ -41,7 +42,7 @@ final class EmailTargets
         return new EmailTarget($family, $pdfType, $model, $contact, $parameters, $values + [
             'company_name' => $company->name, 'contact_name' => $contact->name, 'sender_name' => $senderName,
             'payment_instructions' => $look['payment_instructions'],
-        ]);
+        ] + $extraValues);
     }
 
     /** The document a stored send belongs to. */
@@ -49,7 +50,7 @@ final class EmailTargets
     {
         $class = match ($send->document_type) {
             'invoice', 'credit_note' => Invoice::class,
-            'payment_advice' => Settlement::class,
+            'payment_advice', 'receipt' => Settlement::class,
             'statement' => Contact::class,
             default => null,
         };
@@ -73,6 +74,8 @@ final class EmailTargets
                 'document_number' => (string) $doc->number, 'document_type' => $note ? 'Credit note' : 'Invoice',
                 'issue_date' => $this->date($doc->issue_date), 'due_date' => $this->date($doc->due_date),
                 'total' => $money->withCode($doc->total_fc), 'amount_due' => $money->withCode($doc->amountDueFc()),
+                // The draft keeps the placeholder as typed; the link is made when the mail is sent.
+                'invoice_link' => $note ? '' : '{{ invoice_link }}',
             ],
         ];
     }
@@ -80,15 +83,17 @@ final class EmailTargets
     /** @return array{0: string, 1: string, 2: Contact, 3: array<string, string>, 4: array<string, string>} */
     private function payment(Settlement $s, Company $company): array
     {
-        if (! in_array($s->kind, ['payment', 'refund'], true)) {
-            throw DomainRuleViolation::single('not_sendable', 'Only payment advices are sent from here, not receipts.');
+        if (! in_array($s->kind, ['payment', 'refund', 'receipt'], true)) {
+            throw DomainRuleViolation::single('not_sendable', 'Only customer receipts and payment advices are sent from here.');
         }
         $this->requirePosted($s->status->value);
         $money = $this->money($s->currency);
+        $receipt = $s->kind === 'receipt';
+        $family = $receipt ? 'receipt' : 'payment_advice';
 
         return [
-            'payment_advice', 'payment_advice', $this->contact($s->contact_id), [],
-            ['document_number' => (string) $s->number, 'document_type' => 'Payment advice', 'issue_date' => $this->date($s->settlement_date), 'total' => $money->withCode($s->amount_fc)],
+            $family, $family, $this->contact($s->contact_id), [],
+            ['document_number' => (string) $s->number, 'document_type' => $receipt ? 'Receipt' : 'Payment advice', 'issue_date' => $this->date($s->settlement_date), 'total' => $money->withCode($s->amount_fc)],
         ];
     }
 

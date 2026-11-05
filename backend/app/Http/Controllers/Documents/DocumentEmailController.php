@@ -15,6 +15,7 @@ use App\Models\Documents\DocumentSend;
 use App\Models\Organisation\Company;
 use App\Models\Platform\User;
 use App\Models\Trade\Contact;
+use App\Models\Trade\Invoice;
 use App\Services\Documents\DocumentLook;
 use App\Services\Documents\DocumentRoutes;
 use App\Services\Documents\EmailTargets;
@@ -46,6 +47,8 @@ final class DocumentEmailController extends Controller
             'body' => trim(MessageTemplate::render($template['body'], $target->values)),
             'contact_name' => $target->contact->name,
             'can_send' => Gate::allows('send', $model),
+            /** May add an online link to the message (the invoice_link placeholder): invoices only, and needs the right to share. */
+            'can_share' => $model instanceof Invoice && Gate::allows('share', $model),
         ]]);
     }
 

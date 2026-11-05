@@ -10,7 +10,7 @@ final class DocumentDefaults
     public const string ACCENT = '#1F4E79';
 
     /** Email templates exist for the documents that can be sent (plan 3c.5). */
-    public const array EMAIL_TYPES = ['invoice', 'credit_note', 'statement', 'payment_advice'];
+    public const array EMAIL_TYPES = ['invoice', 'credit_note', 'statement', 'payment_advice', 'receipt'];
 
     /** @return array<string, array{subject: string, body: string}> */
     public static function emailTemplates(): array
@@ -27,6 +27,10 @@ final class DocumentDefaults
             'statement' => [
                 'subject' => 'Statement of account from {{company_name}}',
                 'body' => "Dear {{contact_name}},\n\nPlease find attached your statement for {{period_from}} to {{period_to}}. The balance at {{period_to}} is {{closing_balance}}.\n\n{{payment_instructions}}\n\nKind regards,\n{{sender_name}}\n{{company_name}}",
+            ],
+            'receipt' => [
+                'subject' => 'Receipt {{document_number}} from {{company_name}}',
+                'body' => "Dear {{contact_name}},\n\nThank you. We have received your payment of {{total}} on {{issue_date}}. Your receipt {{document_number}} is attached.\n\nKind regards,\n{{sender_name}}\n{{company_name}}",
             ],
             'payment_advice' => [
                 'subject' => 'Payment advice {{document_number}} from {{company_name}}',

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Mail;
 
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Address;
 use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
@@ -21,11 +22,20 @@ final class DocumentMail extends Mailable
         private readonly string $messageBody,
         private readonly string $attachmentName,
         private readonly string $pdf,
+        private readonly string $displayName = '',
+        private readonly string $replyAddress = '',
     ) {}
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: $this->messageSubject);
+        // The From address is always the configured one (SPF and DKIM); only the display name and the reply-to are the company's.
+        $name = $this->displayName !== '' ? $this->displayName : $this->companyName;
+
+        return new Envelope(
+            from: new Address((string) config('mail.from.address'), $name),
+            replyTo: $this->replyAddress === '' ? [] : [new Address($this->replyAddress)],
+            subject: $this->messageSubject,
+        );
     }
 
     public function content(): Content

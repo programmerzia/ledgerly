@@ -35,6 +35,7 @@ use App\Models\Imports\Import;
 use App\Models\Ledger\Account;
 use App\Models\Ledger\Dimension;
 use App\Models\Ledger\Journal;
+use App\Models\Notifications\UserNotification;
 use App\Models\Organisation\ApiClient;
 use App\Models\Organisation\Company;
 use App\Models\Organisation\Invitation;
@@ -71,6 +72,7 @@ use App\Policies\Imports\ImportPolicy;
 use App\Policies\Ledger\AccountPolicy;
 use App\Policies\Ledger\DimensionPolicy;
 use App\Policies\Ledger\JournalPolicy;
+use App\Policies\Notifications\UserNotificationPolicy;
 use App\Policies\Organisation\ApiClientPolicy;
 use App\Policies\Organisation\CompanyPolicy;
 use App\Policies\Organisation\InvitationPolicy;
@@ -240,6 +242,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(ApprovalWorkflow::class, ApprovalWorkflowPolicy::class);
         Gate::policy(ApprovalRequest::class, ApprovalRequestPolicy::class);
         Gate::policy(Report::class, ReportPolicy::class);
+        Gate::policy(UserNotification::class, UserNotificationPolicy::class);
         CompanyBindings::register();
 
         // 13 §16: API client 600/min, SPA user 300/min, each counted per principal.

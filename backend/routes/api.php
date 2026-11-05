@@ -12,6 +12,8 @@ use App\Http\Controllers\Budgets\BudgetController;
 use App\Http\Controllers\Budgets\BudgetReportController;
 use App\Http\Controllers\Documents\DocumentEmailController;
 use App\Http\Controllers\Documents\DocumentPdfController;
+use App\Http\Controllers\Documents\DunningController;
+use App\Http\Controllers\Documents\StatementRunController;
 use App\Http\Controllers\Files\AttachmentBlobController;
 use App\Http\Controllers\Files\AttachmentController;
 use App\Http\Controllers\Fiscal\FiscalPeriodController;
@@ -24,6 +26,7 @@ use App\Http\Controllers\Ledger\AccountController;
 use App\Http\Controllers\Ledger\ChartTemplateController;
 use App\Http\Controllers\Ledger\DimensionController;
 use App\Http\Controllers\Ledger\JournalController;
+use App\Http\Controllers\Notifications\NotificationController;
 use App\Http\Controllers\Organisation\ApiClientController;
 use App\Http\Controllers\Organisation\CompanyController;
 use App\Http\Controllers\Organisation\CompanyLogoController;
@@ -44,6 +47,8 @@ use App\Http\Controllers\Recurring\RecurringRunController;
 use App\Http\Controllers\Reports\ListingReportController;
 use App\Http\Controllers\Reports\ReportController;
 use App\Http\Controllers\Reports\ReportExportController;
+use App\Http\Controllers\Sharing\InvoiceShareLinkController;
+use App\Http\Controllers\Sharing\PublicInvoiceController;
 use App\Http\Controllers\Signing\SigningController;
 use App\Http\Controllers\Tax\TaxCodeController;
 use App\Http\Controllers\Tax\TaxGroupController;
@@ -61,6 +66,7 @@ use App\Http\Controllers\Transfers\FundTransferController;
 use App\Http\Controllers\Webhooks\WebhookEndpointController;
 use App\Http\Controllers\Workflow\ApprovalInboxController;
 use App\Http\Controllers\Workflow\ApprovalWorkflowController;
+use App\Http\Middleware\PublicPageHeaders;
 use App\Services\Documents\DocumentRoutes;
 use App\Services\Reports\ReportExport;
 use App\Support\Reports\Report;
@@ -77,6 +83,13 @@ Route::post('auth/register', [RegisteredUserController::class, 'store'])
 Route::middleware('throttle:invitations')->group(function (): void {
     Route::get('invitation-tokens/{token}', [InvitationTokenController::class, 'show'])->name('invitation-tokens.show');
     Route::post('invitation-tokens/{token}/accept', [InvitationTokenController::class, 'accept'])->name('invitation-tokens.accept');
+});
+
+// Online invoice pages (plan 3c.7b): no sign-in, no tenant in the address; the token in it is the credential. Rate limited by IP,
+// never indexed, never cached, no referrer. See App\Services\Sharing\InvoiceLinkAccess.
+Route::prefix('public')->middleware(PublicPageHeaders::class)->group(function (): void {
+    Route::get('invoices/{token}', [PublicInvoiceController::class, 'show'])->middleware('throttle:public-invoice')->name('public.invoices.show');
+    Route::get('invoices/{token}/pdf', [PublicInvoiceController::class, 'pdf'])->middleware('throttle:public-invoice-pdf')->name('public.invoices.pdf');
 });
 
 // Signed-in SPA user, before a tenant is chosen (13 §7).
@@ -146,6 +159,26 @@ Route::middleware(['auth:sanctum', 'tenant', 'tenant.writable', 'idempotent', 'c
         // Document numbering: prefix and padding per kind, from the next fiscal year only (D15 item 6)
         Route::get('numbering', [NumberingController::class, 'index'])->name('numbering.index');
         Route::put('numbering/{kind}', [NumberingController::class, 'update'])->where('kind', '[a-z_]+')->name('numbering.update');
+
+        // The bell (plan 3c.6): the signed-in person's own notifications
+        Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
+        Route::post('notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.read-all');
+        Route::post('notifications/{notification}/read', [NotificationController::class, 'read'])->whereUuid('notification')->name('notifications.read');
+
+        // Overdue-invoice reminders (plan 3c.7): settings, stages and a preview of the next run
+        Route::get('dunning', [DunningController::class, 'show'])->name('dunning.show');
+        Route::put('dunning', [DunningController::class, 'update'])->name('dunning.update');
+        Route::get('dunning/preview', [DunningController::class, 'preview'])->name('dunning.preview');
+
+        // Online link of an invoice (plan 3c.7b): list, make (the address is shown once), revoke
+        Route::get('invoices/{invoice}/share-links', [InvoiceShareLinkController::class, 'index'])->whereUuid('invoice')->can('view', 'invoice')->name('invoices.share-links.index');
+        Route::post('invoices/{invoice}/share-links', [InvoiceShareLinkController::class, 'store'])->whereUuid('invoice')->can('share', 'invoice')->name('invoices.share-links.store');
+        Route::post('invoices/{invoice}/share-links/{link}/revoke', [InvoiceShareLinkController::class, 'revoke'])->whereUuid(['invoice', 'link'])->can('share', 'invoice')->name('invoices.share-links.revoke');
+
+        // Statement run (plan 3c.7a): customers with a balance, send the chosen ones, follow the results
+        Route::get('statement-run', [StatementRunController::class, 'index'])->name('statement-run.index');
+        Route::post('statement-run', [StatementRunController::class, 'store'])->name('statement-run.store');
+        Route::get('statement-run/sends', [StatementRunController::class, 'sends'])->name('statement-run.sends');
 
         // Chart of accounts
         Route::get('chart-templates', [ChartTemplateController::class, 'index'])->name('chart-templates.index');

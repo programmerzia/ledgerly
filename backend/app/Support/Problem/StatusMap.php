@@ -42,6 +42,7 @@ final class StatusMap
         'email_taken' => 409,
         'already_member' => 409,
         'invitation_not_found' => 404,
+        'link_not_found' => 404,
         'invitation_already_accepted' => 409,
         'invitation_revoked' => 410,
         'invitation_expired' => 410,

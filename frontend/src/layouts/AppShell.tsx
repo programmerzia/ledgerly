@@ -24,6 +24,7 @@ import { Sidebar } from './shell/Sidebar';
 import { buildNavSections } from './shell/nav';
 import { useTheme } from './shell/useTheme';
 import type { AppNotification } from './shell/NotificationsMenu';
+import { useLiveNotifications } from '@/data/notifications';
 
 export const AppShell: React.FC = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -105,6 +106,10 @@ export const AppShell: React.FC = () => {
     { id: 'notif-3', kind: 'bank', title: 'New bank transactions', desc: '7 transactions from Premier Bank USD are ready to reconcile.', time: '3h ago', unread: true, link: `/${coSlug}/banking/bnk-1/reconcile` },
   ]);
 
+  // Live: the bell reads the server (3c.6); the hook is idle in mock mode.
+  const liveBell = useLiveNotifications(coSlug);
+  const bell = { unreadTotal: liveBell.unreadTotal, markRead: liveBell.markRead, markAllRead: liveBell.markAllRead };
+
   const pendingApprovalsCount =
     invoices.filter((i) => i.status === 'pending_approval').length +
     bills.filter((b) => b.status === 'pending_approval').length +
@@ -157,8 +162,9 @@ export const AppShell: React.FC = () => {
           isSyncing={isSyncing}
           outboxCount={outbox.length}
           onToggleOffline={handleToggleOffline}
-          notifications={notifications}
+          notifications={IS_LIVE ? liveBell.notifications : notifications}
           setNotifications={setNotifications}
+          liveBell={IS_LIVE ? bell : undefined}
           switchUser={switchUser}
           onShortcuts={() => shortcutRegistry.toggleOverlay()}
           onSignOut={handleSignOut}

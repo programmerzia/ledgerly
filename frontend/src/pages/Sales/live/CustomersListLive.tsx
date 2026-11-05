@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Plus } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Mail, Plus } from 'lucide-react';
 import { PageHeader } from '@/components/domain/PageHeader';
 import { formatMoney } from '@/lib/format';
 import { cn } from '@/lib/utils';
@@ -49,9 +49,16 @@ export const CustomersListLive: React.FC<{ side?: Side }> = ({ side = 'sales' })
         title={S.Contacts}
         subtitle={side === 'sales' ? 'The people and companies you invoice, and what each one owes.' : 'The people and companies you buy from, and what you owe each one.'}
         actions={
-          <button type="button" onClick={() => setCreating(true)} className={BTN_ACCENT}>
-            <Plus className="size-4" /> New {S.contact}
-          </button>
+          <>
+            {side === 'sales' && (
+              <Link to={`/${company.slug}/customers/statement-run`} className="flex h-8 items-center gap-1.5 rounded-md border border-border bg-surface px-3 text-[13px] font-medium text-text-primary transition hover:bg-surface-neutral">
+                <Mail className="size-4 text-text-muted" /> Send statements
+              </Link>
+            )}
+            <button type="button" onClick={() => setCreating(true)} className={BTN_ACCENT}>
+              <Plus className="size-4" /> New {S.contact}
+            </button>
+          </>
         }
       />
       <div className="flex flex-wrap items-center justify-between gap-3">

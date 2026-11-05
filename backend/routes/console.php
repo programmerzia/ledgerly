@@ -18,3 +18,7 @@ Schedule::command('fx:fetch-rates')->dailyAt('17:30')->timezone('Europe/Berlin')
 Schedule::command('attachments:scan-pending')->everyMinute()->withoutOverlapping()->onOneServer();
 // Recurring invoices, bills and journals that are due become drafts (never posted); each company's own date applies.
 Schedule::command('recurring:run')->dailyAt('02:00')->timezone('UTC')->onOneServer();
+// Documents that have waited on an approval step past their workflow's reminder time (plan 3c.7); once per interval, unique in the database.
+Schedule::command('approvals:remind')->hourly()->onOneServer();
+// Overdue-invoice reminders for companies that switched them on (plan 3c.7); each company's own date applies.
+Schedule::command('dunning:run')->dailyAt('06:00')->timezone('UTC')->onOneServer();

@@ -63,6 +63,9 @@ final class FortifyServiceProvider extends ServiceProvider
         // PIN guesses: the lockout is the real defence; this keeps a scripted attacker slow.
         RateLimiter::for('signing', fn (Request $request) => Limit::perMinute(10)->by((string) ($request->user()?->getAuthIdentifier() ?? $request->ip())));
         RateLimiter::for('invitations', fn (Request $request) => Limit::perMinute(20)->by((string) $request->ip()));
+        // Public online invoice pages (plan 3c.7b): by address, not by token, so guessing tokens is as slow as it is hopeless.
+        RateLimiter::for('public-invoice', fn (Request $request) => Limit::perMinute(60)->by('public-invoice:'.$request->ip()));
+        RateLimiter::for('public-invoice-pdf', fn (Request $request) => Limit::perMinute(90)->by('public-invoice-pdf:'.$request->ip()));
         RateLimiter::for('register', fn (Request $request) => Limit::perHour(10)->by((string) $request->ip()));
         RateLimiter::for('two-factor', fn (Request $request) => Limit::perMinute(5)->by((string) $request->session()->get('login.id')));
     }

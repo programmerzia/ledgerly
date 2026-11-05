@@ -181,8 +181,8 @@ export const ReceiptViewLive: React.FC<{ side?: Side }> = ({ side = 'sales' }) =
         actions={
           <>
             <PdfButton family="settlements" id={r.id} />
-            {(r.kind === 'payment' || r.kind === 'refund') && r.can.send && (
-              <EmailButton family="settlements" id={r.id} label="Email advice" disabled={r.status !== 'posted'} why="Post it first, then send it." />
+            {(r.kind === 'payment' || r.kind === 'refund' || r.kind === 'receipt') && r.can.send && (
+              <EmailButton family="settlements" id={r.id} label={r.kind === 'receipt' ? 'Email receipt' : 'Email advice'} disabled={r.status !== 'posted'} why="Post it first, then send it." />
             )}
           </>
         }
@@ -301,7 +301,7 @@ export const ReceiptViewLive: React.FC<{ side?: Side }> = ({ side = 'sales' }) =
         </aside>
       </div>
 
-      {(r.kind === 'payment' || r.kind === 'refund') && <SendLog family="settlements" id={r.id} />}
+      {(r.kind === 'payment' || r.kind === 'refund' || r.kind === 'receipt') && <SendLog family="settlements" id={r.id} />}
 
       <AttachmentsPanel type="settlement" parentId={r.id} posted={r.status === 'posted' || r.status === 'reversed'} />
 
