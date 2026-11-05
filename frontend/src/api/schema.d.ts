@@ -959,6 +959,172 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/companies/{company}/budgets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["budgets.index"];
+        put?: never;
+        post: operations["budgets.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/budgets/{budget}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["budgets.show"];
+        put: operations["budgets.update"];
+        post?: never;
+        delete: operations["budgets.destroy"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/budgets/{budget}/lines": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Saves a batch of cells of a draft against the version the editor loaded; answers the budget with its new version */
+        put: operations["budgets.lines"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/budgets/{budget}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["budgets.approve"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/budgets/{budget}/archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["budgets.archive"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/budgets/{budget}/spread": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** An annual total split over the periods (remainder in the last); nothing is saved. `?total=` whole minor units */
+        get: operations["budgets.spread"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/budgets/{budget}/suggestions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Cells to put in the grid from another budget (`?source=budget&budget_id=`) or from a fiscal year's actuals (`?source=actuals&fiscal_year_id=`). Nothing is saved */
+        get: operations["budgets.suggestions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/budgets/{budget}/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The grid as CSV or XLSX */
+        get: operations["budgets.export"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/budgets/dashboard-card": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** This fiscal year to date against its approved budget; `data` is null when there is no approved budget, and the dashboard shows nothing */
+        get: operations["budgets.card"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/reports/budget-vs-actual": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** `period_id`, `basis` month|ytd, optional `budget_id` and `dimensions[<id>]=<value>`. Export goes through `reports/budget-vs-actual/export` */
+        get: operations["reports.budget-vs-actual"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/companies/{company}/chart-templates": {
         parameters: {
             query?: never;
@@ -2095,6 +2261,38 @@ export interface paths {
         put?: never;
         /** Reset the password with the emailed token */
         post: operations["password.update"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/numbering": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["numbering.index"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/numbering/{kind}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["numbering.update"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -4403,6 +4601,58 @@ export interface components {
             } | null;
         };
         /**
+         * BudgetLinesRequest
+         * @description Cells of the grid: `{version, cells: [{account_id, fiscal_period_id, dimensions?: {dimensionId: valueId}, amount}]}`. Amounts are whole minor
+         *     units of the base currency, in the account's own direction; 0 clears the cell. The Action checks accounts, periods and dimension values.
+         */
+        BudgetLinesRequest: {
+            version: number;
+            cells: {
+                /** Format: uuid */
+                account_id: string;
+                /** Format: uuid */
+                fiscal_period_id: string;
+                dimensions?: string[] | null;
+                amount: number;
+            }[];
+        };
+        /**
+         * BudgetRequest
+         * @description Create (name, fiscal year, optionally the budget to copy) or rename (PUT: name and the `version` it was based on) a budget.
+         */
+        BudgetRequest: {
+            name: string;
+            /** Format: uuid */
+            fiscal_year_id: string;
+            /** Format: uuid */
+            copy_from_budget_id?: string | null;
+            version?: number;
+        };
+        /** BudgetResource */
+        BudgetResource: {
+            id: string;
+            name: string;
+            revision: number;
+            status: string;
+            fiscal_year: {
+                id: string;
+                name: string;
+                starts_on: string | null;
+                ends_on: string | null;
+            } | null;
+            fiscal_year_id: string;
+            copied_from_id: string | null;
+            created_by: string | null;
+            approved_by: string | null;
+            approved_at: string | null;
+            archived_at: string | null;
+            line_count?: number;
+            version: number;
+            can: {
+                [key: string]: boolean;
+            };
+        };
+        /**
          * BulkApproveRequest
          * @description `{documents: [{type, id}, …]}`, up to 50, approved on the caller's signing grant.
          */
@@ -4791,6 +5041,14 @@ export interface components {
             can: {
                 [key: string]: boolean;
             };
+        };
+        /** FreeFormDataResource */
+        FreeFormDataResource: {
+            data: {
+                [key: string]: unknown;
+            } | {
+                [key: string]: unknown;
+            }[] | null;
         };
         /** FxRevaluationPreviewResource */
         FxRevaluationPreviewResource: {
@@ -5416,6 +5674,15 @@ export interface components {
             role: string;
             status: string;
             company_roles: unknown;
+        };
+        /**
+         * NumberingRuleRequest
+         * @description Prefix and padding for one document kind, from the next fiscal year. `version` is the waiting change's version, when there is one.
+         */
+        NumberingRuleRequest: {
+            prefix: string;
+            padding: number;
+            version?: number | null;
         };
         /** OpenCommitmentsResource */
         OpenCommitmentsResource: {
@@ -6235,7 +6502,7 @@ export interface components {
          */
         UploadImportRequest: {
             /** @enum {string} */
-            kind: "contacts" | "accounts" | "opening_balances" | "invoices" | "bank_lines";
+            kind: "contacts" | "accounts" | "opening_balances" | "invoices" | "bank_lines" | "budget_lines";
             /**
              * Format: binary
              * @description Maximum file size: 5120 kilobytes.
@@ -8689,6 +8956,451 @@ export interface operations {
             422: components["responses"]["ValidationException"];
         };
     };
+    "budgets.index": {
+        parameters: {
+            query?: {
+                fiscal_year_id?: string | null;
+                total?: number | null;
+                source?: "budget" | "actuals" | null;
+                budget_id?: string | null;
+                format?: "csv" | "xlsx" | null;
+            };
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `BudgetResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["BudgetResource"][];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "budgets.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BudgetRequest"];
+            };
+        };
+        responses: {
+            /** @description `BudgetResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["BudgetResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "budgets.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The budget ID */
+                budget: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown[];
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "budgets.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The budget ID */
+                budget: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BudgetRequest"];
+            };
+        };
+        responses: {
+            /** @description `BudgetResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["BudgetResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "budgets.destroy": {
+        parameters: {
+            query: {
+                version: number;
+            };
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The budget ID */
+                budget: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "budgets.lines": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The budget ID */
+                budget: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BudgetLinesRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: unknown[];
+                        meta: {
+                            written: number;
+                            deleted: number;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "budgets.approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The budget ID */
+                budget: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VersionRequest"];
+            };
+        };
+        responses: {
+            /** @description `BudgetResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["BudgetResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "budgets.archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The budget ID */
+                budget: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VersionRequest"];
+            };
+        };
+        responses: {
+            /** @description `BudgetResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["BudgetResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "budgets.spread": {
+        parameters: {
+            query?: {
+                fiscal_year_id?: string | null;
+                total?: number | null;
+                source?: "budget" | "actuals" | null;
+                budget_id?: string | null;
+                format?: "csv" | "xlsx" | null;
+            };
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The budget ID */
+                budget: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `FreeFormDataResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FreeFormDataResource"];
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "budgets.suggestions": {
+        parameters: {
+            query?: {
+                fiscal_year_id?: string | null;
+                total?: number | null;
+                source?: "budget" | "actuals" | null;
+                budget_id?: string | null;
+                format?: "csv" | "xlsx" | null;
+            };
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The budget ID */
+                budget: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `FreeFormDataResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FreeFormDataResource"];
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "budgets.export": {
+        parameters: {
+            query?: {
+                fiscal_year_id?: string | null;
+                total?: number | null;
+                source?: "budget" | "actuals" | null;
+                budget_id?: string | null;
+                format?: "csv" | "xlsx" | null;
+            };
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The budget ID */
+                budget: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "Transfer-Encoding": "chunked";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/html": string;
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "budgets.card": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `FreeFormDataResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FreeFormDataResource"];
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "reports.budget-vs-actual": {
+        parameters: {
+            query?: {
+                period_id?: string | null;
+                as_of?: string | null;
+                from?: string | null;
+                to?: string | null;
+                basis?: "month" | "ytd" | null;
+                comparison?: "none" | "previous_period" | "previous_year" | null;
+                /** @description Dimension id → a value id or a list of them; withValidator checks the shape. */
+                "dimensions[]"?: string[] | null;
+                hide_zero?: boolean | null;
+                account_id?: string | null;
+                exclude_closing?: boolean | null;
+                contact_side?: "debit" | "credit" | null;
+                contact_id?: string | null;
+                /** @description Budget vs actual only: the budget version to read; default is the approved one of the period's fiscal year. */
+                budget_id?: string | null;
+                format?: "xlsx" | "csv" | "pdf" | null;
+            };
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            [key: string]: unknown;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
     "chart-templates.index": {
         parameters: {
             query?: never;
@@ -10025,7 +10737,7 @@ export interface operations {
     "imports.index": {
         parameters: {
             query?: {
-                kind?: "contacts" | "accounts" | "opening_balances" | "invoices" | "bank_lines" | null;
+                kind?: "contacts" | "accounts" | "opening_balances" | "invoices" | "bank_lines" | "budget_lines" | null;
                 status?: "uploaded" | "mapped" | "previewed" | "queued" | "applying" | "completed" | "failed" | "pending" | "valid" | "invalid" | "applied" | null;
                 /** @description Opaque, from `meta.next_cursor` or `meta.prev_cursor`. */
                 cursor?: string;
@@ -10262,7 +10974,7 @@ export interface operations {
     "imports.rows": {
         parameters: {
             query?: {
-                kind?: "contacts" | "accounts" | "opening_balances" | "invoices" | "bank_lines" | null;
+                kind?: "contacts" | "accounts" | "opening_balances" | "invoices" | "bank_lines" | "budget_lines" | null;
                 status?: "uploaded" | "mapped" | "previewed" | "queued" | "applying" | "completed" | "failed" | "pending" | "valid" | "invalid" | "applied" | null;
                 /** @description Opaque, from `meta.next_cursor` or `meta.prev_cursor`. */
                 cursor?: string;
@@ -11547,6 +12259,71 @@ export interface operations {
                     };
                 };
             };
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "numbering.index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `FreeFormDataResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FreeFormDataResource"];
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "numbering.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                kind: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NumberingRuleRequest"];
+            };
+        };
+        responses: {
+            /** @description `FreeFormDataResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FreeFormDataResource"] & {
+                        meta: {
+                            kind: string;
+                            effective_from: string;
+                            fiscal_year: string | null;
+                            unchanged: boolean;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
             422: components["responses"]["ValidationException"];
         };
     };
@@ -13735,6 +14512,8 @@ export interface operations {
                 exclude_closing?: boolean | null;
                 contact_side?: "debit" | "credit" | null;
                 contact_id?: string | null;
+                /** @description Budget vs actual only: the budget version to read; default is the approved one of the period's fiscal year. */
+                budget_id?: string | null;
                 format?: "xlsx" | "csv" | "pdf" | null;
             };
             header?: never;
@@ -13780,6 +14559,8 @@ export interface operations {
                 exclude_closing?: boolean | null;
                 contact_side?: "debit" | "credit" | null;
                 contact_id?: string | null;
+                /** @description Budget vs actual only: the budget version to read; default is the approved one of the period's fiscal year. */
+                budget_id?: string | null;
                 format?: "xlsx" | "csv" | "pdf" | null;
             };
             header?: never;
@@ -13825,6 +14606,8 @@ export interface operations {
                 exclude_closing?: boolean | null;
                 contact_side?: "debit" | "credit" | null;
                 contact_id?: string | null;
+                /** @description Budget vs actual only: the budget version to read; default is the approved one of the period's fiscal year. */
+                budget_id?: string | null;
                 format?: "xlsx" | "csv" | "pdf" | null;
             };
             header?: never;
@@ -13870,6 +14653,8 @@ export interface operations {
                 exclude_closing?: boolean | null;
                 contact_side?: "debit" | "credit" | null;
                 contact_id?: string | null;
+                /** @description Budget vs actual only: the budget version to read; default is the approved one of the period's fiscal year. */
+                budget_id?: string | null;
                 format?: "xlsx" | "csv" | "pdf" | null;
             };
             header?: never;
@@ -13915,6 +14700,8 @@ export interface operations {
                 exclude_closing?: boolean | null;
                 contact_side?: "debit" | "credit" | null;
                 contact_id?: string | null;
+                /** @description Budget vs actual only: the budget version to read; default is the approved one of the period's fiscal year. */
+                budget_id?: string | null;
                 format?: "xlsx" | "csv" | "pdf" | null;
                 /** @description Opaque, from `meta.next_cursor` or `meta.prev_cursor`. */
                 cursor?: string;
@@ -13970,6 +14757,8 @@ export interface operations {
                 exclude_closing?: boolean | null;
                 contact_side?: "debit" | "credit" | null;
                 contact_id?: string | null;
+                /** @description Budget vs actual only: the budget version to read; default is the approved one of the period's fiscal year. */
+                budget_id?: string | null;
                 format?: "xlsx" | "csv" | "pdf" | null;
             };
             header?: never;
@@ -14015,6 +14804,8 @@ export interface operations {
                 exclude_closing?: boolean | null;
                 contact_side?: "debit" | "credit" | null;
                 contact_id?: string | null;
+                /** @description Budget vs actual only: the budget version to read; default is the approved one of the period's fiscal year. */
+                budget_id?: string | null;
                 format?: "xlsx" | "csv" | "pdf" | null;
             };
             header?: never;
@@ -14060,6 +14851,8 @@ export interface operations {
                 exclude_closing?: boolean | null;
                 contact_side?: "debit" | "credit" | null;
                 contact_id?: string | null;
+                /** @description Budget vs actual only: the budget version to read; default is the approved one of the period's fiscal year. */
+                budget_id?: string | null;
                 format?: "xlsx" | "csv" | "pdf" | null;
             };
             header?: never;
@@ -14105,6 +14898,8 @@ export interface operations {
                 exclude_closing?: boolean | null;
                 contact_side?: "debit" | "credit" | null;
                 contact_id?: string | null;
+                /** @description Budget vs actual only: the budget version to read; default is the approved one of the period's fiscal year. */
+                budget_id?: string | null;
                 format?: "xlsx" | "csv" | "pdf" | null;
             };
             header?: never;
@@ -14150,6 +14945,8 @@ export interface operations {
                 exclude_closing?: boolean | null;
                 contact_side?: "debit" | "credit" | null;
                 contact_id?: string | null;
+                /** @description Budget vs actual only: the budget version to read; default is the approved one of the period's fiscal year. */
+                budget_id?: string | null;
                 format?: "xlsx" | "csv" | "pdf" | null;
             };
             header?: never;
@@ -14195,6 +14992,8 @@ export interface operations {
                 exclude_closing?: boolean | null;
                 contact_side?: "debit" | "credit" | null;
                 contact_id?: string | null;
+                /** @description Budget vs actual only: the budget version to read; default is the approved one of the period's fiscal year. */
+                budget_id?: string | null;
                 format?: "xlsx" | "csv" | "pdf" | null;
                 /** @description Opaque, from `meta.next_cursor` or `meta.prev_cursor`. */
                 cursor?: string;
@@ -14314,6 +15113,8 @@ export interface operations {
                 exclude_closing?: boolean | null;
                 contact_side?: "debit" | "credit" | null;
                 contact_id?: string | null;
+                /** @description Budget vs actual only: the budget version to read; default is the approved one of the period's fiscal year. */
+                budget_id?: string | null;
                 format?: "xlsx" | "csv" | "pdf" | null;
             };
             header?: never;
