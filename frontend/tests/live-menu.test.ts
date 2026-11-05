@@ -5,7 +5,7 @@ afterEach(() => {
   vi.resetModules();
 });
 
-const HIDDEN = ['Fixed assets', 'Budgets', 'Import data'];
+const HIDDEN = ['Fixed assets', 'Budgets'];
 const labels = (sections: { items: { label: string }[] }[]) => sections.flatMap((s) => s.items.map((i) => i.label));
 
 async function menus(mode: 'live' | 'mock') {
@@ -18,8 +18,8 @@ async function menus(mode: 'live' | 'mock') {
 describe('menu in live mode', () => {
   it('lists procurement and leaves out screens that are not connected', async () => {
     const live = labels(await menus('live'));
-    for (const l of ['Requisitions', 'Purchase orders', 'Receipts', 'Procurement reports', 'Bills']) expect(live).toContain(l);
-    for (const l of ['Fixed assets', 'Budgets', 'Import data']) expect(live).not.toContain(l);
+    for (const l of ['Requisitions', 'Purchase orders', 'Receipts', 'Procurement reports', 'Bills', 'Import data']) expect(live).toContain(l);
+    for (const l of ['Fixed assets', 'Budgets']) expect(live).not.toContain(l);
   });
 
   it('hides exactly the unconnected items', async () => {
@@ -43,7 +43,7 @@ describe('command palette destinations', () => {
   ];
   it('live mode keeps only connected screens', async () => {
     const { reachableDestinations } = await import('../src/components/domain/commandVerbs');
-    expect(reachableDestinations(dest, 'acme', true).map((d) => d.path)).toEqual(['/dashboard', '/bills']);
+    expect(reachableDestinations(dest, 'acme', true).map((d) => d.path)).toEqual(['/dashboard', '/settings/import', '/bills']);
   });
   it('mock mode keeps all of them', async () => {
     const { reachableDestinations } = await import('../src/components/domain/commandVerbs');

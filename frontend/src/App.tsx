@@ -79,6 +79,7 @@ import { TrialBalanceScreen, ProfitAndLossScreen, BalanceSheetScreen, CashFlowSc
 // Settings
 import { CompanySettings } from './pages/Settings/CompanySettings';
 import { ImportWizard } from './pages/Settings/ImportWizard';
+import { ImportLive } from './pages/Settings/live/ImportLive';
 import { OnboardingWizard } from './pages/Onboarding/OnboardingWizard';
 import { ItemsList } from './pages/Sales/ItemsList';
 import { ClosePack } from './pages/Accounting/ClosePack';
@@ -268,7 +269,7 @@ export default function App() {
           {/* Settings & Audit */}
           <Route path="settings" element={IS_LIVE ? <Navigate to="general" replace /> : <CompanySettings />} />
           {IS_LIVE && <Route path="settings/*" element={<LiveSettings />} />}
-          <Route path="settings/import" element={<ImportWizard />} />
+          <Route path="settings/import" element={IS_LIVE ? <ImportLive /> : <ImportWizard />} />
           <Route path="import" element={<ImportWizard />} />
           <Route path="onboarding" element={IS_LIVE ? <LiveOnboarding /> : <OnboardingWizard />} />
           <Route path="audit-log" element={IS_LIVE ? <AuditLogLive /> : <AuditLog />} />
