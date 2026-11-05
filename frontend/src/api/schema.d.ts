@@ -52,6 +52,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/companies/{company}/accounts/{account}/visibility": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Shows or hides the account in default lists and pickers; posting and reports are not affected */
+        put: operations["accounts.visibility"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/companies/{company}/accounts/{account}/dimension-rules": {
         parameters: {
             query?: never;
@@ -3764,6 +3781,9 @@ export interface components {
             allow_manual_journals: boolean;
             is_postable: boolean;
             is_active: boolean;
+            is_hidden: boolean;
+            /** @description IFRS Accounting Taxonomy element name (ifrs-full), shown for reference only. */
+            ifrs_element: string | null;
             description: string | null;
             version: number;
             /** @description dimension id → required|optional|forbidden */
@@ -3773,6 +3793,14 @@ export interface components {
             can: {
                 [key: string]: boolean;
             };
+        };
+        /**
+         * AccountVisibilityRequest
+         * @description PUT /accounts/{account}/visibility: `{"hidden": true, "version": 3}`.
+         */
+        AccountVisibilityRequest: {
+            hidden: boolean;
+            version: number;
         };
         /**
          * ApiClientRequest
@@ -4394,6 +4422,7 @@ export interface components {
             country: string | null;
             standard: string;
             account_count: number;
+            recommended: boolean;
         };
         /** CloseCheckResource */
         CloseCheckResource: {
@@ -6378,6 +6407,7 @@ export interface operations {
                 type?: "asset" | "liability" | "equity" | "income" | "expense" | null;
                 active?: "true" | "false" | "1" | "0" | null;
                 search?: string | null;
+                hidden?: "true" | "false" | "1" | "0" | null;
                 /** @description Opaque, from `meta.next_cursor` or `meta.prev_cursor`. */
                 cursor?: string;
                 /** @description Page size, 1 to 200; default 50. */
@@ -6527,6 +6557,41 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["VersionRequest"];
+            };
+        };
+        responses: {
+            /** @description `AccountResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AccountResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "accounts.visibility": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The account ID */
+                account: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AccountVisibilityRequest"];
             };
         };
         responses: {
