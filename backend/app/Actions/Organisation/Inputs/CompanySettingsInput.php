@@ -23,5 +23,6 @@ final readonly class CompanySettingsInput
         public ?string $poPriceTolerancePct = null,
         public ?string $poQuantityTolerancePct = null,
         public ?string $receiptOverTolerancePct = null,
+        public ?string $creditLimitMode = null,
     ) {}
 }

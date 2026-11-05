@@ -114,6 +114,7 @@ use App\Support\Tenancy\TenantContext;
 use App\Support\UnitOfWork\AuditWriter;
 use App\Support\UnitOfWork\OutboxWriter;
 use App\Support\UnitOfWork\UnitOfWork;
+use App\Support\Warnings;
 use App\Support\Webhooks\DnsHostResolver;
 use App\Support\Webhooks\SsrfGuard;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -209,6 +210,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(GoodsReceipt::class, GoodsReceiptPolicy::class);
         Gate::policy(Item::class, ItemPolicy::class);
         Gate::policy(Settlement::class, SettlementPolicy::class);
+        $this->app->scoped(Warnings::class);
         Gate::policy(PaymentRun::class, PaymentRunPolicy::class);
         Gate::policy(ProvisionRun::class, ProvisionRunPolicy::class);
         Gate::policy(WriteOff::class, WriteOffPolicy::class);

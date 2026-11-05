@@ -52,6 +52,8 @@ final class CompanySettingsResource extends JsonResource
             'po_price_tolerance_pct' => $settings === null ? '0.0000' : (string) $settings->getAttribute('po_price_tolerance_pct'),
             'po_quantity_tolerance_pct' => $settings === null ? '0.0000' : (string) $settings->getAttribute('po_quantity_tolerance_pct'),
             'receipt_over_tolerance_pct' => $settings === null ? '0.0000' : (string) $settings->getAttribute('receipt_over_tolerance_pct'),
+            /** off | warn | refuse */
+            'credit_limit_mode' => $settings === null ? 'off' : (string) $settings->getAttribute('credit_limit_mode'),
             'version' => $settings === null ? 0 : (int) $settings->getAttribute('lock_version'),
             'can' => ['update' => (bool) $request->user()?->can('update', $this->resource)],
         ];

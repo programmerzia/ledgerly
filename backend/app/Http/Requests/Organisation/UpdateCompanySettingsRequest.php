@@ -31,6 +31,8 @@ final class UpdateCompanySettingsRequest extends CompanyRequest
             'po_price_tolerance_pct' => ['sometimes', 'required', 'string', 'regex:/^(100(\.0{1,4})?|\d{1,2}(\.\d{1,4})?)$/'],
             'po_quantity_tolerance_pct' => ['sometimes', 'required', 'string', 'regex:/^(100(\.0{1,4})?|\d{1,2}(\.\d{1,4})?)$/'],
             'receipt_over_tolerance_pct' => ['sometimes', 'required', 'string', 'regex:/^(100(\.0{1,4})?|\d{1,2}(\.\d{1,4})?)$/'],
+            /** What happens at invoice submit when a customer's open receivables plus the invoice pass their credit limit. */
+            'credit_limit_mode' => ['sometimes', 'required', 'string', Rule::in(['off', 'warn', 'refuse'])],
             /** Send what you loaded: a stale value answers 409. */
             'version' => ['sometimes', 'integer', 'min:0'],
             'posting_accounts' => ['sometimes', 'array:'.implode(',', array_keys(UpdateCompanySettings::POSTING_KEYS))],
@@ -62,6 +64,7 @@ final class UpdateCompanySettingsRequest extends CompanyRequest
             isset($v['po_price_tolerance_pct']) ? (string) $v['po_price_tolerance_pct'] : null,
             isset($v['po_quantity_tolerance_pct']) ? (string) $v['po_quantity_tolerance_pct'] : null,
             isset($v['receipt_over_tolerance_pct']) ? (string) $v['receipt_over_tolerance_pct'] : null,
+            isset($v['credit_limit_mode']) ? (string) $v['credit_limit_mode'] : null,
         );
     }
 }

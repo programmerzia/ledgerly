@@ -42,6 +42,7 @@ use App\Queries\Transactions\PreviewWriteOffPosting;
 use App\Queries\Transfers\PreviewFundTransferPosting;
 use App\Services\Ledger\PostingEngine;
 use App\Services\Procurement\BillMatchGate;
+use App\Services\Trade\CreditLimitGate;
 use App\Support\Actor;
 use App\Support\UnitOfWork\AuditBuffer;
 use App\Support\UnitOfWork\LockSet;
@@ -196,8 +197,11 @@ final class Documents
      * The three-way match of a purchase bill, under the bill's lock, after the posting checks (13 §10). Every other document
      * passes straight through.
      */
-    public function beforeSubmit(Actor $actor, LockSet $locks, AuditBuffer $audit, Outbox $outbox, Postable&Model $doc, ?string $matchOverrideReason): void
+    public function beforeSubmit(Actor $actor, LockSet $locks, AuditBuffer $audit, Outbox $outbox, Postable&Model $doc, ?string $matchOverrideReason, ?string $creditLimitReason = null): void
     {
+        if ($doc instanceof Invoice && $doc->kind === InvoiceKind::SalesInvoice) {
+            $this->container->make(CreditLimitGate::class)->enforce($actor, $locks, $audit, $outbox, $doc, $creditLimitReason);
+        }
         if ($doc instanceof Invoice && $doc->kind === InvoiceKind::PurchaseBill) {
             $this->container->make(BillMatchGate::class)->enforce($actor, $locks, $audit, $outbox, $doc, $matchOverrideReason);
         }

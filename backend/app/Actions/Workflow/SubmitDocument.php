@@ -43,9 +43,9 @@ final class SubmitDocument
         private readonly IdGenerator $ids,
     ) {}
 
-    public function handle(Actor $actor, DocumentRef $ref, ?string $matchOverrideReason = null): Postable&Model
+    public function handle(Actor $actor, DocumentRef $ref, ?string $matchOverrideReason = null, ?string $creditLimitReason = null): Postable&Model
     {
-        return $this->uow->run($actor, function (LockSet $locks, AuditBuffer $audit, Outbox $outbox) use ($actor, $ref, $matchOverrideReason) {
+        return $this->uow->run($actor, function (LockSet $locks, AuditBuffer $audit, Outbox $outbox) use ($actor, $ref, $matchOverrideReason, $creditLimitReason) {
             $unlocked = $this->documents->find($ref);
             $companyId = $unlocked->documentCompanyId();
             if (! $actor->isApiClient() && ! $this->permissions->allows($actor, $this->documents->permission($unlocked, 'submit'), $companyId)) {
@@ -63,7 +63,7 @@ final class SubmitDocument
                 throw PostingRejected::because($violations);
             }
 
-            $this->documents->beforeSubmit($actor, $locks, $audit, $outbox, $doc, $matchOverrideReason);
+            $this->documents->beforeSubmit($actor, $locks, $audit, $outbox, $doc, $matchOverrideReason, $creditLimitReason);
 
             $source = $actor->isApiClient() ? DocumentSource::Api : DocumentSource::User;
             $workflowType = $this->documents->workflowType($ref->type);

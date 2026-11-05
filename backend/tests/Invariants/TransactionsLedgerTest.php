@@ -95,3 +95,25 @@ it('keeps the allowance equal to the matrix after provisioning runs, write-offs 
     $this->asPerson($this->owner, signing: true)->postJson($this->api("provision-runs/{$run['id']}/reverse"), ['date' => '2026-07-02'], $this->key())->assertOk();
     $this->inTenant(fn () => expect(LedgerChecks::problems())->toBe([])->and(LedgerChecks::makerCheckerBreaches())->toBe([]));
 });
+
+it('never lets the maker of an invoice override its credit limit, and keeps the ledger sound through refusals and overrides', function (): void {
+    $this->inTenant(function (): void {
+        DB::table('contacts')->where('id', $this->t->customer)->update(['credit_limit' => 12000]);
+        DB::table('company_settings')->where('company_id', $this->f->companyId)->update(['credit_limit_mode' => 'refuse']);
+    });
+    $this->sale(10000);
+    $reason = ['credit_limit_override_reason' => 'Approved by the finance director'];
+    foreach ([$this->accountant, $this->owner] as $maker) {
+        $draft = $this->draftDoc('invoices', $this->t->body($this->t->customer, [[10000, '1', 'VAT10']]), $maker);
+        $this->asPerson($maker, signing: true)->postJson($this->api("invoices/{$draft['id']}/submit"), [], $this->key())->assertStatus(422);
+        $this->asPerson($maker, signing: true)->postJson($this->api("invoices/{$draft['id']}/submit"), $reason, $this->key())->assertForbidden();
+    }
+    $draft = $this->draftDoc('invoices', $this->t->body($this->t->customer, [[10000, '1', 'VAT10']]));
+    $this->asPerson($this->owner, signing: true)->postJson($this->api("invoices/{$draft['id']}/submit"), $reason, $this->key())->assertOk();
+
+    $this->inTenant(function (): void {
+        $breaches = DB::table('credit_limit_checks as c')->join('invoices as i', 'i.id', '=', 'c.invoice_id')
+            ->where('c.outcome', 'overridden')->whereColumn('c.decided_by', 'i.created_by')->count();   // the overrider becomes the submitter when it posts, so only the maker is compared
+        expect($breaches)->toBe(0)->and(DB::table('credit_limit_checks')->where('outcome', 'overridden')->count())->toBe(1)->and(LedgerChecks::problems())->toBe([]);
+    });
+});
