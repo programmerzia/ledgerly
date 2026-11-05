@@ -58,6 +58,18 @@ it('serves the statements to a viewer with money as amount and currency', functi
         ->assertJsonPath('data.reconciles', true)->assertJsonPath('data.financing.total.amount', 150_000);
 });
 
+it('serves the trial balance with opening, movement and closing and exports it', function (): void {
+    $this->asPerson($this->accountant);
+    $this->getJson($this->api('reports/trial-balance?from=2026-02-01&to=2026-02-28&hide_zero=true'))
+        ->assertOk()->assertJsonPath('data.mode', 'movement')->assertJsonPath('data.balanced', true)
+        ->assertJsonPath('data.totals.closing.debit', ['amount' => 219_500, 'currency' => 'USD']);
+    $this->getJson($this->api('reports/trial-balance?from=2026-02-01'))->assertStatus(422)->assertJsonValidationErrors('period_id');
+    $this->getJson($this->api("reports/trial-balance?view=movement&period_id={$this->feb}&basis=ytd&hide_zero=true"))->assertOk()
+        ->assertJsonPath('data.from', '2026-01-01')->assertJsonPath('data.to', '2026-02-28')->assertJsonPath('data.balanced', true);
+    $csv = $this->get($this->api('reports/trial-balance/export?from=2026-02-01&to=2026-02-28&format=csv'))->assertOk()->streamedContent();
+    expect($csv)->toContain('Opening debit');
+});
+
 it('rejects bad parameters with 422 and foreign ids', function (): void {
     $this->asPerson($this->viewer);
     $this->getJson($this->api('reports/profit-and-loss'))->assertStatus(422)->assertJsonValidationErrors('period_id');

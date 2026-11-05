@@ -67,6 +67,29 @@ describe('profit and loss', () => {
   });
 });
 
+describe('trial balance with opening, movement and closing', () => {
+  const side = (d: number, c: number) => ({ debit: m(d), credit: m(c) });
+  const body = {
+    generated_at: '2026-11-02T03:24:16Z', report: 'trial_balance', mode: 'movement', currency: 'USD', from: '2026-02-01', to: '2026-02-28', as_of: '2026-02-28', opening_as_of: '2026-01-31',
+    rows: [{ account: acct('1000', 'Cash'), opening: side(135000, 0), movement: side(28500, 6000), closing: side(157500, 0), drill: { opening: { account_id: A1, from: null, to: '2026-01-31', exclude_closing: false }, movement: { account_id: A1, from: '2026-02-01', to: '2026-02-28', exclude_closing: false }, closing: { account_id: A1, from: null, to: '2026-02-28', exclude_closing: false } } }],
+    totals: { opening: side(1, 1), movement: side(2, 2), closing: side(3, 3) }, balanced: true, filtered: false,
+  };
+  it('maps the three column groups and their drill keys', () => {
+    const tb = parseTrialBalance(body);
+    expect(tb.mode).toBe('movement');
+    expect(tb.from).toBe('2026-02-01');
+    expect(tb.rows[0].opening?.debit).toBe(135000);
+    expect(tb.rows[0].movement).toEqual({ debit: 28500, credit: 6000 });
+    expect(tb.rows[0].debit).toBe(157500);
+    expect(tb.rows[0].drills?.movement?.from).toBe('2026-02-01');
+    expect(tb.totals?.closing).toEqual({ debit: 3, credit: 3 });
+  });
+  it('asks for the movement view', () => {
+    const sel = { when: { kind: 'range' as const, from: '2026-02-01', to: '2026-02-28' }, basis: 'month' as const, comparison: 'none' as const, hideZero: false, dims: {}, view: 'movement' as const };
+    expect(selectionQuery(sel)).toMatchObject({ from: '2026-02-01', to: '2026-02-28', view: 'movement' });
+  });
+});
+
 describe('balance sheet (D9 gross presentation, D13 equity by fund)', () => {
   const fund = { id: V1, code: 'RESTR', name: 'Donor restricted' };
   const body = {
@@ -77,10 +100,14 @@ describe('balance sheet (D9 gross presentation, D13 equity by fund)', () => {
         { key: `supplier_debit_balances:${A1}`, name: 'Supplier debit balances', account: acct('2000', 'Accounts payable'), gross: true, contacts: [{ contact: { id: 'c1', name: 'Dalmar Freight' }, amount: m(100000), drill: { account_id: A1, from: null, to: '2026-11-02', exclude_closing: false, contact_id: 'c1' } }], amount: m(100000), drill: { account_id: A1, from: null, to: '2026-11-02', exclude_closing: false, contact_side: 'debit' } },
       ],
       total: { amount: m(400000) },
+      current: { lines: [], total: { amount: m(400000) } },
+      non_current: { lines: [], total: { amount: m(0) } },
     },
     liabilities: {
       lines: [{ key: `customer_credit_balances:${A1}`, name: 'Customer credit balances', gross: true, contacts: [{ contact: { id: 'c2', name: 'Acme Traders' }, amount: m(500000), drill: { account_id: A1, from: null, to: '2026-11-02', exclude_closing: false, contact_id: 'c2' } }], amount: m(500000), drill: { account_id: A1, from: null, to: '2026-11-02', exclude_closing: false, contact_side: 'credit' } }],
       total: { amount: m(500000) },
+      current: { lines: [], total: { amount: m(500000) } },
+      non_current: { lines: [], total: { amount: m(0) } },
     },
     equity: {
       lines: [
@@ -113,6 +140,11 @@ describe('balance sheet (D9 gross presentation, D13 equity by fund)', () => {
     expect(bs.equity.lines[2]).toMatchObject({ result: true, label: 'Current year result', amount: 314950 });
     expect(bs.equity.funds?.map((f) => f.total.amount)).toEqual([1814950, 500000]);
     expect(bs.equity.funds?.[0].fund).toBeNull();
+  });
+  it('keeps the current and non-current parts of assets and liabilities (IAS 1.60)', () => {
+    expect(bs.assets.current.total.amount + bs.assets.nonCurrent.total.amount).toBe(bs.assets.total.amount);
+    expect(bs.liabilities.current.total.amount + bs.liabilities.nonCurrent.total.amount).toBe(bs.liabilities.total.amount);
+    expect(() => parseBalanceSheet({ ...body, assets: { lines: [], total: { amount: m(0) } } })).toThrow(ReportShapeError);
   });
   it('does not decide whether it balances', () => {
     expect(bs.balanced).toBe(false);

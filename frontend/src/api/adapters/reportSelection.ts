@@ -40,6 +40,7 @@ export function selectionFromSearch(sp: URLSearchParams): Partial<ReportSelectio
   if (account && UUID.test(account)) out.accountId = account;
   const contact = sp.get('contact');
   if (contact && UUID.test(contact)) out.contactId = contact;
+  if (sp.get('view') === 'movement') out.view = 'movement';
   return out;
 }
 
@@ -57,6 +58,7 @@ export function selectionToSearch(sel: ReportSelection): URLSearchParams {
   for (const [id, value] of Object.entries(sel.dims)) if (value) sp.set(`d.${id}`, value);
   if (sel.accountId) sp.set('account', sel.accountId);
   if (sel.contactId) sp.set('contact', sel.contactId);
+  if (sel.view) sp.set('view', sel.view);
   return sp;
 }
 

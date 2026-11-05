@@ -99,6 +99,8 @@ export interface ReportSelection {
   dims: Record<string, string>;
   accountId?: string;
   contactId?: string;
+  /** Trial balance: `movement` adds opening, debit and credit movement and closing over the chosen range. */
+  view?: 'movement';
 }
 
 /** The query for a report run. As-of reports ignore from/to and range reports ignore as_of, as the server does. */
@@ -121,6 +123,7 @@ export function selectionQuery(sel: ReportSelection, opts: { basis?: boolean; co
   }
   if (sel.accountId) q.account_id = sel.accountId;
   if (sel.contactId) q.contact_id = sel.contactId;
+  if (sel.view) q.view = sel.view;
   return q;
 }
 
@@ -194,28 +197,79 @@ function head(o: Rec): Head {
 // Trial balance
 // ---------------------------------------------------------------------------------------------------------------
 
+export interface DebitCredit {
+  debit: number;
+  credit: number;
+}
 export interface TrialBalanceRow {
   account: AccountRef;
+  /** As-of: the balance on its side. Movement: the closing balance (same as `closing`). */
   debit: number;
   credit: number;
   drill?: DrillKey;
+  /** Movement view only. */
+  opening?: DebitCredit;
+  movement?: DebitCredit;
+  closing?: DebitCredit;
+  drills?: { opening?: DrillKey; movement?: DrillKey; closing?: DrillKey };
 }
 export interface TrialBalanceView extends Head {
+  mode: 'as_of' | 'movement';
   asOf: string;
+  /** Movement view: the range, and the day the opening column is as of. */
+  from?: string;
+  openingAsOf?: string;
   rows: TrialBalanceRow[];
   totalDebit: number;
   totalCredit: number;
+  /** Movement view: the three pairs of totals. */
+  totals?: { opening: DebitCredit; movement: DebitCredit; closing: DebitCredit };
   /** The server's verdict on debits = credits. */
   balanced: boolean;
   /** A dimension filter selects part of each journal, so the sides can legitimately differ. */
   filtered: boolean;
 }
 
+function debitCredit(v: unknown, what: string): DebitCredit {
+  const o = rec(v, what);
+  return { debit: mon(o.debit, `${what}.debit`), credit: mon(o.credit, `${what}.credit`) };
+}
+
 export function parseTrialBalance(data: unknown): TrialBalanceView {
   const o = rec(data, 'trial balance');
   const totals = rec(o.totals, 'trial balance totals');
+  if (o.mode === 'movement') {
+    const t = { opening: debitCredit(totals.opening, 'totals.opening'), movement: debitCredit(totals.movement, 'totals.movement'), closing: debitCredit(totals.closing, 'totals.closing') };
+    return {
+      ...head(o),
+      mode: 'movement',
+      asOf: str(o.as_of, 'as_of'),
+      from: str(o.from, 'from'),
+      openingAsOf: str(o.opening_as_of, 'opening_as_of'),
+      rows: list(o.rows, 'rows').map((r) => {
+        const row = rec(r, 'row');
+        const closing = debitCredit(row.closing, 'row.closing');
+        const d = isRec(row.drill) ? row.drill : {};
+        return {
+          account: accountRef(row.account, 'row.account'),
+          debit: closing.debit,
+          credit: closing.credit,
+          opening: debitCredit(row.opening, 'row.opening'),
+          movement: debitCredit(row.movement, 'row.movement'),
+          closing,
+          drills: { opening: toDrillKey(d.opening), movement: toDrillKey(d.movement), closing: toDrillKey(d.closing) },
+        };
+      }),
+      totalDebit: t.closing.debit,
+      totalCredit: t.closing.credit,
+      totals: t,
+      balanced: bool(o.balanced),
+      filtered: bool(o.filtered),
+    };
+  }
   return {
     ...head(o),
+    mode: 'as_of',
     asOf: str(o.as_of, 'as_of'),
     rows: list(o.rows, 'rows').map((r) => {
       const row = rec(r, 'row');

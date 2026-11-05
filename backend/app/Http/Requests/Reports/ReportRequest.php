@@ -35,6 +35,8 @@ final class ReportRequest extends CompanyRequest
             'from' => ['nullable', 'date_format:Y-m-d', 'prohibits:period_id'],
             'to' => ['nullable', 'date_format:Y-m-d', 'prohibits:period_id', 'after_or_equal:from'],
             'basis' => ['nullable', 'string', Rule::in(['month', 'ytd'])],
+            /** Trial balance only: `movement` adds opening, debit and credit movement and closing over the period or from..to. */
+            'view' => ['nullable', 'string', Rule::in(['balances', 'movement'])],
             'comparison' => ['nullable', 'string', Rule::in(['none', 'previous_period', 'previous_year'])],
             /** Dimension id → a value id or a list of them; withValidator checks the shape. */
             'dimensions' => ['nullable', 'array', 'max:8'],

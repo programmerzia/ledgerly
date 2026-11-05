@@ -29,6 +29,21 @@ final class ReportTables
     /** @param array<string, mixed> $d */
     private static function trialBalance(array $d, string $company, int $decimals): ReportTable
     {
+        if (($d['mode'] ?? 'as_of') === 'movement') {
+            $rows = [];
+            foreach ($d['rows'] as $r) {
+                $rows[] = new ReportRow([$r['account']['code'], $r['account']['name'], $r['opening']['debit'], $r['opening']['credit'], $r['movement']['debit'], $r['movement']['credit'], $r['closing']['debit'], $r['closing']['credit']]);
+            }
+            $t = $d['totals'];
+            $rows[] = new ReportRow(['', 'Total', $t['opening']['debit'], $t['opening']['credit'], $t['movement']['debit'], $t['movement']['credit'], $t['closing']['debit'], $t['closing']['credit']], 'grand_total');
+
+            return new ReportTable('Trial balance', "{$company} · {$d['from']} to {$d['to']}", [
+                ['label' => 'Code', 'numeric' => false], ['label' => 'Account', 'numeric' => false],
+                ['label' => 'Opening debit', 'numeric' => true], ['label' => 'Opening credit', 'numeric' => true],
+                ['label' => 'Debit', 'numeric' => true], ['label' => 'Credit', 'numeric' => true],
+                ['label' => 'Closing debit', 'numeric' => true], ['label' => 'Closing credit', 'numeric' => true],
+            ], $rows, $decimals);
+        }
         $rows = [];
         foreach ($d['rows'] as $r) {
             $rows[] = new ReportRow([$r['account']['code'], $r['account']['name'], $r['debit'], $r['credit']]);
