@@ -22,7 +22,7 @@ final class PeriodCalendar
             return $this->cache[$companyId];
         }
         $rows = $this->runner->db()->select(
-            'SELECT p.id, p.fiscal_year_id, p.number, p.name, p.kind, p.starts_on, p.ends_on, y.starts_on AS year_starts_on, y.ends_on AS year_ends_on
+            'SELECT p.id, p.fiscal_year_id, p.number, p.name, p.kind, p.starts_on, p.ends_on, y.starts_on AS year_starts_on, y.ends_on AS year_ends_on, y.calendar
              FROM fiscal_periods p JOIN fiscal_years y ON y.id = p.fiscal_year_id
              WHERE p.company_id = ? ORDER BY p.starts_on, p.number',
             [$companyId],
@@ -31,7 +31,7 @@ final class PeriodCalendar
         foreach ($rows as $r) {
             $periods[] = new CalendarPeriod(
                 (string) $r->id, (string) $r->fiscal_year_id, (int) $r->number, (string) $r->name, (string) $r->kind,
-                (string) $r->starts_on, (string) $r->ends_on, (string) $r->year_starts_on, (string) $r->year_ends_on,
+                (string) $r->starts_on, (string) $r->ends_on, (string) $r->year_starts_on, (string) $r->year_ends_on, (string) $r->calendar !== 'monthly',
             );
         }
 
@@ -67,6 +67,22 @@ final class PeriodCalendar
         $end = Dates::before($period->startsOn);
         foreach ($this->periods($companyId) as $p) {
             if ($p->isRegular() && $p->endsOn === $end) {
+                return $p;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * The same-numbered regular period of the fiscal year that ends the day before this one starts, or null when there is none. This is what
+     * "last year" means for a week-based calendar, whose periods do not line up with calendar dates year on year.
+     */
+    public function sameInPreviousYear(string $companyId, CalendarPeriod $period): ?CalendarPeriod
+    {
+        $yearEnd = Dates::before($period->yearStartsOn);
+        foreach ($this->periods($companyId) as $p) {
+            if ($p->isRegular() && $p->yearEndsOn === $yearEnd && $p->number === $period->number) {
                 return $p;
             }
         }

@@ -38,7 +38,7 @@ final class ReportParamsResolver
 
         $type = (string) ($in['comparison'] ?? 'none');
         $comparison = match ($type) {
-            'previous_year' => ['from' => Dates::yearBefore($from), 'to' => Dates::yearBefore($to)],
+            'previous_year' => $this->previousYearRange($company->id, $period, $basis, $from, $to),
             'previous_period' => $this->previousRange($company->id, $period, $basis, $from, $to),
             default => null,
         };
@@ -59,7 +59,9 @@ final class ReportParamsResolver
         $type = (string) ($in['comparison'] ?? 'none');
         $comparison = null;
         if ($type === 'previous_year') {
-            $comparison = ['from' => null, 'to' => Dates::yearBefore($asOf)];
+            $containing = $period ?? $this->calendar->regularContaining($company->id, $asOf);
+            $last = $containing !== null && $containing->weekBased ? $this->calendar->sameInPreviousYear($company->id, $containing) : null;
+            $comparison = ['from' => null, 'to' => $last->endsOn ?? Dates::yearBefore($asOf)];
         } elseif ($type === 'previous_period') {
             $containing = $period ?? $this->calendar->regularContaining($company->id, $asOf);
             $previous = $containing === null ? null : $this->calendar->previousRegular($company->id, $containing);
@@ -96,6 +98,22 @@ final class ReportParamsResolver
             (bool) ($in['hide_zero'] ?? false), $periodId, isset($in['account_id']) ? (string) $in['account_id'] : null,
             isset($in['contact_id']) ? (string) $in['contact_id'] : null,
         );
+    }
+
+    /**
+     * "Last year" for a range report. Calendar months: the same dates a year earlier. A week-based year: the same period of the previous
+     * fiscal year (or its year to date), because its periods do not fall on the same dates; with no previous year, the dates shift as before.
+     *
+     * @return array{from: string, to: string}
+     */
+    private function previousYearRange(string $companyId, ?CalendarPeriod $period, string $basis, string $from, string $to): array
+    {
+        $last = $period !== null && $period->weekBased ? $this->calendar->sameInPreviousYear($companyId, $period) : null;
+        if ($last === null) {
+            return ['from' => Dates::yearBefore($from), 'to' => Dates::yearBefore($to)];
+        }
+
+        return ['from' => $basis === 'ytd' ? $last->yearStartsOn : $last->startsOn, 'to' => $last->endsOn];
     }
 
     /** @return array{from: string|null, to: string}|null */

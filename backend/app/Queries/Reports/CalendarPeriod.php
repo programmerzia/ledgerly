@@ -17,6 +17,8 @@ final readonly class CalendarPeriod
         public string $endsOn,
         public string $yearStartsOn,
         public string $yearEndsOn,
+        /** The year is cut in whole weeks (4-4-5 and the like), so "the same time last year" is the same period number, not the same calendar dates. */
+        public bool $weekBased = false,
     ) {}
 
     public function isRegular(): bool

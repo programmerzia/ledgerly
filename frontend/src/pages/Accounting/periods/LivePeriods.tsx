@@ -12,6 +12,8 @@ import { StatusPill } from '@/components/domain/StatusPill';
 import { EmptyState } from '@/components/domain/EmptyState';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { PeriodTimeline } from './PeriodTimeline';
+import { NewFiscalYear } from './NewFiscalYear';
+import { useAccess } from '@/data/menu';
 import { CloseChecklistCard } from './CloseChecklistCard';
 import { useLedgerStore } from '@/mock/store';
 import { formatDate } from '@/lib/format';
@@ -29,6 +31,14 @@ const headerBtn = 'flex h-9 items-center gap-1.5 rounded-md border border-border
 
 type Modal = 'close' | 'reopen' | 'reject' | 'year-end' | 'lock' | null;
 
+/** The day after a YYYY-MM-DD date: a new fiscal year normally starts the day after the last one ends. */
+const nextDay = (date: string | undefined): string | undefined => {
+  if (!date) return undefined;
+  const d = new Date(`${date}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + 1);
+  return d.toISOString().slice(0, 10);
+};
+
 export const LivePeriods: React.FC = () => {
   const navigate = useNavigate();
   const slug = useLedgerStore((s) => s.currentCompany.slug);
@@ -41,6 +51,8 @@ export const LivePeriods: React.FC = () => {
   const [yearId, setYearId] = useState<string | null>(null);
   const [periodId, setPeriodId] = useState<string | null>(null);
   const [modal, setModal] = useState<Modal>(null);
+  const [addingYear, setAddingYear] = useState(false);
+  const access = useAccess();
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
   const [reason, setReason] = useState('');
@@ -97,8 +109,9 @@ export const LivePeriods: React.FC = () => {
   if (!year || !period) {
     return (
       <div className="flex flex-col gap-6">
-        <PageHeader title="Periods and close" subtitle="Close each month once everything is checked." />
-        <EmptyState icon={Lock} title="No financial year yet" description="A financial year with its months is created during company setup. Once one exists you can close its months here." />
+        <PageHeader title="Periods and close" subtitle="Close each period once everything is checked." actions={access.can('settings.manage') ? <button type="button" onClick={() => setAddingYear(true)} className={headerBtn}>Add fiscal year</button> : undefined} />
+        <EmptyState icon={Lock} title="No financial year yet" description="A financial year with its periods is created during company setup. Once one exists you can close its periods here." />
+        <NewFiscalYear open={addingYear} onClose={() => setAddingYear(false)} />
       </div>
     );
   }
@@ -177,6 +190,12 @@ export const LivePeriods: React.FC = () => {
               <select aria-label="Financial year" value={year.id} onChange={(e) => { setYearId(e.target.value); setPeriodId(null); }} className="h-9 rounded-md border border-border bg-surface px-2 text-[13px] text-text-primary">
                 {years.map((y) => <option key={y.id} value={y.id}>{y.name}</option>)}
               </select>
+            )}
+            {access.can('settings.manage') && (
+              <button type="button" onClick={() => setAddingYear(true)} className={headerBtn}>Add fiscal year</button>
+            )}
+            {access.can('settings.manage') && (
+              <button type="button" onClick={() => setAddingYear(true)} className={headerBtn}>Add fiscal year</button>
             )}
             {year.can.year_end && (
               <button type="button" onClick={() => open('year-end')} className={headerBtn}>
@@ -440,6 +459,8 @@ export const LivePeriods: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <NewFiscalYear open={addingYear} onClose={() => setAddingYear(false)} suggestedStart={nextDay(years.map((y) => y.ends_on).sort().at(-1))} />
 
       <SignDialog {...signed.signProps} documentTitle={signCtx?.title ?? ''} actionTitle={signCtx?.actionTitle} consequenceText={signCtx?.consequence} />
     </div>

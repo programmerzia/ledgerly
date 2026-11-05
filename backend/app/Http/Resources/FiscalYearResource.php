@@ -21,6 +21,8 @@ final class FiscalYearResource extends JsonResource
             'starts_on' => Json::date($this->starts_on),
             'ends_on' => Json::date($this->ends_on),
             'status' => $this->status,
+            'calendar' => $this->calendar,
+            'extra_week_period' => $this->extra_week_period,
             'periods' => FiscalPeriodResource::collection($this->whenLoaded('periods')),
             'can' => Json::can($request, $this->resource, ['year_end' => 'yearEnd', 'lock' => 'lock']),
         ];
