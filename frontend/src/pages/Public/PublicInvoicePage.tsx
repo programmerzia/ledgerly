@@ -118,7 +118,7 @@ const Invoice: React.FC<{ token: string; inv: PublicInvoice }> = ({ token, inv }
             {inv.lines.map((l, i) => (
               <tr key={i} className="border-b border-border/60">
                 <td className="py-2 pr-3">{l.description}</td>
-                <td className="py-2 pr-3 text-right tabular-nums">{l.quantity}</td>
+                <td className="py-2 pr-3 text-right tabular-nums">{String(Number(l.quantity))}</td>
                 <td className="py-2 pr-3 text-right tabular-nums">{money(l.unit_price)}</td>
                 <td className="py-2 text-right tabular-nums">{money(l.line_total)}</td>
               </tr>
