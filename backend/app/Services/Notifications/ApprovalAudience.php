@@ -8,6 +8,7 @@ use App\Actions\Workflow\Inputs\DocumentRef;
 use App\Contracts\Postable;
 use App\Domain\Shared\DomainRuleViolation;
 use App\Domain\Workflow\DocumentStatus;
+use App\Models\Platform\User;
 use App\Models\Workflow\ApprovalRequest;
 use App\Services\Workflow\Documents;
 use Illuminate\Database\Eloquent\Model;
@@ -48,6 +49,15 @@ final class ApprovalAudience
         $name = self::LABELS[$type] ?? ucfirst(str_replace('_', ' ', $type));
 
         return is_string($number) && $number !== '' ? "{$name} {$number}" : $name;
+    }
+
+    /** "Submitted by Daniel Okafor." (empty when unknown): tells two unnumbered documents apart. */
+    public function submittedBy(Postable $doc): string
+    {
+        $id = $doc->documentSubmittedBy() ?? $doc->documentCreatedBy();
+        $name = $id === null ? null : User::query()->whereKey($id)->value('name');
+
+        return is_string($name) && $name !== '' ? "Submitted by {$name}." : '';
     }
 
     public function link(string $type, string $id): string

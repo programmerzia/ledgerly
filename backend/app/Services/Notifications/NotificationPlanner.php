@@ -75,7 +75,7 @@ final class NotificationPlanner
             return [];
         }
         foreach ($step['approvers'] as $user) {
-            $out = [...$out, ...$this->one($user, $company, 'approval_requested', "{$label} needs your approval", 'It is waiting for a '.$step['role'].'.', $type, $id, 'approvals', $key)];
+            $out = [...$out, ...$this->one($user, $company, 'approval_requested', "{$label} needs your approval", trim($this->audience->submittedBy($doc).' It is waiting for a '.$step['role'].'.'), $type, $id, 'approvals', $key)];
         }
 
         return $out;

@@ -76,16 +76,17 @@ final class RemindApprovers
             $key = "reminder:{$type}:{$id}:{$step['step']}:{$interval}";
             $drafts = array_map(fn (string $user): NotificationDraft => new NotificationDraft(
                 $user, $company->id, 'approval_reminder', "{$label} is still waiting for your approval",
-                'It has been waiting for a '.$step['role'].' for a while. Please approve it or return it.', $type, $id, 'approvals', $key,
+                trim($this->audience->submittedBy($doc).' It has been waiting for a '.$step['role'].' for a while. Please approve it or return it.'), $type, $id, 'approvals', $key,
             ), $step['approvers']);
             $notified = $this->writer->store($actor->tenantId, $drafts);
             $audit->add('approval.reminded', $doc, context: ['step' => $step['step'], 'interval' => $interval, 'recipients' => count($step['approvers'])]);
 
             $url = rtrim((string) config('app.frontend_url'), '/').'/'.$company->slug.'/approvals';
-            $this->uow->afterCommit(function () use ($notified, $label, $company, $url): void {
+            $by = $this->audience->submittedBy($doc);
+            $this->uow->afterCommit(function () use ($notified, $label, $company, $url, $by): void {
                 foreach (User::query()->whereIn('id', $notified)->get() as $user) {
                     try {
-                        Mail::to((string) $user->getAttribute('email'))->send(new NoticeMail("Reminder: {$label} is waiting for your approval", 'It is still waiting for you. Open it to approve or return it.', $url, $company->name));
+                        Mail::to((string) $user->getAttribute('email'))->send(new NoticeMail("Reminder: {$label} is waiting for your approval", trim($by.' It is still waiting for you. Open it to approve or return it.'), $url, $company->name));
                     } catch (Throwable $e) {
                         report($e);
                     }
