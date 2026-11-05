@@ -12,6 +12,7 @@ use App\Actions\Procurement\FinalizeRequisition;
 use App\Actions\Trade\PostInvoice;
 use App\Actions\Trade\PostPaymentRun;
 use App\Actions\Trade\PostSettlement;
+use App\Actions\Transactions\PostProvisionRun;
 use App\Actions\Transactions\PostWriteOff;
 use App\Actions\Transfers\PostFundTransfer;
 use App\Actions\Workflow\Inputs\DocumentRef;
@@ -29,12 +30,14 @@ use App\Models\Procurement\PurchaseRequisition;
 use App\Models\Trade\Invoice;
 use App\Models\Trade\PaymentRun;
 use App\Models\Trade\Settlement;
+use App\Models\Transactions\ProvisionRun;
 use App\Models\Transactions\WriteOff;
 use App\Models\Transfers\FundTransfer;
 use App\Queries\Ledger\PreviewJournalPosting;
 use App\Queries\Procurement\DocumentReadiness;
 use App\Queries\Trade\PreviewInvoicePosting;
 use App\Queries\Trade\PreviewSettlementPosting;
+use App\Queries\Transactions\PreviewProvisionPosting;
 use App\Queries\Transactions\PreviewWriteOffPosting;
 use App\Queries\Transfers\PreviewFundTransferPosting;
 use App\Services\Ledger\PostingEngine;
@@ -55,10 +58,10 @@ use Illuminate\Database\Eloquent\Model;
  */
 final class Documents
 {
-    public const array TYPES = ['journal', 'invoice', 'bill', 'settlement', 'payment_run', 'purchase_requisition', 'purchase_order', 'purchase_order_revision', 'fund_transfer', 'write_off'];
+    public const array TYPES = ['journal', 'invoice', 'bill', 'settlement', 'payment_run', 'purchase_requisition', 'purchase_order', 'purchase_order_revision', 'fund_transfer', 'write_off', 'provision_run'];
 
     /** The types a workflow can be set up for. A revision has none of its own: it goes through its order's (workflowType). */
-    public const array WORKFLOW_TYPES = ['journal', 'invoice', 'bill', 'settlement', 'payment_run', 'purchase_requisition', 'purchase_order', 'fund_transfer', 'write_off'];
+    public const array WORKFLOW_TYPES = ['journal', 'invoice', 'bill', 'settlement', 'payment_run', 'purchase_requisition', 'purchase_order', 'fund_transfer', 'write_off', 'provision_run'];
 
     public function __construct(
         private readonly Container $container,
@@ -78,6 +81,7 @@ final class Documents
             'purchase_requisition' => PurchaseRequisition::query()->with('lines')->find($ref->id),
             'purchase_order' => PurchaseOrder::query()->with('lines')->find($ref->id),
             'purchase_order_revision' => PurchaseOrderRevision::query()->find($ref->id),
+            'provision_run' => ProvisionRun::query()->find($ref->id),
             'write_off' => WriteOff::query()->find($ref->id),
             'fund_transfer' => FundTransfer::query()->find($ref->id),
             default => throw DomainRuleViolation::single('document_type_unknown', "Unknown document type {$ref->type}."),
@@ -131,6 +135,11 @@ final class Documents
 
             return $locks->document($doc, $expectedVersion);
         }
+        if ($doc instanceof ProvisionRun) {
+            $this->engine->lockPeriod($locks, $doc->company_id, JournalType::Manual, DateTimeImmutable::createFromInterface($doc->as_of), null);
+
+            return $locks->document($doc, $expectedVersion);
+        }
         if ($doc instanceof WriteOff) {
             $this->engine->lockPeriod($locks, $doc->company_id, JournalType::Sales, DateTimeImmutable::createFromInterface($doc->write_off_date), null);
 
@@ -155,6 +164,7 @@ final class Documents
             $doc instanceof Invoice => $this->container->make(PreviewInvoicePosting::class)->of($actor, $doc->id)->violations,
             $doc instanceof Settlement => $this->container->make(PreviewSettlementPosting::class)->of($actor, $doc->id)->violations,
             $doc instanceof PaymentRun => $this->container->make(PreviewSettlementPosting::class)->ofRun($actor, $doc->id)->violations,
+            $doc instanceof ProvisionRun => $this->container->make(PreviewProvisionPosting::class)->of($actor, $doc->id)->violations,
             $doc instanceof WriteOff => $this->container->make(PreviewWriteOffPosting::class)->of($actor, $doc->id)->violations,
             $doc instanceof FundTransfer => $this->container->make(PreviewFundTransferPosting::class)->of($actor, $doc->id)->violations,
             $doc instanceof PurchaseRequisition => $this->container->make(DocumentReadiness::class)->ofRequisition($doc),
@@ -172,6 +182,7 @@ final class Documents
             $doc instanceof Invoice => $this->container->make(PostInvoice::class)->handle($actor, $doc->documentId()),
             $doc instanceof Settlement => $this->container->make(PostSettlement::class)->handle($actor, $doc->documentId()),
             $doc instanceof PaymentRun => $this->container->make(PostPaymentRun::class)->handle($actor, $doc->documentId()),
+            $doc instanceof ProvisionRun => $this->container->make(PostProvisionRun::class)->handle($actor, $doc->documentId()),
             $doc instanceof WriteOff => $this->container->make(PostWriteOff::class)->handle($actor, $doc->documentId()),
             $doc instanceof FundTransfer => $this->container->make(PostFundTransfer::class)->handle($actor, $doc->documentId()),
             $doc instanceof PurchaseRequisition => $this->container->make(FinalizeRequisition::class)->handle($actor, $doc->documentId()),
@@ -219,6 +230,9 @@ final class Documents
         }
         if ($doc instanceof PaymentRun) {
             return in_array($action, ['approve', 'return', 'void'], true) ? 'payments.approve' : 'payments.create';
+        }
+        if ($doc instanceof ProvisionRun) {
+            return 'provisions.'.(in_array($action, ['return', 'void'], true) ? 'approve' : $action);
         }
         if ($doc instanceof WriteOff) {
             return 'write_offs.'.(in_array($action, ['return', 'void'], true) ? 'approve' : $action);

@@ -76,3 +76,22 @@ it('keeps AR, the aging and the allowance in step through write-offs, partial an
     $aging = $this->asPerson($this->owner)->getJson($this->api('reports/ar-aging?as_of=2026-04-30'))->assertOk()->json('data');
     expect($aging['totals']['open']['amount'])->toBe($this->net('1100'))->and($this->net('1100'))->toBe(4000);
 });
+
+it('keeps the allowance equal to the matrix after provisioning runs, write-offs and a reversal', function (): void {
+    $this->asPerson($this->owner)->putJson($this->api('provision-rates'), ['rates' => ['current' => '2', 'days_1_30' => '5', 'days_31_60' => '10', 'days_61_90' => '25', 'days_over_90' => '50']], $this->key())->assertOk();
+    $this->postedDoc('invoices', $this->t->body($this->t->customer, [[100000, '1']], '2026-03-01', ['due_date' => '2026-03-31']));
+    $big = $this->postedDoc('invoices', $this->t->body($this->t->customer, [[200000, '1']], '2026-03-01', ['due_date' => '2026-04-15']));
+
+    $run = $this->asPerson($this->accountant)->postJson($this->api('provision-runs'), ['as_of' => '2026-06-30'], $this->key())->assertCreated()->json('data');
+    $this->submitDoc('provision-runs', $run['id']);
+    // 100,000 is 91 days late (50%) and 200,000 is 76 days late (25%): 50,000 + 50,000 = 100,000 held.
+    expect($this->net('1190'))->toBe(-100000);
+
+    // Writing off 200,000 spends the allowance first (100,000), the rest is expense.
+    $w = $this->draftDoc('write-offs', ['invoice_id' => $big['id'], 'write_off_date' => '2026-07-01', 'amount_fc' => 200000, 'reason' => 'Insolvent']);
+    $this->submitDoc('write-offs', $w['id']);
+    expect($this->net('1190'))->toBe(0)->and($this->net('6801'))->toBe(200000);   // 100,000 provision + 100,000 beyond it
+
+    $this->asPerson($this->owner, signing: true)->postJson($this->api("provision-runs/{$run['id']}/reverse"), ['date' => '2026-07-02'], $this->key())->assertOk();
+    $this->inTenant(fn () => expect(LedgerChecks::problems())->toBe([])->and(LedgerChecks::makerCheckerBreaches())->toBe([]));
+});

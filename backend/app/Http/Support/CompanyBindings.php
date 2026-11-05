@@ -37,6 +37,7 @@ use App\Models\Trade\Item;
 use App\Models\Trade\PaymentRun;
 use App\Models\Trade\Settlement;
 use App\Models\Trade\WhtCertificate;
+use App\Models\Transactions\ProvisionRun;
 use App\Models\Transactions\WriteOff;
 use App\Models\Transfers\FundTransfer;
 use App\Models\Workflow\ApprovalWorkflow;
@@ -68,6 +69,7 @@ final class CompanyBindings
         'item' => Item::class,
         'settlement' => Settlement::class,
         'paymentRun' => PaymentRun::class,
+        'provisionRun' => ProvisionRun::class,
         'writeOff' => WriteOff::class,
         'fundTransfer' => FundTransfer::class,
         'whtCertificate' => WhtCertificate::class,

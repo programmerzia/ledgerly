@@ -79,6 +79,19 @@ final class ApprovalRequestResource extends JsonResource
                 'version' => $run->lock_version,
             ];
         }
+        $provision = $this->provisionRun;
+        if ($provision !== null) {
+            return [
+                'id' => $provision->id,
+                'number' => $provision->number,
+                'as_of' => Json::date($provision->as_of),
+                'memo' => $provision->memo,
+                'amount' => $amount,
+                'created_by' => $provision->created_by,
+                'submitted_by' => $provision->submitted_by,
+                'version' => $provision->lock_version,
+            ];
+        }
         $writeOff = $this->writeOff;
         if ($writeOff !== null) {
             return [

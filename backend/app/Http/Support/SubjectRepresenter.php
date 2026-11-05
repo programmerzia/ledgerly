@@ -24,6 +24,7 @@ use App\Http\Resources\InvoiceResource;
 use App\Http\Resources\ItemResource;
 use App\Http\Resources\JournalResource;
 use App\Http\Resources\PaymentRunResource;
+use App\Http\Resources\ProvisionRunResource;
 use App\Http\Resources\RecurringScheduleResource;
 use App\Http\Resources\ReopenRequestResource;
 use App\Http\Resources\SettlementResource;
@@ -54,6 +55,7 @@ use App\Models\Trade\Invoice;
 use App\Models\Trade\Item;
 use App\Models\Trade\PaymentRun;
 use App\Models\Trade\Settlement;
+use App\Models\Transactions\ProvisionRun;
 use App\Models\Transactions\WriteOff;
 use App\Models\Transfers\FundTransfer;
 use App\Models\Workflow\ApprovalWorkflow;
@@ -88,6 +90,7 @@ final class SubjectRepresenter
         'items' => [Item::class, ItemResource::class, []],
         'settlements' => [Settlement::class, SettlementResource::class, ['allocations']],
         'payment_runs' => [PaymentRun::class, PaymentRunResource::class, ['items']],
+        'provision_runs' => [ProvisionRun::class, ProvisionRunResource::class, []],
         'write_offs' => [WriteOff::class, WriteOffResource::class, []],
         'fund_transfers' => [FundTransfer::class, FundTransferResource::class, []],
         'bank_accounts' => [BankAccount::class, BankAccountResource::class, []],
