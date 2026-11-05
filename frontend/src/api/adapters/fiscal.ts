@@ -109,6 +109,7 @@ const CHECK_TITLES: Record<string, string> = {
   APPROVALS: 'No documents waiting for approval',
   BANK_REC: 'Bank accounts reconciled',
   FX_REVAL: 'Foreign-currency balances adjusted',
+  DEPR_RUN: 'Depreciation run done or nothing to depreciate',
 };
 
 export function checkTitle(code: string): string {

@@ -18,6 +18,9 @@ use App\Support\Reports\Dates;
  * only distributions. Because each journal balances, the activities add up to the change in cash exactly;
  * `unexplained` is the difference and must be zero.
  *
+ * Asset revaluations are non-cash (IAS 7.43): their journals are left out of the investing and financing lines, and the part that
+ * reached profit or loss is shown as a non-cash reconciling item in operating, so net profit still agrees with the income statement.
+ *
  * Unrealised exchange differences on cash (revaluation journals and their reversals) are taken out of
  * operating and shown in the line the standard asks for, "effect of exchange rate changes on cash" (IAS 7.28).
  *
@@ -37,6 +40,18 @@ final class CashFlow
         $movement = [];   // account → credit − debit
         foreach ($this->balances->totals($p->companyId, $from, $p->to, true) as $row) {
             $movement[$row->accountId] = ($movement[$row->accountId] ?? 0) + $row->credit - $row->debit;
+        }
+
+        // A revaluation of assets (and an impairment of a revalued asset) moves no cash (IAS 7.43): its journals come out of the
+        // balance sheet classes, and its effect on profit is taken back out of operating as a non-cash item.
+        $nonCashPl = 0;
+        foreach ($this->balances->totals($p->companyId, $from, $p->to, true, assetRevaluationOnly: true) as $row) {
+            if (in_array(($accounts[$row->accountId] ?? null)?->type, ['income', 'expense'], true)) {
+                $nonCashPl += $row->credit - $row->debit;     // stays in net profit, taken back out below
+
+                continue;
+            }
+            $movement[$row->accountId] = ($movement[$row->accountId] ?? 0) - ($row->credit - $row->debit);
         }
 
         $cashAccounts = array_keys(array_filter($accounts, fn (AccountInfo $a) => $a->isCash()));
@@ -81,6 +96,9 @@ final class CashFlow
             ['key' => 'net_profit', 'label' => 'Net profit', 'amount' => Json::money($netProfit, $cur), 'sort' => '00'],
             ...$groups['operating'],
         ];
+        if ($nonCashPl !== 0) {
+            $operating[] = ['key' => 'non_cash_revaluation', 'label' => 'Revaluation of assets in profit or loss (not a cash flow)', 'amount' => Json::money(-$nonCashPl, $cur), 'sort' => '06'];
+        }
         if ($fxEffect !== 0) {
             $operating[] = ['key' => 'unrealised_fx_on_cash', 'label' => 'Unrealised exchange differences on cash (not a cash flow)', 'amount' => Json::money(-$fxEffect, $cur), 'sort' => '05'];
         }

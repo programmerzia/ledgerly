@@ -28,6 +28,7 @@ final class LedgerChecks
             'posted_after_close' => self::postedAfterClose(),
             'trial_balance' => (int) DB::table('account_period_balances')->sum(DB::raw('debit - credit')) === 0 ? [] : ['trial balance does not net to zero'],
             'audit_chain' => self::auditChainProblems(),
+            'fixed_assets' => self::assetProblems(),
         ];
 
         return array_filter($found, fn (array $rows) => $rows !== []);
@@ -109,7 +110,9 @@ final class LedgerChecks
             ...DB::table('purchase_requisitions')->whereNotNull('number')->pluck('number')->all(), ...DB::table('purchase_orders')->whereNotNull('number')->pluck('number')->all(),
             ...DB::table('goods_receipts')->pluck('number')->all(),
             ...DB::table('fund_transfers')->whereNotNull('number')->pluck('number')->all(), ...DB::table('write_offs')->whereNotNull('number')->pluck('number')->all(),
-            ...DB::table('provision_runs')->whereNotNull('number')->pluck('number')->all()];
+            ...DB::table('provision_runs')->whereNotNull('number')->pluck('number')->all(),
+            ...DB::table('fixed_assets')->pluck('number')->all(), ...DB::table('depreciation_runs')->whereNotNull('number')->pluck('number')->all(),
+            ...DB::table('asset_transactions')->whereNotNull('number')->pluck('number')->all()];
         foreach ($numbers as $number) {
             preg_match('/^(.*-)(\d+)$/', (string) $number, $m);
             $byPrefix[$m[1]][] = (int) $m[2];
@@ -242,6 +245,39 @@ final class LedgerChecks
                 WHERE first_approver = requested_by OR second_approver = requested_by OR first_approver = second_approver
             SQL),
         ];
+    }
+
+    /**
+     * Fixed assets (13 §23 D15.1): every register figure equals the sum of its movements, nothing is depreciated below its residual
+     * value, and every movement that names a journal names a posted or reversed one of the same company.
+     *
+     * @return list<string>
+     */
+    public static function assetProblems(): array
+    {
+        $problems = [];
+        $sums = DB::select(
+            'SELECT a.id, a.number, a.cost, a.accumulated_depreciation AS dep, a.accumulated_impairment AS imp, a.revaluation_reserve AS reserve, a.revaluation_deficit AS deficit,
+                    a.months_charged AS months, a.units_used AS units, a.residual, a.status,
+                    COALESCE(SUM(m.cost_delta), 0) AS m_cost, COALESCE(SUM(m.depreciation_delta), 0) AS m_dep, COALESCE(SUM(m.impairment_delta), 0) AS m_imp,
+                    COALESCE(SUM(m.reserve_delta), 0) AS m_reserve, COALESCE(SUM(m.deficit_delta), 0) AS m_deficit, COALESCE(SUM(m.months_delta), 0) AS m_months, COALESCE(SUM(m.units_delta), 0) AS m_units
+               FROM fixed_assets a LEFT JOIN asset_movements m ON m.asset_id = a.id GROUP BY a.id',
+        );
+        foreach ($sums as $r) {
+            foreach (['cost' => 'm_cost', 'dep' => 'm_dep', 'imp' => 'm_imp', 'reserve' => 'm_reserve', 'deficit' => 'm_deficit', 'months' => 'm_months', 'units' => 'm_units'] as $figure => $sum) {
+                if ((int) $r->{$figure} !== (int) $r->{$sum}) {
+                    $problems[] = "asset {$r->number}: {$figure} is {$r->{$figure}} but its movements add up to {$r->{$sum}}";
+                }
+            }
+            if ($r->status === 'active' && (int) $r->cost - (int) $r->dep - (int) $r->imp < (int) $r->residual) {
+                $problems[] = "asset {$r->number}: carrying amount is below its residual value";
+            }
+        }
+        foreach (DB::select("SELECT m.id FROM asset_movements m LEFT JOIN journals j ON j.id = m.journal_id WHERE m.journal_id IS NOT NULL AND (j.id IS NULL OR j.company_id <> m.company_id OR j.status NOT IN ('posted', 'reversed'))") as $row) {
+            $problems[] = "asset movement {$row->id} names a journal that is not posted";
+        }
+
+        return $problems;
     }
 
     /** A posted journal stamped after the close of a period that is still closed (race tests, real clock). @return list<mixed> */

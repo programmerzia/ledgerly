@@ -19,6 +19,11 @@ use App\Http\Controllers\Files\AttachmentController;
 use App\Http\Controllers\Fiscal\FiscalPeriodController;
 use App\Http\Controllers\Fiscal\FiscalYearController;
 use App\Http\Controllers\Fiscal\ReopenRequestController;
+use App\Http\Controllers\FixedAssets\AssetCategoryController;
+use App\Http\Controllers\FixedAssets\AssetTaxClassController;
+use App\Http\Controllers\FixedAssets\AssetTransactionController;
+use App\Http\Controllers\FixedAssets\DepreciationRunController;
+use App\Http\Controllers\FixedAssets\FixedAssetController;
 use App\Http\Controllers\Fx\ExchangeRateController;
 use App\Http\Controllers\Fx\FxRevaluationController;
 use App\Http\Controllers\Imports\ImportController;
@@ -222,6 +227,34 @@ Route::middleware(['auth:sanctum', 'tenant', 'tenant.writable', 'idempotent', 'c
         Route::get('fx-rates', [ExchangeRateController::class, 'index'])->name('fx-rates.index');
         Route::post('fx-rates', [ExchangeRateController::class, 'store'])->name('fx-rates.store');
         Route::post('fx-rates/fetch', [ExchangeRateController::class, 'fetch'])->name('fx-rates.fetch');
+        // Fixed assets (13 §23 D15.1): categories, the register, capitalising from a posted line; none of this posts
+        Route::get('asset-categories', [AssetCategoryController::class, 'index'])->name('asset-categories.index');
+        Route::post('asset-categories', [AssetCategoryController::class, 'store'])->name('asset-categories.store');
+        Route::put('asset-categories/{assetCategory}', [AssetCategoryController::class, 'update'])->whereUuid('assetCategory')->name('asset-categories.update');
+        Route::get('asset-tax-classes', [AssetTaxClassController::class, 'index'])->name('asset-tax-classes.index');
+        Route::post('asset-tax-classes', [AssetTaxClassController::class, 'store'])->name('asset-tax-classes.store');
+        Route::put('asset-tax-classes/{assetTaxClass}', [AssetTaxClassController::class, 'update'])->whereUuid('assetTaxClass')->name('asset-tax-classes.update');
+        Route::get('fixed-assets/tax-schedule', [AssetTaxClassController::class, 'schedule'])->name('fixed-assets.tax-schedule');
+        Route::get('fixed-assets', [FixedAssetController::class, 'index'])->name('fixed-assets.index');
+        Route::post('fixed-assets', [FixedAssetController::class, 'store'])->name('fixed-assets.store');
+        Route::get('fixed-assets/capitalisable', [FixedAssetController::class, 'capitalisable'])->name('fixed-assets.capitalisable');
+        Route::get('fixed-assets/reconciliation', [FixedAssetController::class, 'reconciliation'])->name('fixed-assets.reconciliation');
+        Route::get('fixed-assets/{fixedAsset}', [FixedAssetController::class, 'show'])->whereUuid('fixedAsset')->name('fixed-assets.show');
+        Route::put('fixed-assets/{fixedAsset}', [FixedAssetController::class, 'update'])->whereUuid('fixedAsset')->name('fixed-assets.update');
+        Route::get('depreciation-runs', [DepreciationRunController::class, 'index'])->name('depreciation-runs.index');
+        Route::post('depreciation-runs', [DepreciationRunController::class, 'store'])->name('depreciation-runs.store');
+        Route::get('depreciation-runs/preview', [DepreciationRunController::class, 'preview'])->name('depreciation-runs.preview');
+        Route::get('depreciation-runs/{depreciationRun}', [DepreciationRunController::class, 'show'])->whereUuid('depreciationRun')->name('depreciation-runs.show');
+        foreach (['submit', 'approve', 'return', 'void', 'reverse'] as $verb) {
+            Route::post("depreciation-runs/{depreciationRun}/{$verb}", [DepreciationRunController::class, $verb])->whereUuid('depreciationRun')->name("depreciation-runs.{$verb}");
+        }
+        Route::get('asset-transactions', [AssetTransactionController::class, 'index'])->name('asset-transactions.index');
+        Route::post('asset-transactions', [AssetTransactionController::class, 'store'])->name('asset-transactions.store');
+        Route::post('asset-transactions/preview', [AssetTransactionController::class, 'preview'])->name('asset-transactions.preview');
+        Route::get('asset-transactions/{assetTransaction}', [AssetTransactionController::class, 'show'])->whereUuid('assetTransaction')->name('asset-transactions.show');
+        foreach (['submit', 'approve', 'return', 'void', 'reverse'] as $verb) {
+            Route::post("asset-transactions/{assetTransaction}/{$verb}", [AssetTransactionController::class, $verb])->whereUuid('assetTransaction')->name("asset-transactions.{$verb}");
+        }
         Route::get('fx-revaluations', [FxRevaluationController::class, 'index'])->name('fx-revaluations.index');
         Route::get('fx-revaluations/preview', [FxRevaluationController::class, 'preview'])->name('fx-revaluations.preview');
         Route::post('fx-revaluations', [FxRevaluationController::class, 'run'])->name('fx-revaluations.run');
@@ -284,6 +317,7 @@ Route::middleware(['auth:sanctum', 'tenant', 'tenant.writable', 'idempotent', 'c
         Route::get('reports/customer-statement', [ReportController::class, 'customerStatement'])->name('reports.customer-statement');
         Route::get('reports/supplier-statement', [ReportController::class, 'supplierStatement'])->name('reports.supplier-statement');
         Route::get('reports/tax-return', [ReportController::class, 'taxReturn'])->name('reports.tax-return');
+        Route::get('reports/asset-schedule', [ReportController::class, 'assetSchedule'])->name('reports.asset-schedule');
         Route::get('reports/drill', [ReportController::class, 'drill'])->name('reports.drill');
         // Listing and document reports (3c.20); their exports use the export route below.
         Route::get('reports/journal-list', [ListingReportController::class, 'journalList'])->name('reports.journal-list');

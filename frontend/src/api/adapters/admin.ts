@@ -29,6 +29,11 @@ export const POSTING_META: Record<string, PostingMeta> = {
   fx_unrealised_loss: { label: 'Unrealised exchange loss', help: 'Loss booked when open foreign-currency balances are revalued at period end.', needs: null },
   rounding: { label: 'Rounding differences', help: 'Catches the last cent when a conversion or a tax calculation does not divide evenly.', needs: null },
   suspense: { label: 'Suspense', help: 'Holds amounts that have not been sorted out yet, such as a bank line you cannot identify.', needs: null },
+  asset_disposal_gain: { label: 'Gain on selling an asset', help: 'Where the profit goes when an asset is sold for more than its value in the books. Optional until you sell an asset.', needs: null },
+  asset_disposal_loss: { label: 'Loss on selling an asset', help: 'Where the loss goes when an asset is sold or scrapped for less than its value in the books. Optional until you sell an asset.', needs: null },
+  impairment_loss: { label: 'Asset write-down expense', help: 'Where the cost goes when an asset is written down because it is worth less than the books say. Optional until you write an asset down.', needs: null },
+  impairment_reversal: { label: 'Asset write-down reversed', help: 'Where the credit goes when an earlier write-down is put back. Optional until you reverse a write-down.', needs: null },
+  revaluation_reserve: { label: 'Revaluation reserve', help: 'Equity account that holds increases when a category of assets is revalued upwards. Optional until you revalue assets.', needs: null },
   bank_clearing: { label: 'Bank clearing', help: 'Sits between a payment run and the bank statement while payments are on their way.', needs: null },
 };
 
@@ -193,6 +198,8 @@ export const DOCUMENT_TYPES: { value: string; label: string }[] = [
   { value: 'payment_run', label: 'Payment runs' },
   { value: 'purchase_requisition', label: 'Purchase requisitions' },
   { value: 'purchase_order', label: 'Purchase orders' },
+  { value: 'depreciation_run', label: 'Depreciation runs' },
+  { value: 'asset_transaction', label: 'Asset sales, write-downs and revaluations' },
 ];
 /**
  * A revision of an order follows the order's workflow on its new total, so there is no workflow of its own to set up;

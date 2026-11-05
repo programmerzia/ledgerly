@@ -17,6 +17,11 @@ use App\Models\Files\Attachment;
 use App\Models\Fiscal\FiscalPeriod;
 use App\Models\Fiscal\FiscalYear;
 use App\Models\Fiscal\PeriodReopenRequest;
+use App\Models\FixedAssets\AssetCategory;
+use App\Models\FixedAssets\AssetTaxClass;
+use App\Models\FixedAssets\AssetTransaction;
+use App\Models\FixedAssets\DepreciationRun;
+use App\Models\FixedAssets\FixedAsset;
 use App\Models\Imports\Import;
 use App\Models\Ledger\Account;
 use App\Models\Ledger\Dimension;
@@ -72,6 +77,11 @@ final class CompanyBindings
         'provisionRun' => ProvisionRun::class,
         'writeOff' => WriteOff::class,
         'fundTransfer' => FundTransfer::class,
+        'assetCategory' => AssetCategory::class,
+        'fixedAsset' => FixedAsset::class,
+        'depreciationRun' => DepreciationRun::class,
+        'assetTransaction' => AssetTransaction::class,
+        'assetTaxClass' => AssetTaxClass::class,
         'whtCertificate' => WhtCertificate::class,
         'creditApplication' => CreditApplication::class,
         'attachment' => Attachment::class,

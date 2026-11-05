@@ -33,6 +33,8 @@ final class UpdateCompanySettings
         'suspense' => null, 'bank_clearing' => null,
         // Added by plan 3c.8 onwards; a company on an older chart may lack them, and the documents that need them say so.
         'bank_in_transit' => 'cash', 'reverse_charge_output' => 'tax', 'reverse_charge_input' => 'tax', 'credit_loss_allowance' => null, 'bad_debt_expense' => null, 'bad_debt_recovery' => null,
+        'asset_disposal_gain' => null, 'asset_disposal_loss' => null,
+        'impairment_loss' => null, 'impairment_reversal' => null, 'revaluation_reserve' => null,
     ];
 
     public function __construct(private readonly UnitOfWork $uow, private readonly SetupGuard $guard) {}

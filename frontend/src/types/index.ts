@@ -306,7 +306,8 @@ export type JournalType =
   | 'closing'
   | 'reversal'
   | 'opening'
-  | 'adjustment';
+  | 'adjustment'
+  | 'asset';
 
 export interface JournalLine {
   id: string;

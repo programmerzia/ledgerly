@@ -101,7 +101,7 @@ describe('what is saved', () => {
 describe('routes and imports', () => {
   it('lists the budget screens and the numbering settings as connected', () => {
     for (const p of ['/acme/budgets', '/acme/reports/budget-vs-actual', '/acme/settings/numbering']) expect(isLiveRoute(p)).toBe(true);
-    expect(isLiveRoute('/acme/assets')).toBe(false);
+    expect(isLiveRoute('/acme/assets')).toBe(true);
   });
   it('asks for the budget before a budget file can be uploaded', () => {
     expect(missingUploadOptions('budget_lines', {})).toEqual(['budget_id']);

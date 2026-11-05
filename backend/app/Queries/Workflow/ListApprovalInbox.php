@@ -40,6 +40,8 @@ final class ListApprovalInbox
                 WHEN approval_requests.document_type = 'provision_run' THEN (SELECT ABS(x.difference) FROM provision_runs x WHERE x.id = approval_requests.document_id)
                 WHEN approval_requests.document_type = 'write_off' THEN (SELECT x.amount FROM write_offs x WHERE x.id = approval_requests.document_id)
                 WHEN approval_requests.document_type = 'fund_transfer' THEN (SELECT f.send_base FROM fund_transfers f WHERE f.id = approval_requests.document_id)
+                WHEN approval_requests.document_type = 'depreciation_run' THEN (SELECT d.total FROM depreciation_runs d WHERE d.id = approval_requests.document_id)
+                WHEN approval_requests.document_type = 'asset_transaction' THEN (SELECT t.amount FROM asset_transactions t WHERE t.id = approval_requests.document_id)
                 WHEN approval_requests.document_type = 'purchase_requisition' THEN (SELECT q.total FROM purchase_requisitions q WHERE q.id = approval_requests.document_id)
                 WHEN approval_requests.document_type = 'purchase_order' THEN (SELECT o.total FROM purchase_orders o WHERE o.id = approval_requests.document_id)
                 WHEN approval_requests.document_type = 'purchase_order_revision' THEN (SELECT v.total FROM purchase_order_revisions v WHERE v.id = approval_requests.document_id)
@@ -75,6 +77,8 @@ final class ListApprovalInbox
                 ->orWhereExists(fn (QueryBuilder $q) => $this->waiting($q, 'provision_runs', $me))
                 ->orWhereExists(fn (QueryBuilder $q) => $this->waiting($q, 'write_offs', $me))
                 ->orWhereExists(fn (QueryBuilder $q) => $this->waiting($q, 'fund_transfers', $me))
+                ->orWhereExists(fn (QueryBuilder $q) => $this->waiting($q, 'depreciation_runs', $me))
+                ->orWhereExists(fn (QueryBuilder $q) => $this->waiting($q, 'asset_transactions', $me))
                 ->orWhereExists(fn (QueryBuilder $q) => $this->waiting($q, 'purchase_requisitions', $me))
                 ->orWhereExists(fn (QueryBuilder $q) => $this->waiting($q, 'purchase_orders', $me))
                 ->orWhereExists(fn (QueryBuilder $q) => $this->waiting($q, 'purchase_order_revisions', $me)))
@@ -82,7 +86,7 @@ final class ListApprovalInbox
                 ->whereColumn('s.document_id', 'approval_requests.document_id')
                 ->whereColumn('s.document_type', 'approval_requests.document_type')
                 ->where('s.signed_by', $me))
-            ->with(['journal', 'invoice', 'settlement', 'paymentRun', 'fundTransfer', 'writeOff', 'provisionRun', 'purchaseRequisition', 'purchaseOrder', 'orderRevision.order', 'requester:id,name']);
+            ->with(['journal', 'invoice', 'settlement', 'paymentRun', 'fundTransfer', 'writeOff', 'provisionRun', 'depreciationRun', 'assetTransaction', 'purchaseRequisition', 'purchaseOrder', 'orderRevision.order', 'requester:id,name']);
     }
 
     private function waiting(QueryBuilder $q, string $table, string $me): QueryBuilder

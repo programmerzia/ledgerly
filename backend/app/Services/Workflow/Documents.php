@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services\Workflow;
 
+use App\Actions\FixedAssets\PostAssetTransaction;
+use App\Actions\FixedAssets\PostDepreciationRun;
 use App\Actions\Ledger\Inputs\PostJournalInput;
 use App\Actions\Ledger\PostJournal;
 use App\Actions\Procurement\ApplyOrderRevision;
@@ -18,11 +20,14 @@ use App\Actions\Transfers\PostFundTransfer;
 use App\Actions\Workflow\Inputs\DocumentRef;
 use App\Contracts\PermissionChecker;
 use App\Contracts\Postable;
+use App\Domain\FixedAssets\AssetPermissions;
 use App\Domain\Ledger\JournalType;
 use App\Domain\Shared\DomainRuleViolation;
 use App\Domain\Shared\Violation;
 use App\Domain\Trade\InvoiceKind;
 use App\Domain\Workflow\DocumentStatus;
+use App\Models\FixedAssets\AssetTransaction;
+use App\Models\FixedAssets\DepreciationRun;
 use App\Models\Ledger\Journal;
 use App\Models\Procurement\PurchaseOrder;
 use App\Models\Procurement\PurchaseOrderRevision;
@@ -40,6 +45,8 @@ use App\Queries\Trade\PreviewSettlementPosting;
 use App\Queries\Transactions\PreviewProvisionPosting;
 use App\Queries\Transactions\PreviewWriteOffPosting;
 use App\Queries\Transfers\PreviewFundTransferPosting;
+use App\Services\FixedAssets\AssetTransactionReadiness;
+use App\Services\FixedAssets\DepreciationRunReadiness;
 use App\Services\Ledger\PostingEngine;
 use App\Services\Procurement\BillMatchGate;
 use App\Services\Trade\CreditLimitGate;
@@ -59,10 +66,10 @@ use Illuminate\Database\Eloquent\Model;
  */
 final class Documents
 {
-    public const array TYPES = ['journal', 'invoice', 'bill', 'settlement', 'payment_run', 'purchase_requisition', 'purchase_order', 'purchase_order_revision', 'fund_transfer', 'write_off', 'provision_run'];
+    public const array TYPES = ['journal', 'invoice', 'bill', 'settlement', 'payment_run', 'purchase_requisition', 'purchase_order', 'purchase_order_revision', 'fund_transfer', 'write_off', 'provision_run', 'depreciation_run', 'asset_transaction'];
 
     /** The types a workflow can be set up for. A revision has none of its own: it goes through its order's (workflowType). */
-    public const array WORKFLOW_TYPES = ['journal', 'invoice', 'bill', 'settlement', 'payment_run', 'purchase_requisition', 'purchase_order', 'fund_transfer', 'write_off', 'provision_run'];
+    public const array WORKFLOW_TYPES = ['journal', 'invoice', 'bill', 'settlement', 'payment_run', 'purchase_requisition', 'purchase_order', 'fund_transfer', 'write_off', 'provision_run', 'depreciation_run', 'asset_transaction'];
 
     public function __construct(
         private readonly Container $container,
@@ -85,6 +92,8 @@ final class Documents
             'provision_run' => ProvisionRun::query()->find($ref->id),
             'write_off' => WriteOff::query()->find($ref->id),
             'fund_transfer' => FundTransfer::query()->find($ref->id),
+            'depreciation_run' => DepreciationRun::query()->with('lines')->find($ref->id),
+            'asset_transaction' => AssetTransaction::query()->with('lines')->find($ref->id),
             default => throw DomainRuleViolation::single('document_type_unknown', "Unknown document type {$ref->type}."),
         };
         if ($doc === null) {
@@ -149,6 +158,17 @@ final class Documents
         if ($doc instanceof PurchaseOrderRevision) {
             return $locks->document($doc, $expectedVersion);
         }
+        if ($doc instanceof AssetTransaction) {
+            $this->engine->lockPeriod($locks, $doc->company_id, JournalType::Asset, DateTimeImmutable::createFromInterface($doc->tx_date), null);
+
+            return $locks->document($doc, $expectedVersion)->load('lines');
+        }
+        if ($doc instanceof DepreciationRun) {
+            // The whole period is held for the run (13 §8), then the run.
+            $locks->periodsById($doc->company_id, [$doc->fiscal_period_id], forUpdate: true);
+
+            return $locks->document($doc, $expectedVersion)->load('lines');
+        }
 
         return $locks->document($doc, $expectedVersion)->load('lines');
     }
@@ -171,6 +191,8 @@ final class Documents
             $doc instanceof PurchaseRequisition => $this->container->make(DocumentReadiness::class)->ofRequisition($doc),
             $doc instanceof PurchaseOrder => $this->container->make(DocumentReadiness::class)->ofOrder($doc),
             $doc instanceof PurchaseOrderRevision => $this->container->make(DocumentReadiness::class)->ofRevision($doc),
+            $doc instanceof DepreciationRun => $this->container->make(DepreciationRunReadiness::class)->of($doc),
+            $doc instanceof AssetTransaction => $this->container->make(AssetTransactionReadiness::class)->of($doc),
             default => throw new \LogicException("No preview for {$doc->documentType()}."),
         };
     }
@@ -189,6 +211,8 @@ final class Documents
             $doc instanceof PurchaseRequisition => $this->container->make(FinalizeRequisition::class)->handle($actor, $doc->documentId()),
             $doc instanceof PurchaseOrder => $this->container->make(FinalizePurchaseOrder::class)->handle($actor, $doc->documentId()),
             $doc instanceof PurchaseOrderRevision => $this->container->make(ApplyOrderRevision::class)->handle($actor, $doc->documentId()),
+            $doc instanceof DepreciationRun => $this->container->make(PostDepreciationRun::class)->handle($actor, $doc->documentId()),
+            $doc instanceof AssetTransaction => $this->container->make(PostAssetTransaction::class)->handle($actor, $doc->documentId()),
             default => throw new \LogicException("No poster for {$doc->documentType()}."),
         };
     }
@@ -243,6 +267,21 @@ final class Documents
         }
         if ($doc instanceof FundTransfer) {
             return 'transfers.'.(in_array($action, ['return', 'void'], true) ? 'approve' : $action);
+        }
+
+        if ($doc instanceof AssetTransaction) {
+            return match ($action) {
+                'submit' => AssetPermissions::FOR_KIND[$doc->kind],
+                'approve', 'return', 'void' => 'fixed_assets.approve',
+                default => 'fixed_assets.'.$action,
+            };
+        }
+        if ($doc instanceof DepreciationRun) {
+            return match ($action) {
+                'submit' => 'fixed_assets.run_depreciation',
+                'approve', 'return', 'void' => 'fixed_assets.approve',
+                default => 'fixed_assets.'.$action,
+            };
         }
 
         if ($doc instanceof PurchaseOrderRevision) {

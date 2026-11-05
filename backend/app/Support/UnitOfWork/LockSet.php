@@ -33,7 +33,7 @@ final class LockSet
     private const array DOCUMENT_RANK = [
         'journals' => 10, 'payment_runs' => 15, 'settlements' => 20, 'fund_transfers' => 25, 'write_offs' => 26, 'invoices' => 30,
         'purchase_requisitions' => 32, 'purchase_order_revisions' => 33, 'purchase_orders' => 34, 'goods_receipts' => 36,
-        'bank_accounts' => 40, 'bank_reconciliations' => 42, 'bank_statement_lines' => 45, 'fx_revaluations' => 50, 'provision_runs' => 55, 'depreciation_runs' => 60,
+        'bank_accounts' => 40, 'bank_reconciliations' => 42, 'bank_statement_lines' => 45, 'fx_revaluations' => 50, 'provision_runs' => 55, 'depreciation_runs' => 60, 'asset_transactions' => 62, 'asset_categories' => 68, 'fixed_assets' => 70,
     ];
 
     private int $level = 0;
@@ -169,6 +169,12 @@ final class LockSet
             .'debit = account_period_balances.debit + EXCLUDED.debit, credit = account_period_balances.credit + EXCLUDED.credit',
             $bindings,
         );
+    }
+
+    /** A change that posts nothing but moves figures reports read (the asset register): their caches go stale at commit too. */
+    public function reportsChanged(string $companyId): void
+    {
+        $this->changedCompanies[$companyId] = true;
     }
 
     /**

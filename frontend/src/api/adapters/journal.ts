@@ -4,6 +4,7 @@
  * Pure functions; the server owns every figure and every verdict (13 §10, §16).
  */
 import type { components } from '../schema';
+import { TX_KIND_LABEL } from './fixedAssets';
 import type { Dimension, DocumentStatus, Journal, JournalLine, JournalType } from '@/types';
 import { fromApiMoney, rateForDisplay, type ApiMoney } from './money';
 import type { Violation } from '../errors';
@@ -263,15 +264,18 @@ export function splitFieldErrors(errors: Record<string, string[]> | undefined): 
   return { header, byIndex };
 }
 
+/** Plain label for a journal's type, for badges. */
+export const journalTypeLabel = (type: string): string => (type === 'asset' ? 'Fixed asset' : type);
+
 /* ------------------------------------------------------------------- approvals */
 
-export type ApprovalDocType = 'manual_journal' | 'sales_invoice' | 'purchase_bill' | 'settlement' | 'payment_run' | 'purchase_requisition' | 'purchase_order' | 'purchase_order_revision' | 'other';
+export type ApprovalDocType = 'manual_journal' | 'sales_invoice' | 'purchase_bill' | 'settlement' | 'payment_run' | 'purchase_requisition' | 'purchase_order' | 'purchase_order_revision' | 'depreciation_run' | 'asset_transaction' | 'other';
 
 export interface ApprovalItem {
   id: string;
   document_type: ApprovalDocType;
   /** The API's own type, as `bulk-approve` wants it. */
-  api_type: 'journal' | 'invoice' | 'bill' | 'settlement' | 'payment_run' | 'purchase_requisition' | 'purchase_order' | 'purchase_order_revision';
+  api_type: 'journal' | 'invoice' | 'bill' | 'settlement' | 'payment_run' | 'purchase_requisition' | 'purchase_order' | 'purchase_order_revision' | 'depreciation_run' | 'asset_transaction';
   document_id: string;
   document_number: string;
   title: string;
@@ -285,7 +289,7 @@ export interface ApprovalItem {
   /** The document's lock version, for `return`. */
   version: number;
   /** Where to open it, for the procurement documents (a revision opens its order). Null for the older kinds, which the inbox routes itself. */
-  link: { path: 'requisitions' | 'purchase-orders'; id: string } | null;
+  link: { path: 'requisitions' | 'purchase-orders' | 'assets'; id: string; tab?: string } | null;
 }
 
 type ApprovalDoc = Record<string, unknown> & { purchase_order_id?: string; amount?: ApiMoney; number?: string | null; memo?: string | null; kind?: string; created_by?: string | null; submitted_by?: string | null; version?: number };
@@ -331,6 +335,16 @@ export function toApprovalItem(a: ApiApproval): ApprovalItem {
     // The memo of a revision is its reason; it opens on its order, where the Revisions tab holds it.
     title = `Order revision${doc.memo ? `: ${String(doc.memo)}` : ''}`;
     link = typeof doc.purchase_order_id === 'string' ? { path: 'purchase-orders', id: doc.purchase_order_id } : null;
+  } else if (t === 'depreciation_run') {
+    document_type = 'depreciation_run';
+    api_type = 'depreciation_run';
+    title = `Depreciation run${doc.memo ? `: ${String(doc.memo)}` : ''}`;
+    link = { path: 'assets', id: a.document_id, tab: 'depreciation' };
+  } else if (t === 'asset_transaction') {
+    document_type = 'asset_transaction';
+    api_type = 'asset_transaction';
+    title = `${TX_KIND_LABEL[kind] ?? 'Asset adjustment'}${doc.memo ? `: ${String(doc.memo)}` : ''}`;
+    link = { path: 'assets', id: a.document_id, tab: 'adjustments' };
   } else {
     title = String(t);
   }

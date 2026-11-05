@@ -23,6 +23,7 @@ final class ReportTables
             'customer_statement', 'supplier_statement' => self::statement($data, $company, $decimals),
             'tax_return' => self::taxReturn($data, $company, $decimals),
             'budget_vs_actual' => self::budgetVsActual($data, $company, $decimals),
+            'asset_schedule' => self::assetSchedule($data, $company, $decimals),
             default => throw new InvalidArgumentException("No table for report {$report}."),
         };
     }
@@ -59,6 +60,37 @@ final class ReportTables
     private static function net(array $debit, array $credit): array
     {
         return ['amount' => $debit['amount'] - $credit['amount'], 'currency' => $debit['currency']];
+    }
+
+    /** @param array<string, mixed> $d */
+    private static function assetSchedule(array $d, string $company, int $decimals): ReportTable
+    {
+        $rows = [];
+        $line = static fn (string $label, array $x): ReportRow => new ReportRow([
+            $label, $x['cost']['opening'], $x['cost']['additions'], $x['cost']['opening_assets'], $x['cost']['disposals'], $x['cost']['revaluation'], $x['cost']['closing'],
+            $x['accumulated']['opening'], $x['accumulated']['opening_assets'], $x['accumulated']['charge'], $x['accumulated']['impairment'], $x['accumulated']['disposals'],
+            $x['accumulated']['revaluation'], $x['accumulated']['closing'], $x['carrying_opening'], $x['carrying_closing'],
+        ], 'normal');
+        foreach ($d['categories'] as $c) {
+            $rows[] = new ReportRow([$c['category_name']], 'heading');
+            foreach ($c['assets'] as $a) {
+                $rows[] = $line("{$a['number']} {$a['name']}", $a);
+            }
+            $total = $line("Total {$c['category_name']}", $c);
+            $rows[] = new ReportRow($total->cells, 'total');
+        }
+        $grand = $line('Total', $d['totals']);
+        $rows[] = new ReportRow($grand->cells, 'grand_total');
+
+        $money = ['numeric' => true];
+
+        return new ReportTable('Fixed asset schedule', "{$company} · {$d['from']} to {$d['to']}", [
+            ['label' => 'Asset', 'numeric' => false], ['label' => 'Cost: opening'] + $money, ['label' => 'Additions'] + $money, ['label' => 'Opening assets'] + $money,
+            ['label' => 'Disposals'] + $money, ['label' => 'Revaluation'] + $money, ['label' => 'Cost: closing'] + $money,
+            ['label' => 'Accumulated: opening'] + $money, ['label' => 'Opening assets'] + $money, ['label' => 'Charge'] + $money, ['label' => 'Impairment'] + $money,
+            ['label' => 'Disposals'] + $money, ['label' => 'Revaluation'] + $money, ['label' => 'Accumulated: closing'] + $money,
+            ['label' => 'Carrying: opening'] + $money, ['label' => 'Carrying: closing'] + $money,
+        ], $rows, $decimals);
     }
 
     /** @param array<string, mixed> $d */

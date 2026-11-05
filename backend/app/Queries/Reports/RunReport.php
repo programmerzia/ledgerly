@@ -29,6 +29,7 @@ final class RunReport
         'supplier-statement' => 'supplier_statement',
         'tax-return' => 'tax_return',
         'budget-vs-actual' => 'budget_vs_actual',
+        'asset-schedule' => 'asset_schedule',
     ];
 
     public function __construct(
@@ -43,6 +44,7 @@ final class RunReport
         private readonly TaxReturn $taxReturn,
         private readonly BudgetVsActual $budgetVsActual,
         private readonly PeriodCalendar $calendar,
+        private readonly AssetSchedule $assetSchedule,
     ) {}
 
     /**
@@ -64,6 +66,7 @@ final class RunReport
             'customer-statement' => [$this->params->range($company, $input), fn (ReportParams $p): array => ($this->statement)($p, true)],
             'supplier-statement' => [$this->params->range($company, $input), fn (ReportParams $p): array => ($this->statement)($p, false)],
             'tax-return' => [$this->params->range($company, $input), $this->taxReturn],
+            'asset-schedule' => [$this->params->range($company, $input), $this->assetSchedule],
             default => [$this->params->range($company, $input), $this->cashFlow],
         };
         if ($name === 'cash-flow' && $p->dims !== []) {

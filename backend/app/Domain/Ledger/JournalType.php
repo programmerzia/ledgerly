@@ -18,6 +18,7 @@ enum JournalType: string
     case Adjustment = 'adjustment';
     case Reversal = 'reversal';
     case Opening = 'opening';
+    case Asset = 'asset';
 
     /** Types that live only in the adjustment period (D7). */
     public function isAdjustmentPeriodType(): bool

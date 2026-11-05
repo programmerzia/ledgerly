@@ -88,6 +88,7 @@ import { OnboardingWizard } from './pages/Onboarding/OnboardingWizard';
 import { ItemsList } from './pages/Sales/ItemsList';
 import { ClosePack } from './pages/Accounting/ClosePack';
 import { ClosePackLive } from './pages/Accounting/live/ClosePackLive';
+import { FixedAssetsLive } from './pages/Accounting/live/FixedAssetsLive';
 import { RecurringJournals } from './pages/Accounting/RecurringJournals';
 import { Toaster } from './components/ui/sonner';
 
@@ -254,7 +255,7 @@ export default function App() {
           <Route path="periods/close-pack" element={IS_LIVE ? <ClosePackLive /> : <ClosePack />} />
           <Route path="fx-rates" element={<FxRates />} />
           {IS_LIVE && <Route path="dimensions" element={<Dimensions />} />}
-          <Route path="assets" element={<FixedAssets />} />
+          <Route path="assets" element={IS_LIVE ? <FixedAssetsLive /> : <FixedAssets />} />
           <Route path="budgets" element={IS_LIVE ? <BudgetsLive /> : <Budgets />} />
           {IS_LIVE && <Route path="reports/budget-vs-actual" element={<LiveBudgetVsActual />} />}
 

@@ -83,6 +83,13 @@ final class ReportController extends Controller
         return response()->json(['data' => $report('tax-return', $company, $request->validated())]);
     }
 
+    /** The fixed asset schedule by category and asset, from the register's movements, tied to the ledger. */
+    #[Authorize('view', Report::class)]
+    public function assetSchedule(ReportRequest $request, Company $company, RunReport $report): JsonResponse
+    {
+        return response()->json(['data' => $report('asset-schedule', $company, $request->validated())]);
+    }
+
     /** One account's ledger: header with opening and closing balance, then a page of lines with a running balance. */
     #[Authorize('view', Report::class)]
     public function generalLedger(ReportRequest $request, Company $company, ReportParamsResolver $params, GeneralLedger $ledger, LedgerLines $lines, ReportRunner $runner): JsonResponse

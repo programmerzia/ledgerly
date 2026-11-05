@@ -222,6 +222,218 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/companies/{company}/asset-categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** All the company's categories (there are few), by name */
+        get: operations["asset-categories.index"];
+        put?: never;
+        post: operations["asset-categories.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/asset-categories/{assetCategory}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["asset-categories.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/asset-tax-classes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["asset-tax-classes.index"];
+        put?: never;
+        post: operations["asset-tax-classes.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/asset-tax-classes/{assetTaxClass}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["asset-tax-classes.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/fixed-assets/tax-schedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Per asset with a tax class: the allowance and tax written-down value for each year. Optional `from_year` and `to_year` */
+        get: operations["fixed-assets.tax-schedule"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/asset-transactions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["asset-transactions.index"];
+        put?: never;
+        post: operations["asset-transactions.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/asset-transactions/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** What the document would do, per asset, with its journal lines; writes nothing */
+        post: operations["asset-transactions.preview"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/asset-transactions/{assetTransaction}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["asset-transactions.show"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/asset-transactions/{assetTransaction}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["asset-transactions.submit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/asset-transactions/{assetTransaction}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["asset-transactions.approve"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/asset-transactions/{assetTransaction}/return": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["asset-transactions.return"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/asset-transactions/{assetTransaction}/void": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["asset-transactions.void"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/asset-transactions/{assetTransaction}/reverse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mirrors the journal and puts the register back (a disposed asset is active again); refused while later activity stands on the same assets */
+        post: operations["asset-transactions.reverse"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/companies/{company}/attachments": {
         parameters: {
             query?: never;
@@ -1322,6 +1534,136 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/companies/{company}/depreciation-runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["depreciation-runs.index"];
+        put?: never;
+        post: operations["depreciation-runs.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/depreciation-runs/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Per asset, what a run for the period would charge, including skipped months; writes nothing */
+        get: operations["depreciation-runs.preview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/depreciation-runs/{depreciationRun}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["depreciation-runs.show"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/depreciation-runs/{depreciationRun}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["depreciation-runs.submit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/depreciation-runs/{depreciationRun}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["depreciation-runs.approve"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/depreciation-runs/{depreciationRun}/return": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["depreciation-runs.return"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/depreciation-runs/{depreciationRun}/void": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["depreciation-runs.void"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/depreciation-runs/{depreciationRun}/reverse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mirrors the journal and takes each asset's charge back out of the register; refused while later activity stands on the same assets */
+        post: operations["depreciation-runs.reverse"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/companies/{company}/dimensions": {
         parameters: {
             query?: never;
@@ -1940,6 +2282,72 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["fiscal-years.lock"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/fixed-assets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["fixed-assets.index"];
+        put?: never;
+        post: operations["fixed-assets.store"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/fixed-assets/capitalisable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Posted bill and journal lines on fixed asset accounts that are not in the register yet */
+        get: operations["fixed-assets.capitalisable"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/fixed-assets/reconciliation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Register cost and accumulated depreciation against the ledger's fixed asset and accumulated depreciation accounts, as of a date */
+        get: operations["fixed-assets.reconciliation"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/fixed-assets/{fixedAsset}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["fixed-assets.show"];
+        put: operations["fixed-assets.update"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -4262,6 +4670,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/companies/{company}/reports/asset-schedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The fixed asset schedule by category and asset, from the register's movements, tied to the ledger */
+        get: operations["reports.asset-schedule"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/companies/{company}/reports/drill": {
         parameters: {
             query?: never;
@@ -5186,7 +5611,7 @@ export interface components {
             document: {
                 id: string;
                 /** @enum {string} */
-                journal_type: "manual" | "sales" | "purchase" | "receipt" | "payment" | "bank" | "fx" | "depreciation" | "closing" | "adjustment" | "reversal" | "opening";
+                journal_type: "manual" | "sales" | "purchase" | "receipt" | "payment" | "bank" | "fx" | "depreciation" | "closing" | "adjustment" | "reversal" | "opening" | "asset";
                 journal_date: string | null;
                 reference: string | null;
                 memo: string | null;
@@ -5240,6 +5665,31 @@ export interface components {
             } | {
                 id: string;
                 number: string | null;
+                as_of: string | null;
+                memo: string | null;
+                amount: {
+                    amount: number;
+                    currency: string;
+                };
+                created_by: string | null;
+                submitted_by: string | null;
+                version: number;
+            } | {
+                id: string;
+                kind: string;
+                number: string | null;
+                tx_date: string | null;
+                memo: string | null;
+                amount: {
+                    amount: number;
+                    currency: string;
+                };
+                created_by: string | null;
+                submitted_by: string | null;
+                version: number;
+            } | {
+                id: string;
+                number: string | null;
                 send_date: string | null;
                 reference: string | null;
                 memo: string | null;
@@ -5257,18 +5707,6 @@ export interface components {
                 contact_id: string;
                 reference: string | null;
                 memo: string;
-                amount: {
-                    amount: number;
-                    currency: string;
-                };
-                created_by: string | null;
-                submitted_by: string | null;
-                version: number;
-            } | {
-                id: string;
-                number: string | null;
-                as_of: string | null;
-                memo: string | null;
                 amount: {
                     amount: number;
                     currency: string;
@@ -5328,7 +5766,7 @@ export interface components {
          */
         ApprovalWorkflowRequest: {
             /** @enum {string} */
-            document_type: "journal" | "invoice" | "bill" | "settlement" | "payment_run" | "purchase_requisition" | "purchase_order" | "fund_transfer" | "write_off" | "provision_run";
+            document_type: "journal" | "invoice" | "bill" | "settlement" | "payment_run" | "purchase_requisition" | "purchase_order" | "fund_transfer" | "write_off" | "provision_run" | "depreciation_run" | "asset_transaction";
             name: string;
             /** @enum {string} */
             source: "any" | "user" | "api";
@@ -5361,6 +5799,171 @@ export interface components {
             remind_after_hours: number | null;
             is_active: boolean;
             version: number;
+            can: {
+                [key: string]: boolean;
+            };
+        };
+        /**
+         * AssetCategoryRequest
+         * @description Create (POST) and replace (PUT, with the `version` it was based on) an asset category.
+         */
+        AssetCategoryRequest: {
+            name: string;
+            /** Format: uuid */
+            asset_account_id: string;
+            /** Format: uuid */
+            accumulated_account_id: string;
+            /** Format: uuid */
+            expense_account_id: string;
+            /** @enum {string|null} */
+            measurement_model?: "cost" | "revaluation" | null;
+            /** @enum {string|null} */
+            default_method?: "straight_line" | "declining_balance" | "units_of_production" | null;
+            default_life_months?: number | null;
+            /** @description Annual rate in basis points: 2000 = 20% a year. */
+            default_declining_rate_bp?: number | null;
+            is_depreciable?: boolean | null;
+            is_active?: boolean | null;
+            version?: number;
+        };
+        /** AssetCategoryResource */
+        AssetCategoryResource: {
+            id: string;
+            name: string;
+            asset_account_id: string;
+            accumulated_account_id: string;
+            expense_account_id: string;
+            measurement_model: string;
+            default_method: string;
+            default_life_months: number | null;
+            default_declining_rate_bp: number | null;
+            is_depreciable: boolean;
+            is_active: boolean;
+            version: number;
+            can: {
+                [key: string]: boolean;
+            };
+        };
+        /**
+         * AssetTaxClassRequest
+         * @description Create (POST) and replace (PUT, with `version`) a tax depreciation class. Rates are basis points a year: 2000 = 20%.
+         */
+        AssetTaxClassRequest: {
+            code: string;
+            name: string;
+            annual_rate_bp: number;
+            /** @description Optional rate for the first year only. */
+            first_year_rate_bp?: number | null;
+            is_active?: boolean | null;
+            version?: number;
+        };
+        /** AssetTaxClassResource */
+        AssetTaxClassResource: {
+            id: string;
+            code: string;
+            name: string;
+            annual_rate_bp: number;
+            first_year_rate_bp: number | null;
+            source: string;
+            is_active: boolean;
+            version: number;
+            can: {
+                [key: string]: boolean;
+            };
+        };
+        /** AssetTransactionLineResource */
+        AssetTransactionLineResource: {
+            id: string;
+            line_no: number;
+            asset_id: string;
+            asset_number: string;
+            asset_name: string;
+            input_amount: {
+                amount: number;
+                currency: string;
+            };
+            carrying_before: {
+                amount: number;
+                currency: string;
+            };
+            carrying_after: {
+                amount: number;
+                currency: string;
+            };
+            gain_or_loss: {
+                amount: number;
+                currency: string;
+            } | null;
+        };
+        /** AssetTransactionPreviewResource */
+        AssetTransactionPreviewResource: {
+            kind: string;
+            tx_date: string;
+            total: {
+                amount: number;
+                currency: string;
+            };
+            assets: unknown[];
+        };
+        /**
+         * AssetTransactionRequest
+         * @description A disposal (one asset, proceeds), an impairment or its reversal (one asset, an amount, a reason) or a revaluation (a category and
+         *     a revalued amount for every asset in it). Also the body of the preview.
+         */
+        AssetTransactionRequest: {
+            /** @enum {string} */
+            kind: "disposal" | "impairment" | "impairment_reversal" | "revaluation";
+            /** Format: date */
+            tx_date: string;
+            reason?: string | null;
+            /** Format: uuid */
+            asset_id?: string | null;
+            /** @description Minor units: the impairment or the reversal. */
+            amount?: number | null;
+            /** @description Disposal proceeds in minor units; none (0) when scrapped. */
+            proceeds?: number | null;
+            /** Format: uuid */
+            proceeds_account_id?: string | null;
+            /** @description Move the asset's remaining revaluation reserve straight to retained earnings. */
+            transfer_reserve?: boolean | null;
+            /** Format: uuid */
+            category_id?: string | null;
+            /** @description Revaluation: the new carrying amount of every asset in the category. */
+            values?: {
+                /** Format: uuid */
+                asset_id: string;
+                value: number;
+            }[] | null;
+        };
+        /** AssetTransactionResource */
+        AssetTransactionResource: {
+            id: string;
+            number: string | null;
+            kind: string;
+            /** @enum {string} */
+            status: "draft" | "pending_approval" | "posted" | "reversed" | "void";
+            tx_date: string | null;
+            category_id: string | null;
+            amount: {
+                amount: number;
+                currency: string;
+            };
+            reason: string | null;
+            proceeds: {
+                amount: number;
+                currency: string;
+            };
+            proceeds_account_id: string | null;
+            transfer_reserve: boolean;
+            journal_id: string | null;
+            reversal_journal_id: string | null;
+            created_by: string | null;
+            submitted_by: string | null;
+            approved_by: string | null;
+            posted_by: string | null;
+            posted_at: string | null;
+            version: number;
+            lines?: components["schemas"]["AssetTransactionLineResource"][];
             can: {
                 [key: string]: boolean;
             };
@@ -5818,7 +6421,7 @@ export interface components {
         BulkApproveRequest: {
             documents: {
                 /** @enum {string} */
-                type: "journal" | "invoice" | "bill" | "settlement" | "payment_run" | "purchase_requisition" | "purchase_order" | "purchase_order_revision" | "fund_transfer" | "write_off" | "provision_run";
+                type: "journal" | "invoice" | "bill" | "settlement" | "payment_run" | "purchase_requisition" | "purchase_order" | "purchase_order_revision" | "fund_transfer" | "write_off" | "provision_run" | "depreciation_run" | "asset_transaction";
                 /** Format: uuid */
                 id: string;
             }[];
@@ -5847,7 +6450,7 @@ export interface components {
          * @description `{"waivers": {"DRAFTS": "reason it is acceptable"}}`: failing checks the closer accepts.
          */
         ClosePeriodRequest: {
-            /** @description Check code (DRAFTS, APPROVALS, FX_REVAL, BANK_REC) → the reason it is acceptable. */
+            /** @description Check code (DRAFTS, APPROVALS, FX_REVAL, DEPR_RUN, BANK_REC) → the reason it is acceptable. */
             waivers?: {
                 [key: string]: string;
             };
@@ -6135,6 +6738,71 @@ export interface components {
          * @enum {string}
          */
         CurrencyPolicy: "base_only" | "any" | "fixed";
+        /** DepreciationPreviewResource */
+        DepreciationPreviewResource: {
+            period_id: string;
+            period_name: string;
+            as_of: string;
+            total: {
+                amount: number;
+                currency: string;
+            };
+            lines: unknown[];
+            pending_units: unknown[];
+            blockers: string[];
+        };
+        /** DepreciationRunLineResource */
+        DepreciationRunLineResource: {
+            id: string;
+            line_no: number;
+            asset_id: string;
+            asset_number: string;
+            asset_name: string;
+            amount: {
+                amount: number;
+                currency: string;
+            };
+            months: number;
+            units: number;
+            catch_up_months: number;
+        };
+        /**
+         * DepreciationRunRequest
+         * @description A depreciation run for a period, with the units used this period for units-of-production assets. Also the preview's query.
+         */
+        DepreciationRunRequest: {
+            /** Format: uuid */
+            period_id: string;
+            /** @description Asset id → units used in the period. */
+            units?: number[] | null;
+            memo?: string | null;
+        };
+        /** DepreciationRunResource */
+        DepreciationRunResource: {
+            id: string;
+            number: string | null;
+            /** @enum {string} */
+            status: "draft" | "pending_approval" | "posted" | "reversed" | "void";
+            fiscal_period_id: string;
+            as_of: string | null;
+            total: {
+                amount: number;
+                currency: string;
+            };
+            journal_id: string | null;
+            reversal_journal_id: string | null;
+            memo: string | null;
+            created_by: string | null;
+            submitted_by: string | null;
+            approved_by: string | null;
+            posted_by: string | null;
+            posted_at: string | null;
+            version: number;
+            lines?: components["schemas"]["DepreciationRunLineResource"][];
+            can: {
+                [key: string]: boolean;
+            };
+        };
         /**
          * DimensionRequest
          * @description Create (code and name) or rename (PUT: name and the `version` it was based on) a dimension.
@@ -6371,6 +7039,107 @@ export interface components {
             ends_on: string | null;
             status: string;
             periods?: components["schemas"]["FiscalPeriodResource"][];
+            can: {
+                [key: string]: boolean;
+            };
+        };
+        /**
+         * FixedAssetRequest
+         * @description Create (POST) a register entry, from a posted line (`source_type` + `source_id`) or as an opening asset (cost, acquisition
+         *     date, accumulated depreciation and the date it is stated at), and replace its editable part (PUT, with `version`).
+         */
+        FixedAssetRequest: {
+            name: string;
+            description?: string | null;
+            /** Format: uuid */
+            category_id: string;
+            /** @enum {string|null} */
+            source_type?: "bill_line" | "journal_line" | null;
+            /** Format: uuid */
+            source_id?: string | null;
+            /** Format: date */
+            acquired_on?: string | null;
+            /** Format: date */
+            available_from?: string | null;
+            /** @description Minor units. Defaults to the posted line's amount when capitalising. */
+            cost?: number | null;
+            residual?: number | null;
+            /** @enum {string|null} */
+            method?: "straight_line" | "declining_balance" | "units_of_production" | null;
+            useful_life_months?: number | null;
+            /** @description Annual rate in basis points: 2000 = 20% a year. */
+            declining_rate_bp?: number | null;
+            units_total?: number | null;
+            /**
+             * Format: uuid
+             * @description A tax depreciation class, for the tax schedule only.
+             */
+            tax_class_id?: string | null;
+            /** @description Dimension id → value id. */
+            dimensions?: string[] | null;
+            opening_accumulated?: number | null;
+            /** Format: date */
+            opening_as_of?: string | null;
+            version?: number;
+        };
+        /** FixedAssetResource */
+        FixedAssetResource: {
+            id: string;
+            number: string;
+            name: string;
+            description: string | null;
+            category_id: string;
+            category_name?: string | null;
+            status: string;
+            fully_depreciated: boolean;
+            acquired_on: string | null;
+            available_from: string | null;
+            disposed_on: string | null;
+            cost: {
+                amount: number;
+                currency: string;
+            };
+            residual: {
+                amount: number;
+                currency: string;
+            };
+            accumulated_depreciation: {
+                amount: number;
+                currency: string;
+            };
+            accumulated_impairment: {
+                amount: number;
+                currency: string;
+            };
+            carrying_amount: {
+                amount: number;
+                currency: string;
+            };
+            revaluation_reserve: {
+                amount: number;
+                currency: string;
+            };
+            method: string;
+            useful_life_months: number | null;
+            /** @description Annual rate in basis points. */
+            declining_rate_bp: number | null;
+            units_total: number | null;
+            units_used: number;
+            months_charged: number;
+            depreciated_through: string | null;
+            is_opening: boolean;
+            opening_accumulated: {
+                amount: number;
+                currency: string;
+            };
+            opening_as_of: string | null;
+            source_type: string | null;
+            source_id: string | null;
+            source_journal_id: string | null;
+            tax_class_id: string | null;
+            /** @description Dimension position → value id. */
+            dimensions: unknown[];
+            version: number;
             can: {
                 [key: string]: boolean;
             };
@@ -7036,7 +7805,7 @@ export interface components {
             /** @enum {string} */
             status: "draft" | "pending_approval" | "posted" | "reversed" | "void";
             /** @enum {string} */
-            journal_type: "manual" | "sales" | "purchase" | "receipt" | "payment" | "bank" | "fx" | "depreciation" | "closing" | "adjustment" | "reversal" | "opening";
+            journal_type: "manual" | "sales" | "purchase" | "receipt" | "payment" | "bank" | "fx" | "depreciation" | "closing" | "adjustment" | "reversal" | "opening" | "asset";
             journal_date: string | null;
             fiscal_period_id: string | null;
             reference: string | null;
@@ -7074,7 +7843,7 @@ export interface components {
          * JournalType
          * @enum {string}
          */
-        JournalType: "manual" | "sales" | "purchase" | "receipt" | "payment" | "bank" | "fx" | "depreciation" | "closing" | "adjustment" | "reversal" | "opening";
+        JournalType: "manual" | "sales" | "purchase" | "receipt" | "payment" | "bank" | "fx" | "depreciation" | "closing" | "adjustment" | "reversal" | "opening" | "asset";
         /** LoginRequest */
         LoginRequest: {
             email: string;
@@ -8130,6 +8899,11 @@ export interface components {
             effective_from: string | null;
             effective_to: string | null;
         };
+        /** TaxScheduleResource */
+        TaxScheduleResource: {
+            assets: unknown[];
+            by_year: unknown[];
+        };
         /**
          * TransitionRequest
          * @description A document transition (submit, approve): the version it was based on is optional, a comment too.
@@ -8950,6 +9724,551 @@ export interface operations {
                 content: {
                     "application/json": {
                         data: components["schemas"]["ApprovalWorkflowResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "asset-categories.index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `AssetCategoryResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AssetCategoryResource"][];
+                        meta: {
+                            next_cursor: null;
+                            prev_cursor: null;
+                            /** @constant */
+                            limit: 200;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "asset-categories.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssetCategoryRequest"];
+            };
+        };
+        responses: {
+            /** @description `AssetCategoryResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AssetCategoryResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "asset-categories.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The asset category ID */
+                assetCategory: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssetCategoryRequest"];
+            };
+        };
+        responses: {
+            /** @description `AssetCategoryResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AssetCategoryResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "asset-tax-classes.index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `AssetTaxClassResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AssetTaxClassResource"][];
+                        meta: {
+                            next_cursor: null;
+                            prev_cursor: null;
+                            /** @constant */
+                            limit: 200;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "asset-tax-classes.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssetTaxClassRequest"];
+            };
+        };
+        responses: {
+            /** @description `AssetTaxClassResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AssetTaxClassResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "asset-tax-classes.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The asset tax class ID */
+                assetTaxClass: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssetTaxClassRequest"];
+            };
+        };
+        responses: {
+            /** @description `AssetTaxClassResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AssetTaxClassResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "fixed-assets.tax-schedule": {
+        parameters: {
+            query?: {
+                from_year?: number | null;
+                to_year?: number | null;
+            };
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `TaxScheduleResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["TaxScheduleResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "asset-transactions.index": {
+        parameters: {
+            query?: {
+                /** @description Opaque, from `meta.next_cursor` or `meta.prev_cursor`. */
+                cursor?: string;
+                /** @description Page size, 1 to 200; default 50. */
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `AssetTransactionResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AssetTransactionResource"][];
+                        meta: {
+                            next_cursor: string | null;
+                            prev_cursor: string | null;
+                            limit: number;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "asset-transactions.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssetTransactionRequest"];
+            };
+        };
+        responses: {
+            /** @description `AssetTransactionResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AssetTransactionResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "asset-transactions.preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssetTransactionRequest"];
+            };
+        };
+        responses: {
+            /** @description `AssetTransactionPreviewResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AssetTransactionPreviewResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "asset-transactions.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The asset transaction ID */
+                assetTransaction: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `AssetTransactionResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AssetTransactionResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "asset-transactions.submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The asset transaction ID */
+                assetTransaction: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["TransitionRequest"];
+            };
+        };
+        responses: {
+            /** @description `AssetTransactionResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AssetTransactionResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "asset-transactions.approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The asset transaction ID */
+                assetTransaction: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["TransitionRequest"];
+            };
+        };
+        responses: {
+            /** @description `AssetTransactionResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AssetTransactionResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "asset-transactions.return": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The asset transaction ID */
+                assetTransaction: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReturnJournalRequest"];
+            };
+        };
+        responses: {
+            /** @description `AssetTransactionResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AssetTransactionResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "asset-transactions.void": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The asset transaction ID */
+                assetTransaction: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["VoidJournalRequest"];
+            };
+        };
+        responses: {
+            /** @description `AssetTransactionResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AssetTransactionResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "asset-transactions.reverse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The asset transaction ID */
+                assetTransaction: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ReverseJournalRequest"];
+            };
+        };
+        responses: {
+            /** @description `AssetTransactionResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AssetTransactionResource"] & Record<string, never>;
                     };
                 };
             };
@@ -11695,6 +13014,315 @@ export interface operations {
             404: components["responses"]["ModelNotFoundException"];
         };
     };
+    "depreciation-runs.index": {
+        parameters: {
+            query?: {
+                /** @description Opaque, from `meta.next_cursor` or `meta.prev_cursor`. */
+                cursor?: string;
+                /** @description Page size, 1 to 200; default 50. */
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `DepreciationRunResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["DepreciationRunResource"][];
+                        meta: {
+                            next_cursor: string | null;
+                            prev_cursor: string | null;
+                            limit: number;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "depreciation-runs.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DepreciationRunRequest"];
+            };
+        };
+        responses: {
+            /** @description `DepreciationRunResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["DepreciationRunResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "depreciation-runs.preview": {
+        parameters: {
+            query: {
+                period_id: string;
+                "units[]"?: number[];
+                memo?: string | null;
+            };
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `DepreciationPreviewResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["DepreciationPreviewResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "depreciation-runs.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The depreciation run ID */
+                depreciationRun: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `DepreciationRunResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["DepreciationRunResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "depreciation-runs.submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The depreciation run ID */
+                depreciationRun: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["TransitionRequest"];
+            };
+        };
+        responses: {
+            /** @description `DepreciationRunResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["DepreciationRunResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "depreciation-runs.approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The depreciation run ID */
+                depreciationRun: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["TransitionRequest"];
+            };
+        };
+        responses: {
+            /** @description `DepreciationRunResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["DepreciationRunResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "depreciation-runs.return": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The depreciation run ID */
+                depreciationRun: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReturnJournalRequest"];
+            };
+        };
+        responses: {
+            /** @description `DepreciationRunResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["DepreciationRunResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "depreciation-runs.void": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The depreciation run ID */
+                depreciationRun: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["VoidJournalRequest"];
+            };
+        };
+        responses: {
+            /** @description `DepreciationRunResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["DepreciationRunResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "depreciation-runs.reverse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The depreciation run ID */
+                depreciationRun: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ReverseJournalRequest"];
+            };
+        };
+        responses: {
+            /** @description `DepreciationRunResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["DepreciationRunResource"] & Record<string, never>;
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
     "dimensions.index": {
         parameters: {
             query?: never;
@@ -13243,6 +14871,267 @@ export interface operations {
             401: components["responses"]["AuthenticationException"];
             403: components["responses"]["AuthorizationException"];
             404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "fixed-assets.index": {
+        parameters: {
+            query?: {
+                /** @description Opaque, from `meta.next_cursor` or `meta.prev_cursor`. */
+                cursor?: string;
+                /** @description Page size, 1 to 200; default 50. */
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of `FixedAssetResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["FixedAssetResource"][];
+                        meta: {
+                            next_cursor: string | null;
+                            prev_cursor: string | null;
+                            limit: number;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "fixed-assets.store": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FixedAssetRequest"];
+            };
+        };
+        responses: {
+            /** @description `FixedAssetResource` */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["FixedAssetResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "fixed-assets.capitalisable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: ({
+                            /** @constant */
+                            source_type: "bill_line";
+                            source_id: string;
+                            document_number: string;
+                            date: string;
+                            line_no: number;
+                            description: string | null;
+                            account_id: string;
+                            account_code: string;
+                            account_name: string;
+                            category_id: string | null;
+                            amount: {
+                                amount: number;
+                                currency: string;
+                            };
+                        } | {
+                            /** @constant */
+                            source_type: "journal_line";
+                            source_id: string;
+                            document_number: string;
+                            date: string;
+                            line_no: number;
+                            description: string | null;
+                            account_id: string;
+                            account_code: string;
+                            account_name: string;
+                            category_id: string | null;
+                            amount: {
+                                amount: number;
+                                currency: string;
+                            };
+                        })[];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "fixed-assets.reconciliation": {
+        parameters: {
+            query?: {
+                as_of?: string | null;
+            };
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            as_of: string;
+                            currency: string;
+                            rows: {
+                                account: {
+                                    id: string;
+                                    code: string;
+                                    name: string;
+                                } | null;
+                                kind: string;
+                                categories: string;
+                                register: {
+                                    amount: number;
+                                    currency: string;
+                                };
+                                ledger: {
+                                    amount: number;
+                                    currency: string;
+                                };
+                                difference: {
+                                    amount: number;
+                                    currency: string;
+                                };
+                                opening_assets: {
+                                    amount: number;
+                                    currency: string;
+                                };
+                                reconciles: boolean;
+                                /** @description Drill: the account's journal lines up to the date. */
+                                drill: {
+                                    account_id: string;
+                                    to: string;
+                                    exclude_closing: boolean;
+                                };
+                            }[];
+                            reconciles: boolean;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "fixed-assets.show": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The fixed asset ID */
+                fixedAsset: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description `FixedAssetResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["FixedAssetResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
+    "fixed-assets.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The fixed asset ID */
+                fixedAsset: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FixedAssetRequest"];
+            };
+        };
+        responses: {
+            /** @description `FixedAssetResource` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["FixedAssetResource"];
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
         };
     };
     "fund-transfers.index": {
@@ -19636,6 +21525,74 @@ export interface operations {
         };
     };
     "reports.tax-return": {
+        parameters: {
+            query?: {
+                period_id?: string | null;
+                as_of?: string | null;
+                from?: string | null;
+                to?: string | null;
+                basis?: "month" | "ytd" | null;
+                /** @description Trial balance only: `movement` adds opening, debit and credit movement and closing over the period or from..to. */
+                view?: "balances" | "movement" | null;
+                comparison?: "none" | "previous_period" | "previous_year" | null;
+                /** @description Dimension id → a value id or a list of them; withValidator checks the shape. */
+                "dimensions[]"?: string[] | null;
+                /** @description Trial balance (as of) and profit and loss: a dimension id whose values become columns, plus an untagged column. */
+                breakdown?: string | null;
+                hide_zero?: boolean | null;
+                account_id?: string | null;
+                exclude_closing?: boolean | null;
+                contact_side?: "debit" | "credit" | null;
+                contact_id?: string | null;
+                /** @description Budget vs actual only: the budget version to read; default is the approved one of the period's fiscal year. */
+                budget_id?: string | null;
+                /** @description Journal list (3c.20): status, source ('none' = typed by hand), the person and in which role, lines under each journal. */
+                status?: "draft" | "pending_approval" | "posted" | "reversed" | "void" | null;
+                source?: string | null;
+                user_id?: string | null;
+                user_role?: "created" | "submitted" | "approved" | "posted" | null;
+                include_lines?: boolean | null;
+                /** @description Drill from the aging (the bucket of a cell) and from the tax return (a row: side and tax code, `none` for lines without one). */
+                bucket?: "current" | "days_1_30" | "days_31_60" | "days_61_90" | "days_over_90" | "open" | "credits" | null;
+                side?: "sales" | "purchases" | null;
+                tax_code_id?: string | null;
+                /** @description Bank reconciliation report: the finished reconciliation. */
+                reconciliation_id?: string | null;
+                /** @description Audit trail (3c.20): same filters as the audit log. */
+                action?: string | null;
+                actor_id?: string | null;
+                subject_type?: string | null;
+                subject_id?: string | null;
+                format?: "xlsx" | "csv" | "pdf" | null;
+            };
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            [key: string]: unknown;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "reports.asset-schedule": {
         parameters: {
             query?: {
                 period_id?: string | null;

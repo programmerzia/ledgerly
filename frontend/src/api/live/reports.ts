@@ -144,7 +144,7 @@ const POLL_LIMIT_MS = 5 * 60_000;
  */
 export async function exportReport(
   companyId: string,
-  report: ReportName,
+  report: ReportName | 'asset-schedule',
   format: ExportFormat,
   query: QueryPairs,
   opts: { signal?: AbortSignal; onQueued?: () => void; pollMs?: number } = {},
