@@ -7,10 +7,15 @@ import { cn } from '@/lib/utils';
 import { formatDate, formatMoney } from '@/lib/format';
 import { useRouteCompany } from '@/data/session';
 import { useLedgerStore } from '@/mock/store';
-import { useDocList, type DocFilters } from '@/data/invoices';
+import { useDocActions, useDocList, type DocFilters } from '@/data/invoices';
+import { useBulkRun, useRowSelection } from '@/data/bulk';
+import { BulkBar, BulkDiscardDialog, BulkResultsSheet } from '@/components/live/BulkBar';
+import { SignDialog } from '@/components/domain/SignDialog';
+import { Checkbox } from '@/components/ui/checkbox';
+import { downloadCsv, minorToDecimal } from '@/lib/csv';
 import { useContactDirectory } from '@/data/contacts';
 import { SIDES, type Side } from './side';
-import { BTN_ACCENT, DocStatusPill, numberOf, ErrorLine, LoadMore, LoadingLine, TableCard, inputClass, useDebounced } from './parts';
+import { BTN_ACCENT, DocStatusPill, numberOf, ErrorLine, LoadMore, LoadingLine, TableCard, inputClass, tradeVerdictText, useDebounced } from './parts';
 
 /** Each tab is a server filter. There are no counts: a count from a partial page would be wrong. */
 const tabsFor = (S: (typeof SIDES)[Side]): Array<{ value: string; label: string; filters: DocFilters }> => [
@@ -41,6 +46,38 @@ export const InvoicesListLive: React.FC<{ initialTab?: string; side?: Side }> = 
   const list = useDocList(filters, S.resource);
   const filtered = Boolean(search || from || to || tab !== 'all');
   const creditTab = tab === 'credit';
+
+  const actions = useDocActions(S.resource);
+  const sel = useRowSelection(list.rows);
+  const bulk = useBulkRun();
+  const [discarding, setDiscarding] = useState(false);
+  const labelOf = (d: (typeof list.rows)[number]) => `${numberOf(d)} · ${customers.byId.get(d.contact_id)?.name ?? S.Contact}`;
+  const items = sel.selected.map((d) => ({ ...d, label: labelOf(d) }));
+  const submittable = items.filter((d) => d.status === 'draft' && d.can.submit);
+  const discardable = items.filter((d) => d.status === 'draft' && d.can.void);
+  const waiting = items.filter((d) => d.status === 'pending_approval').length;
+  const describe = (e: unknown) => tradeVerdictText(e, side === 'purchases');
+  const submitAll = async () => {
+    await bulk.execute('submitted', items, (d) => d.status === 'draft' && d.can.submit, 'Not a draft you can submit, so it was left alone.', async (d, intent) => {
+      const r = await actions.submit(d.id, d.version, intent);
+      return r.status === 'posted' ? `Posted as ${r.number}` : 'Sent for approval';
+    }, describe);
+    sel.clear();
+  };
+  const discardAll = async (reason: string) => {
+    setDiscarding(false);
+    await bulk.execute('discarded', items, (d) => d.status === 'draft' && d.can.void, 'Not a draft you can discard, so it was left alone.', async (d, intent) => {
+      await actions.voidDraft(d.id, reason, d.version, intent);
+      return 'Discarded';
+    }, describe);
+    sel.clear();
+  };
+  const exportCsv = () => {
+    downloadCsv(`${S.mains.replace(/\s+/g, '-')}-selected.csv`, [
+      ['Number', S.Contact, 'Kind', 'Date', 'Due', 'Status', 'Currency', 'Total', 'Still open'],
+      ...items.map((d) => [d.number ?? '', customers.byId.get(d.contact_id)?.name ?? '', d.kind, d.issue_date, d.due_date ?? '', d.status, d.currency, minorToDecimal(d.total_fc, d.currency), d.status === 'posted' ? minorToDecimal(d.amount_due, d.baseCurrency) : '']),
+    ]);
+  };
 
   const open = (id: string, number: string | null) => {
     openTab({ id: `tab-${S.main}-${id}`, title: number || 'Draft', url: `/${coSlug}/${S.docsPath}/${id}`, type: side === 'sales' ? 'invoice' : 'bill' });
@@ -113,6 +150,9 @@ export const InvoicesListLive: React.FC<{ initialTab?: string; side?: Side }> = 
           <table className="w-full text-left text-[13px]" data-testid="invoices-table">
             <thead>
               <tr className="border-b border-border bg-surface-neutral text-[11px] font-semibold uppercase tracking-[0.04em] text-text-muted">
+                <th className="w-9 px-3 py-2">
+                  <Checkbox checked={sel.allSelected} onCheckedChange={sel.toggleAll} aria-label={`Select all ${S.mains} shown`} />
+                </th>
                 <th className="px-3 py-2">Number</th>
                 <th className="px-3 py-2">{S.Contact}</th>
                 <th className="px-3 py-2">Date</th>
@@ -124,7 +164,10 @@ export const InvoicesListLive: React.FC<{ initialTab?: string; side?: Side }> = 
             </thead>
             <tbody className="divide-y divide-border">
               {list.rows.map((d) => (
-                <tr key={d.id} onClick={() => open(d.id, d.number)} className="cursor-pointer hover:bg-surface-neutral/60">
+                <tr key={d.id} onClick={() => open(d.id, d.number)} className="cursor-pointer hover:bg-surface-neutral/60" data-selected={sel.isSelected(d.id) || undefined}>
+                  <td className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
+                    <Checkbox checked={sel.isSelected(d.id)} onCheckedChange={() => sel.toggle(d.id)} aria-label={`Select ${numberOf(d)}`} />
+                  </td>
                   <td className="px-3 py-2 font-semibold text-accent">
                     {numberOf(d)}
                     {d.kind === S.creditKind && <span className="ml-2 rounded-[3px] bg-surface-neutral px-1.5 py-0.5 text-[11px] font-normal text-text-secondary">{S.Credit}</span>}
@@ -144,6 +187,21 @@ export const InvoicesListLive: React.FC<{ initialTab?: string; side?: Side }> = 
         )}
         <LoadMore hasMore={list.hasMore} loading={list.isLoadingMore} onClick={list.loadMore} />
       </TableCard>
+
+      <BulkBar
+        selected={sel.selected.length}
+        busy={bulk.busy}
+        onClear={sel.clear}
+        hint={waiting > 0 ? 'Documents waiting for approval are approved in the Approvals inbox.' : undefined}
+        actions={[
+          { key: 'submit', label: 'Submit', count: submittable.length, onClick: () => void submitAll(), title: submittable.length === 0 ? 'None of the selected are drafts you can submit.' : undefined },
+          { key: 'discard', label: 'Discard drafts', count: discardable.length, danger: true, onClick: () => setDiscarding(true), title: discardable.length === 0 ? 'None of the selected are drafts you can discard.' : undefined },
+          { key: 'csv', label: 'Export CSV', count: items.length, onClick: exportCsv },
+        ]}
+      />
+      <BulkDiscardDialog open={discarding} count={discardable.length} noun={creditTab ? S.credit : S.main} onCancel={() => setDiscarding(false)} onConfirm={(r) => void discardAll(r)} />
+      <BulkResultsSheet result={bulk.result} title="Bulk results" onClose={bulk.clearResult} />
+      <SignDialog {...bulk.signProps} documentTitle={`${submittable.length} ${S.mains} to submit`} actionTitle={`Submit ${submittable.length}`} consequenceText="Your PIN is checked once. Each document is then submitted on its own: it is posted, or sent for approval, and any that cannot be submitted are listed afterwards with the reason." />
     </div>
   );
 };

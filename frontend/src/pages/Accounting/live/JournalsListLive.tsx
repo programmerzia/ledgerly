@@ -7,8 +7,13 @@ import { StatusPill } from '@/components/domain/StatusPill';
 import { Kbd } from '@/components/ui/kbd';
 import { cn } from '@/lib/utils';
 import { formatDate, formatMoney } from '@/lib/format';
-import { useJournalList, type JournalFilters } from '@/data/journals';
-import { ErrorLine, LoadingLine, inputClass } from './parts';
+import { useJournalActions, useJournalList, type JournalFilters } from '@/data/journals';
+import { useBulkRun, useRowSelection } from '@/data/bulk';
+import { BulkBar, BulkDiscardDialog, BulkResultsSheet } from '@/components/live/BulkBar';
+import { SignDialog } from '@/components/domain/SignDialog';
+import { Checkbox } from '@/components/ui/checkbox';
+import { downloadCsv, minorToDecimal } from '@/lib/csv';
+import { ErrorLine, LoadingLine, inputClass, verdictText } from './parts';
 
 /** Each tab is a server filter. There are no counts: a count from a partial page would be wrong. */
 const TABS: Array<{ value: string; label: string; filters: JournalFilters }> = [
@@ -43,6 +48,35 @@ export const JournalsListLive: React.FC = () => {
   const filters: JournalFilters = { ...(TABS.find((t) => t.value === tab)?.filters ?? {}), search, from, to };
   const list = useJournalList(filters);
   const filtered = Boolean(search || from || to || tab !== 'all');
+
+  const actions = useJournalActions();
+  const sel = useRowSelection(list.rows);
+  const bulk = useBulkRun();
+  const [discarding, setDiscarding] = useState(false);
+  const items = sel.selected.map((j) => ({ ...j, label: j.number || `Draft of ${formatDate(j.journal_date)}` }));
+  const submittable = items.filter((j) => j.status === 'draft' && j.can.submit);
+  const discardable = items.filter((j) => j.status === 'draft' && j.can.void);
+  const waiting = items.filter((j) => j.status === 'pending_approval').length;
+  const submitAll = async () => {
+    await bulk.execute('submitted', items, (j) => j.status === 'draft' && j.can.submit, 'Not a draft you can submit, so it was left alone.', async (j, intent) => {
+      const r = await actions.submit(j.id, j.version ?? 0, intent);
+      return r.status === 'posted' ? `Posted as ${r.number}` : 'Sent for approval';
+    }, verdictText);
+    sel.clear();
+  };
+  const discardAll = async (reason: string) => {
+    setDiscarding(false);
+    await bulk.execute('discarded', items, (j) => j.status === 'draft' && j.can.void, 'Not a draft you can discard, so it was left alone.', async (j, intent) => {
+      await actions.voidDraft(j.id, reason, j.version ?? 0, intent);
+      return 'Discarded';
+    }, verdictText);
+    sel.clear();
+  };
+  const exportCsv = () =>
+    downloadCsv('journals-selected.csv', [
+      ['Number', 'Date', 'Reference', 'Memo', 'Type', 'Status', 'Currency', 'Amount'],
+      ...items.map((j) => [j.number ?? '', j.journal_date, j.reference ?? '', j.memo ?? '', j.journal_type, j.status, company.base_currency, minorToDecimal(j.total_debit, company.base_currency)]),
+    ]);
 
   const open = (id: string, number: string | null) => {
     openTab({ id: `tab-journal-${id}`, title: number || 'Draft journal', url: `/${coSlug}/journals/${id}`, type: 'journal' });
@@ -126,6 +160,9 @@ export const JournalsListLive: React.FC = () => {
           <table className="w-full text-left text-[13px]" data-testid="journals-table">
             <thead>
               <tr className="border-b border-border bg-surface-neutral text-[11px] font-semibold uppercase tracking-[0.04em] text-text-muted">
+                <th className="w-9 px-3 py-2">
+                  <Checkbox checked={sel.allSelected} onCheckedChange={sel.toggleAll} aria-label="Select all journals shown" />
+                </th>
                 <th className="px-3 py-2">Number</th>
                 <th className="px-3 py-2">Date</th>
                 <th className="px-3 py-2">Reference</th>
@@ -137,7 +174,10 @@ export const JournalsListLive: React.FC = () => {
             </thead>
             <tbody className="divide-y divide-border">
               {list.rows.map((j) => (
-                <tr key={j.id} onClick={() => open(j.id, j.number)} className="cursor-pointer hover:bg-surface-neutral/60">
+                <tr key={j.id} onClick={() => open(j.id, j.number)} className="cursor-pointer hover:bg-surface-neutral/60" data-selected={sel.isSelected(j.id) || undefined}>
+                  <td className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
+                    <Checkbox checked={sel.isSelected(j.id)} onCheckedChange={() => sel.toggle(j.id)} aria-label={`Select ${j.number || 'draft journal'}`} />
+                  </td>
                   <td className="px-3 py-2 font-semibold text-accent">{j.number || 'Draft'}</td>
                   <td className="px-3 py-2 tabular-nums text-text-muted">{formatDate(j.journal_date)}</td>
                   <td className="px-3 py-2 text-text-secondary">{j.reference || '—'}</td>
@@ -167,6 +207,21 @@ export const JournalsListLive: React.FC = () => {
           </div>
         )}
       </div>
+
+      <BulkBar
+        selected={sel.selected.length}
+        busy={bulk.busy}
+        onClear={sel.clear}
+        hint={waiting > 0 ? 'Journals waiting for approval are approved in the Approvals inbox.' : undefined}
+        actions={[
+          { key: 'submit', label: 'Submit', count: submittable.length, onClick: () => void submitAll(), title: submittable.length === 0 ? 'None of the selected are drafts you can submit.' : undefined },
+          { key: 'discard', label: 'Discard drafts', count: discardable.length, danger: true, onClick: () => setDiscarding(true), title: discardable.length === 0 ? 'None of the selected are drafts you can discard.' : undefined },
+          { key: 'csv', label: 'Export CSV', count: items.length, onClick: exportCsv },
+        ]}
+      />
+      <BulkDiscardDialog open={discarding} count={discardable.length} noun="journal" onCancel={() => setDiscarding(false)} onConfirm={(r) => void discardAll(r)} />
+      <BulkResultsSheet result={bulk.result} title="Bulk results" onClose={bulk.clearResult} />
+      <SignDialog {...bulk.signProps} documentTitle={`${submittable.length} journals to submit`} actionTitle={`Submit ${submittable.length}`} consequenceText="Your PIN is checked once. Each journal is then submitted on its own: it is posted, or sent for approval, and any that cannot be submitted are listed afterwards with the reason." />
     </div>
   );
 };
