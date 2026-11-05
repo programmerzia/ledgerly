@@ -74,7 +74,7 @@ import { ProcurementReports } from './pages/Procurement/ProcurementReports';
 import { TaxLive } from './pages/Tax/live/TaxLive';
 
 // Reports
-import { TrialBalanceScreen, ProfitAndLossScreen, BalanceSheetScreen, CashFlowScreen, AgingScreen, GeneralLedgerScreen, TaxReturnScreen, LiveStatement } from './pages/Reports/live/screens';
+import { TrialBalanceScreen, ProfitAndLossScreen, BalanceSheetScreen, CashFlowScreen, AgingScreen, GeneralLedgerScreen, TaxReturnScreen, LiveStatement, LiveJournalList, LiveBankReconciliationReport, LivePeriodClose } from './pages/Reports/live/screens';
 
 // Settings
 import { CompanySettings } from './pages/Settings/CompanySettings';
@@ -264,6 +264,9 @@ export default function App() {
           <Route path="reports/aging" element={<AgingScreen />} />
           <Route path="reports/general-ledger" element={<GeneralLedgerScreen />} />
           <Route path="reports/tax-return" element={<TaxReturnScreen />} />
+          {IS_LIVE && <Route path="reports/journal-list" element={<LiveJournalList />} />}
+          {IS_LIVE && <Route path="reports/bank-reconciliation" element={<LiveBankReconciliationReport />} />}
+          {IS_LIVE && <Route path="reports/period-close" element={<LivePeriodClose />} />}
           {IS_LIVE && <Route path="reports/customer-statement" element={<LiveStatement side="customer" />} />}
           {IS_LIVE && <Route path="reports/supplier-statement" element={<LiveStatement side="supplier" />} />}
 

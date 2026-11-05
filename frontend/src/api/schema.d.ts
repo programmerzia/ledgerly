@@ -2049,6 +2049,129 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/companies/{company}/reports/journal-list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Journals, newest last, with totals and optionally lines; `choices` offers the filter its sources and people */
+        get: operations["reports.journal-list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/reports/ar-aging/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The documents behind a receivables aging cell (`bucket`, optionally one `contact_id`); their amounts add up to the cell */
+        get: operations["reports.ar-aging.documents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/reports/ap-aging/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The same for payables */
+        get: operations["reports.ap-aging.documents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/reports/tax-return/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The documents behind one row of the tax return (`side`, `tax_code_id`) in the period; their nets and taxes add up to the row */
+        get: operations["reports.tax-return.documents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/reports/period-close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A period's close checks: as recorded when it closed, or as they stand now */
+        get: operations["reports.period-close"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/reports/audit-trail/bundle": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The audit events the filters select as a zip an auditor can verify without Ledgerly (README and verify.py inside). Needs
+         *     the audit log and the export permissions and, as ADR-0004 asks of an audit export, the signing PIN; people only. Audited
+         *     like every export; one hour's limit is the `report-exports` limiter's
+         */
+        get: operations["reports.audit-trail.bundle"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/companies/{company}/bank-reconciliations/{bankReconciliation}/report": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One finished reconciliation: the proof, statement against books, unmatched and excluded items */
+        get: operations["bank-reconciliations.report"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/members": {
         parameters: {
             query?: never;
@@ -7239,6 +7362,9 @@ export interface operations {
                 subject_id?: string | null;
                 actor_id?: string | null;
                 request_id?: string | null;
+                /** @description UTC days, both inclusive (the audit trail report, 3c.20). */
+                from?: string | null;
+                to?: string | null;
                 /** @description Opaque, from `meta.next_cursor` or `meta.prev_cursor`. */
                 cursor?: string;
                 /** @description Page size, 1 to 200; default 50. */
@@ -11451,6 +11577,689 @@ export interface operations {
             422: components["responses"]["ValidationException"];
         };
     };
+    "reports.journal-list": {
+        parameters: {
+            query?: {
+                period_id?: string | null;
+                as_of?: string | null;
+                from?: string | null;
+                to?: string | null;
+                basis?: "month" | "ytd" | null;
+                /** @description Trial balance only: `movement` adds opening, debit and credit movement and closing over the period or from..to. */
+                view?: "balances" | "movement" | null;
+                comparison?: "none" | "previous_period" | "previous_year" | null;
+                /** @description Dimension id → a value id or a list of them; withValidator checks the shape. */
+                "dimensions[]"?: string[] | null;
+                /** @description Trial balance (as of) and profit and loss: a dimension id whose values become columns, plus an untagged column. */
+                breakdown?: string | null;
+                hide_zero?: boolean | null;
+                account_id?: string | null;
+                exclude_closing?: boolean | null;
+                contact_side?: "debit" | "credit" | null;
+                contact_id?: string | null;
+                /** @description Journal list (3c.20): status, source ('none' = typed by hand), the person and in which role, lines under each journal. */
+                status?: "draft" | "pending_approval" | "posted" | "reversed" | "void" | null;
+                source?: string | null;
+                user_id?: string | null;
+                user_role?: "created" | "submitted" | "approved" | "posted" | null;
+                include_lines?: boolean | null;
+                /** @description Drill from the aging (the bucket of a cell) and from the tax return (a row: side and tax code, `none` for lines without one). */
+                bucket?: "current" | "days_1_30" | "days_31_60" | "days_61_90" | "days_over_90" | "open" | "credits" | null;
+                side?: "sales" | "purchases" | null;
+                tax_code_id?: string | null;
+                /** @description Bank reconciliation report: the finished reconciliation. */
+                reconciliation_id?: string | null;
+                /** @description Audit trail (3c.20): same filters as the audit log. */
+                action?: string | null;
+                actor_id?: string | null;
+                subject_type?: string | null;
+                subject_id?: string | null;
+                format?: "xlsx" | "csv" | "pdf" | null;
+                /** @description Opaque, from `meta.next_cursor` or `meta.prev_cursor`. */
+                cursor?: string;
+                /** @description Page size, 1 to 200; default 50. */
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown[];
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "reports.ar-aging.documents": {
+        parameters: {
+            query?: {
+                period_id?: string | null;
+                as_of?: string | null;
+                from?: string | null;
+                to?: string | null;
+                basis?: "month" | "ytd" | null;
+                /** @description Trial balance only: `movement` adds opening, debit and credit movement and closing over the period or from..to. */
+                view?: "balances" | "movement" | null;
+                comparison?: "none" | "previous_period" | "previous_year" | null;
+                /** @description Dimension id → a value id or a list of them; withValidator checks the shape. */
+                "dimensions[]"?: string[] | null;
+                /** @description Trial balance (as of) and profit and loss: a dimension id whose values become columns, plus an untagged column. */
+                breakdown?: string | null;
+                hide_zero?: boolean | null;
+                account_id?: string | null;
+                exclude_closing?: boolean | null;
+                contact_side?: "debit" | "credit" | null;
+                contact_id?: string | null;
+                /** @description Journal list (3c.20): status, source ('none' = typed by hand), the person and in which role, lines under each journal. */
+                status?: "draft" | "pending_approval" | "posted" | "reversed" | "void" | null;
+                source?: string | null;
+                user_id?: string | null;
+                user_role?: "created" | "submitted" | "approved" | "posted" | null;
+                include_lines?: boolean | null;
+                /** @description Drill from the aging (the bucket of a cell) and from the tax return (a row: side and tax code, `none` for lines without one). */
+                bucket?: "current" | "days_1_30" | "days_31_60" | "days_61_90" | "days_over_90" | "open" | "credits" | null;
+                side?: "sales" | "purchases" | null;
+                tax_code_id?: string | null;
+                /** @description Bank reconciliation report: the finished reconciliation. */
+                reconciliation_id?: string | null;
+                /** @description Audit trail (3c.20): same filters as the audit log. */
+                action?: string | null;
+                actor_id?: string | null;
+                subject_type?: string | null;
+                subject_id?: string | null;
+                format?: "xlsx" | "csv" | "pdf" | null;
+            };
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            /** @constant */
+                            report: "ar_aging_documents";
+                            currency: string;
+                            as_of: string;
+                            bucket: string;
+                            contact: {
+                                id: string;
+                                code: string;
+                                name: string;
+                            } | null;
+                            documents: unknown[];
+                            total: {
+                                amount: number;
+                                currency: string;
+                            };
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "reports.ap-aging.documents": {
+        parameters: {
+            query?: {
+                period_id?: string | null;
+                as_of?: string | null;
+                from?: string | null;
+                to?: string | null;
+                basis?: "month" | "ytd" | null;
+                /** @description Trial balance only: `movement` adds opening, debit and credit movement and closing over the period or from..to. */
+                view?: "balances" | "movement" | null;
+                comparison?: "none" | "previous_period" | "previous_year" | null;
+                /** @description Dimension id → a value id or a list of them; withValidator checks the shape. */
+                "dimensions[]"?: string[] | null;
+                /** @description Trial balance (as of) and profit and loss: a dimension id whose values become columns, plus an untagged column. */
+                breakdown?: string | null;
+                hide_zero?: boolean | null;
+                account_id?: string | null;
+                exclude_closing?: boolean | null;
+                contact_side?: "debit" | "credit" | null;
+                contact_id?: string | null;
+                /** @description Journal list (3c.20): status, source ('none' = typed by hand), the person and in which role, lines under each journal. */
+                status?: "draft" | "pending_approval" | "posted" | "reversed" | "void" | null;
+                source?: string | null;
+                user_id?: string | null;
+                user_role?: "created" | "submitted" | "approved" | "posted" | null;
+                include_lines?: boolean | null;
+                /** @description Drill from the aging (the bucket of a cell) and from the tax return (a row: side and tax code, `none` for lines without one). */
+                bucket?: "current" | "days_1_30" | "days_31_60" | "days_61_90" | "days_over_90" | "open" | "credits" | null;
+                side?: "sales" | "purchases" | null;
+                tax_code_id?: string | null;
+                /** @description Bank reconciliation report: the finished reconciliation. */
+                reconciliation_id?: string | null;
+                /** @description Audit trail (3c.20): same filters as the audit log. */
+                action?: string | null;
+                actor_id?: string | null;
+                subject_type?: string | null;
+                subject_id?: string | null;
+                format?: "xlsx" | "csv" | "pdf" | null;
+            };
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            /** @constant */
+                            report: "ap_aging_documents";
+                            currency: string;
+                            as_of: string;
+                            bucket: string;
+                            contact: {
+                                id: string;
+                                code: string;
+                                name: string;
+                            } | null;
+                            documents: unknown[];
+                            total: {
+                                amount: number;
+                                currency: string;
+                            };
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "reports.tax-return.documents": {
+        parameters: {
+            query?: {
+                period_id?: string | null;
+                as_of?: string | null;
+                from?: string | null;
+                to?: string | null;
+                basis?: "month" | "ytd" | null;
+                /** @description Trial balance only: `movement` adds opening, debit and credit movement and closing over the period or from..to. */
+                view?: "balances" | "movement" | null;
+                comparison?: "none" | "previous_period" | "previous_year" | null;
+                /** @description Dimension id → a value id or a list of them; withValidator checks the shape. */
+                "dimensions[]"?: string[] | null;
+                /** @description Trial balance (as of) and profit and loss: a dimension id whose values become columns, plus an untagged column. */
+                breakdown?: string | null;
+                hide_zero?: boolean | null;
+                account_id?: string | null;
+                exclude_closing?: boolean | null;
+                contact_side?: "debit" | "credit" | null;
+                contact_id?: string | null;
+                /** @description Journal list (3c.20): status, source ('none' = typed by hand), the person and in which role, lines under each journal. */
+                status?: "draft" | "pending_approval" | "posted" | "reversed" | "void" | null;
+                source?: string | null;
+                user_id?: string | null;
+                user_role?: "created" | "submitted" | "approved" | "posted" | null;
+                include_lines?: boolean | null;
+                /** @description Drill from the aging (the bucket of a cell) and from the tax return (a row: side and tax code, `none` for lines without one). */
+                bucket?: "current" | "days_1_30" | "days_31_60" | "days_61_90" | "days_over_90" | "open" | "credits" | null;
+                side?: "sales" | "purchases" | null;
+                tax_code_id?: string | null;
+                /** @description Bank reconciliation report: the finished reconciliation. */
+                reconciliation_id?: string | null;
+                /** @description Audit trail (3c.20): same filters as the audit log. */
+                action?: string | null;
+                actor_id?: string | null;
+                subject_type?: string | null;
+                subject_id?: string | null;
+                format?: "xlsx" | "csv" | "pdf" | null;
+            };
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            /** @constant */
+                            report: "tax_return_documents";
+                            currency: string;
+                            from: string;
+                            to: string;
+                            side: string;
+                            tax_code: {
+                                id: string;
+                                code: string;
+                                name: string;
+                                kind: string;
+                            } | null;
+                            recoverable: boolean | null;
+                            documents: unknown[];
+                            totals: {
+                                net: {
+                                    amount: number;
+                                    currency: string;
+                                };
+                                tax: {
+                                    amount: number;
+                                    currency: string;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "reports.period-close": {
+        parameters: {
+            query?: {
+                period_id?: string | null;
+                as_of?: string | null;
+                from?: string | null;
+                to?: string | null;
+                basis?: "month" | "ytd" | null;
+                /** @description Trial balance only: `movement` adds opening, debit and credit movement and closing over the period or from..to. */
+                view?: "balances" | "movement" | null;
+                comparison?: "none" | "previous_period" | "previous_year" | null;
+                /** @description Dimension id → a value id or a list of them; withValidator checks the shape. */
+                "dimensions[]"?: string[] | null;
+                /** @description Trial balance (as of) and profit and loss: a dimension id whose values become columns, plus an untagged column. */
+                breakdown?: string | null;
+                hide_zero?: boolean | null;
+                account_id?: string | null;
+                exclude_closing?: boolean | null;
+                contact_side?: "debit" | "credit" | null;
+                contact_id?: string | null;
+                /** @description Journal list (3c.20): status, source ('none' = typed by hand), the person and in which role, lines under each journal. */
+                status?: "draft" | "pending_approval" | "posted" | "reversed" | "void" | null;
+                source?: string | null;
+                user_id?: string | null;
+                user_role?: "created" | "submitted" | "approved" | "posted" | null;
+                include_lines?: boolean | null;
+                /** @description Drill from the aging (the bucket of a cell) and from the tax return (a row: side and tax code, `none` for lines without one). */
+                bucket?: "current" | "days_1_30" | "days_31_60" | "days_61_90" | "days_over_90" | "open" | "credits" | null;
+                side?: "sales" | "purchases" | null;
+                tax_code_id?: string | null;
+                /** @description Bank reconciliation report: the finished reconciliation. */
+                reconciliation_id?: string | null;
+                /** @description Audit trail (3c.20): same filters as the audit log. */
+                action?: string | null;
+                actor_id?: string | null;
+                subject_type?: string | null;
+                subject_id?: string | null;
+                format?: "xlsx" | "csv" | "pdf" | null;
+            };
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            /** @constant */
+                            report: "period_close";
+                            period: {
+                                id: string;
+                                name: string;
+                                kind: string;
+                                starts_on: string;
+                                ends_on: string;
+                                status: string;
+                                closed_at: string | null;
+                                closed_by: string | null;
+                            };
+                            /** @constant */
+                            source: "live";
+                            checks: unknown[];
+                            summary: {
+                                passed: number;
+                                waived: number;
+                                failed: number;
+                            };
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "reports.audit-trail.bundle": {
+        parameters: {
+            query?: {
+                period_id?: string | null;
+                as_of?: string | null;
+                from?: string | null;
+                to?: string | null;
+                basis?: "month" | "ytd" | null;
+                /** @description Trial balance only: `movement` adds opening, debit and credit movement and closing over the period or from..to. */
+                view?: "balances" | "movement" | null;
+                comparison?: "none" | "previous_period" | "previous_year" | null;
+                /** @description Dimension id → a value id or a list of them; withValidator checks the shape. */
+                "dimensions[]"?: string[] | null;
+                /** @description Trial balance (as of) and profit and loss: a dimension id whose values become columns, plus an untagged column. */
+                breakdown?: string | null;
+                hide_zero?: boolean | null;
+                account_id?: string | null;
+                exclude_closing?: boolean | null;
+                contact_side?: "debit" | "credit" | null;
+                contact_id?: string | null;
+                /** @description Journal list (3c.20): status, source ('none' = typed by hand), the person and in which role, lines under each journal. */
+                status?: "draft" | "pending_approval" | "posted" | "reversed" | "void" | null;
+                source?: string | null;
+                user_id?: string | null;
+                user_role?: "created" | "submitted" | "approved" | "posted" | null;
+                include_lines?: boolean | null;
+                /** @description Drill from the aging (the bucket of a cell) and from the tax return (a row: side and tax code, `none` for lines without one). */
+                bucket?: "current" | "days_1_30" | "days_31_60" | "days_61_90" | "days_over_90" | "open" | "credits" | null;
+                side?: "sales" | "purchases" | null;
+                tax_code_id?: string | null;
+                /** @description Bank reconciliation report: the finished reconciliation. */
+                reconciliation_id?: string | null;
+                /** @description Audit trail (3c.20): same filters as the audit log. */
+                action?: string | null;
+                actor_id?: string | null;
+                subject_type?: string | null;
+                subject_id?: string | null;
+                format?: "xlsx" | "csv" | "pdf" | null;
+            };
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    /** @example attachment; filename=.zip */
+                    "Content-Disposition": string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/zip": string;
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+            422: components["responses"]["ValidationException"];
+        };
+    };
+    "bank-reconciliations.report": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The company ID */
+                company: string;
+                /** @description The bank reconciliation ID */
+                bankReconciliation: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            /** @constant */
+                            report: "bank_reconciliation";
+                            currency: string;
+                            reconciliation: {
+                                id: string;
+                                as_of: string;
+                                finished_at: string;
+                                finished_by: {
+                                    id: string;
+                                    name: string | null;
+                                } | null;
+                                reopen_count: number;
+                            };
+                            bank_account: {
+                                id: string;
+                                name: string;
+                                bank_name: string | null;
+                                account_number_masked: string | null;
+                            };
+                            statement: {
+                                id: string;
+                                period_from: string;
+                                period_to: string;
+                                file_name: string | null;
+                                opening_balance: {
+                                    amount: number | null;
+                                    currency: string;
+                                } | null;
+                                receipts: {
+                                    amount: number;
+                                    currency: string;
+                                };
+                                payments: {
+                                    amount: number;
+                                    currency: string;
+                                };
+                                closing_balance: {
+                                    amount: number;
+                                    currency: string;
+                                };
+                                line_count: number;
+                            };
+                            book: {
+                                balance: {
+                                    amount: number;
+                                    currency: string;
+                                };
+                                opening_position: {
+                                    amount: number;
+                                    currency: string;
+                                };
+                                matched: {
+                                    amount: number;
+                                    currency: string;
+                                };
+                                unmatched: {
+                                    amount: number;
+                                    currency: string;
+                                };
+                                unmatched_count: number;
+                                matched_after_as_of: {
+                                    amount: number;
+                                    currency: string;
+                                };
+                            };
+                            steps: [
+                                {
+                                    /** @constant */
+                                    key: "statement_closing";
+                                    /** @constant */
+                                    label: "Balance per bank statement";
+                                    amount: {
+                                        amount: number;
+                                        currency: string;
+                                    };
+                                },
+                                {
+                                    /** @constant */
+                                    key: "book_balance";
+                                    /** @constant */
+                                    label: "Balance per books";
+                                    amount: {
+                                        amount: number;
+                                        currency: string;
+                                    };
+                                },
+                                {
+                                    /** @constant */
+                                    key: "less_unmatched_book";
+                                    /** @constant */
+                                    label: "Less: book items not yet on the statement";
+                                    amount: {
+                                        amount: number;
+                                        currency: string;
+                                    };
+                                },
+                                {
+                                    /** @constant */
+                                    key: "add_unmatched_statement";
+                                    /** @constant */
+                                    label: "Add: statement items not yet in the books";
+                                    amount: {
+                                        amount: number;
+                                        currency: string;
+                                    };
+                                    of_which_excluded: {
+                                        amount: number;
+                                        currency: string;
+                                    };
+                                },
+                                {
+                                    /** @constant */
+                                    key: "add_late";
+                                    /** @constant */
+                                    label: "Add: items booked after the statement date that are already on it";
+                                    amount: {
+                                        amount: number;
+                                        currency: string;
+                                    };
+                                },
+                                {
+                                    /** @constant */
+                                    key: "adjusted_book_balance";
+                                    /** @constant */
+                                    label: "Adjusted book balance";
+                                    amount: {
+                                        amount: number;
+                                        currency: string;
+                                    };
+                                },
+                                {
+                                    /** @constant */
+                                    key: "difference";
+                                    /** @constant */
+                                    label: "Difference (statement less adjusted book)";
+                                    amount: {
+                                        amount: number;
+                                        currency: string;
+                                    };
+                                }
+                            ];
+                            checks: {
+                                statement_foots: boolean | null;
+                                steps_add_up: boolean;
+                                difference_is_zero: boolean;
+                                opening_continuity: {
+                                    previous_as_of: string | null;
+                                    previous_closing_balance: {
+                                        amount: number;
+                                        currency: string;
+                                    } | null;
+                                    /** @description Null when there is nothing to compare with: the first reconciliation of the account, or a statement without an opening balance. */
+                                    agrees: boolean | null;
+                                };
+                            };
+                            matched: {
+                                count: number;
+                                total: {
+                                    amount: number;
+                                    currency: string;
+                                };
+                            };
+                            unmatched_book_items: {
+                                count: number;
+                                total: {
+                                    amount: number;
+                                    currency: string;
+                                };
+                                items: unknown[];
+                                truncated: boolean;
+                            };
+                            unmatched_statement_items: {
+                                count: number;
+                                total: {
+                                    amount: number;
+                                    currency: string;
+                                };
+                                items: unknown[];
+                                truncated: boolean;
+                            };
+                            excluded_lines: {
+                                count: number;
+                                total: {
+                                    amount: number;
+                                    currency: string;
+                                };
+                                items: unknown[];
+                                list_agrees: boolean;
+                            };
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["AuthenticationException"];
+            403: components["responses"]["AuthorizationException"];
+            404: components["responses"]["ModelNotFoundException"];
+        };
+    };
     "members.index": {
         parameters: {
             query?: never;
@@ -13773,14 +14582,35 @@ export interface operations {
                 from?: string | null;
                 to?: string | null;
                 basis?: "month" | "ytd" | null;
+                /** @description Trial balance only: `movement` adds opening, debit and credit movement and closing over the period or from..to. */
+                view?: "balances" | "movement" | null;
                 comparison?: "none" | "previous_period" | "previous_year" | null;
                 /** @description Dimension id → a value id or a list of them; withValidator checks the shape. */
                 "dimensions[]"?: string[] | null;
+                /** @description Trial balance (as of) and profit and loss: a dimension id whose values become columns, plus an untagged column. */
+                breakdown?: string | null;
                 hide_zero?: boolean | null;
                 account_id?: string | null;
                 exclude_closing?: boolean | null;
                 contact_side?: "debit" | "credit" | null;
                 contact_id?: string | null;
+                /** @description Journal list (3c.20): status, source ('none' = typed by hand), the person and in which role, lines under each journal. */
+                status?: "draft" | "pending_approval" | "posted" | "reversed" | "void" | null;
+                source?: string | null;
+                user_id?: string | null;
+                user_role?: "created" | "submitted" | "approved" | "posted" | null;
+                include_lines?: boolean | null;
+                /** @description Drill from the aging (the bucket of a cell) and from the tax return (a row: side and tax code, `none` for lines without one). */
+                bucket?: "current" | "days_1_30" | "days_31_60" | "days_61_90" | "days_over_90" | "open" | "credits" | null;
+                side?: "sales" | "purchases" | null;
+                tax_code_id?: string | null;
+                /** @description Bank reconciliation report: the finished reconciliation. */
+                reconciliation_id?: string | null;
+                /** @description Audit trail (3c.20): same filters as the audit log. */
+                action?: string | null;
+                actor_id?: string | null;
+                subject_type?: string | null;
+                subject_id?: string | null;
                 format?: "xlsx" | "csv" | "pdf" | null;
             };
             header?: never;
@@ -13818,14 +14648,35 @@ export interface operations {
                 from?: string | null;
                 to?: string | null;
                 basis?: "month" | "ytd" | null;
+                /** @description Trial balance only: `movement` adds opening, debit and credit movement and closing over the period or from..to. */
+                view?: "balances" | "movement" | null;
                 comparison?: "none" | "previous_period" | "previous_year" | null;
                 /** @description Dimension id → a value id or a list of them; withValidator checks the shape. */
                 "dimensions[]"?: string[] | null;
+                /** @description Trial balance (as of) and profit and loss: a dimension id whose values become columns, plus an untagged column. */
+                breakdown?: string | null;
                 hide_zero?: boolean | null;
                 account_id?: string | null;
                 exclude_closing?: boolean | null;
                 contact_side?: "debit" | "credit" | null;
                 contact_id?: string | null;
+                /** @description Journal list (3c.20): status, source ('none' = typed by hand), the person and in which role, lines under each journal. */
+                status?: "draft" | "pending_approval" | "posted" | "reversed" | "void" | null;
+                source?: string | null;
+                user_id?: string | null;
+                user_role?: "created" | "submitted" | "approved" | "posted" | null;
+                include_lines?: boolean | null;
+                /** @description Drill from the aging (the bucket of a cell) and from the tax return (a row: side and tax code, `none` for lines without one). */
+                bucket?: "current" | "days_1_30" | "days_31_60" | "days_61_90" | "days_over_90" | "open" | "credits" | null;
+                side?: "sales" | "purchases" | null;
+                tax_code_id?: string | null;
+                /** @description Bank reconciliation report: the finished reconciliation. */
+                reconciliation_id?: string | null;
+                /** @description Audit trail (3c.20): same filters as the audit log. */
+                action?: string | null;
+                actor_id?: string | null;
+                subject_type?: string | null;
+                subject_id?: string | null;
                 format?: "xlsx" | "csv" | "pdf" | null;
             };
             header?: never;
@@ -13863,14 +14714,35 @@ export interface operations {
                 from?: string | null;
                 to?: string | null;
                 basis?: "month" | "ytd" | null;
+                /** @description Trial balance only: `movement` adds opening, debit and credit movement and closing over the period or from..to. */
+                view?: "balances" | "movement" | null;
                 comparison?: "none" | "previous_period" | "previous_year" | null;
                 /** @description Dimension id → a value id or a list of them; withValidator checks the shape. */
                 "dimensions[]"?: string[] | null;
+                /** @description Trial balance (as of) and profit and loss: a dimension id whose values become columns, plus an untagged column. */
+                breakdown?: string | null;
                 hide_zero?: boolean | null;
                 account_id?: string | null;
                 exclude_closing?: boolean | null;
                 contact_side?: "debit" | "credit" | null;
                 contact_id?: string | null;
+                /** @description Journal list (3c.20): status, source ('none' = typed by hand), the person and in which role, lines under each journal. */
+                status?: "draft" | "pending_approval" | "posted" | "reversed" | "void" | null;
+                source?: string | null;
+                user_id?: string | null;
+                user_role?: "created" | "submitted" | "approved" | "posted" | null;
+                include_lines?: boolean | null;
+                /** @description Drill from the aging (the bucket of a cell) and from the tax return (a row: side and tax code, `none` for lines without one). */
+                bucket?: "current" | "days_1_30" | "days_31_60" | "days_61_90" | "days_over_90" | "open" | "credits" | null;
+                side?: "sales" | "purchases" | null;
+                tax_code_id?: string | null;
+                /** @description Bank reconciliation report: the finished reconciliation. */
+                reconciliation_id?: string | null;
+                /** @description Audit trail (3c.20): same filters as the audit log. */
+                action?: string | null;
+                actor_id?: string | null;
+                subject_type?: string | null;
+                subject_id?: string | null;
                 format?: "xlsx" | "csv" | "pdf" | null;
             };
             header?: never;
@@ -13908,14 +14780,35 @@ export interface operations {
                 from?: string | null;
                 to?: string | null;
                 basis?: "month" | "ytd" | null;
+                /** @description Trial balance only: `movement` adds opening, debit and credit movement and closing over the period or from..to. */
+                view?: "balances" | "movement" | null;
                 comparison?: "none" | "previous_period" | "previous_year" | null;
                 /** @description Dimension id → a value id or a list of them; withValidator checks the shape. */
                 "dimensions[]"?: string[] | null;
+                /** @description Trial balance (as of) and profit and loss: a dimension id whose values become columns, plus an untagged column. */
+                breakdown?: string | null;
                 hide_zero?: boolean | null;
                 account_id?: string | null;
                 exclude_closing?: boolean | null;
                 contact_side?: "debit" | "credit" | null;
                 contact_id?: string | null;
+                /** @description Journal list (3c.20): status, source ('none' = typed by hand), the person and in which role, lines under each journal. */
+                status?: "draft" | "pending_approval" | "posted" | "reversed" | "void" | null;
+                source?: string | null;
+                user_id?: string | null;
+                user_role?: "created" | "submitted" | "approved" | "posted" | null;
+                include_lines?: boolean | null;
+                /** @description Drill from the aging (the bucket of a cell) and from the tax return (a row: side and tax code, `none` for lines without one). */
+                bucket?: "current" | "days_1_30" | "days_31_60" | "days_61_90" | "days_over_90" | "open" | "credits" | null;
+                side?: "sales" | "purchases" | null;
+                tax_code_id?: string | null;
+                /** @description Bank reconciliation report: the finished reconciliation. */
+                reconciliation_id?: string | null;
+                /** @description Audit trail (3c.20): same filters as the audit log. */
+                action?: string | null;
+                actor_id?: string | null;
+                subject_type?: string | null;
+                subject_id?: string | null;
                 format?: "xlsx" | "csv" | "pdf" | null;
             };
             header?: never;
@@ -13953,14 +14846,35 @@ export interface operations {
                 from?: string | null;
                 to?: string | null;
                 basis?: "month" | "ytd" | null;
+                /** @description Trial balance only: `movement` adds opening, debit and credit movement and closing over the period or from..to. */
+                view?: "balances" | "movement" | null;
                 comparison?: "none" | "previous_period" | "previous_year" | null;
                 /** @description Dimension id → a value id or a list of them; withValidator checks the shape. */
                 "dimensions[]"?: string[] | null;
+                /** @description Trial balance (as of) and profit and loss: a dimension id whose values become columns, plus an untagged column. */
+                breakdown?: string | null;
                 hide_zero?: boolean | null;
                 account_id?: string | null;
                 exclude_closing?: boolean | null;
                 contact_side?: "debit" | "credit" | null;
                 contact_id?: string | null;
+                /** @description Journal list (3c.20): status, source ('none' = typed by hand), the person and in which role, lines under each journal. */
+                status?: "draft" | "pending_approval" | "posted" | "reversed" | "void" | null;
+                source?: string | null;
+                user_id?: string | null;
+                user_role?: "created" | "submitted" | "approved" | "posted" | null;
+                include_lines?: boolean | null;
+                /** @description Drill from the aging (the bucket of a cell) and from the tax return (a row: side and tax code, `none` for lines without one). */
+                bucket?: "current" | "days_1_30" | "days_31_60" | "days_61_90" | "days_over_90" | "open" | "credits" | null;
+                side?: "sales" | "purchases" | null;
+                tax_code_id?: string | null;
+                /** @description Bank reconciliation report: the finished reconciliation. */
+                reconciliation_id?: string | null;
+                /** @description Audit trail (3c.20): same filters as the audit log. */
+                action?: string | null;
+                actor_id?: string | null;
+                subject_type?: string | null;
+                subject_id?: string | null;
                 format?: "xlsx" | "csv" | "pdf" | null;
                 /** @description Opaque, from `meta.next_cursor` or `meta.prev_cursor`. */
                 cursor?: string;
@@ -14008,14 +14922,35 @@ export interface operations {
                 from?: string | null;
                 to?: string | null;
                 basis?: "month" | "ytd" | null;
+                /** @description Trial balance only: `movement` adds opening, debit and credit movement and closing over the period or from..to. */
+                view?: "balances" | "movement" | null;
                 comparison?: "none" | "previous_period" | "previous_year" | null;
                 /** @description Dimension id → a value id or a list of them; withValidator checks the shape. */
                 "dimensions[]"?: string[] | null;
+                /** @description Trial balance (as of) and profit and loss: a dimension id whose values become columns, plus an untagged column. */
+                breakdown?: string | null;
                 hide_zero?: boolean | null;
                 account_id?: string | null;
                 exclude_closing?: boolean | null;
                 contact_side?: "debit" | "credit" | null;
                 contact_id?: string | null;
+                /** @description Journal list (3c.20): status, source ('none' = typed by hand), the person and in which role, lines under each journal. */
+                status?: "draft" | "pending_approval" | "posted" | "reversed" | "void" | null;
+                source?: string | null;
+                user_id?: string | null;
+                user_role?: "created" | "submitted" | "approved" | "posted" | null;
+                include_lines?: boolean | null;
+                /** @description Drill from the aging (the bucket of a cell) and from the tax return (a row: side and tax code, `none` for lines without one). */
+                bucket?: "current" | "days_1_30" | "days_31_60" | "days_61_90" | "days_over_90" | "open" | "credits" | null;
+                side?: "sales" | "purchases" | null;
+                tax_code_id?: string | null;
+                /** @description Bank reconciliation report: the finished reconciliation. */
+                reconciliation_id?: string | null;
+                /** @description Audit trail (3c.20): same filters as the audit log. */
+                action?: string | null;
+                actor_id?: string | null;
+                subject_type?: string | null;
+                subject_id?: string | null;
                 format?: "xlsx" | "csv" | "pdf" | null;
             };
             header?: never;
@@ -14053,14 +14988,35 @@ export interface operations {
                 from?: string | null;
                 to?: string | null;
                 basis?: "month" | "ytd" | null;
+                /** @description Trial balance only: `movement` adds opening, debit and credit movement and closing over the period or from..to. */
+                view?: "balances" | "movement" | null;
                 comparison?: "none" | "previous_period" | "previous_year" | null;
                 /** @description Dimension id → a value id or a list of them; withValidator checks the shape. */
                 "dimensions[]"?: string[] | null;
+                /** @description Trial balance (as of) and profit and loss: a dimension id whose values become columns, plus an untagged column. */
+                breakdown?: string | null;
                 hide_zero?: boolean | null;
                 account_id?: string | null;
                 exclude_closing?: boolean | null;
                 contact_side?: "debit" | "credit" | null;
                 contact_id?: string | null;
+                /** @description Journal list (3c.20): status, source ('none' = typed by hand), the person and in which role, lines under each journal. */
+                status?: "draft" | "pending_approval" | "posted" | "reversed" | "void" | null;
+                source?: string | null;
+                user_id?: string | null;
+                user_role?: "created" | "submitted" | "approved" | "posted" | null;
+                include_lines?: boolean | null;
+                /** @description Drill from the aging (the bucket of a cell) and from the tax return (a row: side and tax code, `none` for lines without one). */
+                bucket?: "current" | "days_1_30" | "days_31_60" | "days_61_90" | "days_over_90" | "open" | "credits" | null;
+                side?: "sales" | "purchases" | null;
+                tax_code_id?: string | null;
+                /** @description Bank reconciliation report: the finished reconciliation. */
+                reconciliation_id?: string | null;
+                /** @description Audit trail (3c.20): same filters as the audit log. */
+                action?: string | null;
+                actor_id?: string | null;
+                subject_type?: string | null;
+                subject_id?: string | null;
                 format?: "xlsx" | "csv" | "pdf" | null;
             };
             header?: never;
@@ -14098,14 +15054,35 @@ export interface operations {
                 from?: string | null;
                 to?: string | null;
                 basis?: "month" | "ytd" | null;
+                /** @description Trial balance only: `movement` adds opening, debit and credit movement and closing over the period or from..to. */
+                view?: "balances" | "movement" | null;
                 comparison?: "none" | "previous_period" | "previous_year" | null;
                 /** @description Dimension id → a value id or a list of them; withValidator checks the shape. */
                 "dimensions[]"?: string[] | null;
+                /** @description Trial balance (as of) and profit and loss: a dimension id whose values become columns, plus an untagged column. */
+                breakdown?: string | null;
                 hide_zero?: boolean | null;
                 account_id?: string | null;
                 exclude_closing?: boolean | null;
                 contact_side?: "debit" | "credit" | null;
                 contact_id?: string | null;
+                /** @description Journal list (3c.20): status, source ('none' = typed by hand), the person and in which role, lines under each journal. */
+                status?: "draft" | "pending_approval" | "posted" | "reversed" | "void" | null;
+                source?: string | null;
+                user_id?: string | null;
+                user_role?: "created" | "submitted" | "approved" | "posted" | null;
+                include_lines?: boolean | null;
+                /** @description Drill from the aging (the bucket of a cell) and from the tax return (a row: side and tax code, `none` for lines without one). */
+                bucket?: "current" | "days_1_30" | "days_31_60" | "days_61_90" | "days_over_90" | "open" | "credits" | null;
+                side?: "sales" | "purchases" | null;
+                tax_code_id?: string | null;
+                /** @description Bank reconciliation report: the finished reconciliation. */
+                reconciliation_id?: string | null;
+                /** @description Audit trail (3c.20): same filters as the audit log. */
+                action?: string | null;
+                actor_id?: string | null;
+                subject_type?: string | null;
+                subject_id?: string | null;
                 format?: "xlsx" | "csv" | "pdf" | null;
             };
             header?: never;
@@ -14143,14 +15120,35 @@ export interface operations {
                 from?: string | null;
                 to?: string | null;
                 basis?: "month" | "ytd" | null;
+                /** @description Trial balance only: `movement` adds opening, debit and credit movement and closing over the period or from..to. */
+                view?: "balances" | "movement" | null;
                 comparison?: "none" | "previous_period" | "previous_year" | null;
                 /** @description Dimension id → a value id or a list of them; withValidator checks the shape. */
                 "dimensions[]"?: string[] | null;
+                /** @description Trial balance (as of) and profit and loss: a dimension id whose values become columns, plus an untagged column. */
+                breakdown?: string | null;
                 hide_zero?: boolean | null;
                 account_id?: string | null;
                 exclude_closing?: boolean | null;
                 contact_side?: "debit" | "credit" | null;
                 contact_id?: string | null;
+                /** @description Journal list (3c.20): status, source ('none' = typed by hand), the person and in which role, lines under each journal. */
+                status?: "draft" | "pending_approval" | "posted" | "reversed" | "void" | null;
+                source?: string | null;
+                user_id?: string | null;
+                user_role?: "created" | "submitted" | "approved" | "posted" | null;
+                include_lines?: boolean | null;
+                /** @description Drill from the aging (the bucket of a cell) and from the tax return (a row: side and tax code, `none` for lines without one). */
+                bucket?: "current" | "days_1_30" | "days_31_60" | "days_61_90" | "days_over_90" | "open" | "credits" | null;
+                side?: "sales" | "purchases" | null;
+                tax_code_id?: string | null;
+                /** @description Bank reconciliation report: the finished reconciliation. */
+                reconciliation_id?: string | null;
+                /** @description Audit trail (3c.20): same filters as the audit log. */
+                action?: string | null;
+                actor_id?: string | null;
+                subject_type?: string | null;
+                subject_id?: string | null;
                 format?: "xlsx" | "csv" | "pdf" | null;
             };
             header?: never;
@@ -14188,14 +15186,35 @@ export interface operations {
                 from?: string | null;
                 to?: string | null;
                 basis?: "month" | "ytd" | null;
+                /** @description Trial balance only: `movement` adds opening, debit and credit movement and closing over the period or from..to. */
+                view?: "balances" | "movement" | null;
                 comparison?: "none" | "previous_period" | "previous_year" | null;
                 /** @description Dimension id → a value id or a list of them; withValidator checks the shape. */
                 "dimensions[]"?: string[] | null;
+                /** @description Trial balance (as of) and profit and loss: a dimension id whose values become columns, plus an untagged column. */
+                breakdown?: string | null;
                 hide_zero?: boolean | null;
                 account_id?: string | null;
                 exclude_closing?: boolean | null;
                 contact_side?: "debit" | "credit" | null;
                 contact_id?: string | null;
+                /** @description Journal list (3c.20): status, source ('none' = typed by hand), the person and in which role, lines under each journal. */
+                status?: "draft" | "pending_approval" | "posted" | "reversed" | "void" | null;
+                source?: string | null;
+                user_id?: string | null;
+                user_role?: "created" | "submitted" | "approved" | "posted" | null;
+                include_lines?: boolean | null;
+                /** @description Drill from the aging (the bucket of a cell) and from the tax return (a row: side and tax code, `none` for lines without one). */
+                bucket?: "current" | "days_1_30" | "days_31_60" | "days_61_90" | "days_over_90" | "open" | "credits" | null;
+                side?: "sales" | "purchases" | null;
+                tax_code_id?: string | null;
+                /** @description Bank reconciliation report: the finished reconciliation. */
+                reconciliation_id?: string | null;
+                /** @description Audit trail (3c.20): same filters as the audit log. */
+                action?: string | null;
+                actor_id?: string | null;
+                subject_type?: string | null;
+                subject_id?: string | null;
                 format?: "xlsx" | "csv" | "pdf" | null;
             };
             header?: never;
@@ -14233,14 +15252,35 @@ export interface operations {
                 from?: string | null;
                 to?: string | null;
                 basis?: "month" | "ytd" | null;
+                /** @description Trial balance only: `movement` adds opening, debit and credit movement and closing over the period or from..to. */
+                view?: "balances" | "movement" | null;
                 comparison?: "none" | "previous_period" | "previous_year" | null;
                 /** @description Dimension id → a value id or a list of them; withValidator checks the shape. */
                 "dimensions[]"?: string[] | null;
+                /** @description Trial balance (as of) and profit and loss: a dimension id whose values become columns, plus an untagged column. */
+                breakdown?: string | null;
                 hide_zero?: boolean | null;
                 account_id?: string | null;
                 exclude_closing?: boolean | null;
                 contact_side?: "debit" | "credit" | null;
                 contact_id?: string | null;
+                /** @description Journal list (3c.20): status, source ('none' = typed by hand), the person and in which role, lines under each journal. */
+                status?: "draft" | "pending_approval" | "posted" | "reversed" | "void" | null;
+                source?: string | null;
+                user_id?: string | null;
+                user_role?: "created" | "submitted" | "approved" | "posted" | null;
+                include_lines?: boolean | null;
+                /** @description Drill from the aging (the bucket of a cell) and from the tax return (a row: side and tax code, `none` for lines without one). */
+                bucket?: "current" | "days_1_30" | "days_31_60" | "days_61_90" | "days_over_90" | "open" | "credits" | null;
+                side?: "sales" | "purchases" | null;
+                tax_code_id?: string | null;
+                /** @description Bank reconciliation report: the finished reconciliation. */
+                reconciliation_id?: string | null;
+                /** @description Audit trail (3c.20): same filters as the audit log. */
+                action?: string | null;
+                actor_id?: string | null;
+                subject_type?: string | null;
+                subject_id?: string | null;
                 format?: "xlsx" | "csv" | "pdf" | null;
                 /** @description Opaque, from `meta.next_cursor` or `meta.prev_cursor`. */
                 cursor?: string;
@@ -14352,14 +15392,35 @@ export interface operations {
                 from?: string | null;
                 to?: string | null;
                 basis?: "month" | "ytd" | null;
+                /** @description Trial balance only: `movement` adds opening, debit and credit movement and closing over the period or from..to. */
+                view?: "balances" | "movement" | null;
                 comparison?: "none" | "previous_period" | "previous_year" | null;
                 /** @description Dimension id → a value id or a list of them; withValidator checks the shape. */
                 "dimensions[]"?: string[] | null;
+                /** @description Trial balance (as of) and profit and loss: a dimension id whose values become columns, plus an untagged column. */
+                breakdown?: string | null;
                 hide_zero?: boolean | null;
                 account_id?: string | null;
                 exclude_closing?: boolean | null;
                 contact_side?: "debit" | "credit" | null;
                 contact_id?: string | null;
+                /** @description Journal list (3c.20): status, source ('none' = typed by hand), the person and in which role, lines under each journal. */
+                status?: "draft" | "pending_approval" | "posted" | "reversed" | "void" | null;
+                source?: string | null;
+                user_id?: string | null;
+                user_role?: "created" | "submitted" | "approved" | "posted" | null;
+                include_lines?: boolean | null;
+                /** @description Drill from the aging (the bucket of a cell) and from the tax return (a row: side and tax code, `none` for lines without one). */
+                bucket?: "current" | "days_1_30" | "days_31_60" | "days_61_90" | "days_over_90" | "open" | "credits" | null;
+                side?: "sales" | "purchases" | null;
+                tax_code_id?: string | null;
+                /** @description Bank reconciliation report: the finished reconciliation. */
+                reconciliation_id?: string | null;
+                /** @description Audit trail (3c.20): same filters as the audit log. */
+                action?: string | null;
+                actor_id?: string | null;
+                subject_type?: string | null;
+                subject_id?: string | null;
                 format?: "xlsx" | "csv" | "pdf" | null;
             };
             header?: never;

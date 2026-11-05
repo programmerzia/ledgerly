@@ -47,7 +47,7 @@ export const LiveBankReconciliationReport: React.FC = () => {
       <PageHeader
         title="Bank reconciliation"
         subtitle={r ? `${company.name} · ${r.bank_account.name} · statement ${formatDate(r.statement.period_from)} to ${formatDate(r.statement.period_to)}` : company.name}
-        actions={r && <Link to={`/${company.slug}/banking/${r.statement.id}/reconcile`} className="flex items-center gap-1 text-[13px] text-accent hover:underline print:hidden"><ArrowLeft className="size-3.5" />Back to the reconciliation</Link>}
+        actions={r && <Link to={`/${company.slug}/banking/${r.bank_account.id}/reconcile?statement=${r.statement.id}`} className="flex items-center gap-1 text-[13px] text-accent hover:underline print:hidden"><ArrowLeft className="size-3.5" />Back to the reconciliation</Link>}
       />
       {id === '' ? <p className="rounded-lg border border-border bg-surface p-6 text-[13px] text-text-secondary">Open this report from a finished reconciliation.</p>
         : q.isPending ? <ReportLoading what="the reconciliation report" />

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Ban, Check, CheckCircle2, Clock, Link2, Settings2, Undo2, Upload } from 'lucide-react';
+import { Ban, Check, CheckCircle2, Clock, FileText, Link2, Settings2, Undo2, Upload } from 'lucide-react';
 import { PageHeader } from '@/components/domain/PageHeader';
 import { SignDialog } from '@/components/domain/SignDialog';
 import { ConflictDialog, type VersionConflict } from '@/components/domain/ConflictDialog';
@@ -352,6 +352,11 @@ export const BankReconcileLive: React.FC = () => {
               <button type="button" disabled={!rec.can.finish || busy || (rep?.unmatched_statement.count ?? 0) > 0} onClick={() => { setFinishError(''); setFinishOpen(true); }} className="flex h-8 items-center gap-1.5 rounded-md bg-success px-3 text-[13px] font-medium text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50">
                 <CheckCircle2 className="size-4" /> Finish reconciliation
               </button>
+            )}
+            {rec && finished && (
+              <Link to={`/${company.slug}/reports/bank-reconciliation?rec=${rec.id}`} className={btnSecondary} data-testid="reconciliation-report-link">
+                <FileText className="size-4 text-text-muted" /> Reconciliation report
+              </Link>
             )}
             {rec && finished && rec.can.reopen && (
               <button type="button" disabled={busy} onClick={() => { setReopenError(''); setReopenOpen(true); }} className={btnSecondary}>
