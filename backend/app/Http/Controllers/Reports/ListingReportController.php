@@ -14,8 +14,11 @@ use App\Models\Banking\BankReconciliation;
 use App\Models\Ledger\Journal;
 use App\Models\Organisation\Company;
 use App\Queries\Banking\BankReconciliationReport;
+use App\Queries\Reports\ArApAging;
 use App\Queries\Reports\JournalList;
 use App\Queries\Reports\PeriodCloseChecklist;
+use App\Queries\Reports\ReportParamsResolver;
+use App\Queries\Reports\TaxReturn;
 use App\Support\Audit\AuditBundle;
 use App\Support\Audit\DetachedAudit;
 use App\Support\Reports\Report;
@@ -41,6 +44,32 @@ final class ListingReportController extends Controller
 
         return response()->json($list->payload($company->id, (string) $company->base_currency, $page->items->all(), (bool) ($input['include_lines'] ?? false), $withChoices)
             + ['meta' => ['next_cursor' => $page->nextCursor, 'prev_cursor' => $page->prevCursor, 'limit' => $page->limit]]);
+    }
+
+    /** The documents behind a receivables aging cell (`bucket`, optionally one `contact_id`); their amounts add up to the cell. */
+    #[Authorize('view', Report::class)]
+    public function arAgingDocuments(ReportRequest $request, Company $company, ReportParamsResolver $params, ArApAging $aging): JsonResponse
+    {
+        return response()->json(['data' => $aging->documents($params->asOf($company, $request->validated()), true, (string) ($request->validated('bucket') ?? 'open'), $request->validated('contact_id'))]);
+    }
+
+    /** The same for payables. */
+    #[Authorize('view', Report::class)]
+    public function apAgingDocuments(ReportRequest $request, Company $company, ReportParamsResolver $params, ArApAging $aging): JsonResponse
+    {
+        return response()->json(['data' => $aging->documents($params->asOf($company, $request->validated()), false, (string) ($request->validated('bucket') ?? 'open'), $request->validated('contact_id'))]);
+    }
+
+    /** The documents behind one row of the tax return (`side`, `tax_code_id`) in the period; their nets and taxes add up to the row. */
+    #[Authorize('view', Report::class)]
+    public function taxReturnDocuments(ReportRequest $request, Company $company, ReportParamsResolver $params, TaxReturn $return): JsonResponse
+    {
+        $input = $request->validated();
+        if (! isset($input['side'], $input['tax_code_id'])) {
+            throw ValidationException::withMessages(['side' => ['Give the side (sales or purchases) and the tax code of the row.']]);
+        }
+
+        return response()->json(['data' => $return->documents($params->range($company, $input), (string) $input['side'], (string) $input['tax_code_id'])]);
     }
 
     /** One finished reconciliation: the proof, statement against books, unmatched and excluded items. */

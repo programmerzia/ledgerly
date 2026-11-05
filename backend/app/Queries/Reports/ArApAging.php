@@ -37,14 +37,57 @@ final class ArApAging
     public function __invoke(ReportParams $p, bool $receivable): array
     {
         $asOf = $p->to;
-        $db = $this->runner->db();
         $cur = $p->currency;
+        $collected = $this->collect($p, $receivable);
+
+        return $this->present($p, $receivable, $collected['byContact'], $collected['credits'], $asOf, $cur);
+    }
+
+    /**
+     * The documents behind one cell of the aging (3c.21): `bucket` is one of the five age buckets, `open` (all of them) or
+     * `credits` (credit notes and money on account); `contactId` null is the totals row. The amounts add up to exactly
+     * the cell, because the cell is built from the same list.
+     *
+     * @return array<string, mixed>
+     */
+    public function documents(ReportParams $p, bool $receivable, string $bucket, ?string $contactId): array
+    {
+        $cur = $p->currency;
+        ['items' => $items] = $this->collect($p, $receivable);
+        $wanted = array_values(array_filter($items, fn (array $i): bool => ($contactId === null || $i['contact_id'] === $contactId)
+            && match ($bucket) {
+                'open' => $i['bucket'] !== 'credits',
+                default => $i['bucket'] === $bucket,
+            }));
+        usort($wanted, fn (array $a, array $b): int => [$a['due_date'] ?? $a['date'], $a['number']] <=> [$b['due_date'] ?? $b['date'], $b['number']]);
+        $people = $this->contacts($p->companyId, array_values(array_unique(array_column($wanted, 'contact_id'))));
+
+        return [
+            'report' => $receivable ? 'ar_aging_documents' : 'ap_aging_documents',
+            'currency' => $cur, 'as_of' => $p->to, 'bucket' => $bucket, 'contact' => $contactId === null ? null : ($people[$contactId] ?? null),
+            'documents' => array_map(fn (array $i): array => [
+                'contact' => $people[$i['contact_id']] ?? null,
+                'document' => ['type' => $i['kind'], 'id' => $i['id'], 'number' => $i['number']],
+                'journal_id' => $i['journal_id'], 'date' => $i['date'], 'due_date' => $i['due_date'], 'days_overdue' => $i['late'],
+                'amount' => Json::money($i['amount'], $cur),
+            ], $wanted),
+            'total' => Json::money(array_sum(array_column($wanted, 'amount')), $cur),
+        ];
+    }
+
+    /**
+     * @return array{byContact: array<string, array<string, int>>, credits: list<array<string, mixed>>, noteKind: string, items: list<array<string, mixed>>}
+     */
+    private function collect(ReportParams $p, bool $receivable): array
+    {
+        $asOf = $p->to;
+        $db = $this->runner->db();
         $docKinds = $receivable ? 'sales_invoice' : 'purchase_bill';
         $noteKind = $receivable ? 'credit_note' : 'debit_note';
         $setKinds = $receivable ? ['receipt', 'refund'] : ['payment', 'supplier_refund'];
 
         $docs = $db->select(<<<'SQL'
-            SELECT i.id, i.number, i.kind::text AS kind, i.contact_id, i.issue_date, i.due_date, i.total - i.wht_amount AS net,
+            SELECT i.id, i.number, i.journal_id, i.kind::text AS kind, i.contact_id, i.issue_date, i.due_date, i.total - i.wht_amount AS net,
               (SELECT COALESCE(SUM(a.amount), 0) FROM settlement_allocations a JOIN settlements s ON s.id = a.settlement_id
                  LEFT JOIN journals sj ON sj.id = s.reversal_journal_id
                 WHERE a.invoice_id = i.id AND s.status IN ('posted', 'reversed') AND s.settlement_date <= :d1 AND (s.status = 'posted' OR sj.journal_date > :d2)) AS allocated,
@@ -61,7 +104,7 @@ final class ArApAging
         ]);
 
         $settlements = $db->select(<<<'SQL'
-            SELECT s.id, s.number, s.kind::text AS kind, s.contact_id, s.settlement_date, s.amount_fc, s.fx_rate,
+            SELECT s.id, s.number, s.journal_id, s.kind::text AS kind, s.contact_id, s.settlement_date, s.amount_fc, s.fx_rate,
               (SELECT COALESCE(SUM(a.amount_fc), 0) FROM settlement_allocations a WHERE a.settlement_id = s.id) AS allocated_fc,
               (SELECT COALESCE(SUM(c.source_amount), 0) FROM credit_applications c LEFT JOIN journals cj ON cj.id = c.reversal_journal_id
                 WHERE c.settlement_id = s.id AND c.applied_on <= :d1 AND (c.reversed_at IS NULL OR cj.journal_date > :d2)) AS applied,
@@ -81,8 +124,8 @@ final class ArApAging
         $byContact = [];
         /** @var list<array<string, mixed>> $credits */
         $credits = [];
-        /** @var array<string, string> $creditContact */
-        $creditContact = [];
+        /** @var list<array<string, mixed>> $items one entry per document or credit, with the bucket it falls in */
+        $items = [];
 
         foreach ($docs as $d) {
             $open = (int) $d->net - (int) $d->allocated - (int) $d->applied_to - (int) $d->applied_from;
@@ -94,6 +137,7 @@ final class ArApAging
             if ($d->kind === $noteKind) {
                 $byContact[$contact]['notes'] += $open;
                 $credits[] = ['contact_id' => $contact, 'kind' => $noteKind, 'id' => $d->id, 'number' => $d->number, 'date' => $d->issue_date, 'amount' => $open];
+                $items[] = ['contact_id' => $contact, 'bucket' => 'credits', 'kind' => $noteKind, 'id' => (string) $d->id, 'number' => $d->number, 'journal_id' => $d->journal_id, 'date' => (string) $d->issue_date, 'due_date' => null, 'late' => null, 'amount' => $open];
 
                 continue;
             }
@@ -104,6 +148,7 @@ final class ArApAging
             };
             $byContact[$contact][$bucket] += $open;
             $byContact[$contact]['open'] += $open;
+            $items[] = ['contact_id' => $contact, 'bucket' => $bucket, 'kind' => (string) $d->kind, 'id' => (string) $d->id, 'number' => $d->number, 'journal_id' => $d->journal_id, 'date' => (string) $d->issue_date, 'due_date' => $due, 'late' => max($late, 0), 'amount' => $open];
         }
 
         foreach ($settlements as $s) {
@@ -117,7 +162,20 @@ final class ArApAging
             $byContact[$contact] ??= $empty();
             $byContact[$contact]['on_account'] += $signed;
             $credits[] = ['contact_id' => $contact, 'kind' => $s->kind, 'id' => $s->id, 'number' => $s->number, 'date' => $s->settlement_date, 'amount' => $signed];
+            $items[] = ['contact_id' => $contact, 'bucket' => 'credits', 'kind' => (string) $s->kind, 'id' => (string) $s->id, 'number' => $s->number, 'journal_id' => $s->journal_id, 'date' => (string) $s->settlement_date, 'due_date' => null, 'late' => null, 'amount' => $signed];
         }
+
+        return ['byContact' => $byContact, 'credits' => $credits, 'noteKind' => $noteKind, 'items' => $items];
+    }
+
+    /**
+     * @param  array<string, array<string, int>>  $byContact
+     * @param  list<array<string, mixed>>  $credits
+     * @return array<string, mixed>
+     */
+    private function present(ReportParams $p, bool $receivable, array $byContact, array $credits, string $asOf, string $cur): array
+    {
+        $empty = fn (): array => ['current' => 0, 'days_1_30' => 0, 'days_31_60' => 0, 'days_61_90' => 0, 'days_over_90' => 0, 'open' => 0, 'notes' => 0, 'on_account' => 0];
 
         $people = $this->contacts($p->companyId, array_keys($byContact));
         $rows = [];

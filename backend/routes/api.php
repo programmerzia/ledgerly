@@ -221,6 +221,9 @@ Route::middleware(['auth:sanctum', 'tenant', 'tenant.writable', 'idempotent', 'c
         Route::get('reports/drill', [ReportController::class, 'drill'])->name('reports.drill');
         // Listing and document reports (3c.20); their exports use the export route below.
         Route::get('reports/journal-list', [ListingReportController::class, 'journalList'])->name('reports.journal-list');
+        Route::get('reports/ar-aging/documents', [ListingReportController::class, 'arAgingDocuments'])->name('reports.ar-aging.documents');
+        Route::get('reports/ap-aging/documents', [ListingReportController::class, 'apAgingDocuments'])->name('reports.ap-aging.documents');
+        Route::get('reports/tax-return/documents', [ListingReportController::class, 'taxReturnDocuments'])->name('reports.tax-return.documents');
         Route::get('reports/period-close', [ListingReportController::class, 'periodClose'])->name('reports.period-close');
         Route::get('reports/audit-trail/bundle', [ListingReportController::class, 'auditBundle'])->middleware('throttle:report-exports')->name('reports.audit-trail.bundle');
         Route::get('reports/exports/{exportId}', [ReportExportController::class, 'show'])->whereUuid('exportId')->name('reports.exports.show');

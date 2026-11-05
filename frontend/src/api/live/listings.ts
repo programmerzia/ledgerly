@@ -98,3 +98,28 @@ export async function downloadAuditBundle(companyId: string, query: Record<strin
 }
 
 export { ApiError };
+
+/** The documents behind one cell of the aging or one row of the tax return (3c.21); the amounts add up to the cell. */
+export interface DrillDocument {
+  contact?: { id: string; code: string; name: string } | null;
+  document: { type: string; id: string; number: string | null };
+  journal_id?: string | null;
+  journal?: { id: string; number: string | null };
+  date: string;
+  due_date?: string | null;
+  days_overdue?: number | null;
+  is_reversal?: boolean;
+  amount?: Money;
+  net?: Money;
+  tax?: Money;
+}
+export interface DrillDocuments {
+  documents: DrillDocument[];
+  total?: Money;
+  totals?: { net: Money; tax: Money };
+}
+
+export async function fetchDrillDocuments(companyId: string, path: string, query: Record<string, string>, signal?: AbortSignal): Promise<DrillDocuments> {
+  const url = buildUrl(API_BASE_URL, `/v1/companies/{company}/reports/${path}`, { company: companyId }, query);
+  return (await http.request<{ data: DrillDocuments }>('GET', url, undefined, undefined, signal)).data;
+}

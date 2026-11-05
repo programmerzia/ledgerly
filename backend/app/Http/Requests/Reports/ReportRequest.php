@@ -53,6 +53,10 @@ final class ReportRequest extends CompanyRequest
             'user_id' => ['nullable', 'uuid'],
             'user_role' => ['nullable', 'string', Rule::in(['created', 'submitted', 'approved', 'posted'])],
             'include_lines' => ['nullable', 'boolean'],
+            /** Drill from the aging (the bucket of a cell) and from the tax return (a row: side and tax code, `none` for lines without one). */
+            'bucket' => ['nullable', 'string', Rule::in(['current', 'days_1_30', 'days_31_60', 'days_61_90', 'days_over_90', 'open', 'credits'])],
+            'side' => ['nullable', 'string', Rule::in(['sales', 'purchases'])],
+            'tax_code_id' => ['nullable', 'string', 'regex:/^(none|[0-9a-f-]{36})$/'],
             /** Bank reconciliation report: the finished reconciliation. */
             'reconciliation_id' => ['nullable', 'uuid'],
             /** Audit trail (3c.20): same filters as the audit log. */

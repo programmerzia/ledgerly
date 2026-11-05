@@ -666,6 +666,8 @@ export function parseStatement(data: unknown): StatementView {
 // ---------------------------------------------------------------------------------------------------------------
 
 export interface TaxRow {
+  /** The tax code's id; null for lines without a tax code (the drill asks for them as `none`). */
+  taxCodeId: string | null;
   code: string;
   name: string;
   kind: string;
@@ -697,6 +699,7 @@ function taxSide(v: unknown, what: string): TaxSide {
       const row = rec(r, 'row');
       const code = isRec(row.tax_code) ? row.tax_code : null;
       return {
+        taxCodeId: code ? optStr(code.id) : null,
         code: code ? (optStr(code.code) ?? '') : '',
         name: code ? (optStr(code.name) ?? '') : 'No tax code',
         kind: code ? (optStr(code.kind) ?? '') : '',

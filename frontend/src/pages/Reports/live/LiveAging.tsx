@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { useReport } from '@/data/reports';
+import { reportQuery, useReport } from '@/data/reports';
 import { useRouteCompany } from '@/data/session';
 import { AGING_BUCKETS, type AgingBucket } from '@/api/adapters/report';
 import { cn } from '@/lib/utils';
@@ -8,6 +8,7 @@ import { ReportCard, Segmented, longDate, tone } from '../ReportParts';
 import { LiveReportShell } from './LiveReportShell';
 import { ReportError, ReportLoading, dash, fmt } from './parts';
 import { useReportSelection } from './useSelection';
+import { DocumentsDrill, type DocumentsTarget } from './DocumentsDrill';
 
 const BUCKET_LABEL: Record<AgingBucket, string> = {
   current: 'Not yet due', days_1_30: '1–30 days', days_31_60: '31–60 days', days_61_90: '61–90 days', days_over_90: 'Over 90 days',
@@ -25,6 +26,29 @@ export const LiveAging: React.FC = () => {
   const ag = q.data;
   const money = fmt(ag?.currency ?? company.base_currency);
   const statement = side === 'ar' ? 'customer-statement' : 'supplier-statement';
+  const [docs, setDocs] = useState<DocumentsTarget | null>(null);
+
+  // A cell opens the documents it is made of (3c.21); they add up to the figure shown.
+  const cell = (amount: number, bucket: string, contact?: { id: string; name: string }) => {
+    if (amount === 0) return dash;
+    const label = bucket === 'open' ? 'Open' : bucket === 'credits' ? 'Credits' : BUCKET_LABEL[bucket as AgingBucket];
+    return (
+      <button
+        type="button"
+        className="cursor-pointer tabular-nums hover:text-accent hover:underline"
+        title="Show the documents"
+        onClick={() => setDocs({
+          title: `${contact?.name ?? (side === 'ar' ? 'All customers' : 'All suppliers')} · ${label}`,
+          subtitle: ag ? `As of ${longDate(ag.asOf)}` : undefined,
+          path: `${name}/documents`,
+          query: { ...reportQuery(name, selection), bucket, ...(contact ? { contact_id: contact.id } : {}) },
+          expected: { amount },
+        })}
+      >
+        {money(amount)}
+      </button>
+    );
+  };
 
   return (
     <LiveReportShell
@@ -72,19 +96,19 @@ export const LiveAging: React.FC = () => {
                       <span className="block text-[11px] font-code text-text-muted">{r.contact.code}</span>
                     </span>
                     {AGING_BUCKETS.map((b) => (
-                      <span key={b} className="text-right tabular-nums">{r.buckets[b] === 0 ? dash : money(r.buckets[b])}</span>
+                      <span key={b} className="text-right tabular-nums">{cell(r.buckets[b], b, r.contact)}</span>
                     ))}
-                    <span className="text-right tabular-nums">{r.open === 0 ? dash : money(r.open)}</span>
-                    <span className="text-right tabular-nums">{r.credits === 0 ? dash : money(r.credits)}</span>
+                    <span className="text-right tabular-nums">{cell(r.open, 'open', r.contact)}</span>
+                    <span className="text-right tabular-nums">{cell(r.credits, 'credits', r.contact)}</span>
                     <span className={cn('text-right tabular-nums font-semibold', tone(r.net))}>{money(r.net)}</span>
                   </div>
                 ))}
               </div>
               <div className={`${GRID} items-baseline px-4 py-3 border-t border-text-primary border-b-[3px] border-double text-[13px] font-semibold`} data-testid="aging-totals">
                 <span className="text-text-primary">Total</span>
-                {AGING_BUCKETS.map((b) => <span key={b} className="text-right tabular-nums">{money(ag.totals.buckets[b])}</span>)}
-                <span className="text-right tabular-nums">{money(ag.totals.open)}</span>
-                <span className="text-right tabular-nums">{money(ag.totals.credits)}</span>
+                {AGING_BUCKETS.map((b) => <span key={b} className="text-right tabular-nums">{cell(ag.totals.buckets[b], b)}</span>)}
+                <span className="text-right tabular-nums">{cell(ag.totals.open, 'open')}</span>
+                <span className="text-right tabular-nums">{cell(ag.totals.credits, 'credits')}</span>
                 <span className={cn('text-right tabular-nums', tone(ag.totals.net))}>{money(ag.totals.net)}</span>
               </div>
             </div>
@@ -115,6 +139,7 @@ export const LiveAging: React.FC = () => {
           )}
         </>
       )}
+      <DocumentsDrill target={docs} onClose={() => setDocs(null)} />
     </LiveReportShell>
   );
 };

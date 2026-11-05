@@ -93,7 +93,7 @@ final class ReportParamsResolver
         $breakdown = isset($in['breakdown']) ? $this->breakdown($company->id, (string) $in['breakdown']) : null;
 
         return new ReportParams(
-            $company->id, $company->base_currency, $from, $to, $basis, $type, $comparison, $slots, $byId,
+            $company->id, (string) $company->base_currency, $from, $to, $basis, $type, $comparison, $slots, $byId,
             (bool) ($in['hide_zero'] ?? false), $periodId, isset($in['account_id']) ? (string) $in['account_id'] : null,
             isset($in['contact_id']) ? (string) $in['contact_id'] : null,
             $breakdown['slot'] ?? null, $breakdown['id'] ?? null,
