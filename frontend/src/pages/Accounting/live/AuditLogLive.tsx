@@ -12,7 +12,7 @@ import { ApiError } from '@/api/errors';
 import { describeError } from '@/api/messages';
 import { IntentSlot } from '@/api/intentSlot';
 import type { ApiAuditReport, AuditFilters } from '@/api/live/admin';
-import { actorLabel, cleanFilters, humanKey, verifyLines, type AuditRow } from '@/api/adapters/admin';
+import { actorLabel, cleanFilters, verifyLines, type AuditRow } from '@/api/adapters/admin';
 import { formatDateTime, formatMoney, timezoneAbbreviation } from '@/lib/format';
 import { useAuditEvents, useVerifyAudit } from '@/data/admin';
 import { useRouteCompany } from '@/data/session';
@@ -155,23 +155,50 @@ const displayValue = (k: string, v: unknown, currency: string): string => {
 };
 
 const FieldList: React.FC<{ data: Record<string, unknown>; currency: string }> = ({ data, currency }) => {
-  const entries = Object.entries(data);
+  const entries = Object.entries(flatten(data));
   if (entries.length === 0) return <p className="text-text-muted">Nothing recorded.</p>;
   return (
     <ul className="mt-1 space-y-1">
       {entries.map(([k, v]) => (
         <li key={k} className="text-[11px] text-text-primary">
-          <span className="font-medium text-text-secondary">{humanKey(k)}:</span> {displayValue(k, v, currency)}
+          <span className="font-medium text-text-secondary">{fieldLabel(k)}:</span> {displayValue(k, v, currency)}
         </li>
       ))}
     </ul>
   );
 };
 
+const fieldLabel = (key: string): string => {
+  const cleaned = key.startsWith('settings.') ? key.slice('settings.'.length) : key;
+  const t = cleaned.replace(/[._]/g, ' ');
+  return t.charAt(0).toUpperCase() + t.slice(1);
+};
+
+/** Flattens nested objects so a settings change reads as field-level diffs instead of one giant JSON blob. */
+const flatten = (obj: Record<string, unknown> | null): Record<string, unknown> => {
+  const out: Record<string, unknown> = {};
+  if (!obj) return out;
+  for (const [k, v] of Object.entries(obj)) {
+    if (v && typeof v === 'object' && !Array.isArray(v)) {
+      const nested = flatten(v as Record<string, unknown>);
+      if (Object.keys(nested).length) {
+        for (const [nk, nv] of Object.entries(nested)) out[`${k}.${nk}`] = nv;
+      } else {
+        out[k] = v;
+      }
+    } else {
+      out[k] = v;
+    }
+  }
+  return out;
+};
+
 const Diff: React.FC<{ before: Record<string, unknown> | null; after: Record<string, unknown> | null; currency: string }> = ({ before, after, currency }) => {
-  const keys = Array.from(new Set([...Object.keys(before ?? {}), ...Object.keys(after ?? {})]));
+  const fb = flatten(before);
+  const fa = flatten(after);
+  const keys = Array.from(new Set([...Object.keys(fb), ...Object.keys(fa)]));
   const rows = keys.map((k) => {
-    const b = before?.[k]; const a = after?.[k];
+    const b = fb[k]; const a = fa[k];
     const same = JSON.stringify(b) === JSON.stringify(a);
     return { k, b, a, same };
   });
@@ -181,7 +208,7 @@ const Diff: React.FC<{ before: Record<string, unknown> | null; after: Record<str
     <ul className="mt-1 space-y-1.5">
       {changed.map(({ k, b, a }) => (
         <li key={k} className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 rounded-md bg-surface-neutral/60 px-2 py-1.5 text-[12px]">
-          <span className="font-medium text-text-secondary">{humanKey(k)}</span>
+          <span className="font-medium text-text-secondary">{fieldLabel(k)}</span>
           <span className="text-text-muted">{displayValue(k, b, currency)}</span>
           <span aria-hidden="true" className="text-text-muted">→</span>
           <span className="font-semibold text-text-primary">{displayValue(k, a, currency)}</span>
