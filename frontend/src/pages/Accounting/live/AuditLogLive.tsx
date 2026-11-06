@@ -18,6 +18,7 @@ import { useAuditEvents, useVerifyAudit } from '@/data/admin';
 import { useMemberNames } from '@/data/approvals';
 import { useRouteCompany } from '@/data/session';
 import { Field, field, primary, secondary } from '@/components/live/form';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { ErrorLine, LoadingLine } from './parts';
 
 const EMPTY = { action: '', subject_type: '', subject_id: '', actor_id: '', request_id: '', from: '', to: '' };
@@ -127,7 +128,6 @@ export const AuditLogLive: React.FC = () => {
                     <td className="px-3 py-2 text-text-secondary">{r.subject}</td>
                     <td className="px-3 py-2 text-text-secondary">{actorLabel(r)}</td>
                   </tr>
-                  {openId === r.id && <tr><td colSpan={5} className="bg-canvas px-4 py-3"><Detail row={r} currency={company.base_currency} names={names} /></td></tr>}
                 </React.Fragment>
               ))}
             </tbody>
@@ -140,6 +140,25 @@ export const AuditLogLive: React.FC = () => {
         </div>
       )}
       {events.isFetchNextPageError && <ErrorLine error={events.error} onRetry={() => void events.fetchNextPage()} />}
+      <Sheet open={openId !== null} onOpenChange={(o) => { if (!o) setOpenId(null); }}>
+        <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
+          {(() => {
+            const r = events.rows.find((x) => x.id === openId);
+            if (!r) return null;
+            return (
+              <>
+                <SheetHeader>
+                  <SheetTitle>{r.actionText}</SheetTitle>
+                  <SheetDescription>{formatDateTime(r.at)} {r.at ? timezoneAbbreviation(company.timezone, r.at) : ''} · {actorLabel(r)} · {r.subject}</SheetDescription>
+                </SheetHeader>
+                <div className="mt-4">
+                  <Detail row={r} currency={company.base_currency} names={names} />
+                </div>
+              </>
+            );
+          })()}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 };
