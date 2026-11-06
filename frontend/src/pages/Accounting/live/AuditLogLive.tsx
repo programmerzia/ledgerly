@@ -153,7 +153,7 @@ export const AuditLogLive: React.FC = () => {
                   <p className="mt-1 font-mono text-[10px] text-text-muted" title={r.hash}>Hash {r.hash.slice(0, 12)}…{r.hash.slice(-8)}</p>
                 </SheetHeader>
                 <div className="mt-4">
-                  <Detail row={r} currency={company.base_currency} names={names} />
+                  <Detail row={r} currency={company.base_currency} names={names} timezone={company.timezone} />
                 </div>
               </>
             );
@@ -242,47 +242,126 @@ const Diff: React.FC<{ before: Record<string, unknown> | null; after: Record<str
 
 const nameOf = (names: Map<string, string>, id: unknown): string => (typeof id === 'string' && names.get(id)) || (typeof id === 'string' ? id.slice(0, 8) : '—');
 
-const Detail: React.FC<{ row: AuditRow; currency: string; names: Map<string, string> }> = ({ row, currency, names }) => {
+const badgeFor = (action: string): { label: string; cls: string } => {
+  const a = action.toLowerCase();
+  if (a.includes('post')) return { label: 'POST', cls: 'bg-success-soft text-success border-success/30' };
+  if (a.includes('create') || a.includes('created')) return { label: 'CREATE', cls: 'bg-accent-soft text-accent border-accent/30' };
+  if (a.includes('update') || a.includes('updated') || a.includes('settings')) return { label: 'UPDATE', cls: 'bg-warning-soft text-warning border-warning/30' };
+  if (a.includes('delete') || a.includes('removed')) return { label: 'DELETE', cls: 'bg-danger-soft text-danger border-danger/30' };
+  if (a.includes('submit')) return { label: 'SUBMIT', cls: 'bg-warning-soft text-warning border-warning/30' };
+  if (a.includes('approve')) return { label: 'APPROVE', cls: 'bg-success-soft text-success border-success/30' };
+  return { label: action.split('.').pop()?.toUpperCase() ?? 'EVENT', cls: 'bg-surface-neutral text-text-secondary border-border' };
+};
+
+const Detail: React.FC<{ row: AuditRow; currency: string; names: Map<string, string>; timezone: string }> = ({ row, currency, names, timezone }) => {
+  const [showAsWas, setShowAsWas] = useState(false);
   const src = (row.after ?? row.before ?? {}) as Record<string, unknown>;
   const makerId = src.created_by ?? src.submitted_by;
   const checkerId = src.approved_by ?? src.posted_by ?? src.reversed_by;
   const showMakerChecker = Boolean(makerId || checkerId);
+  const fb = flatten(row.before);
+  const fa = flatten(row.after);
+  const keys = Array.from(new Set([...Object.keys(fb), ...Object.keys(fa)])).sort();
+  const snapshot = flatten(row.after ?? row.before);
+  const snapshotKeys = Object.keys(snapshot).sort();
+  const eventBadge = badgeFor(row.action);
+
+  const emptyCell = <span className="italic text-text-muted">empty</span>;
+
   return (
-  <div className="grid grid-cols-1 gap-3 text-xs md:grid-cols-2" data-testid="audit-detail">
-    <div className="md:col-span-2">
-      <dt className="font-medium text-text-secondary">What changed</dt>
-      <dd>
-        {row.before || row.after
-          ? <Diff before={row.before} after={row.after} currency={currency} />
-          : <p className="mt-1 text-text-muted">No field changes recorded for this event.</p>}
-      </dd>
-    </div>
-    {showMakerChecker && (
-      <div className="md:col-span-2">
-        <dt className="font-medium text-text-secondary">Segregation of duties</dt>
-        <dd className="mt-1 flex flex-wrap gap-3 text-[12px]">
-          {makerId ? <span className="rounded-md bg-surface-neutral/60 px-2 py-1">Maker: <span className="font-medium text-text-primary">{nameOf(names, makerId)}</span></span> : null}
-          {checkerId ? <span className="rounded-md bg-surface-neutral/60 px-2 py-1">Checker: <span className="font-medium text-text-primary">{nameOf(names, checkerId)}</span></span> : null}
-        </dd>
+    <div className="flex flex-col gap-4 text-xs" data-testid="audit-detail">
+      {/* Event header */}
+      <div className="flex items-center justify-between gap-3 border-b border-border pb-3">
+        <div className="flex items-center gap-2">
+          <span className={`rounded-md border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${eventBadge.cls}`}>{eventBadge.label}</span>
+          <span className="text-[13px] font-semibold text-text-primary">{actorLabel(row)}</span>
+        </div>
+        <span className="text-[11px] text-text-muted">{formatDateTime(row.at)}{row.at ? ` ${timezoneAbbreviation(timezone, row.at)}` : ''}</span>
       </div>
-    )}
-    {row.context && Object.keys(row.context).length > 0 && (
+
+      {/* Maker / checker */}
+      {showMakerChecker && (
+        <div className="flex flex-wrap gap-2">
+          {makerId ? <span className="rounded-md bg-surface-neutral/60 px-2 py-1 text-[11px]">Maker: <span className="font-medium text-text-primary">{nameOf(names, makerId)}</span></span> : null}
+          {checkerId ? <span className="rounded-md bg-surface-neutral/60 px-2 py-1 text-[11px]">Checker: <span className="font-medium text-text-primary">{nameOf(names, checkerId)}</span></span> : null}
+        </div>
+      )}
+
+      {/* Diff table */}
       <div>
-        <dt className="font-medium text-text-secondary">Background</dt>
-        <dd><FieldList data={row.context} currency={currency} /></dd>
+        <div className="mb-2 flex items-center justify-between">
+          <span className="text-[12px] font-semibold text-text-primary">Field-by-field (before → after)</span>
+          <span className="rounded-full bg-surface-neutral px-2 py-0.5 text-[10px] text-text-muted">{keys.filter((k) => JSON.stringify(fb[k]) !== JSON.stringify(fa[k])).length} changed</span>
+        </div>
+        {keys.length === 0 ? (
+          <p className="text-text-muted">No fields recorded for this event.</p>
+        ) : (
+          <div className="overflow-hidden rounded-lg border border-border">
+            <table className="w-full text-[11px]">
+              <thead>
+                <tr className="bg-surface-neutral text-[10px] uppercase tracking-wide text-text-muted">
+                  <th className="px-3 py-2 text-left font-semibold" style={{ width: '34%' }}>Field</th>
+                  <th className="px-3 py-2 text-left font-semibold" style={{ width: '33%' }}>Before</th>
+                  <th className="px-3 py-2 text-left font-semibold" style={{ width: '33%' }}>After</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {keys.map((k) => {
+                  const b = fb[k]; const a = fa[k];
+                  const same = JSON.stringify(b) === JSON.stringify(a);
+                  if (same) return null;
+                  return (
+                    <tr key={k}>
+                      <td className="px-3 py-2 font-mono text-text-secondary">{fieldLabel(k)}</td>
+                      <td className="px-3 py-2" style={{ background: '#fef2f2', color: '#991b1b' }}>{b === null || b === undefined ? emptyCell : displayValue(k, b, currency)}</td>
+                      <td className="px-3 py-2" style={{ background: '#f0fdf4', color: '#166534', fontWeight: 600 }}>{a === null || a === undefined ? emptyCell : displayValue(k, a, currency)}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
-    )}
-    <div className="md:col-span-2">
-      <details>
+
+      {/* Show as it was */}
+      <div>
+        <button type="button" onClick={() => setShowAsWas((v) => !v)} className="flex items-center gap-1.5 text-[12px] font-medium text-accent hover:underline">
+          <span className="text-text-muted">{showAsWas ? 'Hide' : 'Show'}</span> as it was
+        </button>
+        {showAsWas && (
+          <div className="mt-2 rounded-lg border border-dashed border-border bg-surface-neutral/40 p-3">
+            <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-text-muted">As it was</p>
+            <dl className="grid grid-cols-1 gap-1 text-[11px]">
+              {snapshotKeys.map((k) => (
+                <div key={k} className="flex items-baseline justify-between gap-3 border-b border-border/40 py-1 last:border-0">
+                  <dt className="font-mono text-text-secondary">{fieldLabel(k)}</dt>
+                  <dd className="text-right text-text-primary">{snapshot[k] === null || snapshot[k] === undefined ? emptyCell : displayValue(k, snapshot[k], currency)}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        )}
+      </div>
+
+      {/* Background */}
+      {row.context && Object.keys(row.context).length > 0 && (
+        <div>
+          <p className="mb-1 text-[12px] font-semibold text-text-primary">Background</p>
+          <FieldList data={row.context} currency={currency} />
+        </div>
+      )}
+
+      {/* Technical details */}
+      <details className="border-t border-border pt-2">
         <summary className="cursor-pointer text-[11px] text-text-muted">Show technical details</summary>
-        <div className="mt-2 grid grid-cols-1 gap-1 font-mono text-[11px] text-text-muted">
+        <div className="mt-2 grid grid-cols-1 gap-1 font-mono text-[10px] text-text-muted">
           <div>Record: {row.subject || 'none'}{row.requestId ? ` · reference ${row.requestId}` : ''}{row.ip ? ` · from ${row.ip}` : ''}</div>
           <div className="break-all">Hash {row.hash}</div>
           <div className="break-all">Previous {row.prevHash ?? 'none (first event)'}</div>
         </div>
       </details>
     </div>
-  </div>
   );
 };
 
