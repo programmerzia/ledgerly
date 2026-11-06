@@ -10,6 +10,7 @@ use App\Http\Support\Json;
 use App\Models\Trade\Contact;
 use App\Models\Trade\InvoiceLine;
 use App\Services\Documents\DocumentLook;
+use App\Services\Documents\LogoStore;
 use App\Services\Sharing\OpenedInvoiceLink;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -33,6 +34,7 @@ final class PublicInvoiceResource extends JsonResource
 
         return new self([
             'company_name' => $opened->company->name,
+            'logo' => app(LogoStore::class)->dataUri($opened->company),
             'bill_to' => (string) Contact::query()->whereKey($invoice->contact_id)->value('name'),
             'number' => (string) $invoice->number,
             'issue_date' => (string) Json::date($invoice->issue_date),
@@ -60,7 +62,7 @@ final class PublicInvoiceResource extends JsonResource
      * its documents; empty when it wrote none.
      *
      * @return array{
-     *     company_name: string, bill_to: string, number: string, issue_date: string, due_date: string, currency: string, status: string,
+     *     company_name: string, logo: string|null, bill_to: string, number: string, issue_date: string, due_date: string, currency: string, status: string,
      *     balance_due: array{amount: int, currency: string}|null,
      *     subtotal: array{amount: int, currency: string}, tax_total: array{amount: int, currency: string}, total: array{amount: int, currency: string},
      *     lines: list<array{description: string|null, quantity: string, unit_price: array{amount: int, currency: string}, line_total: array{amount: int, currency: string}, tax_amount: array{amount: int, currency: string}}>,
@@ -69,7 +71,7 @@ final class PublicInvoiceResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        /** @var array{company_name: string, bill_to: string, number: string, issue_date: string, due_date: string, currency: string, status: string, balance_due: array{amount: int, currency: string}|null, subtotal: array{amount: int, currency: string}, tax_total: array{amount: int, currency: string}, total: array{amount: int, currency: string}, lines: list<array{description: string|null, quantity: string, unit_price: array{amount: int, currency: string}, line_total: array{amount: int, currency: string}, tax_amount: array{amount: int, currency: string}}>, payment_instructions: string} $data */
+        /** @var array{company_name: string, logo: string|null, bill_to: string, number: string, issue_date: string, due_date: string, currency: string, status: string, balance_due: array{amount: int, currency: string}|null, subtotal: array{amount: int, currency: string}, tax_total: array{amount: int, currency: string}, total: array{amount: int, currency: string}, lines: list<array{description: string|null, quantity: string, unit_price: array{amount: int, currency: string}, line_total: array{amount: int, currency: string}, tax_amount: array{amount: int, currency: string}}>, payment_instructions: string} $data */
         $data = $this->resource;
 
         return $data;

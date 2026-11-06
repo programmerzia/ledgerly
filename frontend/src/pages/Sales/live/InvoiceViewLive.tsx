@@ -15,6 +15,8 @@ import { cn } from '@/lib/utils';
 import { formatDate, formatMoney } from '@/lib/format';
 import { useRouteCompany } from '@/data/session';
 import { useLedgerStore } from '@/mock/store';
+import { useSettings } from '@/data/admin';
+import { logoUrl } from '@/api/live/documents';
 import { useAccounts } from '@/data/accounts';
 import { useContactDirectory } from '@/data/contacts';
 import { useDoc, useDocActions, useDocPayments, useOpenDocs } from '@/data/invoices';
@@ -42,6 +44,7 @@ export const InvoiceViewLive: React.FC<{ side?: Side }> = ({ side = 'sales' }) =
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const company = useRouteCompany();
+  const settings = useSettings(company.id);
   const me = useLedgerStore((s) => s.currentUser);
   const coSlug = company.slug;
   const docQ = useDoc(id, S.resource);
@@ -284,9 +287,14 @@ export const InvoiceViewLive: React.FC<{ side?: Side }> = ({ side = 'sales' }) =
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
         <article aria-label={`${words.Title} ${doc.number ?? 'draft'}`} className="rounded-lg border border-border bg-surface px-6 py-8 sm:px-10 sm:py-10" data-testid="doc-paper">
           <div className="flex flex-wrap items-start justify-between gap-6">
-            <div className="leading-tight">
-              <div className="text-[15px] font-semibold text-text-primary">{company.name}</div>
-              {company.legal_name && company.legal_name !== company.name && <div className="text-xs text-text-muted">{company.legal_name}</div>}
+            <div className="leading-tight flex items-center gap-3">
+              {settings.data?.document_look?.has_logo && (
+                <img src={logoUrl(company.id, settings.dataUpdatedAt ?? 1)} alt="" className="h-10 max-w-24 object-contain" />
+              )}
+              <div>
+                <div className="text-[15px] font-semibold text-text-primary">{company.name}</div>
+                {company.legal_name && company.legal_name !== company.name && <div className="text-xs text-text-muted">{company.legal_name}</div>}
+              </div>
             </div>
             <div className="text-right">
               <h2 className="text-3xl font-semibold text-text-primary">{words.Title}</h2>

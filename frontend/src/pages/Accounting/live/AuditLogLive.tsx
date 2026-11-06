@@ -178,13 +178,13 @@ const Diff: React.FC<{ before: Record<string, unknown> | null; after: Record<str
   const changed = rows.filter((r) => !r.same);
   if (changed.length === 0) return <p className="text-text-muted">No fields changed.</p>;
   return (
-    <ul className="mt-1 space-y-1">
+    <ul className="mt-1 space-y-1.5">
       {changed.map(({ k, b, a }) => (
-        <li key={k} className="text-[11px] text-text-primary">
-          <span className="font-medium text-text-secondary">{humanKey(k)}:</span>{' '}
+        <li key={k} className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 rounded-md bg-surface-neutral/60 px-2 py-1.5 text-[12px]">
+          <span className="font-medium text-text-secondary">{humanKey(k)}</span>
           <span className="text-text-muted">{displayValue(k, b, currency)}</span>
-          <span aria-hidden="true" className="mx-1 text-text-muted">→</span>
-          <span className="font-medium">{displayValue(k, a, currency)}</span>
+          <span aria-hidden="true" className="text-text-muted">→</span>
+          <span className="font-semibold text-text-primary">{displayValue(k, a, currency)}</span>
         </li>
       ))}
     </ul>
