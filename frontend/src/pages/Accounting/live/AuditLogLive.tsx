@@ -15,6 +15,7 @@ import type { ApiAuditReport, AuditFilters } from '@/api/live/admin';
 import { actorLabel, cleanFilters, verifyLines, type AuditRow } from '@/api/adapters/admin';
 import { formatDateTime, formatMoney, timezoneAbbreviation } from '@/lib/format';
 import { useAuditEvents, useVerifyAudit } from '@/data/admin';
+import { useMemberNames } from '@/data/approvals';
 import { useRouteCompany } from '@/data/session';
 import { Field, field, primary, secondary } from '@/components/live/form';
 import { ErrorLine, LoadingLine } from './parts';
@@ -23,6 +24,7 @@ const EMPTY = { action: '', subject_type: '', subject_id: '', actor_id: '', requ
 
 export const AuditLogLive: React.FC = () => {
   const company = useRouteCompany();
+  const names = useMemberNames();
   const [draft, setDraft] = useState(EMPTY);
   const [applied, setApplied] = useState<AuditFilters>({});
   const events = useAuditEvents(company.id, applied);
@@ -125,7 +127,7 @@ export const AuditLogLive: React.FC = () => {
                     <td className="px-3 py-2 text-text-secondary">{r.subject}</td>
                     <td className="px-3 py-2 text-text-secondary">{actorLabel(r)}</td>
                   </tr>
-                  {openId === r.id && <tr><td colSpan={5} className="bg-canvas px-4 py-3"><Detail row={r} currency={company.base_currency} /></td></tr>}
+                  {openId === r.id && <tr><td colSpan={5} className="bg-canvas px-4 py-3"><Detail row={r} currency={company.base_currency} names={names} /></td></tr>}
                 </React.Fragment>
               ))}
             </tbody>
@@ -218,7 +220,14 @@ const Diff: React.FC<{ before: Record<string, unknown> | null; after: Record<str
   );
 };
 
-const Detail: React.FC<{ row: AuditRow; currency: string }> = ({ row, currency }) => (
+const nameOf = (names: Map<string, string>, id: unknown): string => (typeof id === 'string' && names.get(id)) || (typeof id === 'string' ? id.slice(0, 8) : '—');
+
+const Detail: React.FC<{ row: AuditRow; currency: string; names: Map<string, string> }> = ({ row, currency, names }) => {
+  const src = (row.after ?? row.before ?? {}) as Record<string, unknown>;
+  const makerId = src.created_by ?? src.submitted_by;
+  const checkerId = src.approved_by ?? src.posted_by ?? src.reversed_by;
+  const showMakerChecker = Boolean(makerId || checkerId);
+  return (
   <div className="grid grid-cols-1 gap-3 text-xs md:grid-cols-2" data-testid="audit-detail">
     <div className="md:col-span-2">
       <dt className="font-medium text-text-secondary">What changed</dt>
@@ -228,6 +237,15 @@ const Detail: React.FC<{ row: AuditRow; currency: string }> = ({ row, currency }
           : <p className="mt-1 text-text-muted">No field changes recorded for this event.</p>}
       </dd>
     </div>
+    {showMakerChecker && (
+      <div className="md:col-span-2">
+        <dt className="font-medium text-text-secondary">Segregation of duties</dt>
+        <dd className="mt-1 flex flex-wrap gap-3 text-[12px]">
+          {makerId ? <span className="rounded-md bg-surface-neutral/60 px-2 py-1">Maker: <span className="font-medium text-text-primary">{nameOf(names, makerId)}</span></span> : null}
+          {checkerId ? <span className="rounded-md bg-surface-neutral/60 px-2 py-1">Checker: <span className="font-medium text-text-primary">{nameOf(names, checkerId)}</span></span> : null}
+        </dd>
+      </div>
+    )}
     {row.context && Object.keys(row.context).length > 0 && (
       <div>
         <dt className="font-medium text-text-secondary">Background</dt>
@@ -245,7 +263,8 @@ const Detail: React.FC<{ row: AuditRow; currency: string }> = ({ row, currency }
       </details>
     </div>
   </div>
-);
+  );
+};
 
 /** Runs the chain check and shows the server's report as it is: intact, or exactly where and why it broke. */
 const VerifyPanel: React.FC<{ companyId: string }> = ({ companyId }) => {
