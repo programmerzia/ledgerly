@@ -148,8 +148,9 @@ export const AuditLogLive: React.FC = () => {
             return (
               <>
                 <SheetHeader>
-                  <SheetTitle>{r.actionText}</SheetTitle>
+                  <SheetTitle className="flex items-center gap-2">{r.actionText}<span className="rounded-full bg-success-soft px-2 py-0.5 text-[10px] font-medium text-success">Chained</span></SheetTitle>
                   <SheetDescription>{formatDateTime(r.at)} {r.at ? timezoneAbbreviation(company.timezone, r.at) : ''} · {actorLabel(r)} · {r.subject}</SheetDescription>
+                  <p className="mt-1 font-mono text-[10px] text-text-muted" title={r.hash}>Hash {r.hash.slice(0, 12)}…{r.hash.slice(-8)}</p>
                 </SheetHeader>
                 <div className="mt-4">
                   <Detail row={r} currency={company.base_currency} names={names} />
