@@ -97,11 +97,9 @@ npm run build
 
 ---
 
-## 6. End-to-End Walkthrough & Documentation
+## 6. Usability tracker
 
-- **[DEMO_SCRIPT.md](DEMO_SCRIPT.md)**: Comprehensive **14-step walkthrough** demonstrating the entire application end-to-end (login, controls validation, independent PIN signing, receipt allocation, bank reconciliation, period close, closed-period blocking, dual-approver reopen, journal reversal, offline sync with 409 conflict dialog, payment run with WHT, FX revaluation run, and Balance Sheet branch pivot).
-- **[MIGRATION_NOTES.md](MIGRATION_NOTES.md)**: Production migration blueprint covering the component readiness matrix, selector-to-SQL mapping, Laravel 11 REST API contract, and PostgreSQL 16 triggers, sequences, and Row-Level Security policies.
-- **Live Usability Tracker**: Press `Ctrl+Shift+U` or append `?usability` to the URL at any time to open the built-in usability telemetry drawer tracking demo step completion, timers, and friction events.
+Press `Ctrl+Shift+U` or append `?usability` to the URL to open the usability telemetry drawer.
 
 ---
 

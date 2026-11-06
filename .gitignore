@@ -13,3 +13,16 @@ node_modules
 *.log
 /frontend/dist
 /node_modules/
+
+# Local-only: planning docs, agent notes, and machine-specific tool state.
+# docs/api and docs/fixtures stay tracked; tests and CI read them.
+/docs/*
+!/docs/api/
+!/docs/fixtures/
+/CLAUDE.md
+/AGENTS.md
+/MIGRATION_NOTES.md
+/backend/CLAUDE.md
+/backend/AGENTS.md
+.claude/
+.commandcode/
