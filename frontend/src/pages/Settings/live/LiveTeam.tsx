@@ -53,7 +53,7 @@ export const LiveTeam: React.FC = () => {
                       <div className="font-medium text-text-primary">{m.name}</div>
                       <div className="text-xs text-text-muted">{m.email}</div>
                     </td>
-                    <td className="py-2.5 pr-3 align-top text-text-secondary">{ORG_ROLE_LABEL[m.orgRole] ?? m.orgRole}{m.status !== 'active' ? ` (${m.status})` : ''}</td>
+                    <td className="py-2.5 pr-3 align-top text-text-secondary">{ORG_ROLE_LABEL[m.orgRole] ?? m.orgRole.replace(/_/g, ' ')}{m.status !== 'active' ? ` (${m.status.replace(/_/g, ' ')})` : ''}</td>
                     <td className="py-2.5 align-top">
                       <div className="flex flex-wrap items-center gap-1.5">
                         {m.companyRoles.length === 0 && <span className="text-text-muted">None</span>}
@@ -101,7 +101,7 @@ export const LiveTeam: React.FC = () => {
               <li key={i.id} data-invitation={i.email} className="flex items-center gap-3 py-2.5 text-[13px]">
                 <div className="min-w-0 flex-1">
                   <div className="font-medium text-text-primary truncate">{i.email}</div>
-                  <div className="text-xs text-text-muted">{i.company_role ?? ORG_ROLE_LABEL[i.role] ?? i.role} · expires {formatDate(i.expires_at.slice(0, 10))}</div>
+                  <div className="text-xs text-text-muted">{i.company_role ?? ORG_ROLE_LABEL[i.role] ?? i.role.replace(/_/g, ' ')} · expires {formatDate(i.expires_at)}</div>
                 </div>
                 {i.can.revoke && (
                   <button type="button" disabled={revoke.isPending} onClick={() => revoke.mutate(i.id, { onError: (e) => toast.error(describeError(e)) })} className={`${secondary} h-7 px-2.5 text-xs`}>Withdraw</button>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { useReport, useStatementContacts } from '@/data/reports';
 import { useRouteCompany } from '@/data/session';
+import { formatDate } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { ReportCard, SelectBox, longDate, tone } from '../ReportParts';
 import { LiveReportShell } from './LiveReportShell';
@@ -60,7 +61,7 @@ export const LiveStatement: React.FC<{ side: 'customer' | 'supplier' }> = ({ sid
             <div className="divide-y divide-border/60">
               {st.rows.map((r, i) => (
                 <div key={i} className={`${GRID} items-baseline px-4 py-1.5 text-xs`}>
-                  <span className="tabular-nums text-text-muted">{r.date}</span>
+                  <span className="tabular-nums text-text-muted">{formatDate(r.date)}</span>
                   <span className="text-text-secondary">{TYPE_LABEL[r.type] ?? r.type}</span>
                   <span className="font-code text-text-muted">{r.documentNumber ?? dash}</span>
                   <span className="truncate text-text-primary">{r.description ?? dash}</span>

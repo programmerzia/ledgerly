@@ -185,7 +185,7 @@ export const BankImportLive: React.FC = () => {
           There is no bank account you can import into. <Link to={`/${company.slug}/banking`} className="text-accent hover:underline">Add one first</Link>.
         </p>
       ) : result ? (
-        <ResultPanel result={result} bank={bank} slug={company.slug} onAnother={reset} />
+        <ResultPanel result={result} bank={bank} slug={company.slug} baseCurrency={company.base_currency} onAnother={reset} />
       ) : (
         <div className="rounded-lg border border-border bg-surface">
           <ol className="flex flex-wrap gap-x-6 gap-y-1 border-b border-border px-5 py-3 text-xs">
@@ -380,7 +380,7 @@ export const BankImportLive: React.FC = () => {
   );
 };
 
-const ResultPanel: React.FC<{ result: StatementImportResult; bank: LiveBankAccount | undefined; slug: string; onAnother: () => void }> = ({ result, bank, slug, onAnother }) => (
+const ResultPanel: React.FC<{ result: StatementImportResult; bank: LiveBankAccount | undefined; slug: string; baseCurrency: string; onAnother: () => void }> = ({ result, bank, slug, baseCurrency, onAnother }) => (
   <div className="flex flex-col gap-4 rounded-lg border border-border bg-surface p-5" data-testid="import-result">
     <div className="flex items-center gap-2 text-sm font-semibold text-text-primary">
       <CheckCircle2 className="size-5 text-success" />
@@ -398,7 +398,7 @@ const ResultPanel: React.FC<{ result: StatementImportResult; bank: LiveBankAccou
             {result.statement.period_from} to {result.statement.period_to}
           </dd>
           <dt className="text-text-muted">Closing balance</dt>
-          <dd className="tabular-nums text-text-primary">{result.statement.closing_balance === null ? 'not stated' : formatMoney(result.statement.closing_balance, bank?.currency ?? 'USD')}</dd>
+          <dd className="tabular-nums text-text-primary">{result.statement.closing_balance === null ? 'not stated' : formatMoney(result.statement.closing_balance, bank?.currency ?? baseCurrency)}</dd>
         </>
       )}
     </dl>

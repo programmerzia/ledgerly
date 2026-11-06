@@ -140,7 +140,7 @@ export const CustomerCardLive: React.FC<{ side?: Side }> = ({ side = 'sales' }) 
         <dl className="grid gap-x-8 gap-y-3 rounded-lg border border-border bg-surface p-5 text-[13px] sm:grid-cols-2">
           {([
             ['Phone', c.phone],
-            ['Tax ID', c.tax_id],
+            ['UID / MWST number', c.tax_id],
             [side === 'sales' ? 'Billing address' : 'Address', c.billing_address.join(', ')],
             ['Notes', c.notes],
           ] as const).map(([k, v]) => (

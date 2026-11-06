@@ -117,7 +117,7 @@ const CodeDialog: React.FC<{ code?: LiveTaxCode; onClose: () => void; onConflict
         </DialogHeader>
         <form className="grid grid-cols-2 gap-3" onSubmit={(e) => { e.preventDefault(); void save(); }}>
           <Field id="tc-code" label="Code" error={errors.code}>
-            <input id="tc-code" value={form.code} onChange={(e) => set('code', e.target.value)} disabled={Boolean(code)} placeholder="e.g. VAT10" className={inputClass} autoFocus={!code} />
+            <input id="tc-code" value={form.code} onChange={(e) => set('code', e.target.value)} disabled={Boolean(code)} placeholder="e.g. MWST" className={inputClass} autoFocus={!code} />
           </Field>
           <Field id="tc-name" label="Name" error={errors.name}>
             <input id="tc-name" value={form.name} onChange={(e) => set('name', e.target.value)} className={inputClass} autoFocus={Boolean(code)} />
@@ -129,7 +129,7 @@ const CodeDialog: React.FC<{ code?: LiveTaxCode; onClose: () => void; onConflict
           </Field>
           {!code && (
             <Field id="tc-percent" label="Rate (%)" error={errors.percent ?? errors.rate} hint={NO_RATE_KINDS.has(form.kind) ? 'Exempt and zero-rated codes carry a rate of 0.' : undefined}>
-              <input id="tc-percent" inputMode="decimal" value={NO_RATE_KINDS.has(form.kind) ? '0' : form.percent} disabled={NO_RATE_KINDS.has(form.kind)} onChange={(e) => set('percent', e.target.value)} placeholder="e.g. 7.5" className={inputClass} />
+              <input id="tc-percent" inputMode="decimal" value={NO_RATE_KINDS.has(form.kind) ? '0' : form.percent} disabled={NO_RATE_KINDS.has(form.kind)} onChange={(e) => set('percent', e.target.value)} placeholder="e.g. 8.1" className={inputClass} />
             </Field>
           )}
           {!code && (
@@ -137,7 +137,7 @@ const CodeDialog: React.FC<{ code?: LiveTaxCode; onClose: () => void; onConflict
               <input id="tc-from" type="date" value={form.from} onChange={(e) => set('from', e.target.value)} className={inputClass} />
             </Field>
           )}
-          <Field id="tc-collect" label="Sales tax account" hint="Optional. Left empty, the company’s posting account is used." error={errors.collect_account_id}>
+          <Field id="tc-collect" label="MWST/VAT account" hint="Optional. Left empty, the company’s posting account is used." error={errors.collect_account_id}>
             <select id="tc-collect" value={form.collect} onChange={(e) => set('collect', e.target.value)} className={inputClass}>
               <option value="">Company default</option>
               {postable.map((a) => (<option key={a.id} value={a.id}>{a.code} {a.name}</option>))}
@@ -230,7 +230,7 @@ const RateDialog: React.FC<{ code: LiveTaxCode; onClose: () => void; onConflict:
         )}
         <form className="grid grid-cols-2 gap-3" onSubmit={(e) => { e.preventDefault(); void save(); }}>
           <Field id="rt-percent" label="Rate (%)" error={errors.percent ?? errors.rate}>
-            <input id="rt-percent" inputMode="decimal" value={percent} onChange={(e) => setPercent(e.target.value)} placeholder="e.g. 7.5" className={inputClass} autoFocus />
+            <input id="rt-percent" inputMode="decimal" value={percent} onChange={(e) => setPercent(e.target.value)} placeholder="e.g. 8.1" className={inputClass} autoFocus />
           </Field>
           <Field id="rt-from" label="Starts on" error={errors.effective_from}>
             <input id="rt-from" type="date" value={from} onChange={(e) => setFrom(e.target.value)} className={inputClass} />
@@ -477,7 +477,7 @@ export const TaxLive: React.FC = () => {
           ) : visibleGroups.length === 0 ? (
             <div className="flex flex-col items-center px-6 py-14 text-center">
               <h3 className="text-sm font-semibold text-text-primary">No tax groups yet</h3>
-              <p className="mt-1 max-w-sm text-[13px] text-text-muted">A group puts several codes together, for example a state tax and a city tax.</p>
+              <p className="mt-1 max-w-sm text-[13px] text-text-muted">A group puts several codes together, for example MWST on sales you owe to the federal tax administration.</p>
               <button type="button" onClick={() => setDialog({ type: 'group' })} className="mt-4 h-8 rounded-md bg-accent px-3 text-[13px] font-medium text-white hover:bg-accent-hover">New tax group</button>
             </div>
           ) : (

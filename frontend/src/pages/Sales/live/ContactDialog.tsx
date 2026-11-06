@@ -11,7 +11,7 @@ import { useContactActions } from '@/data/contacts';
 import { inputClass } from './parts';
 import { SIDES } from './side';
 
-const CURRENCIES = ['USD', 'EUR', 'GBP', 'KES', 'SOS', 'JPY'];
+const CURRENCIES = ['CHF', 'USD', 'EUR', 'GBP'];
 
 interface Props {
   open: boolean;
@@ -117,7 +117,7 @@ export const ContactDialog: React.FC<Props> = ({ open, onClose, contact, kind = 
             {field('c-code', 'Code', <input id="c-code" value={draft.code} onChange={(e) => set('code', e.target.value)} placeholder={kind === 'supplier' ? 'e.g. SUP-001' : 'e.g. CUST-001'} className={inputClass} disabled={Boolean(contact)} />, errors.code)}
             {field('c-email', 'Email', <input id="c-email" type="email" value={draft.email} onChange={(e) => set('email', e.target.value)} className={inputClass} />, errors.email)}
             {field('c-phone', 'Phone', <input id="c-phone" value={draft.phone} onChange={(e) => set('phone', e.target.value)} className={inputClass} />, errors.phone)}
-            {field('c-tax', 'Tax ID', <input id="c-tax" value={draft.tax_id} onChange={(e) => set('tax_id', e.target.value)} className={inputClass} />, errors.tax_id)}
+            {field('c-tax', 'UID / MWST number', <input id="c-tax" value={draft.tax_id} onChange={(e) => set('tax_id', e.target.value)} className={inputClass} />, errors.tax_id)}
             {field(
               'c-cur',
               'Currency',

@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ApiError } from '@/api/errors';
 import { describeError } from '@/api/messages';
-import { formatDateTime, formatMoney, getFormatPrefs } from '@/lib/format';
+import { formatDate, formatDateTime, formatMoney, getFormatPrefs } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import type { DrillKey, Figure } from '@/api/adapters/report';
 import { useDrill } from '@/data/reports';
@@ -128,7 +128,7 @@ export const DrillDialog: React.FC<{ target: DrillTarget | null; onClose: () => 
           <DialogTitle>{target?.title ?? 'Transactions'}</DialogTitle>
           <DialogDescription>
             {first ? `${first.summary.account.code} ${first.summary.account.name}` : ''}
-            {key ? ` · ${key.from ? `${key.from} to ` : 'up to '}${key.to}` : ''}
+            {key ? ` · ${key.from ? `${formatDate(key.from)} to ` : 'up to '}${formatDate(key.to)}` : ''}
             {key?.exclude_closing ? ' · year-end closing entries left out' : ''}
             {key?.contact_side ? ` · ${key.contact_side === 'credit' ? 'contacts in credit' : 'contacts in debit'}` : ''}
           </DialogDescription>
@@ -157,7 +157,7 @@ export const DrillDialog: React.FC<{ target: DrillTarget | null; onClose: () => 
                 <tbody className="divide-y divide-border/60">
                   {lines.map((l) => (
                     <tr key={l.id}>
-                      <td className="px-3 py-1.5 tabular-nums whitespace-nowrap text-text-muted">{l.date}</td>
+                      <td className="px-3 py-1.5 tabular-nums whitespace-nowrap text-text-muted">{formatDate(l.date)}</td>
                       <td className="px-3 py-1.5 whitespace-nowrap">
                         <Link to={`/${company.slug}/journals/${l.journalId}`} className="text-accent hover:underline">
                           {l.journalNumber ?? 'Draft'}

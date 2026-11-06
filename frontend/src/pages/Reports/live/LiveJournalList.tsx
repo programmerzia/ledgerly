@@ -13,8 +13,28 @@ import { Link } from 'react-router-dom';
 import { useReportPeriods } from '@/data/reports';
 
 const STATUSES = ['draft', 'pending_approval', 'posted', 'reversed', 'void'];
+const STATUS_LABEL: Record<string, string> = {
+  draft: 'Draft',
+  pending_approval: 'Pending approval',
+  posted: 'Posted',
+  reversed: 'Reversed',
+  void: 'Void',
+};
+const SOURCE_LABEL: Record<string, string> = {
+  sales_invoice: 'Invoice',
+  credit_note: 'Credit note',
+  purchase_bill: 'Bill',
+  debit_note: 'Debit note',
+  settlement: 'Settlement',
+  asset_revaluation: 'Asset revaluation',
+  opening_balance: 'Opening balance',
+  manual: 'Typed by hand',
+  none: 'Typed by hand',
+};
 const input = 'h-8 px-2 rounded-md border border-border bg-surface text-xs text-text-primary hover:border-border-strong focus:outline-none focus:border-accent';
 const words = (s: string) => s.replace(/_/g, ' ');
+const statusLabel = (s: string) => STATUS_LABEL[s] ?? words(s);
+const sourceLabel = (s: string) => SOURCE_LABEL[s] ?? words(s);
 
 export const LiveJournalList: React.FC = () => {
   const company = useRouteCompany();
@@ -70,12 +90,12 @@ export const LiveJournalList: React.FC = () => {
         )}
         <SelectBox aria-label="Status" value={f.status} onChange={(e) => set({ status: e.target.value })}>
           <option value="">Any status</option>
-          {STATUSES.map((s) => <option key={s} value={s}>{words(s)}</option>)}
+          {STATUSES.map((s) => <option key={s} value={s}>{statusLabel(s)}</option>)}
         </SelectBox>
         <SelectBox aria-label="Source" value={f.source} onChange={(e) => set({ source: e.target.value })}>
           <option value="">Any source</option>
           <option value="none">Typed by hand</option>
-          {(choices?.sources ?? []).map((s) => <option key={s} value={s}>{words(s)}</option>)}
+          {(choices?.sources ?? []).map((s) => <option key={s} value={s}>{sourceLabel(s)}</option>)}
         </SelectBox>
         <SelectBox aria-label="Person" value={f.user} onChange={(e) => set({ user: e.target.value })}>
           <option value="">Anyone</option>
@@ -108,9 +128,9 @@ export const LiveJournalList: React.FC = () => {
                     <span className="text-text-secondary">{formatDate(j.date)}</span>
                     <span className="text-text-primary">
                       {[j.reference, j.memo].filter(Boolean).join(' · ') || <span className="text-text-muted">no reference</span>}
-                      <span className="ml-2 text-text-muted">{j.source ? words(j.source.type) : 'typed by hand'}{j.created_by?.name ? ` · ${j.created_by.name}` : ''}{j.posted_by?.name ? ` · posted by ${j.posted_by.name}` : ''}</span>
+                      <span className="ml-2 text-text-muted">{j.source ? sourceLabel(j.source.type) : 'typed by hand'}{j.created_by?.name ? ` · ${j.created_by.name}` : ''}{j.posted_by?.name ? ` · posted by ${j.posted_by.name}` : ''}</span>
                     </span>
-                    <span className="text-text-secondary">{words(j.status)}</span>
+                    <span className="text-text-secondary">{statusLabel(j.status)}</span>
                     <span className="text-right tabular-nums">{money(j.debit.amount)}</span>
                     <span className="text-right tabular-nums">{money(j.credit.amount)}</span>
                   </div>

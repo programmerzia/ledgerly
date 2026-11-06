@@ -18,7 +18,7 @@ import { IntentSlot } from '@/api/intentSlot';
 import { draftOfItem, toItemRequest, type ItemDraft, type LiveItem } from '@/api/adapters/item';
 import { BTN_ACCENT, ErrorLine, LoadMore, LoadingLine, TableCard, inputClass, useDebounced } from './parts';
 
-const CURRENCIES = ['USD', 'EUR', 'GBP', 'KES', 'SOS', 'JPY'];
+const CURRENCIES = ['CHF', 'USD', 'EUR', 'GBP'];
 
 const Field: React.FC<{ id: string; label: string; error?: string; hint?: string; children: React.ReactNode }> = ({ id, label, error, hint, children }) => (
   <div className="flex flex-col gap-1">

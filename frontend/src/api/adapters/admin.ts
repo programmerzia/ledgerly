@@ -46,7 +46,7 @@ export interface PostingRow {
   accountLabel: string | null;
 }
 
-const humanKey = (key: string) => {
+export const humanKey = (key: string) => {
   const t = key.replace(/_/g, ' ');
   return t.charAt(0).toUpperCase() + t.slice(1);
 };

@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useGeneralLedger, useReportAccounts } from '@/data/reports';
 import { useRouteCompany } from '@/data/session';
+import { formatDate } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { ReportCard, SelectBox, longDate, tone } from '../ReportParts';
 import { LiveReportShell } from './LiveReportShell';
@@ -64,7 +65,7 @@ export const LiveGeneralLedger: React.FC = () => {
             <div className="divide-y divide-border/60" data-testid="gl-lines">
               {lines.map((l) => (
                 <div key={l.id} className={`${GRID} items-baseline px-4 py-1.5 text-xs`}>
-                  <span className="tabular-nums text-text-muted whitespace-nowrap">{l.date}</span>
+                  <span className="tabular-nums text-text-muted whitespace-nowrap">{formatDate(l.date)}</span>
                   <span>
                     <Link to={`/${company.slug}/journals/${l.journalId}`} className="font-code text-accent hover:underline">{l.journalNumber ?? 'Draft'}</Link>
                   </span>

@@ -578,7 +578,7 @@ const InvoiceFormInner: React.FC<{ side: Side }> = ({ side }) => {
         )}
         <div className="flex flex-col gap-1">
           <label htmlFor="d-ref" className="text-xs font-medium text-text-secondary">Reference</label>
-          <input id="d-ref" value={reference} onChange={(e) => setReference(e.target.value)} placeholder={side === 'purchases' ? "The supplier’s own number" : "e.g. PO-4471"} className={inputClass} />
+          <input id="d-ref" value={reference} onChange={(e) => setReference(e.target.value)} placeholder={side === 'purchases' ? "The supplier’s own number" : "e.g. CH-XX"} className={inputClass} />
         </div>
         {side === 'purchases' && kind === S.mainKind && (
           <div className="flex flex-col gap-1">

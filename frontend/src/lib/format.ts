@@ -6,19 +6,27 @@
 
 const CURRENCY_MINORS: Record<string, number> = {
   USD: 2,
+  CHF: 2,
   KES: 2,
   SOS: 2,
   EUR: 2,
   GBP: 2,
+  BDT: 2,
+  AED: 2,
+  SAR: 2,
   JPY: 0,
 };
 
 const CURRENCY_SYMBOLS: Record<string, string> = {
   USD: '$',
+  CHF: 'CHF',
   KES: 'KSh',
   SOS: 'Sh.So.',
   EUR: '€',
   GBP: '£',
+  BDT: 'Tk',
+  AED: 'Dhs',
+  SAR: 'SR',
 };
 
 /**
@@ -244,6 +252,20 @@ export function formatRelativeTime(dateString: string): string {
  * Standard for base-currency conversions and ledgers (D1).
  * Avoids JS Math.round error on negative numbers (Math.round(-0.5) is -0).
  */
+/**
+ * Short time-zone abbreviation for a company's IANA zone, e.g. "CET" for Europe/Zurich.
+ * Used to give audit-log timestamps their missing time-zone context.
+ */
+export function timezoneAbbreviation(timezone: string, date: string | Date = new Date()): string {
+  if (!timezone) return '';
+  try {
+    const parts = new Intl.DateTimeFormat('en', { timeZone: timezone, timeZoneName: 'short' }).formatToParts(new Date(date));
+    return parts.find((p) => p.type === 'timeZoneName')?.value ?? timezone;
+  } catch {
+    return timezone;
+  }
+}
+
 export function roundHalfUp(val: number): number {
   const sign = val < 0 ? -1 : 1;
   const abs = Math.abs(val);

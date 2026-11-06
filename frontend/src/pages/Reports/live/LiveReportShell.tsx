@@ -25,8 +25,8 @@ const FORMATS: Array<{ value: ExportFormat; label: string }> = [
 
 function exportFailure(e: unknown): string {
   if (e instanceof ApiError && e.status === 403) return 'Your role can view reports but not export them.';
-  const text = describeError(e);
-  return e instanceof ApiError && e.requestId && e.status >= 500 ? `${text} (reference ${e.requestId})` : text;
+  if (e instanceof ApiError && e.requestId && e.status >= 500) console.error('report export failed', e.requestId);
+  return describeError(e);
 }
 
 export interface LiveReportShellProps {

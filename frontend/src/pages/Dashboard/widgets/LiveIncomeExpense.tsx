@@ -4,17 +4,21 @@ import { ComposedChart, Bar, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, C
 import { Card, CardHeader } from './Card';
 import { ChartTooltip } from './ChartTooltip';
 import type { MonthPnl } from '@/api/live/dashboardExtras';
+import { getCurrencyMinorUnits, getCurrencySymbol } from '@/lib/format';
 
 export interface MonthBar {
   label: string;
   pnl: MonthPnl;
 }
 
-const compact = (v: number) => {
-  const m = v / 100;
-  if (Math.abs(m) >= 1_000_000) return `${(m / 1_000_000).toFixed(1)}M`;
-  if (Math.abs(m) >= 1000) return `${Math.round(m / 1000)}k`;
-  return `${Math.round(m)}`;
+const compact = (v: number, currency: string) => {
+  const decimals = getCurrencyMinorUnits(currency);
+  const major = v / Math.pow(10, decimals);
+  const symbol = getCurrencySymbol(currency);
+  const prefix = /\p{L}/u.test(symbol) ? `${symbol} ` : symbol;
+  if (Math.abs(major) >= 1_000_000) return `${prefix}${(major / 1_000_000).toFixed(1)}M`;
+  if (Math.abs(major) >= 1000) return `${prefix}${Math.round(major / 1000)}k`;
+  return `${prefix}${Math.round(major)}`;
 };
 
 /**
@@ -50,7 +54,7 @@ export const LiveIncomeExpense: React.FC<{ months: MonthBar[]; currency: string;
             <ComposedChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }} barGap={4} barCategoryGap="28%">
               <CartesianGrid vertical={false} stroke="var(--color-border)" />
               <XAxis dataKey="label" tickLine={false} axisLine={false} fontSize={11} tick={{ fill: 'var(--color-text-muted)' }} />
-              <YAxis tickLine={false} axisLine={false} width={44} fontSize={11} tick={{ fill: 'var(--color-text-muted)' }} tickFormatter={compact} />
+              <YAxis tickLine={false} axisLine={false} width={44} fontSize={11} tick={{ fill: 'var(--color-text-muted)' }} tickFormatter={(v) => compact(v, currency)} />
               <Tooltip cursor={{ fill: 'var(--color-surface-neutral)', opacity: 0.6 }} content={<ChartTooltip currency={currency} />} />
               <Bar stackId="income" dataKey="revenue" name="Revenue" fill="var(--color-accent)" maxBarSize={18} isAnimationActive={false} />
               <Bar stackId="income" dataKey="otherIncome" name="Other income" fill="var(--color-accent)" fillOpacity={0.6} radius={[1, 1, 0, 0]} maxBarSize={18} isAnimationActive={false} />

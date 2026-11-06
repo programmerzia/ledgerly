@@ -45,7 +45,7 @@ function skipText(r: BulkResultRow): string {
     case 'forbidden':
       return 'You do not have permission to approve this.';
     default:
-      return r.reason || r.code || 'Skipped';
+      return r.reason || (r.code ? r.code.replace(/_/g, ' ') : 'Skipped');
   }
 }
 

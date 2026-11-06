@@ -93,10 +93,10 @@ const GeneralForm: React.FC<{ settings: ApiSettings; companyId: string }> = ({ s
           <Field id="co-tax" label="Tax number" error={fieldError(error, 'tax_id')}>
             <input id="co-tax" className={field} value={form.tax_id} onChange={set('tax_id')} disabled={!canEdit} maxLength={64} />
           </Field>
-          <Field id="co-tz" label="Time zone" hint="For example Europe/Sofia. Decides which day a posting falls on." error={fieldError(error, 'timezone')}>
+          <Field id="co-tz" label="Time zone" hint="For example Europe/Zurich. Decides which day a posting falls on." error={fieldError(error, 'timezone')}>
             <input id="co-tz" className={field} value={form.timezone} onChange={set('timezone')} disabled={!canEdit} />
           </Field>
-          <Field id="co-locale" label="Language and format" hint="For example en or bg-BG." error={fieldError(error, 'locale')}>
+          <Field id="co-locale" label="Language and format" hint="For example en or de-CH." error={fieldError(error, 'locale')}>
             <input id="co-locale" className={field} value={form.locale} onChange={set('locale')} disabled={!canEdit} maxLength={16} />
           </Field>
           <Field id="co-round" label="Round tax" error={fieldError(error, 'tax_rounding')}>

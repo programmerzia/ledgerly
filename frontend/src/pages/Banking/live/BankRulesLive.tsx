@@ -364,7 +364,7 @@ const RuleDialog: React.FC<{ target: LiveBankRule | 'new' | null; onClose: () =>
           </DialogHeader>
           <form onSubmit={(e) => { e.preventDefault(); void save(); }} className="flex flex-col gap-3">
             <Field label="Rule name">
-              <input className={inputCls} autoFocus value={form.name} onChange={(e) => set('name', e.target.value)} placeholder="e.g. Generator fuel" aria-label="Rule name" />
+              <input className={inputCls} autoFocus value={form.name} onChange={(e) => set('name', e.target.value)} placeholder="e.g. CORR-" aria-label="Rule name" />
               {fieldError(error, 'name') && <span className="text-[11px] text-danger">{fieldError(error, 'name')}</span>}
             </Field>
             <div className="rounded-lg border border-border p-3">
@@ -376,7 +376,7 @@ const RuleDialog: React.FC<{ target: LiveBankRule | 'new' | null; onClose: () =>
                   options={[{ value: 'out', label: 'Money out' }, { value: 'in', label: 'Money in' }, { value: 'any', label: 'Either' }]}
                 />
                 <Field label="contains (any part of the description, name or reference)">
-                  <input className={inputCls} value={form.contains} onChange={(e) => set('contains', e.target.value)} placeholder="e.g. FUEL" aria-label="Contains" />
+                  <input className={inputCls} value={form.contains} onChange={(e) => set('contains', e.target.value)} placeholder="e.g. CH-XX" aria-label="Contains" />
                 </Field>
                 <div className="grid grid-cols-2 gap-3">
                   <Field label="Smallest amount (optional)">

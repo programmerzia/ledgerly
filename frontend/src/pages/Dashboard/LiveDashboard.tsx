@@ -196,6 +196,8 @@ export const LiveDashboard: React.FC = () => {
           const bars = first < 0 ? all : all.slice(first);
           return bars.length > 0 ? <LiveIncomeExpense className="lg:col-span-7" months={bars} currency={bars[0].pnl.currency} to={`${co}/reports/profit-and-loss`} /> : null;
         })()}
+        {panelState(activity) === 'loading' && <Card className="lg:col-span-5"><CardHeader title="Recent activity" /><p role="status" className="px-5 pb-5 text-[13px] text-text-muted">Loading…</p></Card>}
+        {panelState(activity) === 'error' && <Card className="lg:col-span-5"><CardHeader title="Recent activity" /><Retry error={activity.error} onRetry={() => void activity.refetch()} /></Card>}
         {panelState(activity) === 'ready' && <LiveActivity className="lg:col-span-5" rows={activity.data ?? []} co={co} />}
       </div>
 

@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { reportQuery, useReport } from '@/data/reports';
 import { useRouteCompany } from '@/data/session';
 import { AGING_BUCKETS, type AgingBucket } from '@/api/adapters/report';
+import { formatDate } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { ReportCard, Segmented, longDate, tone } from '../ReportParts';
 import { LiveReportShell } from './LiveReportShell';
@@ -14,7 +15,7 @@ const BUCKET_LABEL: Record<AgingBucket, string> = {
   current: 'Not yet due', days_1_30: '1–30 days', days_31_60: '31–60 days', days_61_90: '61–90 days', days_over_90: 'Over 90 days',
 };
 const GRID = 'grid grid-cols-[minmax(10rem,1fr)_repeat(5,6.5rem)_7rem_7rem_7.5rem] gap-3';
-const KIND_LABEL: Record<string, string> = { credit_note: 'Credit note', debit_note: 'Debit note', receipt: 'Receipt', payment: 'Payment', refund: 'Refund', supplier_refund: 'Supplier refund' };
+const KIND_LABEL: Record<string, string> = { sales_invoice: 'Invoice', credit_note: 'Credit note', purchase_bill: 'Bill', debit_note: 'Debit note', receipt: 'Receipt', payment: 'Payment', refund: 'Refund', supplier_refund: 'Supplier refund' };
 
 export const LiveAging: React.FC = () => {
   const company = useRouteCompany();
@@ -127,9 +128,9 @@ export const LiveAging: React.FC = () => {
                   {ag.credits.map((c) => (
                     <div key={c.id} className="grid grid-cols-[minmax(10rem,1fr)_8rem_8rem_7rem_8rem] gap-3 items-baseline px-4 py-1.5 text-xs">
                       <span className="text-text-primary">{c.contact.name}</span>
-                      <span className="text-text-secondary">{KIND_LABEL[c.kind] ?? c.kind}</span>
+                      <span className="text-text-secondary">{KIND_LABEL[c.kind] ?? c.kind.replace(/_/g, ' ')}</span>
                       <span className="font-code text-text-muted">{c.number ?? '—'}</span>
-                      <span className="tabular-nums text-text-muted">{c.date}</span>
+                      <span className="tabular-nums text-text-muted">{formatDate(c.date)}</span>
                       <span className="text-right tabular-nums">{money(c.amount)}</span>
                     </div>
                   ))}
