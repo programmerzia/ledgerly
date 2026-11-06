@@ -1,0 +1,16 @@
+#!/bin/sh
+# GitHub lists Co-authored-by addresses as contributors. Drop those trailers so
+# assistant tools never appear beside the repo owner.
+set -eu
+file=$1
+tmp=$(mktemp)
+awk '
+  BEGIN { IGNORECASE = 1 }
+  /^[[:space:]]*co-authored-by:/ { next }
+  { lines[++n] = $0 }
+  END {
+    while (n > 0 && lines[n] ~ /^[[:space:]]*$/) n--
+    for (i = 1; i <= n; i++) print lines[i]
+  }
+' "$file" > "$tmp"
+mv "$tmp" "$file"
