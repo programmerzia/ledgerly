@@ -8244,6 +8244,7 @@ export interface components {
         /** PublicInvoiceResource */
         PublicInvoiceResource: {
             company_name: string;
+            logo: string | null;
             bill_to: string;
             number: string;
             issue_date: string;

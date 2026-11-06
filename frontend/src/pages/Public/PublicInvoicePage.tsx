@@ -92,10 +92,13 @@ const Invoice: React.FC<{ token: string; inv: PublicInvoice }> = ({ token, inv }
   return (
     <article className="rounded-lg border border-border bg-surface p-5 sm:p-8" aria-label={`Invoice ${inv.number}`}>
       <header className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <p className="text-xs text-text-muted">{inv.company_name}</p>
-          <h1 className="text-xl font-semibold">Invoice {inv.number}</h1>
-          <p className="mt-1 text-sm text-text-secondary">For {inv.bill_to}</p>
+        <div className="flex items-center gap-3">
+          {inv.logo && <img src={inv.logo} alt="" className="h-10 max-w-24 object-contain" />}
+          <div>
+            <p className="text-xs text-text-muted">{inv.company_name}</p>
+            <h1 className="text-xl font-semibold">Invoice {inv.number}</h1>
+            <p className="mt-1 text-sm text-text-secondary">For {inv.bill_to}</p>
+          </div>
         </div>
         <span className={cn('rounded-full px-3 py-1 text-xs font-medium', TONE[look.tone])} data-testid="status">{look.label}</span>
       </header>

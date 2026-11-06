@@ -6,7 +6,7 @@
     },
     "servers": [
         {
-            "url": "http://localhost:8000/api"
+            "url": "http://137.184.74.217:18080/api"
         }
     ],
     "paths": {
@@ -49576,6 +49576,12 @@
                     "company_name": {
                         "type": "string"
                     },
+                    "logo": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
                     "bill_to": {
                         "type": "string"
                     },
@@ -49732,6 +49738,7 @@
                 },
                 "required": [
                     "company_name",
+                    "logo",
                     "bill_to",
                     "number",
                     "issue_date",
